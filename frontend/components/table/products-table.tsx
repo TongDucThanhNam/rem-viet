@@ -84,7 +84,8 @@ export default function ProductsTable() {
                     new Date(
                         new Date().getTime() -
                         +(startDateFilter.match(/(\d+)(?=Days)/)?.[0] ?? 0) * 24 * 60 * 60 * 1000,
-                    ) <= new Date(col.startDate))
+                    ) <= new Date(col.startDate)
+                )
             );
         },
         [startDateFilter, statusFilter, workerTypeFilter],
@@ -471,6 +472,7 @@ export default function ProductsTable() {
             direction: sortDescriptor.direction === "ascending" ? "descending" : "ascending",
         });
     });
+
 
     return (
         <div className="h-screen w-screen p-6">

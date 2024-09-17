@@ -1,10 +1,16 @@
 {
   "compilerOptions": {
     "target": "es6",
+    // ECMAScript target version
     "module": "commonjs",
+    // Module system
     "rootDir": "./",
+    // Root directory
     "outDir": "./build",
+    // Output directory
     "esModuleInterop": true,
+    // Enables compatibility with CommonJS modules
     "strict": true
+    // Enable all strict type-checking options
   }
 }

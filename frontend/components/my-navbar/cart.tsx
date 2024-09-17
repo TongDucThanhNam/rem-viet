@@ -35,7 +35,7 @@ export const CartDropdown = () => {
         aria-label="User menu actions"
         onAction={(actionKey) => console.log({ actionKey })}
       >
-        <DropdownSection showDivider={true} title="Your Cart">
+        <DropdownSection showDivider={true} title="Giỏ hàng của bạn.">
           <DropdownItem>
             <div className="flex items-center gap-x-4 border-divider py-4">
               <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center">
@@ -98,7 +98,7 @@ export const CartDropdown = () => {
             console.log("See all");
           }}
         >
-          <Link href="/cart">See all</Link>
+          <Link href="/cart">Đến trang giỏ hàng</Link>
         </DropdownItem>
       </DropdownMenu>
     </Dropdown>

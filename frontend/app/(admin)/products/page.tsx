@@ -14,59 +14,35 @@ import { DotsIcon } from "@/components/icons/accounts/dots-icon";
 import { ExportIcon } from "@/components/icons/accounts/export-icon";
 import { AccountsIcon } from "@/components/icons/sidebar/accounts-icon";
 import { TableProducts } from "@/components/table/table-products";
-import ProductsTable from "@/components/table/products-table";
-
-const Chart = dynamic(
-  () => import("@/components/charts/steam").then((mod) => mod.Steam),
-  {
-    ssr: false,
-  },
-);
 
 export default function ProductPage() {
-  return (
-    <div className="my-14 lg:px-6 max-w-[95rem] mx-auto w-full flex flex-col gap-4">
-      <Breadcrumbs>
-        <BreadcrumbItem>
-          <HouseIcon />
-          <Link href={"/"}>
-            <span>Admin</span>
-          </Link>
-        </BreadcrumbItem>
-        <BreadcrumbItem>
-          <AccountsIcon />
-          <Link href={"/"}>
-            <span>Products</span>
-          </Link>
-        </BreadcrumbItem>
-      </Breadcrumbs>
-
-      <h3 className="text-xl font-semibold">All Products</h3>
-      <div className="flex justify-between flex-wrap gap-4 items-center">
-        <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
-          <Input
-            classNames={{
-              input: "w-full",
-              mainWrapper: "w-full",
-            }}
-            placeholder="Search products"
-          />
-          <SettingsIcon />
-          <TrashIcon />
-          <InfoIcon />
-          <DotsIcon />
+    return (
+        <div className="my-14 lg:px-6 max-w-[95rem] mx-auto w-full flex flex-col gap-4">
+            <h3 className="text-xl font-semibold">All Products</h3>
+            <div className="flex justify-between flex-wrap gap-4 items-center">
+                <div className="flex items-center gap-3 flex-wrap md:flex-nowrap">
+                    <Input
+                        classNames={{
+                            input: "w-full",
+                            mainWrapper: "w-full",
+                        }}
+                        placeholder="Search products"
+                        aria-label="Search products"
+                    />
+                    <SettingsIcon aria-label="Settings" />
+                    <TrashIcon aria-label="Trash" />
+                    <InfoIcon aria-label="Info" />
+                    <DotsIcon aria-label="More options" />
+                </div>
+                <div className="flex flex-row gap-3.5 flex-wrap">
+                    <Button color="primary" startContent={<ExportIcon />}>
+                        Export to CSV
+                    </Button>
+                </div>
+            </div>
+            <div className="max-w-[95rem] mx-auto w-full">
+                <TableProducts />
+            </div>
         </div>
-        <div className="flex flex-row gap-3.5 flex-wrap">
-          <Button color="primary" startContent={<ExportIcon />}>
-            Export to CSV
-          </Button>
-        </div>
-      </div>
-      <div className="max-w-[95rem] mx-auto w-full">
-        <TableProducts />
-      </div>
-
-        <ProductsTable/>
-    </div>
-  );
+    );
 }

@@ -3,14 +3,18 @@
 import React from "react";
 import {Card, CardBody, Image} from "@nextui-org/react";
 import NextImage from "next/image";
-import { useRouter } from 'next/navigation';
+import {useRouter} from 'next/navigation';
+import ProductImage from "./product.webp"
+
 const CardItem = ({
+                      imageUrls,
                       name,
                       description,
                       price,
                       productId,
                       productSize,
                   }: {
+    imageUrls: string[];
     name: string;
     description: string;
     price: string;
@@ -20,28 +24,28 @@ const CardItem = ({
     const router = useRouter();
 
     return (
-        <Card className="border-none bg-background/60 dark:bg-default-100/50 max-w-[610px]"
-              isFooterBlurred
-              isBlurred
-              isPressable={true}
-              onPress={() => {
-                  router.push(`/product/${productId}`)
-              }}
-        >
-            <Image
-                isBlurred
-                isZoomed
-                alt={"Image"}
-                as={NextImage}
-                className="relative z-10 opacity-0 shadow-black/5 data-[loaded=true]:opacity-100 shadow-none object-cover transform transition-transform-opacity motion-reduce:transition-none !duration-300 rounded-large aspect-square w-full hover:scale-110"
-                height={300}
-                layout={"responsive"}
-                quality={75}
-                src={"/src/product.webp"}
-                width={300}
-            />
-            <CardBody className="relative shadow-black/5 shadow-none rounded-large">
-                <div className={"mt-1 flex flex-col gap-2 px-1"}>
+        <div className={"relative flex w-full flex-none flex-col gap-3 items-center"}>
+            <Card className="relative flex w-full flex-none flex-col gap-3"
+                  isFooterBlurred
+                  isBlurred
+                  isPressable={true}
+                  onPress={() => {
+                      router.push(`/product/${productId}`)
+                  }}
+            >
+
+                <div className="relative w-full h-0 pb-[100%]">
+                    <Image
+                        as={NextImage}
+                        width={800}
+                        height={800}
+                        src={imageUrls[0]}
+                        alt="NextUI hero Image"
+                        layout="responsive"
+                    />
+                </div>
+
+                <CardBody className="mt-1 flex flex-col gap-2 px-1">
                     <div className="mt-1 flex flex-col gap-2 px-1">
                         <div className="flex items-start justify-between gap-1">
                             <h3 className="text-small font-medium text-default-700">
@@ -65,32 +69,31 @@ const CardItem = ({
                                 <span className="text-small text-default-500">5.0</span>
                             </div>
                         </div>
-                        <p className="text-small text-default-500">{description}</p>
-                        <p className="text-small font-medium text-default-500">{price}</p>
-
-
+                        {/*<p className="text-small text-default-500">{description}</p>*/}
+                        <p className="text-small font-medium text-default-500">{price}₫</p>
                     </div>
-                </div>
-            </CardBody>
-            {/*<CardFooter>*/}
-            {/*    <div className={"space-x-4 flex content-center justify-end"}>*/}
-            {/*        <Button*/}
-            {/*            // onClick={handleCartClick}*/}
-            {/*            isIconOnly*/}
-            {/*        >*/}
-            {/*            <CartIcon/>*/}
-            {/*        </Button>*/}
+                </CardBody>
+                {/*<CardFooter>*/}
+                {/*    <div className={"space-x-4 flex content-center justify-end"}>*/}
+                {/*        <Button*/}
+                {/*            // onClick={handleCartClick}*/}
+                {/*            isIconOnly*/}
+                {/*        >*/}
+                {/*            <CartIcon/>*/}
+                {/*        </Button>*/}
 
-            {/*        <Link href={`/product/${productId}`}>*/}
-            {/*            <Button*/}
-            {/*                // onClick={handleInfoClick}*/}
-            {/*                isIconOnly={true}*/}
-            {/*                startContent={<InfoIcon/>}*/}
-            {/*            />*/}
-            {/*        </Link>*/}
-            {/*    </div>*/}
-            {/*</CardFooter>*/}
-        </Card>
+                {/*        <Link href={`/product/${productId}`}>*/}
+                {/*            <Button*/}
+                {/*                // onClick={handleInfoClick}*/}
+                {/*                isIconOnly={true}*/}
+                {/*                startContent={<InfoIcon/>}*/}
+                {/*            />*/}
+                {/*        </Link>*/}
+                {/*    </div>*/}
+                {/*</CardFooter>*/}
+            </Card>
+        </div>
+
     );
 };
 

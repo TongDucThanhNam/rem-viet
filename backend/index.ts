@@ -10,13 +10,19 @@ const morgan = require('morgan');
 require('dotenv').config();
 
 const PORT = process.env.PORT;
-const app = express();
+const app = express()
 
 app.use(morgan("dev"));
-app.use(express.json());
+
+if (express.json) {
+    app.use(express.json());
+} else {
+    console.error("express.json() is not available");
+}
+
 
 app.use(cors({
-    origin: 'http://localhost:3000'
+    origin: 'http://localhost:3000',
 }));
 
 //product

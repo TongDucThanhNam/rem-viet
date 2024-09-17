@@ -1,9 +1,9 @@
 import "@/styles/globals.css";
-import {Metadata, Viewport} from "next";
+import {Metadata} from "next";
 import {siteConfig} from "@/config/site";
 import React from "react";
-import {MyNavbar} from "@/components/my-navbar/my-navbar";
-import { useTheme } from 'next-themes';
+import MyNavbar from "@/components/my-navbar/my-navbar";
+import {FabButton} from "@/components/button/fab-button";
 
 
 export const metadata: Metadata = {
@@ -32,9 +32,12 @@ export default function EcomerceLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div>
-            <MyNavbar/>
+        <div className={"select-none"}>
+            <MyNavbar>
+                123
+            </MyNavbar>
             {children}
+            <FabButton/>
         </div>
     );
 }

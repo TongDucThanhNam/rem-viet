@@ -5,6 +5,8 @@ import {ProductWithBase} from "../../../Domain/Entities/ProductEntities";
 import {StatusCodeEnums} from "../../../Domain/Enums/StatusCodeEnums";
 import {CoreException} from "../../Common/Exceptions/CoreException";
 import {GetProductByIdResponse} from "./Responses/GetProductByIdResponse";
+import {GetVariantByProductId} from "./Responses/GetVariantByProductId";
+import {CreateProductResponse} from "./Responses/CreateProductResponse";
 
 export default class ProductService implements IProductService {
     private unitOfWork: IUnitOfWork = new UnitOfWork();
@@ -13,18 +15,9 @@ export default class ProductService implements IProductService {
         try {
             const session = await this.unitOfWork.startTransaction();
             const newProduct: typeof ProductWithBase = await this.unitOfWork.productRepository.createProduct(productData, session);
-            //get ProductId
             const productId = newProduct;
-
-
-            //Variant
-            // const variantData = [
-            //     [{"key":0,"values":{"Colors":"R","Sizes":"S"},"price":1},
-            //    {"key":1,"values":{"Colors":"R","Sizes":"M"},"price":2},
-            //    {"key":2,"values":{"Colors":"R","Sizes":"L"},"price":3},
-            // ];
             //create variant
-            const variants = variantData.map((variant: any) => {
+            const variants: any = variantData.map((variant: any) => {
                 return {
                     ...variant,
                     productId: productId
@@ -34,23 +27,51 @@ export default class ProductService implements IProductService {
             for (const variant of variants) {
                 await this.unitOfWork.variantRepository.createVariant(variant);
             }
-            console.log(newProduct);
+
+            const result: any = {
+                product: newProduct,
+                variants: variants
+            }
+            console.log(result);
+
             await this.unitOfWork.commitTransaction();
+
+            return new CreateProductResponse(
+                "Product created",
+                StatusCodeEnums.Created_201,
+                result,
+            )
+
         } catch (error: any) {
             await this.unitOfWork.abortTransaction();
-            throw new Error("Error at createProduct in ProductService: " + error.message);
+            throw new CoreException(
+                StatusCodeEnums.InternalServerError_500,
+                "Error at createProduct in ProductService: " + error.message,
+            )
         }
     }
 
     async deleteProductById(productId: string): Promise<any> {
-        return Promise.resolve(undefined);
+        try {
+            const session = await this.unitOfWork.startTransaction();
+            const result = await this.unitOfWork.productRepository.deleteProductById(productId, session);
+            await this.unitOfWork.commitTransaction();
+        } catch (error: any) {
+            throw new CoreException(
+                StatusCodeEnums.InternalServerError_500,
+                "Error at deleteProductById in ProductService: " + error.message,
+            )
+        }
     }
 
     async getAllProducts(queryData: any): Promise<any> {
         try {
             return await this.unitOfWork.productRepository.getAllProducts(queryData);
         } catch (error: any) {
-            throw new Error("Error at getAllProducts in ProductService: " + error.message);
+            throw new CoreException(
+                StatusCodeEnums.InternalServerError_500,
+                "Error at getAllProducts in ProductService: " + error.message,
+            )
         }
     }
 
@@ -73,15 +94,95 @@ export default class ProductService implements IProductService {
             )
 
         } catch (error: any) {
-            throw new Error("Error at getProductById in ProductService: " + error.message);
+            throw new CoreException(
+                StatusCodeEnums.InternalServerError_500,
+                "Error at getProductById in ProductService: " + error.message,
+            )
+        }
+    }
+
+    async getProductAndVariantsById(productId: string): Promise<any> {
+        try {
+            const queryData = {
+                isActive: true,
+                isDeleted: false
+            }
+
+            const product = await this.unitOfWork.productRepository.getProductById(productId, queryData);
+            if (!product) {
+                return new CoreException(
+                    StatusCodeEnums.NotFound_404,
+                    "Product not found",
+                )
+            }
+            const variants = await this.unitOfWork.variantRepository.getVariantByProductId(productId, queryData);
+            const result = {
+                product: product,
+                variants: variants
+            }
+            return new GetVariantByProductId(
+                "Product and variants found",
+                StatusCodeEnums.OK_200,
+                result,
+            )
+        } catch (error: any) {
+            throw new CoreException(
+                StatusCodeEnums.InternalServerError_500,
+                "Error at getProductAndVariantsById in ProductService: " + error.message,
+            )
         }
     }
 
     async getProductIdByProductName(productName: string, queryData: any): Promise<any> {
-        return Promise.resolve(undefined);
+        try {
+            return await this.unitOfWork.productRepository.getProductIdByProductName(productName, queryData);
+
+        } catch (error: any) {
+            throw new CoreException(
+                StatusCodeEnums.InternalServerError_500,
+                "Error at getProductIdByProductName in ProductService: " + error.message,
+            )
+        }
     }
 
     async updateProductById(productId: string, productData: any): Promise<any> {
-        return Promise.resolve(undefined);
+        try {
+            const session = await this.unitOfWork.startTransaction();
+            const result = await this.unitOfWork.productRepository.updateProductById(productId, productData, session);
+            await this.unitOfWork.commitTransaction();
+        } catch (error: any) {
+            throw new CoreException(
+                StatusCodeEnums.InternalServerError_500,
+                "Error at updateProductById in ProductService: " + error.message,
+            )
+        }
+    }
+
+    //
+    async updateProductAndVariantsById(productId: string, productData: any, variantData: any): Promise<any> {
+        try {
+            const session = await this.unitOfWork.startTransaction();
+            //update product
+            await this.unitOfWork.productRepository.updateProductById(productId, productData, session);
+
+            //update variant
+            const variants = variantData.map((variant: any) => {
+                return {
+                    ...variant,
+                    productId: productId
+                }
+            });
+
+            for (const variant of variants) {
+                await this.unitOfWork.variantRepository.updateVariantById(variant._id, variant);
+            }
+            await this.unitOfWork.commitTransaction();
+        } catch (error: any) {
+            await this.unitOfWork.abortTransaction();
+            throw new CoreException(
+                StatusCodeEnums.InternalServerError_500,
+                "Error at updateProductAndVariantsById in ProductService: " + error.message,
+            )
+        }
     }
 }

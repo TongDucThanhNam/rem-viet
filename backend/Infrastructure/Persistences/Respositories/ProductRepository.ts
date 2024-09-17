@@ -1,5 +1,5 @@
 import IProductRepository from "../../../Application/Persistences/IRepositories/IProductRepository";
-import mongoose, { ClientSession } from "mongoose";
+import {ClientSession} from "mongoose";
 import {ProductWithBase} from "../../../Domain/Entities/ProductEntities";
 
 class ProductRepository implements IProductRepository {
@@ -24,16 +24,59 @@ class ProductRepository implements IProductRepository {
                 isDeleted: true,
                 isActive: false
             }
-            return null
+            return await ProductWithBase.findOneAndUpdate(
+                {_id: productId},
+                {$set: softDelete},
+                {session: session}
+            );
         } catch (error: any) {
             throw new Error("Error at deleteProductById in ProductRepository: " + error.message);
         }
     }
 
-    async getAllProducts(queryData: any): Promise<typeof ProductWithBase[] | null> {
+    async getAllProducts(queryData: any): Promise<any> {
         try {
+            const {
+                page,
+                limit,
+                isActive,
+                isDeleted
+            } = queryData;
 
-            return await ProductWithBase.find();
+            // console.log(queryData);
+            let _page = page;
+            if (page === undefined || page < 0) {
+                _page = 1;
+            }
+            let _limit = limit;
+            if (limit === undefined || limit < 0) {
+                _limit = 8;
+            }
+
+            const filteredQueryData = {
+                ...(isActive && {isActive}),
+                ...(isDeleted && {isDeleted})
+            }
+
+            const totalProducts = await ProductWithBase
+                .find(filteredQueryData)
+                .countDocuments();
+
+            const products = await ProductWithBase
+                .find(filteredQueryData)
+                .limit(_limit)
+                .skip((_page - 1) * _limit);
+
+            const result = {
+                currentPage: _page,
+                totalPage: Math.ceil(totalProducts / _limit),
+                totalItems: products.length,
+                perPage: _limit,
+                data: products,
+            }
+
+            console.log(result);
+            return result;
 
         } catch (error: any) {
             throw new Error("Error at getAllProducts in ProductRepository: " + error.message);

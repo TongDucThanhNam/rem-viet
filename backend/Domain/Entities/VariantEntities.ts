@@ -11,7 +11,7 @@ const variantSchema = new mongoose.Schema({
         required: true
     },
     key: {type: Number, required: true}, // Key của variant
-    price: {type: Number, required: true}, // Giá của variant
+    variantPrice: {type: Number, required: true}, // Giá của variant
     values: {type: Object, required: true}, // Giá trị của variant
 });
 

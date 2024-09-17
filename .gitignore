@@ -180,3 +180,5 @@ sketch
 # typescript
 next-env.d.ts
 
+#Docker yml
+docker-compose.yml

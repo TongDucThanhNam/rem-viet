@@ -34,19 +34,16 @@ export const UserDropdown = () => {
           key="profile"
           className="flex flex-col justify-start w-full items-start"
         >
-          <p>Signed in as</p>
-          <p>zoey@example.com</p>
+          <p>Đã đăng nhập với</p>
+          <p>User</p>
         </DropdownItem>
-        <DropdownItem key="settings">My Settings</DropdownItem>
+        <DropdownItem key="settings">Cài đặt</DropdownItem>
         <DropdownItem key={"cart"}>
-          <Link href={"/cart"}>My Cart</Link>
+          <Link href={"/cart"}>Giỏ hàng của tôi</Link>
         </DropdownItem>
-        <DropdownItem key="help_and_feedback">Help & Feedback</DropdownItem>
+        <DropdownItem key="help_and_feedback">Liên hệ hỗ trợ</DropdownItem>
         <DropdownItem key="logout" className="text-danger " color="danger">
-          Log Out
-        </DropdownItem>
-        <DropdownItem key="switch">
-          <DarkModeSwitch />
+            Đăng xuất
         </DropdownItem>
       </DropdownMenu>
     </Dropdown>

@@ -1,10 +1,10 @@
 import {ProductWithBase} from "../../../Domain/Entities/ProductEntities";
 import {ClientSession} from "mongoose";
 
-interface  IProductRepository {
+interface IProductRepository {
     getProductById(productId: string, queryData: any): Promise<typeof ProductWithBase | null>;
 
-    getAllProducts(queryData: any): Promise<typeof ProductWithBase[] | null>;
+    getAllProducts(queryData: any): Promise<any>;
 
     createProduct(productData: any, session: ClientSession): Promise<typeof ProductWithBase>;
 
@@ -12,7 +12,7 @@ interface  IProductRepository {
 
     deleteProductById(productId: string, session: ClientSession): Promise<typeof ProductWithBase | null>;
 
-    getProductIdByProductName(productName: string, queryData: any): Promise<string|null|unknown>;
+    getProductIdByProductName(productName: string, queryData: any): Promise<string | null | unknown>;
 }
 
 export default IProductRepository;

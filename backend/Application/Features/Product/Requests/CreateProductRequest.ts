@@ -1,23 +1,15 @@
+import {IVariant} from "../../../../Domain/Interface/IVariant";
+
 export class CreateProductRequest {
+    imageurls: string[];
     name: string;
     description: string;
     size: string[];
     price: string;
-    variants: {
-        price: number;
-        quantity: number;
-        attributes: {
-            [key: string]: string;
-        };
-    }[];
+    variants: any;
 
-    constructor(name: string, description: string, size: string[], price: string, variants: {
-        price: number;
-        quantity: number;
-        attributes: {
-            [key: string]: string;
-        };
-    }[]) {
+    constructor(name: string, description: string, size: string[], price: string, variants: any, imageUrls: string[]) {
+        this.imageurls = imageUrls;
         this.name = name;
         this.description = description;
         this.price = price;

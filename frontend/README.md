@@ -49,3 +49,13 @@ This is a Next.js application that includes a product grid, a swiper component, 
 ```bash
 bun run tauri build
 ```
+
+### Docker
+```bash
+docker build -t tongducthanhnam/nextui-ecommerce-fe:1.1 .
+```
+
+- push Docker
+```bash
+docker push tongducthanhnam/nextui-ecommerce-fe:1.1
+```

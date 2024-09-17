@@ -5,11 +5,6 @@ class VariantRepository implements IVariantRepository {
     async createVariant(variantData: any): Promise<any> {
         try {
             //Variant
-            // const variantData = [
-            //     [{"key":0,"values":{"Colors":"R","Sizes":"S"},"price":1},
-            //    {"key":1,"values":{"Colors":"R","Sizes":"M"},"price":2},
-            //    {"key":2,"values":{"Colors":"R","Sizes":"L"},"price":3},
-            // ];
             const variant = await VariantWithBase.create([variantData]);
             return variant[0];
         } catch (error: any) {
@@ -53,6 +48,17 @@ class VariantRepository implements IVariantRepository {
         }
     }
 
+    async getVariantByProductId(productId: string, queryData: any): Promise<any> {
+        try {
+            return await VariantWithBase.find({
+                productId: productId,
+                ...queryData
+            })
+        } catch (error: any) {
+            throw new Error("Error at getVariantByProductId in VariantRepository: " + error.message);
+        }
+    }
+
     async getVariantIdByVariantName(variantName: string, queryData: any): Promise<any> {
         try {
             const variant = await VariantWithBase.findOne({
@@ -75,6 +81,7 @@ class VariantRepository implements IVariantRepository {
             throw new Error("Error at updateVariantById in VariantRepository: " + error.message);
         }
     }
+
 }
 
 export default VariantRepository;

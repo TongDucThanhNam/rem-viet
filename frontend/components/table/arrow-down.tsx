@@ -14,9 +14,9 @@ export const ArrowDownIcon = (props: IconSvgProps) => (
     <path
       d="M3 4.5L6 7.5L9 4.5"
       stroke="#71717A"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="1.5"
     />
   </svg>
 );

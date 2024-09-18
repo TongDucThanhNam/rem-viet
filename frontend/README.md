@@ -54,6 +54,10 @@ bun run tauri build
 ```bash
 docker build -t tongducthanhnam/nextui-ecommerce-fe:1.1 .
 ```
+- run
+```bash
+docker run -p 9999:3000 tongducthanhnam/nextui-ecommerce-fe:1.1
+```
 
 - push Docker
 ```bash

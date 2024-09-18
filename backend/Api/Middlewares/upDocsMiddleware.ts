@@ -1,7 +1,6 @@
-import express, { Request, Response, NextFunction } from 'express';
-import multer, { FileFilterCallback } from 'multer';
+import {Request} from 'express';
+import multer, {FileFilterCallback} from 'multer';
 import fs from 'fs';
-import path from 'path';
 
 const uploadsDirectory = './uploads';
 
@@ -9,7 +8,7 @@ const storage = multer.diskStorage({
     destination: function (req: Request, file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) {
         const routePath = req.url;
         if (!fs.existsSync(`${uploadsDirectory}/${routePath}`)) {
-            fs.mkdirSync(`${uploadsDirectory}/${routePath}`, { recursive: true });
+            fs.mkdirSync(`${uploadsDirectory}/${routePath}`, {recursive: true});
         }
         cb(null, `${uploadsDirectory}/${routePath}`);
     },
@@ -20,8 +19,8 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
-    if (file.mimetype === 'application/pdf' || 
-        file.mimetype === 'application/msword' || 
+    if (file.mimetype === 'application/pdf' ||
+        file.mimetype === 'application/msword' ||
         file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
         cb(null, true);
     } else {
@@ -31,8 +30,8 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallb
     }
 };
 
-export const upload = multer({ 
-    storage: storage, 
-    limits: { fileSize: 20 * 1024 * 1024 }, // 20MB
+export const upload = multer({
+    storage: storage,
+    limits: {fileSize: 20 * 1024 * 1024}, // 20MB
     fileFilter: fileFilter
 });

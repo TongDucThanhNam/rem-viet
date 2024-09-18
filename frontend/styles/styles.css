@@ -65,3 +65,41 @@
     height: 100%;
     object-fit: cover;
 }
+
+/*!*Grid dot Background*!*/
+/*main.dark {*/
+/*    color-scheme: dark;*/
+/*    body {*/
+/*        --dot-bg: black;*/
+/*        --dot-color: white;*/
+/*        --dot-size: 1px;*/
+/*        --dot-space: 30px;*/
+/*        background:*/
+/*                linear-gradient(90deg, var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center / var(--dot-space) var(--dot-space),*/
+/*                linear-gradient(var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center / var(--dot-space) var(--dot-space),*/
+/*                var(--dot-color);*/
+/*    }*/
+/*}*/
+
+/*!*Grid dot Background*!*/
+/*html.light {*/
+/*    color-scheme: light;*/
+/*    body {*/
+/*        --dot-bg: white;*/
+/*        --dot-color: black;*/
+/*        --dot-size: 1px;*/
+/*        --dot-space: 30px;*/
+/*        background:*/
+/*                linear-gradient(90deg, var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center / var(--dot-space) var(--dot-space),*/
+/*                linear-gradient(var(--dot-bg) calc(var(--dot-space) - var(--dot-size)), transparent 1%) center / var(--dot-space) var(--dot-space),*/
+/*                var(--dot-color);*/
+/*    }*/
+/*}*/
+/*!*Hight light*!*/
+/*html.dark #glow {*/
+/*    background: radial-gradient(*/
+/*            600px at var(--glow-x) var(--glow-y),*/
+/*            rgba(194, 6, 91, 0.15),*/
+/*            transparent 80%*/
+/*    );*/
+/*}*/

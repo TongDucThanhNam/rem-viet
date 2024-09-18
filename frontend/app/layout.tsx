@@ -7,8 +7,6 @@ import {siteConfig} from "@/config/site";
 import {fontSans} from "@/config/fonts";
 
 import {Providers} from "./providers";
-import { Button } from "@nextui-org/react";
-import Footer from "@/components/footer/footer";
 
 export const metadata: Metadata = {
     title: {

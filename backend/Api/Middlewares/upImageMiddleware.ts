@@ -1,7 +1,7 @@
 import multer from "multer";
-import { Request, Response, NextFunction } from 'express';
+import {Request} from 'express';
 import fs from 'fs'
-import path from "path";
+
 const uploadsDirectory = './uploads';
 
 const storage = multer.diskStorage({
@@ -9,7 +9,7 @@ const storage = multer.diskStorage({
         const routePath = req.url;
         //console.log(routePath);
         if (!fs.existsSync(`${uploadsDirectory}/${routePath}`)) {
-            fs.mkdirSync(`${uploadsDirectory}/${routePath}`, { recursive: true });
+            fs.mkdirSync(`${uploadsDirectory}/${routePath}`, {recursive: true});
         }
         cb(null, `${uploadsDirectory}/${routePath}`);
     },
@@ -18,4 +18,4 @@ const storage = multer.diskStorage({
     }
 });
 
-export const upload = multer({ storage: storage, limits: { fileSize: 20 * 1024 * 1024 }});
+export const upload = multer({storage: storage, limits: {fileSize: 20 * 1024 * 1024}});

@@ -1,8 +1,9 @@
-import { Server } from 'socket.io';
+import {Server} from 'socket.io';
 import http from 'http';
+
 const authenticate = require('../../../Api/Middlewares/authMiddleware');
 
-export function initializeSocket (server: http.Server): Server {
+export function initializeSocket(server: http.Server): Server {
     const io = new Server(server, {
         cors: {
             origin: '*',

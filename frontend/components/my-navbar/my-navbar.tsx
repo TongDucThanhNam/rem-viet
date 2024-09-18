@@ -16,7 +16,7 @@ import {
 
 import React from "react";
 import {Input} from "@nextui-org/input";
-import {SearchIcon} from "@/components/icons";
+import {SearchIcon} from "@/components/icons/icons";
 import {RemVietIcon} from "@/components/icons/remviet";
 import {siteConfig} from "@/config/site";
 import clsx from "clsx";
@@ -69,8 +69,8 @@ export default function MyNavbar(props: NavbarProps) {
             {...props}
             isBordered
             classNames={{
-                base: cn("border-default-100", {
-                    "bg-default-200/50 dark:bg-default-100/50": isMenuOpen,
+                base: cn("border-default-100 select-none", {
+                    "": isMenuOpen,
                 }),
                 wrapper: "w-full justify-center bg-transparent",
                 item: "hidden md:flex",

@@ -1,22 +1,20 @@
-import { Job, JobWithBase } from "../../../Domain/Entities/JobEntities";
+import {JobWithBase} from "../../../Domain/Entities/JobEntities";
 import IJobRepository from "../../../Application/Persistences/IRepositories/IJobRepository";
-import mongoose, { ClientSession } from "mongoose";
-import { JobStatusEnums } from '../../../Domain/Enums/JobStatusEnums';
-import { UserWithBase } from "../../../Domain/Entities/UserEntites";
-import { CompanyWithBase } from "../../../Domain/Entities/CompanyEntities";
-import { AnyMxRecord } from "dns";
+import mongoose, {ClientSession} from "mongoose";
+import {UserWithBase} from "../../../Domain/Entities/UserEntites";
 
 class JobRepository implements IJobRepository {
 
-    async createJob(queryData: any, userID:string, session: ClientSession): Promise<typeof JobWithBase> {
+    async createJob(queryData: any, userID: string, session: ClientSession): Promise<typeof JobWithBase> {
 
         try {
-            const user = await UserWithBase.findOne({ _id: userID });
-            if(user){
+            const user = await UserWithBase.findOne({_id: userID});
+            if (user) {
                 queryData.companyId = user.companyId;
-            }else{
+            } else {
                 throw new Error("Error in Repository: " + "Not Found User");
-            };
+            }
+            ;
             console.log(queryData)
             const Job: any = await JobWithBase.create([{
 
@@ -48,7 +46,7 @@ class JobRepository implements IJobRepository {
                 benefit_EN: queryData.benefit_EN,
                 applicationId: queryData.applicationId,
 
-            }], { session });
+            }], {session});
             return Job[0];
 
         } catch (error: any) {
@@ -60,7 +58,7 @@ class JobRepository implements IJobRepository {
 
     async getJobById(queryData: any): Promise<typeof JobWithBase> {
         try {
-            
+
             const query: any = {
                 _id: queryData.id,
                 // isDeleted: queryData.isDeleted,
@@ -87,7 +85,7 @@ class JobRepository implements IJobRepository {
                 updateAt: Date.now(),
             }
             // console.log(query);
-            const job: any = await JobWithBase.findByIdAndUpdate(_id, query, { session });
+            const job: any = await JobWithBase.findByIdAndUpdate(_id, query, {session});
             // console.log(job);
         } catch (error: any) {
             throw new Error("Error at updateJobById in jobRepository: " + error.message);
@@ -98,9 +96,9 @@ class JobRepository implements IJobRepository {
         try {
             const _id = new mongoose.Types.ObjectId(jobId);
 
-            const query = { isDeleted: true, }
+            const query = {isDeleted: true,}
 
-            const job: any = await JobWithBase.findByIdAndUpdate(_id, query, { session });
+            const job: any = await JobWithBase.findByIdAndUpdate(_id, query, {session});
 
             // return Job;
         } catch (error: any) {
@@ -108,14 +106,14 @@ class JobRepository implements IJobRepository {
         }
     }
 
-    async getAllJob(status: any,page:number,session: ClientSession): Promise<any>{
+    async getAllJob(status: any, page: number, session: ClientSession): Promise<any> {
         try {
 
             const limit = 10;
 
-            var skip = (page - 1)*limit;
+            var skip = (page - 1) * limit;
 
-            if(skip < 0){
+            if (skip < 0) {
                 skip = 0;
             }
 
@@ -127,23 +125,24 @@ class JobRepository implements IJobRepository {
         }
     }
 
-    async getJobByCompanyId(UserID:String , page:number, session: ClientSession): Promise<any>{
+    async getJobByCompanyId(UserID: String, page: number, session: ClientSession): Promise<any> {
         try {
 
             const limit = 10;
 
-            var skip = (page - 1)*limit;
+            var skip = (page - 1) * limit;
 
-            const user = await UserWithBase.findOne({ _id: UserID });
+            const user = await UserWithBase.findOne({_id: UserID});
 
             var query = {};
-            if(user){
-                query = {companyId: user.companyId };
-            }else{
+            if (user) {
+                query = {companyId: user.companyId};
+            } else {
                 throw new Error("Error in Repository: " + "Not Found User");
-            };
+            }
+            ;
 
-            if(query === null){
+            if (query === null) {
                 throw new Error("Error in Repository: " + "Not Found");
             }
 
@@ -157,38 +156,39 @@ class JobRepository implements IJobRepository {
         }
     }
 
-    async searchJob(data: any,page:number): Promise<any>{
+    async searchJob(data: any, page: number): Promise<any> {
         const LanguageDetect = require('languagedetect');
         try {
             const limit = 10;
 
-            var skip = (page - 1)*limit;
+            var skip = (page - 1) * limit;
 
-            if(skip < 0){
+            if (skip < 0) {
                 skip = 0;
             }
 
-            
+
             const lngDetector = new LanguageDetect();
 
             // const francModule = await import('franc');
-            const { major, occupation, position, title } = data;
+            const {major, occupation, position, title} = data;
             const query: any = {};
 
-            if (major) query.major = { $regex: major, $options: 'i' };
-            if (occupation) query.occupation = { $regex: occupation, $options: 'i' };
-            if (position) query.position = { $regex: position, $options: 'i' };
+            if (major) query.major = {$regex: major, $options: 'i'};
+            if (occupation) query.occupation = {$regex: occupation, $options: 'i'};
+            if (position) query.position = {$regex: position, $options: 'i'};
             if (title) {
                 var temp = lngDetector.detect(title, 1)[0];
-                if (temp[0] === "vietnamese"){
+                if (temp[0] === "vietnamese") {
 
-                    query.title_VN = { $regex: title, $options: 'i' };
+                    query.title_VN = {$regex: title, $options: 'i'};
 
-                }else{
+                } else {
 
-                    query.title_EN = { $regex: title, $options: 'i' };
+                    query.title_EN = {$regex: title, $options: 'i'};
 
-                };     
+                }
+                ;
             }
 
             const job = await JobWithBase.find(query).select('-isDeleted -isActive -createdAt -updatedAt -__v').limit(limit).skip(skip);
@@ -198,8 +198,8 @@ class JobRepository implements IJobRepository {
             throw new Error("Error in Repository: " + error.error);
         }
     }
-    
-    async findJobs(queryData: any, skip: number, limit: number): Promise<any>{
+
+    async findJobs(queryData: any, skip: number, limit: number): Promise<any> {
         try {
             const jobs = await JobWithBase.find(queryData).select('-isDeleted -isActive -createdAt -updatedAt -__v').limit(limit).skip(skip);
             return jobs;
@@ -209,33 +209,34 @@ class JobRepository implements IJobRepository {
     }
 
     // từ jobid lấy companyID -> lấy userId 
-    async getUserIdbyJobId(jobId:string): Promise<any>{
+    async getUserIdbyJobId(jobId: string): Promise<any> {
         try {
 
-            var temp:any = {}
+            var temp: any = {}
 
-            var userIds:any = [];
+            var userIds: any = [];
 
-            const job:any = await JobWithBase.findOne({ _id: jobId });
-            
-            if(job){
-                temp.companyId  = job.companyId?.toString();
-                
+            const job: any = await JobWithBase.findOne({_id: jobId});
+
+            if (job) {
+                temp.companyId = job.companyId?.toString();
+
                 const companyId = temp.companyId;
-              
-                const users:any = await UserWithBase.find({companyId}).select('_id');
-                if(users){
-                    userIds = users.reduce((acc: string[], user:any) => {
+
+                const users: any = await UserWithBase.find({companyId}).select('_id');
+                if (users) {
+                    userIds = users.reduce((acc: string[], user: any) => {
                         acc.push(user._id.toString());
                         return acc;
-                        }, []);
-                }else{
+                    }, []);
+                } else {
                     return new Error("Error in JobRepository: Cant not found Users");
                 }
-            };
+            }
+            ;
             console.log(userIds)
             return userIds;
-    
+
         } catch (error: any) {
             throw new Error("Error in Repository: " + error.error);
         }

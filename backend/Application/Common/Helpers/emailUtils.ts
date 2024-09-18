@@ -32,7 +32,7 @@ export async function sendMail(Mailto: string, subject: string, user: any, templ
     };
 
     transporter.sendMail(mailOptions, (error: any, info: any) => {
-        if(error) {
+        if (error) {
             console.log(error);
         } else {
             console.log('Email sent: ' + info.response);

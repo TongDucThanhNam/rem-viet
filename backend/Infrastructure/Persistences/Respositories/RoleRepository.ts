@@ -1,7 +1,6 @@
 import mongoose, {ClientSession} from "mongoose";
 import IRoleRepository from "../../../Application/Persistences/IRepositories/IRoleRepository";
 import {RoleWithBase} from "../../../Domain/Entities/RoleEntities";
-import {CoreException} from "../../../Application/Common/Exceptions/CoreException";
 
 class RoleRepository implements IRoleRepository {
     async createRole(roleData: any, session: ClientSession): Promise<typeof RoleWithBase> {
@@ -22,7 +21,7 @@ class RoleRepository implements IRoleRepository {
             const query: any = {
                 _id: new mongoose.Types.ObjectId(roleId)
             }
-            const result:typeof RoleWithBase | null=  await RoleWithBase.findOneAndUpdate(query, {
+            const result: typeof RoleWithBase | null = await RoleWithBase.findOneAndUpdate(query, {
                 isActive: false,
                 isDeleted: true
             }, {
@@ -56,7 +55,7 @@ class RoleRepository implements IRoleRepository {
             const query: any = {
                 _id: new mongoose.Types.ObjectId(roleId)
             };
-            const result: typeof RoleWithBase | null= await RoleWithBase.findOneAndUpdate(query, {
+            const result: typeof RoleWithBase | null = await RoleWithBase.findOneAndUpdate(query, {
                 name: roleData.name,
                 description: roleData.description,
                 bitwisePermission: roleData.bitwisePermission
@@ -85,7 +84,7 @@ class RoleRepository implements IRoleRepository {
         }
     }
 
-    async getRoleIdByRoleName(roleName: string, queryData: any): Promise<string|null|unknown> {
+    async getRoleIdByRoleName(roleName: string, queryData: any): Promise<string | null | unknown> {
         try {
             const query: any = {
                 name: roleName,

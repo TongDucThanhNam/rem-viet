@@ -5,7 +5,9 @@
 ```bash
 docker build -t tongducthanhnam/nextui-ecommerce-be:1.1 .
 ```
+
 - or
+
 ```bash
 docker run -p 3001:3001 tongducthanhnam/nextui-ecommerce-be:1.1
 ```

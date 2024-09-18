@@ -17,7 +17,7 @@ services:
     networks:
       - app-network
     environment:
-#      - BACKEND_URL=http://backend:3001
+      #      - BACKEND_URL=http://backend:3001
       - TEST_ENV=Test
     # the build args are defined by this key
 

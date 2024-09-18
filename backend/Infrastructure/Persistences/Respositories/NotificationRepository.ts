@@ -1,6 +1,6 @@
-import { ClientSession } from 'mongoose';
+import {ClientSession} from 'mongoose';
 import INotificationRepository from '../../../Application/Persistences/IRepositories/INotificationRepository';
-import { NotificationWithBase } from '../../../Domain/Entities/NotificationEntities';
+import {NotificationWithBase} from '../../../Domain/Entities/NotificationEntities';
 
 class NotificationRepository implements INotificationRepository {
     async createNotification(data: any, session: ClientSession): Promise<typeof NotificationWithBase> {
@@ -11,9 +11,9 @@ class NotificationRepository implements INotificationRepository {
                 userId: data.userId,
                 title: data.title,
                 message: data.message,
-                isRead: data.isRead,    
+                isRead: data.isRead,
 
-            }], { session });
+            }], {session});
 
             return notification[0];
 
@@ -42,14 +42,14 @@ class NotificationRepository implements INotificationRepository {
     async updateNotificationById(jobId: string, updateData: any, session: ClientSession): Promise<void> {
         try {
 
-            const _id = jobId; 
+            const _id = jobId;
 
             const query = {
                 ...updateData,
                 updateTime: Date.now(),
             }
 
-             const notification: any = await NotificationWithBase.findByIdAndUpdate(_id, query, { session });
+            const notification: any = await NotificationWithBase.findByIdAndUpdate(_id, query, {session});
 
         } catch (error: any) {
 
@@ -57,26 +57,26 @@ class NotificationRepository implements INotificationRepository {
         }
     }
 
-    async deleteNotificationById(notiId: string , session: ClientSession): Promise<void> {
+    async deleteNotificationById(notiId: string, session: ClientSession): Promise<void> {
         try {
 
             const _id = notiId;
 
-            const query = { isDeleted: true, }
+            const query = {isDeleted: true,}
 
-            const notification: any = await NotificationWithBase.findByIdAndUpdate(_id, query, { session });
+            const notification: any = await NotificationWithBase.findByIdAndUpdate(_id, query, {session});
         } catch (error: any) {
             throw new Error("Error in Repository: " + error.meesage);
         }
     }
 
-    async getAllNotificationByUserId(data:any,page:number): Promise<any> {
+    async getAllNotificationByUserId(data: any, page: number): Promise<any> {
         try {
             const limit = 5;
 
-            var skip = (page - 1)*limit;
+            var skip = (page - 1) * limit;
 
-            const noti= await NotificationWithBase.find(data).select('-isDeleted -isActive -createdAt -updatedAt -__v').limit(limit).skip(skip);
+            const noti = await NotificationWithBase.find(data).select('-isDeleted -isActive -createdAt -updatedAt -__v').limit(limit).skip(skip);
             return noti;
         } catch (error: any) {
             throw new Error("Error in Repository: " + error.meesage);

@@ -41,8 +41,7 @@ const doc = {
             description: "Please enter JWT or API Key with Bearer into field"
         }
     },
-    definitions: {
-    }
+    definitions: {}
 };
 
 swaggerAutogen(outputFile, endpointsFiles, doc).then(() => {

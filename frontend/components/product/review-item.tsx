@@ -1,34 +1,33 @@
 "use client";
 import React from 'react';
 import {
-    Accordion,
-    AccordionItem,
-    Button, Card, CardBody, CardFooter, CardHeader, Divider, Image,
+    Button,
+    Card,
+    CardBody,
+    CardFooter,
+    CardHeader,
+    Divider,
+    Image,
     Modal,
     ModalBody,
     ModalContent,
     ModalFooter,
     ModalHeader,
-    RadioGroup,
-    Spacer, Textarea,
+    Skeleton,
+    Textarea,
     useDisclosure
 } from "@nextui-org/react";
-import {PaymentsIcon} from "@/components/icons/sidebar/payments-icon";
-import {CartIcon, EditIcon, MailIcon, SearchIcon} from "@nextui-org/shared-icons";
-import SwiperThumbnail from "@/components/sidebar/product-thumbnail";
-import PurchaseForm from "@/components/form/purchase-form";
-import {ExportIcon} from "@/components/icons/accounts/export-icon";
-import {cn} from "@/components/radio/cn";
-import SizeRadioItem from "@/components/radio/size-radio-item";
+import {EditIcon, MailIcon, SearchIcon} from "@nextui-org/shared-icons";
 import RatingProgress from "@/components/progress/rating-progress";
 import {Input} from "@nextui-org/input";
 
 // import RadioCustom from "@/components/radio/color-radio";
 
 interface ReviewItemProps {
+    isLoading: boolean;
 }
 
-const ReviewComponent: React.FC<ReviewItemProps> = () => {
+const ReviewComponent: React.FC<ReviewItemProps> = ({isLoading}: { isLoading: boolean }) => {
     const {isOpen, onOpen, onOpenChange} = useDisclosure();
 
     return (
@@ -46,19 +45,28 @@ const ReviewComponent: React.FC<ReviewItemProps> = () => {
                     >
                         {/*Rating general*/}
                         <CardHeader className={"flex items-center gap-2"}>
-                            4.4* (Dựa trên 100 đánh giá)
+                            {isLoading ? (
+                                <div className="flex items-center gap-2">
+                                    <Skeleton>
+                                        <h1 className="text-large font-semibold">4.4* (Dựa trên 100 đánh giá)</h1>
+                                    </Skeleton>
+                                </div>
+                            ) : (
+                                <h1 className="text-large font-semibold">4.4* (Dựa trên 100 đánh giá)</h1>
+                            )}
+
                         </CardHeader>
                         {/*Ratings report*/}
                         <CardBody className={"flex flex-col gap-2"}>
-                            <RatingProgress title={"5 ⭐"} value={80}/>
+                            <RatingProgress isLoading={isLoading} title={"5 ⭐"} value={80}/>
 
-                            <RatingProgress title={"4 ⭐"} value={10}/>
+                            <RatingProgress isLoading={isLoading} title={"4 ⭐"} value={10}/>
 
-                            <RatingProgress title={"3 ⭐"} value={5}/>
+                            <RatingProgress isLoading={isLoading} title={"3 ⭐"} value={5}/>
 
-                            <RatingProgress title={"2 ⭐"} value={3}/>
+                            <RatingProgress isLoading={isLoading} title={"2 ⭐"} value={3}/>
 
-                            <RatingProgress title={"1 ⭐"} value={2}/>
+                            <RatingProgress isLoading={isLoading} title={"1 ⭐"} value={2}/>
                         </CardBody>
 
                         {/*Rating add*/}
@@ -126,7 +134,13 @@ const ReviewComponent: React.FC<ReviewItemProps> = () => {
                     <div
                         className={"flex flex-wrap items-center justify-between gap-4"}
                     >
-                        <h1 className="text-large font-semibold">136 lượt đánh giá</h1>
+                        {isLoading ? (
+                            <Skeleton>
+                                <h1 className="text-large font-semibold">100 lượt đánh giá</h1>
+                            </Skeleton>
+                        ) : (
+                            <h1 className="text-large font-semibold">100 lượt đánh giá</h1>
+                        )}
                         {/* Search*/}
                         <Input
                             placeholder={"Search reviews"}
@@ -149,30 +163,67 @@ const ReviewComponent: React.FC<ReviewItemProps> = () => {
                                                     tabIndex={-1}
                                                 >
                                                   <Image
-                                                      alt="John Doe"
+                                                      alt="User avatar"
                                                       className="flex object-cover w-full h-full transition-opacity !duration-500 opacity-0 data-[loaded=true]:opacity-100"
                                                       data-loaded="true"
-                                                      src="https://i.pravatar.cc/150?u=a04258114e29026708c"
+                                                      src="/src/user-avatar.jpeg"
                                                   />
                                                 </span>
                                         </div>
                                         <div className="inline-flex flex-col items-start">
+                                            {isLoading ? (
+                                                <Skeleton>
+                                                    <span className="text-small text-inherit font-medium">
+                                                         Minh Nguyễn
+                                                    </span>
+                                                </Skeleton>
+                                            ) : (
                                                 <span className="text-small text-inherit font-medium">
-                                                  Minh Nguyễn
+                                                    Minh Nguyễn
                                                 </span>
-                                            <span className="text-foreground-400 text-small">
-                                                  Tháng 10, 2024
-                                                </span>
+                                            )}
+
+                                            {isLoading ? (
+                                                <Skeleton>
+                                                    <span className="text-foreground-400 text-small">
+                                                        Tháng 10, 2024
+                                                    </span>
+                                                </Skeleton>
+                                            ) : (
+                                                <span className="text-foreground-400 text-small">
+                                                Tháng 10, 2024
+                                            </span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1">⭐⭐⭐⭐⭐</div>
+                                {isLoading ? (
+                                    <Skeleton>
+                                        <div className="flex items-center gap-1">⭐⭐⭐⭐⭐</div>
+                                    </Skeleton>
+                                ) : (
+                                    <div className="flex items-center gap-1">⭐⭐⭐⭐⭐</div>
+                                )}
                             </div>
                             <div className="mt-4 w-full">
-                                <p className="font-medium text-default-900">Sản phẩm tuyệt vời</p>
-                                <p className="mt-2 text-default-500">
-                                    Sản phẩm rất tốt, chất lượng tuyệt vời và giá cả phải chăng.
-                                </p>
+                                {isLoading ? (
+                                    <Skeleton>
+                                        <p className="font-medium text-default-900">Sản phẩm tuyệt vời</p>
+                                    </Skeleton>
+                                ) : (
+                                    <p className="font-medium text-default-900">Sản phẩm tuyệt vời</p>
+                                )}
+
+                                {isLoading ? (
+                                    <Skeleton>
+                                        Sản phẩm rất tốt, chất lượng tuyệt vời và giá cả phải chăng.
+                                    </Skeleton>
+                                ) : (
+                                    <p className="mt-2 text-default-500">
+                                        Sản phẩm rất tốt, chất lượng tuyệt vời và giá cả phải chăng.
+                                    </p>
+                                )}
+
                             </div>
                         </div>
                     </div>

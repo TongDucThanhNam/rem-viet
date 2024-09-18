@@ -1,19 +1,14 @@
 "use client"; // This is a comment
 
-import { BreadcrumbItem, Breadcrumbs, Link } from "@nextui-org/react";
 import React from "react";
-import dynamic from "next/dynamic";
-import { Input } from "@nextui-org/input";
-import { InfoIcon } from "@nextui-org/shared-icons";
-import { Button } from "@nextui-org/button";
-
-import { HouseIcon } from "@/components/icons/breadcrumb/house-icon";
-import { SettingsIcon } from "@/components/icons/sidebar/settings-icon";
-import { TrashIcon } from "@/components/icons/accounts/trash-icon";
-import { DotsIcon } from "@/components/icons/accounts/dots-icon";
-import { ExportIcon } from "@/components/icons/accounts/export-icon";
-import { AccountsIcon } from "@/components/icons/sidebar/accounts-icon";
-import { TableProducts } from "@/components/table/table-products";
+import {Input} from "@nextui-org/input";
+import {InfoIcon} from "@nextui-org/shared-icons";
+import {Button} from "@nextui-org/button";
+import {SettingsIcon} from "@/components/icons/sidebar/settings-icon";
+import {TrashIcon} from "@/components/icons/accounts/trash-icon";
+import {DotsIcon} from "@/components/icons/accounts/dots-icon";
+import {ExportIcon} from "@/components/icons/accounts/export-icon";
+import {TableProducts} from "@/components/table/table-products";
 
 export default function ProductPage() {
     return (
@@ -29,19 +24,19 @@ export default function ProductPage() {
                         placeholder="Search products"
                         aria-label="Search products"
                     />
-                    <SettingsIcon aria-label="Settings" />
-                    <TrashIcon aria-label="Trash" />
-                    <InfoIcon aria-label="Info" />
-                    <DotsIcon aria-label="More options" />
+                    <SettingsIcon aria-label="Settings"/>
+                    <TrashIcon aria-label="Trash"/>
+                    <InfoIcon aria-label="Info"/>
+                    <DotsIcon aria-label="More options"/>
                 </div>
                 <div className="flex flex-row gap-3.5 flex-wrap">
-                    <Button color="primary" startContent={<ExportIcon />}>
+                    <Button color="primary" startContent={<ExportIcon/>}>
                         Export to CSV
                     </Button>
                 </div>
             </div>
             <div className="max-w-[95rem] mx-auto w-full">
-                <TableProducts />
+                <TableProducts/>
             </div>
         </div>
     );

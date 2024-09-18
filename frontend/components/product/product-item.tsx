@@ -21,8 +21,6 @@ import {ExportIcon} from "@/components/icons/accounts/export-icon";
 import {cn} from "@/components/radio/cn";
 import SizeRadioItem from "@/components/radio/size-radio-item";
 
-// import RadioCustom from "@/components/radio/color-radio";
-
 interface Product {
     id: string;
     name: string;
@@ -34,10 +32,13 @@ interface Product {
 
 interface ProductItemProps {
     product: Product;
-    variants: any
+    variants: any,
+    isLoading: boolean;
 }
 
-const ProductItem: React.FC<ProductItemProps> = ({product, variants}) => {
+const skeletonImageUrls = Array(5).fill("/src/800x800.png");
+
+const ProductItem: React.FC<ProductItemProps> = ({product, variants, isLoading}) => {
     const basePrice = product.price;
 
     const {isOpen, onOpen, onOpenChange} = useDisclosure();
@@ -130,11 +131,16 @@ const ProductItem: React.FC<ProductItemProps> = ({product, variants}) => {
     return (
         <div className="">
             <div className="relative flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
-                {/*Image*/}
+                {/*Big image*/}
+
                 <div className="relative h-full w-full flex-none">
-                    {/*Big image*/}
-                    <SwiperThumbnail imageUrls={product.imageUrls}/>
+                    {isLoading ? (
+                        <SwiperThumbnail isLoading={isLoading} imageUrls={skeletonImageUrls}/>
+                    ) : (
+                        <SwiperThumbnail isLoading={isLoading} imageUrls={product.imageUrls}/>
+                    )}
                 </div>
+
                 {/*Details*/}
                 <div
                     className="flex flex-col">

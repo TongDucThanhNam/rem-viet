@@ -17,7 +17,8 @@ export default function Footer() {
                     </div>
                     <div className="h-64 md:h-full min-h-[250px]">
                         <iframe
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.2112628799364!2d106.6384076!3d10.7951252!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3175297c20ce6ff3%3A0x671008ae50b4a394!2zTMaw4bubaSBjaOG7kW5nIG114buXaQ!5e0!3m2!1svi!2s!4v1726648582357!5m2!1svi!2s"                            width="100%"
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.2112628799364!2d106.6384076!3d10.7951252!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3175297c20ce6ff3%3A0x671008ae50b4a394!2zTMaw4bubaSBjaOG7kW5nIG114buXaQ!5e0!3m2!1svi!2s!4v1726648582357!5m2!1svi!2s"
+                            width="100%"
                             height="100%"
                             style={{border: 0}}
                             allowFullScreen={false}
@@ -32,7 +33,7 @@ export default function Footer() {
                         <nav className="space-x-4 mb-4 md:mb-0">
                             <Link href="#" className="hover:underline">Trang chủ</Link>
                         </nav>
-                    <p className="text-sm">&copy; {new Date().getFullYear()} Rèm Việt.</p>
+                        <p className="text-sm">&copy; {new Date().getFullYear()} Rèm Việt.</p>
                     </div>
                 </div>
             </div>

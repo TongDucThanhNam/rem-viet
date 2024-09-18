@@ -1,5 +1,3 @@
-import {IVariant} from "../../../../Domain/Interface/IVariant";
-
 export class CreateProductRequest {
     imageurls: string[];
     name: string;

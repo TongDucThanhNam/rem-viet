@@ -2,12 +2,12 @@
 
 // import { Content } from "@/components/dashboard/content";
 
-import { Content } from "@/components/dashboard/content";
+import {Content} from "@/components/dashboard/content";
 
 export default function DashboardPage() {
-  return (
-    <div>
-      <Content />
-    </div>
-  );
+    return (
+        <div>
+            <Content/>
+        </div>
+    );
 }

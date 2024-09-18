@@ -1,5 +1,5 @@
-import { ArrowLeft } from "react-iconly";
+import {ArrowLeft} from "react-iconly";
 
 export default function ArrowLeftIcon() {
-  return <ArrowLeft set="bulk" />;
+    return <ArrowLeft set="bulk"/>;
 }

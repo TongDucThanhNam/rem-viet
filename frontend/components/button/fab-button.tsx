@@ -40,7 +40,7 @@ export const FabButton = () => {
             <Spacer x={1}/>
 
             <Button isIconOnly
-                onClick={() => window.open('https://www.facebook.com/profile.php?id=100076172431695', '_blank')}
+                    onClick={() => window.open('https://www.facebook.com/profile.php?id=100076172431695', '_blank')}
             >
                 <FacebookIcon/>
             </Button>

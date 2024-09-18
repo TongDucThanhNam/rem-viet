@@ -1,14 +1,18 @@
-import { ClientSession } from "mongoose";
-import { Certificate, CertificateWithBase } from "../../../Domain/Entities/CertificateEntities";
-import { IBaseUnitOfWork } from "./IBaseUnitOfWork";
+import {CertificateWithBase} from "../../../Domain/Entities/CertificateEntities";
+import {IBaseUnitOfWork} from "./IBaseUnitOfWork";
 
 
-interface ICertificateRepository extends IBaseUnitOfWork{
+interface ICertificateRepository extends IBaseUnitOfWork {
     createCertificate(CertificateData: any): Promise<typeof CertificateWithBase>;
+
     getCertificateById(CertificateData: any): Promise<typeof CertificateWithBase>;
+
     getAllCertificateByUserId(CertificateData: any): Promise<typeof CertificateWithBase[]>
+
     getAllCertificate(): Promise<typeof CertificateWithBase[]>;
+
     updateCertificateById(CertificateData: any, queryData: any): Promise<typeof CertificateWithBase>;
+
     deleteCertificateById(CertificateData: any);
 }
 

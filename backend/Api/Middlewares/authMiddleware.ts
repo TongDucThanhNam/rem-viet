@@ -3,8 +3,7 @@ const bcrypt = require('bcryptjs');
 const CryptoJS = require("crypto-js")
 require('dotenv').config();
 // const Company = require('');
-import { ExtendedSocket } from "../../Domain/Interface/ExtendSocket";
-import { generateApiKey } from "../../Application/Common/Helpers/apiKeyUtils";
+import {ExtendedSocket} from "../../Domain/Interface/ExtendSocket";
 import CompanyRepository from "../../Infrastructure/Persistences/Respositories/CompanyRepository";
 import ICompanyRepository from "../../Application/Persistences/IRepositories/ICompanyRepository";
 import mongoose from 'mongoose';
@@ -45,7 +44,7 @@ export async function authenticateMiddleware(req: any, res: any, next: any): Pro
 
         const data: any = {
             userId: verified.userId
-        } 
+        }
 
         if (verified.companyId)
             data.companyId = verified.companyId
@@ -90,7 +89,7 @@ async function authenticateTokenSocketIo(socket: ExtendedSocket, next: (err?: Er
 
 }
 
-export async function checkApiKey (req: any, res: any, next: any) {
+export async function checkApiKey(req: any, res: any, next: any) {
     const companyRepository: ICompanyRepository = new CompanyRepository()
     try {
         // console.log("checkApiKey")
@@ -120,7 +119,12 @@ export async function checkApiKey (req: any, res: any, next: any) {
         if (!mongoose.Types.ObjectId.isValid(companyId))
             return res.status(400).json({error: `Api key is not authenticate`})
         // console.log("companyId", companyId)
-        const company: any = await companyRepository.getCompanyById({ _id: companyId as string, isDeleted: false, isActive: true, status: 'Accept'})
+        const company: any = await companyRepository.getCompanyById({
+            _id: companyId as string,
+            isDeleted: false,
+            isActive: true,
+            status: 'Accept'
+        })
 
         // console.log("company", company)
 
@@ -133,8 +137,8 @@ export async function checkApiKey (req: any, res: any, next: any) {
         if (!company) return res.status(400).json({error: `Api key is not authenticate`});
         const isVerify = await bcrypt.compare(encodeURIComponent(apiKey), company.apiKey);
         if (!isVerify) return res.status(400).json({error: `Api key is not authenticate`});
-        
-        req.user = { companyId: company._id }   
+
+        req.user = {companyId: company._id}
 
         return next()
     } catch (error: any) {

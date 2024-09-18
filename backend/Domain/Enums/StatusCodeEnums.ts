@@ -3,7 +3,7 @@ export enum StatusCodeEnums {
     SwitchingProtocols_101 = 101,
     Processing_102 = 102,
     EarlyHints_103 = 103,
-  
+
     OK_200 = 200,
     Created_201 = 201,
     Accepted_202 = 202,
@@ -14,7 +14,7 @@ export enum StatusCodeEnums {
     MultiStatus_207 = 207,
     AlreadyReported_208 = 208,
     IMUsed_226 = 226,
-  
+
     MultipleChoice_300 = 300,
     MovedPermanently_301 = 301,
     Found_302 = 302,
@@ -23,7 +23,7 @@ export enum StatusCodeEnums {
     UseProxy_305 = 305,
     TemporaryRedirect_307 = 307,
     PermanentRedirect_308 = 308,
-  
+
     BadRequest_400 = 400,
     Unauthorized_401 = 401,
     PaymentRequired_402 = 402,
@@ -53,7 +53,7 @@ export enum StatusCodeEnums {
     TooManyRequests_429 = 429,
     RequestHeaderFieldsTooLarge_431 = 431,
     UnavailableForLegalReasons_451 = 451,
-  
+
     InternalServerError_500 = 500,
     NotImplemented_501 = 501,
     BadGateway_502 = 502,
@@ -65,6 +65,6 @@ export enum StatusCodeEnums {
     LoopDetected_508 = 508,
     NotExtended_510 = 510,
     NetworkAuthenticationRequired_511 = 511,
-  }
+}
   
 

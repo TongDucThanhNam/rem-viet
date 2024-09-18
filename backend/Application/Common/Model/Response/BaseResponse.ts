@@ -37,7 +37,7 @@ export class BaseResponse {
     //     this.data = data;
     // }
 
-    
+
     constructor(message: string, statusCode: number, data: object, error?: string) {
         this.message = message;
         this.statusCode = statusCode;

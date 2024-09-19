@@ -103,3 +103,28 @@
 /*            transparent 80%*/
 /*    );*/
 /*}*/
+
+/* Chuyển động cong */
+@keyframes flyCurve {
+    0% { transform: translate(0, 0); }
+    50% { transform: translate(20px, -30px); }
+    100% { transform: translate(0, 0); }
+}
+
+/* Chuyển động hình số 8 */
+@keyframes flyFigureEight {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(20px, -30px); }
+    50% { transform: translate(0, 0); }
+    75% { transform: translate(-20px, -30px); }
+    100% { transform: translate(0, 0); }
+}
+
+/* Style cho muỗi */
+.mosquito {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: black;
+    border-radius: 50%;
+}

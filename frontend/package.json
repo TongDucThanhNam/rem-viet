@@ -12,6 +12,8 @@
   "dependencies": {
     "@faker-js/faker": "^8.4.1",
     "@iconify/react": "^5.0.1",
+    "@next/bundle-analyzer": "^14.2.12",
+    "@next/third-parties": "^14.2.12",
     "@nextui-org/react": "^2.4.8",
     "@nextui-org/shared-icons": "^2.0.9",
     "@nextui-org/shared-utils": "^2.0.8",
@@ -33,7 +35,7 @@
     "formik": "^2.4.6",
     "framer-motion": "^11.1.9",
     "intl-messageformat": "^10.5.12",
-    "next": "latest",
+    "next": "^14.2.12",
     "next-themes": "^0.3.0",
     "nextui-cli": "^0.3.4",
     "postcss": "8.4.38",

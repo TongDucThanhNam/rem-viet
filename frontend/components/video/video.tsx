@@ -9,14 +9,14 @@ export default function ResponsiveVideo(
 ) {
   return (
     <div className="w-full max-w-4xl mx-auto my-8">
-      <div className="relative w-full pb-[56.25%]">
+      <div className="relative w-full pb-[56.25%] select-none">
         <video
           className="absolute top-0 left-0 w-full h-full object-cover"
           controls={false}
-          autoPlay={true}
-          loop={true}
-          muted={true}
-          playsInline={true}
+          autoPlay
+          loop
+          muted
+          playsInline
           preload={"auto"}
           poster={"/src/videoThumbnail.webp"}
         >

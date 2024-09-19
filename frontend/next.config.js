@@ -4,7 +4,13 @@ const nextConfig = {
   reactStrictMode: false, // Tắt chế độ strict mode
   // output: 'export', // use for tauri only
   output: "standalone", // use for docker
-
+  optimizePackageImports: [
+    "@iconify/react",
+    "@nextui-org/react",
+    "@nextui-org/shared-icons",
+    "apexcharts",
+    "framer-motion",
+  ], // Optimize iconify/react
   images: {
     // domains: ['localhost'],
     formats: ["image/webp"],
@@ -28,3 +34,8 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
+
+const withBundleAnalyzer = require("@next/bundle-analyzer")({
+  enabled: process.env.ANALYZE === "true",
+});
+module.exports = withBundleAnalyzer(nextConfig);

@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   frontend:
-    image: frontend:1.0.0 # Đặt version/tag cho service frontend
+#    image: frontend:1.0.0 # Đặt version/tag cho service frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -21,7 +21,7 @@ services:
       - TEST_ENV=Test
 
   backend:
-    image: backend:1.0.0 # Đặt version/tag cho service backend
+#    image: backend:1.0.0 # Đặt version/tag cho service backend
     build:
       context: ./backend
       dockerfile: Dockerfile

@@ -9,7 +9,6 @@ import * as process from "process";
 import Footer from "@/components/footer/footer";
 import ResponsiveVideo from "@/components/video/video";
 import FacebookIcon from "@/components/icons/icons";
-import {FUIMeteor} from "@/components/motion/meteor";
 import Mosquito from "@/components/motion/mosquito";
 
 // import {NavbarWrapper} from "@/components/my-navbar/my-navbar";
@@ -29,19 +28,19 @@ const features = [
     name: "Chất lượng sản phẩm",
     description:
       "Chất lượng sản phẩm là tiêu chí hàng đầu mà chúng tôi đặt ra. Chúng tôi cam kết cung cấp sản phẩm chất lượng, an toàn cho gia đình bạn.",
-    href: "#",
+    href: "/",
   },
   {
     name: "Hỗ trợ 24/7",
     description:
       "Chúng tôi luôn sẵn sàng tư vấn, hỗ trợ bạn mọi lúc, mọi nơi. Hãy liên hệ với chúng tôi ngay hôm nay để được tư vấn miễn phí.",
-    href: "#",
+    href: "/",
   },
   {
     name: "Giá cả phải chăng",
     description:
       "Chúng tôi không ngừng tìm tòi hòi hỏi áp dụng các kỹ thuật khoa học để tôi ưu quá trình sản xuất để đem đến giá cả phù hợp nhất cho người tiêu dùng.",
-    href: "#",
+    href: "/",
   },
 ];
 
@@ -195,7 +194,7 @@ export default function Home() {
                     </p>
                     <div className="pt-2">
                       <a
-                          href="#"
+                          href="/"
                           className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition duration-150 ease-in-out"
                       >
                         Liên hệ ngay

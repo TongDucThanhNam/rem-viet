@@ -55,6 +55,7 @@ export default function Component() {
                     isBlurred
                     className={"justify-center items-center"}
                     src={"/src/window.png"}
+                    alt={"Window"}
                     width={250}
                     height={250}
                 />

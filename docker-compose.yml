@@ -2,6 +2,7 @@ version: "3.8"
 
 services:
   frontend:
+    image: frontend:1.0.0 # Đặt version/tag cho service frontend
     build:
       context: ./frontend
       dockerfile: Dockerfile
@@ -17,12 +18,10 @@ services:
     networks:
       - app-network
     environment:
-      #      - BACKEND_URL=http://backend:3001
       - TEST_ENV=Test
-    # the build args are defined by this key
-
 
   backend:
+    image: backend:1.0.0 # Đặt version/tag cho service backend
     build:
       context: ./backend
       dockerfile: Dockerfile

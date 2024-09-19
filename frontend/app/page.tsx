@@ -11,11 +11,11 @@ import FeatureSection from "@/components/homepage/feature-section";
 import OurStrength from "@/components/homepage/our-strength";
 import ProductGrid from "@/components/product-grid/product-grid";
 import ParticleEffect from "@/components/motion/particle";
-import Parallax from "@/components/parallax/parallax";
-import ParallaxComponent from "@/components/parallax/parallax";
-import {motion} from "framer-motion";
-import {FabButton} from "@/components/button/fab-button";
-import {DialogCard} from "@/components/dialog/dialog-card";
+// import Parallax from "@/components/parallax/parallax";
+// import ParallaxComponent from "@/components/parallax/parallax";
+import { motion } from "framer-motion";
+import { FabButton } from "@/components/button/fab-button";
+import { DialogCard } from "@/components/dialog/dialog-card";
 
 // import {NavbarWrapper} from "@/components/my-navbar/my-navbar";
 
@@ -141,7 +141,7 @@ export default function Home() {
         </div>
       </div>
 
-      <FabButton/>
+      <FabButton />
 
       <Footer />
     </>

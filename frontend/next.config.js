@@ -3,7 +3,7 @@ const nextConfig = {
   // output: 'export', // Zalo mini Apps
   reactStrictMode: false, // Tắt chế độ strict mode
   // output: 'export', // use for tauri only
-  // output: "standalone", // use for docker
+  output: "standalone", // use for docker
 
   images: {
     // domains: ['localhost'],

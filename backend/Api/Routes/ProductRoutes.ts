@@ -16,4 +16,4 @@ router.get('/product/:productId/variant', productController.getProductAndVariant
 
 router.post('/product', productController.createProduct);
 
-module.exports = router;
+export default router;

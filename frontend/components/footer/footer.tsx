@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@nextui-org/react";
+import {DialogCard} from "@/components/dialog/dialog-card";
 
 export default function Footer() {
   return (
@@ -10,11 +11,8 @@ export default function Footer() {
             <h2 className="text-2xl font-bold text-primary">
               Địa chỉ của chúng tôi
             </h2>
-            <p>831 Đ. Âu Cơ, Tân Thành, Tân Phú, Hồ Chí Minh 70000</p>
             <div className="space-x-4">
-              <Button variant={"shadow"}>
-                <Link href="tel:0986207619">Gọi cho chúng tôi</Link>
-              </Button>
+              <DialogCard/>
             </div>
           </div>
           <div className="h-64 md:h-full min-h-[250px]">

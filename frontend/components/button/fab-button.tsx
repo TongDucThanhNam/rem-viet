@@ -20,16 +20,18 @@ export const FabButton = () => {
         <div className={"fixed bottom-20 right-10 p-0 "}
         >
             <Button
+                size={"lg"}
                 isIconOnly
                 onClick={handlePhoneClick}
             >
                 <SolarPhoneCallingBold/>
             </Button>
 
-            <Spacer x={1}/>
+            <Spacer y={3}/>
 
             <Button
                 color={"primary"}
+                size={"lg"}
                 isIconOnly
                 onClick={() => shareToZalo("Hello Zalo")}
             >
@@ -38,11 +40,13 @@ export const FabButton = () => {
 
             <Spacer x={1}/>
 
-            <Button isIconOnly
-                    onClick={() => window.open('https://www.facebook.com/profile.php?id=100076172431695', '_blank')}
-            >
-                <FacebookIcon/>
-            </Button>
+            {/*<Button*/}
+            {/*    size={"lg"}*/}
+            {/*    isIconOnly*/}
+            {/*    onClick={() => window.open('https://www.facebook.com/profile.php?id=100076172431695', '_blank')}*/}
+            {/*>*/}
+            {/*    <FacebookIcon/>*/}
+            {/*</Button>*/}
         </div>
     );
 };

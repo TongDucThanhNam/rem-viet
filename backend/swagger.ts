@@ -9,7 +9,7 @@ require("dotenv").config();
 //     autoBody: true,        // Enable/Disable automatic body recognition.     By default is true
 //     writeOutputFile: true         // Enable/Disable writing the output file.        By default is true
 // };
-const swaggerAutogen = require('swagger-autogen')();
+import swaggerAutogen from 'swagger-autogen';
 
 const outputFile = './swagger_output.json';
 const endpointsFiles = ['./Api/Routes/*.ts'];

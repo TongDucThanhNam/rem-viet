@@ -49,6 +49,7 @@ const CardItem = ({
                     </Skeleton>
                 ) : (
                     <Image
+                        isBlurred={true}
                         removeWrapper
                         className={"w-full h-full"}
                         as={NextImage}

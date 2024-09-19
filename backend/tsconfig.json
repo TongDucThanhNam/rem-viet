@@ -1,16 +1,54 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    // ECMAScript target version
-    "module": "commonjs",
-    // Module system
-    "rootDir": "./",
-    // Root directory
-    "outDir": "./build",
-    // Output directory
-    "esModuleInterop": true,
-    // Enables compatibility with CommonJS modules
-    "strict": true
+    // Enable latest features
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    // Specify library files to be included in the compilation
+    "target": "ESNext",
+    // Specify ECMAScript target version
+    "module": "ESNext",
+    // Specify module code generation
+    "moduleDetection": "force",
+    // Force module detection
+
+    // JSX settings
+    "jsx": "react-jsx",
+    // Specify JSX code generation
+
+    // Allow JavaScript files to be compiled
+    "allowJs": true,
+    // Allow JavaScript files to be compiled
+
+    // Bundler mode
+    "moduleResolution": "bundler",
+    // Specify module resolution strategy
+    "allowImportingTsExtensions": true,
+    // Allow importing TypeScript files with extensions
+    "verbatimModuleSyntax": true,
+    // Preserve module syntax
+
+    // Disable emitting files
+    "noEmit": true,
+    // Do not emit output files
+
+    // Best practices
+    "strict": true,
     // Enable all strict type-checking options
+    "skipLibCheck": true,
+    // Skip type checking of declaration files
+    "noFallthroughCasesInSwitch": true,
+    // Report errors for fallthrough cases in switch statements
+
+    // Some stricter flags (disabled by default)
+    "noUnusedLocals": false,
+    // Report errors on unused locals
+    "noUnusedParameters": false,
+    // Report errors on unused parameters
+    "noPropertyAccessFromIndexSignature": false,
+    // Disallow property access from index signature
+    "allowSyntheticDefaultImports": true
+    // Allow default imports from modules with no default export
   }
 }

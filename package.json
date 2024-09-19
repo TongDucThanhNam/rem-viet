@@ -1,14 +1,14 @@
 {
   "scripts": {
-    "dev": "concurrently \"npm run start:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm run dev",
-    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
-    "start:backend": "cd backend && npm start",
-    "start:frontend": "cd frontend && npm start",
-    "build": "concurrently \"npm run build:backend\" \"npm run build:frontend\"",
-    "build:backend": "cd backend && npm run swagger",
-    "build:frontend": "cd frontend && npm run build",
-    "swagger": "cd backend && npm run swagger"
+    "dev": "concurrently \"bun dev:backend\" \"bun run dev:frontend\"",
+    "dev:backend": "cd backend && bun run dev",
+    "dev:frontend": "cd frontend && bun run dev",
+    "start": "concurrently \"bun run start:backend\" \"bun run start:frontend\"",
+    "start:backend": "cd backend && bun start",
+    "start:frontend": "cd frontend && bun start",
+    "build": "concurrently \"bun run build:backend\" \"bun run build:frontend\"",
+    "build:backend": "cd backend && bun run swagger",
+    "build:frontend": "cd frontend && bun run build",
+    "swagger": "cd backend && bun run swagger"
   }
 }

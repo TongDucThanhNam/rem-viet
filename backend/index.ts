@@ -1,13 +1,10 @@
-// import express from 'express';
-const express = require('express');
+import express from 'express';
+import morgan from 'morgan';
+import productRoutes from './Api/Routes/ProductRoutes';
 const swaggerUi = require('swagger-ui-express');
-const swaggerFile = require('./swagger_output.json');
-const cors = require('cors');
-// const { saveLog } = require('./src/Api/Middlewares/saveLog');
+import 'dotenv/config';
 
-const productRoutes = require('./Api/Routes/ProductRoutes');
-const morgan = require('morgan');
-require('dotenv').config();
+const swaggerFile = require('./swagger_output.json');
 
 const PORT = process.env.PORT;
 const app = express()
@@ -20,18 +17,14 @@ if (express.json) {
     console.error("express.json() is not available");
 }
 
-
-app.use(cors({
-    origin: 'http://localhost:3000',
-}));
-
 //product
-app.use('/api', productRoutes);
+app.use("/api", productRoutes);
 
-app.use('/api-docs',
+app.use("/api-docs",
     swaggerUi.serve,
     swaggerUi.setup(swaggerFile)
-)
+);
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

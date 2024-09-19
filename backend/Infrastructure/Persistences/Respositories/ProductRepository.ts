@@ -9,7 +9,9 @@ class ProductRepository implements IProductRepository {
                 [{
                     ...productData
                 }],
-                {session}
+                {
+                    session
+                }
             );
             return product[0];
         } catch (error: any) {

@@ -32,7 +32,7 @@ export default class ProductService implements IProductService {
                 product: newProduct,
                 variants: variants
             }
-            console.log(result);
+            // console.log(result);
 
             await this.unitOfWork.commitTransaction();
 

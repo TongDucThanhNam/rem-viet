@@ -1,11 +1,9 @@
 import {Chip, Tooltip, User} from "@nextui-org/react";
 import React from "react";
 
-import {DeleteIcon} from "../icons/table/delete-icon";
-import {EditIcon} from "../icons/table/edit-icon";
-import {EyeIcon} from "../icons/table/eye-icon";
 
 import {users} from "./data";
+import {DeleteIcon, EditIcon, EyeIcon} from "@/components/icons/icons";
 
 interface Props {
     user: (typeof users)[number];
@@ -21,7 +19,7 @@ export const RenderCell = ({user, columnKey}: Props) => {
             return (
                 <User
                     avatarProps={{
-                        src: "https://i.pravatar.cc/150?u=a04258114e29026702d",
+                        src: "/src/user-avatar.jpeg",
                     }}
                     name={cellValue}
                 >

@@ -2,9 +2,8 @@
 
 import {Button, Spacer,} from "@nextui-org/react";
 import React from "react";
-import {SolarPhoneCallingBold} from "@/components/icons/solar-phone-call";
-import {ZaloIcon} from "@/components/icons/zalo-icon";
-import FacebookIcon from "@/components/icons/facebook-icon";
+import FacebookIcon, {SolarPhoneCallingBold, ZaloIcon} from "@/components/icons/icons";
+
 
 export const FabButton = () => {
     const handlePhoneClick = () => {

@@ -13,13 +13,12 @@ import {
     Spacer,
     useDisclosure
 } from "@nextui-org/react";
-import {PaymentsIcon} from "@/components/icons/sidebar/payments-icon";
 import {CartIcon} from "@nextui-org/shared-icons";
 import SwiperThumbnail from "@/components/sidebar/product-thumbnail";
 import PurchaseForm from "@/components/form/purchase-form";
-import {ExportIcon} from "@/components/icons/accounts/export-icon";
 import {cn} from "@/components/radio/cn";
 import SizeRadioItem from "@/components/radio/size-radio-item";
+import {ExportIcon, PaymentsIcon} from "@/components/icons/icons";
 
 interface Product {
     id: string;

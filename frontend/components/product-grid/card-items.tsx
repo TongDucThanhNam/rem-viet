@@ -4,7 +4,7 @@ import React from "react";
 import {Card, CardBody, Image, Skeleton} from "@nextui-org/react";
 import NextImage from "next/image";
 import {useRouter} from 'next/navigation';
-import {StartIcon} from "@/components/icons/start-icon";
+import {StartIcon} from "@/components/icons/icons";
 
 const CardItem = ({
                       imageUrls,

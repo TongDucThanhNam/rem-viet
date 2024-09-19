@@ -26,7 +26,7 @@ const FUIMeteor = () => {
                     "before:content-[''] before:absolute before:top-1/2 before:transform before:-translate-y-[50%] before:w-[50px] before:h-[1px] before:bg-gradient-to-r before:from-[#64748b] before:to-transparent"
                 )}
                 style={el.style}
-            ></span>
+             />
         ))
     }, [meteors])
 

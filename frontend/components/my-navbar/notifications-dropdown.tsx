@@ -4,8 +4,8 @@ import {NavbarItem, Popover, PopoverContent, PopoverTrigger,} from "@nextui-org/
 import React from "react";
 
 import NotificationCard from "@/components/notification-card/notification-card";
+import {NotificationIcon} from "@/components/icons/icons";
 
-import {NotificationIcon} from "../icons/navbar/notificationicon";
 
 export const NotificationsDropdown = () => {
     return (

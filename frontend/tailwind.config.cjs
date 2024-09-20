@@ -6,13 +6,12 @@ module.exports = {
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
-    "./node_modules/@nextui-org/react/dist/**/*.{js,ts,jsx,tsx}",
+    "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}"
   ],
   theme: {
     extend: {
       animation: {
-        "meteor-effect": "meteor 15s linear infinite",
+        "meteor-effect": "meteor 15s linear infinite"
       },
       keyframes: {
         meteor: {
@@ -20,11 +19,11 @@ module.exports = {
           "70%": { opacity: 1 },
           "100%": {
             transform: "rotate(215deg) translateX(-1000px)",
-            opacity: 0,
-          },
-        },
-      },
-    },
+            opacity: 0
+          }
+        }
+      }
+    }
   },
   darkMode: "class",
   plugins: [
@@ -36,8 +35,8 @@ module.exports = {
       layout: {}, // common layout tokens (applied to all themes)
       themes: {
         light: {},
-        dark: {},
-      },
-    }),
-  ],
+        dark: {}
+      }
+    })
+  ]
 };

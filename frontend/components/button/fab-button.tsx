@@ -18,7 +18,7 @@ export const FabButton = () => {
 
   return (
     <div className={"fixed bottom-20 right-10 p-0 "}>
-      <Button size={"lg"} isIconOnly onClick={handlePhoneClick}>
+      <Button size={"lg"} isIconOnly onClick={handlePhoneClick} className={"animate-bounce"}>
         <SolarPhoneCallingBold />
       </Button>
 
@@ -29,6 +29,7 @@ export const FabButton = () => {
         size={"lg"}
         isIconOnly
         onClick={() => shareToZalo("Hello Zalo")}
+        className={"animate-bounce"}
       >
         <ZaloIcon />
       </Button>

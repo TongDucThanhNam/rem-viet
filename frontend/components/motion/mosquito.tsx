@@ -113,17 +113,16 @@ export default function Mosquito() {
   };
 
   return (
-    <div className={"h-screen"}>
+    <div className="h-screen flex flex-col items-center justify-center">
       <motion.div
         initial={{ opacity: 0, y: -10, scale: 0 }}
-        // animate="show"
         whileInView={{
           opacity: 1,
           y: 0,
           scale: 1,
           transition: { type: "spring" },
         }}
-        className={""}
+        className="justify-center items-center"
         viewport={{ once: true }}
         variants={{
           hidden: {},
@@ -169,7 +168,7 @@ export default function Mosquito() {
       <div className="relative h-[400px] w-full overflow-hidden flex justify-center items-center p-6">
         <Image
           isBlurred
-          className={"justify-center items-center z-0"}
+          className="justify-center items-center z-0"
           src={"/src/window.webp"}
           alt={"Window"}
           width={250}

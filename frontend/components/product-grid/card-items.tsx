@@ -25,10 +25,15 @@ const CardItem = ({
 
 
     return (
-        <Card shadow="sm" className="relative flex w-full flex-none flex-col gap-3 select-none"
+        <Card  className="relative flex w-full flex-none flex-col gap-3 select-none"
               isFooterBlurred
               isBlurred
+              shadow={"lg"}
+
+
               isPressable={true}
+               disableAnimation={true}
+               disableRipple={true}
               onPress={() => {
                   router.push(`/product/${productId}`)
               }}

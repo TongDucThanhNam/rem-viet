@@ -13,6 +13,7 @@ module.exports = {
     extend: {
       animation: {
         "meteor-effect": "meteor 15s linear infinite",
+        "text-reveal": "text-reveal 1.5s cubic-bezier(0.77, 0, 0.175, 1) 0.5s",
       },
       keyframes: {
         meteor: {
@@ -21,6 +22,14 @@ module.exports = {
           "100%": {
             transform: "rotate(215deg) translateX(-1000px)",
             opacity: 0,
+          },
+        },
+        "text-reveal": {
+          "0%": {
+            transform: "translate(0, 100%)",
+          },
+          "100%": {
+            transform: "translate(0, 0)",
           },
         },
       },

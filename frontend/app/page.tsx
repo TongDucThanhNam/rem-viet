@@ -10,11 +10,12 @@ import HeroSection from "@/components/homepage/hero-section";
 import FeatureSection from "@/components/homepage/feature-section";
 import OurStrength from "@/components/homepage/our-strength";
 import { FabButton } from "@/components/button/fab-button";
-import { features, heroSection } from "@/config/site";
+import {features, heroSection, our_strength} from "@/config/site";
 import NextImage from "next/image";
 import videoThumb from "@/public/src/videoThump.webp";
 import ReviewCard from "@/components/card/review-card";
 import FacebookIcon from "@/components/icons/icons";
+import {YouTubeEmbed} from "@next/third-parties/google";
 
 const ResponsiveVideoLazy = lazy(() => import("@/components/video/video"));
 
@@ -140,11 +141,7 @@ export default function Home() {
               <div className="relative w-full h-96 flex justify-center items-center">
                 {" "}
                 {/* Đảm bảo fallback video cũng được căn giữa */}
-                <NextImage
-                  src={videoThumb}
-                  alt="Video thumbnail"
-                  fill={"responsive"}
-                />
+                <NextImage src={videoThumb} alt="Video thumbnail" fill />
               </div>
             }
           >
@@ -191,14 +188,7 @@ export default function Home() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto">
               {reviews.map((review, index) => (
-                <ReviewCard
-                  key={index}
-                  name={review.name}
-                  date={review.date}
-                  icon={review.icon}
-                  title={review.title}
-                  content={review.content}
-                />
+                <ReviewCard key={index}/>
               ))}
             </div>
           </div>
@@ -245,12 +235,13 @@ export default function Home() {
                 className="relative w-full"
                 style={{ paddingBottom: "56.25%" }}
               >
-                <iframe
-                  src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="absolute top-0 left-0 w-full h-full rounded-lg shadow-lg"
-                ></iframe>
+                <div className="aspect-w-16 aspect-h-9">
+                  <YouTubeEmbed
+                    videoid={our_strength.video}
+                    params="controls=1"
+                    playlabel="Watch video"
+                  />
+                </div>
               </div>
             </div>
 

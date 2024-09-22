@@ -7,13 +7,11 @@ export default function ReviewCard() {
       <Card
         shadow={"lg"}
         isBlurred={false}
-        content={true}
-
       >
         <CardHeader className="flex items-center justify-between">
           <div className="flex items-center">
             <div
-              tabIndex="-1"
+              tabIndex={-1}
               className="inline-flex items-center justify-center gap-2"
             >
               <FacebookIcon />

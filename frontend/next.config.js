@@ -23,6 +23,12 @@ const nextConfig = {
                 port: "",
                 pathname: "/file/**",
             },
+            {
+                protocol: "https",
+                hostname: "down-vn.img.susercontent.com",
+                port: "",
+                pathname: "/file/**",
+            },
         ],
     },
     async rewrites() {

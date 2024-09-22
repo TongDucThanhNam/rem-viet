@@ -10,9 +10,9 @@
     "bun-types": "^1.1.28"
   },
   "scripts": {
-    "start": "nodemon --exec ts-node index.ts",
+    "start": "bun --hot index.ts",
     "swagger": "bun ./swagger.ts",
-    "dev": "bun index.ts --watch"
+    "dev": "bun --hot index.ts"
   },
   "peerDependencies": {
     "typescript": "^5.6.2"

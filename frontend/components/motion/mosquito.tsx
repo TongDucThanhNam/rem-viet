@@ -113,7 +113,7 @@ export default function Mosquito() {
   };
 
   return (
-    <>
+    <div className={"h-screen"}>
       <motion.div
         initial={{ opacity: 0, y: -10, scale: 0 }}
         // animate="show"
@@ -123,6 +123,7 @@ export default function Mosquito() {
           scale: 1,
           transition: { type: "spring" },
         }}
+        className={""}
         viewport={{ once: true }}
         variants={{
           hidden: {},
@@ -169,7 +170,7 @@ export default function Mosquito() {
         <Image
           isBlurred
           className={"justify-center items-center z-0"}
-          src={"/src/window.png"}
+          src={"/src/window.webp"}
           alt={"Window"}
           width={250}
           height={250}
@@ -178,8 +179,8 @@ export default function Mosquito() {
         <canvas
           ref={canvasRef}
           className={cn("absolute", isDisableParticles ? "hidden" : "block")}
-        ></canvas>
+        />
       </div>
-    </>
+    </div>
   );
 }

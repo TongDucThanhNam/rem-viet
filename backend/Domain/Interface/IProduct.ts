@@ -1,8 +1,15 @@
 export interface IProduct {
-    _id: string,
-    name: string,
-    description: string,
-    price: string,
-    size: number[],
-    __v: number // Version
+    _id: string;
+    slug: string;
+    imageUrls: string[];
+    name: string;
+    description: string;
+    size: number[];
+    price: string;
+    soldQuantity: number;
+    quantity: number;
+    rating: number;
+    reviewsCount: number;
+    categoryId: string;
+    __v: number; // Version
 }

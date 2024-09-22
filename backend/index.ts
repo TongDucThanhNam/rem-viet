@@ -1,8 +1,9 @@
 import express from 'express';
 import morgan from 'morgan';
 import productRoutes from './Api/Routes/ProductRoutes';
-const swaggerUi = require('swagger-ui-express');
 import 'dotenv/config';
+
+const swaggerUi = require('swagger-ui-express');
 
 const swaggerFile = require('./swagger_output.json');
 
@@ -27,5 +28,5 @@ app.use("/api-docs",
 
 
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 })

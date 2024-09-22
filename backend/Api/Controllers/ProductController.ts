@@ -3,57 +3,41 @@ import IProductService from "../../Application/Persistences/IServices/IProductSe
 import ProductService from "../../Application/Features/Product/ProductService";
 import {CreateProductRequest} from "../../Application/Features/Product/Requests/CreateProductRequest";
 import {IVariant} from "../../Domain/Interface/IVariant";
+import {GetAllProductsRequest} from "../../Application/Features/Product/Requests/GetAllProductsRequest.ts";
+import {GetProductById} from "../../Application/Features/Product/Requests/getProductById.ts";
+import {GetProductAndVariantById} from "../../Application/Features/Product/Requests/GetProductAndVariantById.ts";
+import type {UpdateProduct} from "../../Application/Features/Product/Requests/UpdateProduct.ts";
+import type {DeleteProductById} from "../../Application/Features/Product/Requests/DeleteProductById.ts";
 
 
 export default class ProductController {
     private productServices: IProductService = new ProductService();
 
     getAllProducts = async (
-        req: Request,
+        req: Request<any, any, any, GetAllProductsRequest>,
         res: Response,
     ) => {
-        //#swagger.tags = ['Products']
-        //#swagger.description = 'API to get all products'
-        /* #swagger.parameters['query'] = {
-            "page": 1,
-            "limit": 10
-        }
-         */
-
         /*
-            #swagger.responses[200] = {
-                description: 'Successfully',
-                schema: {
-                  "products": {
-                    "currentPage": 1,
-                    "totalPage": 1,
-                    "totalItems": 3,
-                    "perPage": 10,
-                    "data": [
-                      {
-                        "_id": "66e6a2f5a0a8d5be45d8f568",
-                        "name": "Product Name",
-                        "description": "Product Description",
-                        "size": [
-                          30,
-                          30,
-                          10
-                        ],
-                        "__v": 0
-                      },
-                    ]
-                  }
-                }
-            }
+            #swagger.tags = ['Products']
+            #swagger.description = 'API to get all products'
          */
 
         try {
-            const page = req.query.page ? parseInt(req.query.page as string) : 1;
-            const limit = req.query.limit ? parseInt(req.query.limit as string) : 8;
-
-            const queryData = {
+            const {
+                search,
+                sort,
+                order,
                 page,
                 limit
+            } = req.query;
+
+
+            const queryData = {
+                search: search as string || "",
+                sort: sort as string || "",
+                order: order as string || "",
+                page: parseInt(page as string) || 1,
+                limit: parseInt(limit as string) || 8
             }
 
             const result = await this.productServices.getAllProducts(queryData);
@@ -65,43 +49,18 @@ export default class ProductController {
         }
     }
     getProductById = async (
-        req: Request,
+        req: Request<GetProductById, any, any, any>,
         res: Response,
     ) => {
-        //#swagger.tags = ['Products']
-
-        //#swagger.description = 'API to get product by id'
-
-        /* #swagger.parameters['productId'] = {
-                in: 'path',
-                description: 'Product Id',
-                required: true,
-                type: 'string',
-                example: '66e6a3aaa0a8d5be45d8f572'
-         }
-        */
-
-        /* #swagger.responses[200] = {
-                    description: 'Successfully',
-                    schema: {
-                          "message": "Product found",
-                          "statusCode": 200,
-                          "data": {
-                            "productId": "66e6a3aaa0a8d5be45d8f572",
-                            "name": "Product1",
-                            "description": "daedak",
-                            "size": [
-                              30,
-                              30,
-                              10
-                            ]
-                        }
-                    }
-                }
+        /*
+            #swagger.tags = ['Products']
+            #swagger.description = 'API to get product by id'
          */
 
         try {
-            const productId = req.params.productId;
+            const {
+                productId
+            } = req.params;
 
             const result = await this.productServices.getProductById(productId, {});
 
@@ -113,65 +72,20 @@ export default class ProductController {
     }
 
     getProductAndVariantById = async (
-        req: Request,
+        req: Request<GetProductAndVariantById, any, any, any>,
         res: Response,
     ) => {
-        //#swagger.tags = ['Products']
-
-        //#swagger.description = 'API to get product and variant by id'
-
-        /* #swagger.parameters['productId'] = {
-                in: 'path',
-                description: 'Product Id',
-                required: true,
-                type: 'string',
-                example: '66e6a3aaa0a8d5be45d8f572'
-         }
-        */
-
-        /* #swagger.responses[200] = {
-                    description: 'Successfully',
-                    schema: {
-                          "message": "Product found",
-                          "statusCode": 200,
-                          "data": {
-                            "productId": "66e6a3aaa0a8d5be45d8f572",
-                            "name": "Product1",
-                            "description": "daedak",
-                            "size": [
-                              30,
-                              30,
-                              10
-                            ],
-                            "variants": [
-                                {
-                                    "price": 100,
-                                    "quantity": 10,
-                                    "attributes": {
-                                        "color": "red",
-                                        "size": "M"
-                                    }
-                                },
-                                {
-                                    "price": 110,
-                                    "quantity": 5,
-                                    "attributes": {
-                                        "color": "blue",
-                                        "size": "L"
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
+        /*
+            #swagger.tags = ['Products']
+            #swagger.description = 'API to get product and variant by id'
          */
 
         try {
-            const productId = req.params.productId;
+            const {
+                productId
+            } = req.params;
 
             const result = await this.productServices.getProductAndVariantsById(productId);
-
-            //Id
 
             res.status(200).json(result);
 
@@ -181,15 +95,15 @@ export default class ProductController {
     }
 
     createProduct = async (
-        req: Request<any, any, CreateProductRequest>,
+        req: Request<any, any, CreateProductRequest, any>,
         res: Response,
     ) => {
-        //#swagger.tags = ['Products']
-        //#swagger.description = 'API to create product'
-
+        /*
+            #swagger.tags = ['Products']
+            #swagger.description = 'API to create product'
+         */
 
         try {
-            // console.log("Request", req.body);
             const {name, description, price, size, variants, imageurls} = req.body;
             //Product
             const productData = {
@@ -199,9 +113,6 @@ export default class ProductController {
                 "size": size,
                 "price": price ?? "0"
             }
-
-            console.log("ProductData", productData);
-            console.log("VariantData", variants);
 
             let min = 99999999999;
             let max = 0;
@@ -216,7 +127,7 @@ export default class ProductController {
                     ...variant
                 }
             })
-            console.log("Price", price);
+
             if (price == "0" || price == undefined) {
                 productData['price'] = `${min} - ${max}`;
             }
@@ -228,6 +139,62 @@ export default class ProductController {
                 //VariantData
                 variantData
             );
+
+            res.status(200).json(result);
+
+        } catch (error: any) {
+            res.status(500).json({message: error.message});
+        }
+    }
+
+    updateProduct = async (
+        req: Request<UpdateProduct, any, UpdateProduct, any>,
+        res: Response,
+    ) => {
+        /*
+            #swagger.tags = ['Products']
+            #swagger.description = 'API to update product'
+         */
+
+        try {
+            const {
+                productId
+            } = req.params;
+
+            const {name, description, price, size, imageurls} = req.body;
+
+            const productData = {
+                "imageUrls": imageurls,
+                "name": name,
+                "description": description,
+                "size": size,
+                "price": price
+            }
+
+            const result = await this.productServices.updateProductById(productId, productData);
+
+            res.status(200).json(result);
+
+        } catch (error: any) {
+            res.status(500).json({message: error.message});
+        }
+    }
+
+    deleteProduct = async (
+        req: Request<DeleteProductById, any, any, any>,
+        res: Response,
+    ) => {
+        /*
+            #swagger.tags = ['Products']
+            #swagger.description = 'API to delete product by id'
+         */
+
+        try {
+            const {
+                productId
+            } = req.params;
+
+            const result = await this.productServices.deleteProduct(productId);
 
             res.status(200).json(result);
 

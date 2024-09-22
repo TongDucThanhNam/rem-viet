@@ -7,6 +7,8 @@ import {CoreException} from "../../Common/Exceptions/CoreException";
 import {GetProductByIdResponse} from "./Responses/GetProductByIdResponse";
 import {GetVariantByProductId} from "./Responses/GetVariantByProductId";
 import {CreateProductResponse} from "./Responses/CreateProductResponse";
+import {UpdateProductById} from "./Responses/UpdateProductById.ts";
+import {UpdateProductAndVariantsById} from "./Responses/UpdateProductAndVariantsById.ts";
 
 export default class ProductService implements IProductService {
     private unitOfWork: IUnitOfWork = new UnitOfWork();
@@ -135,7 +137,11 @@ export default class ProductService implements IProductService {
 
     async getProductIdByProductName(productName: string, queryData: any): Promise<any> {
         try {
-            return await this.unitOfWork.productRepository.getProductIdByProductName(productName, queryData);
+            return new GetProductByIdResponse(
+                "Product found",
+                StatusCodeEnums.OK_200,
+                await this.unitOfWork.productRepository.getProductIdByProductName(productName, queryData),
+            )
 
         } catch (error: any) {
             throw new CoreException(
@@ -149,7 +155,22 @@ export default class ProductService implements IProductService {
         try {
             const session = await this.unitOfWork.startTransaction();
             const result = await this.unitOfWork.productRepository.updateProductById(productId, productData, session);
+
+            if (!result) {
+                await this.unitOfWork.abortTransaction();
+                return new CoreException(
+                    StatusCodeEnums.NotFound_404,
+                    "Product not found",
+                )
+            }
+
             await this.unitOfWork.commitTransaction();
+
+            return new UpdateProductById(
+                "Product updated",
+                StatusCodeEnums.OK_200,
+                result,
+            )
         } catch (error: any) {
             throw new CoreException(
                 StatusCodeEnums.InternalServerError_500,
@@ -165,6 +186,14 @@ export default class ProductService implements IProductService {
             //update product
             await this.unitOfWork.productRepository.updateProductById(productId, productData, session);
 
+            if (!productData) {
+                await this.unitOfWork.abortTransaction();
+                return new CoreException(
+                    StatusCodeEnums.NotFound_404,
+                    "Product not found",
+                )
+            }
+
             //update variant
             const variants = variantData.map((variant: any) => {
                 return {
@@ -176,7 +205,21 @@ export default class ProductService implements IProductService {
             for (const variant of variants) {
                 await this.unitOfWork.variantRepository.updateVariantById(variant._id, variant);
             }
+
             await this.unitOfWork.commitTransaction();
+
+            return UpdateProductAndVariantsById(
+                "Product and variants updated",
+                StatusCodeEnums.OK_200,
+                {
+                    _id: productId,
+                    name: productData.name,
+                    description: productData.description,
+                    size: productData.size,
+                    price: productData.price,
+                    variantNumber: variants.length
+                })
+
         } catch (error: any) {
             await this.unitOfWork.abortTransaction();
             throw new CoreException(

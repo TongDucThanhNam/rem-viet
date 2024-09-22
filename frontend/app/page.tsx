@@ -1,149 +1,190 @@
 "use client"; // This is a comment
 
-import React, { useEffect, useState } from "react";
+import React, { lazy, Suspense } from "react";
+import dynamic from "next/dynamic";
 import MyNavbar from "@/components/my-navbar/my-navbar";
-import { Pagination, Spacer } from "@nextui-org/react";
-import * as process from "process";
+import { cn } from "@nextui-org/react";
 import Footer from "@/components/footer/footer";
 import Mosquito from "@/components/motion/mosquito";
 import HeroSection from "@/components/homepage/hero-section";
 import FeatureSection from "@/components/homepage/feature-section";
 import OurStrength from "@/components/homepage/our-strength";
-import ProductGrid from "@/components/product-grid/product-grid";
-import ParticleEffect from "@/components/motion/particle";
-// import Parallax from "@/components/parallax/parallax";
-// import ParallaxComponent from "@/components/parallax/parallax";
-import { motion } from "framer-motion";
 import { FabButton } from "@/components/button/fab-button";
-import { DialogCard } from "@/components/dialog/dialog-card";
+import { features, heroSection } from "@/config/site";
+import NextImage from "next/image";
+import videoThumb from "@/public/src/videoThump.webp";
 
-// import {NavbarWrapper} from "@/components/my-navbar/my-navbar";
+const ResponsiveVideoLazy = lazy(() => import("@/components/video/video"));
 
-interface Products {
-  products: {
-    _id: number;
-    name: string;
-    description: string;
-    size: string[];
-    price: string;
-  };
-}
-
-const features = [
+const ProductGrid = dynamic(
+  () => import("@/components/product-grid/product-grid"),
   {
-    name: "Chất lượng sản phẩm",
-    description:
-      "Chất lượng sản phẩm là tiêu chí hàng đầu mà chúng tôi đặt ra. Chúng tôi cam kết cung cấp sản phẩm chất lượng, an toàn cho gia đình bạn.",
-    href: "/",
+    ssr: false,
   },
-  {
-    name: "Hỗ trợ 24/7",
-    description:
-      "Chúng tôi luôn sẵn sàng tư vấn, hỗ trợ bạn mọi lúc, mọi nơi. Hãy liên hệ với chúng tôi ngay hôm nay để được tư vấn miễn phí.",
-    href: "/",
-  },
-  {
-    name: "Giá cả phải chăng",
-    description:
-      "Chúng tôi không ngừng tìm tòi hòi hỏi áp dụng các kỹ thuật khoa học để tôi ưu quá trình sản xuất để đem đến giá cả phù hợp nhất cho người tiêu dùng.",
-    href: "/",
-  },
-];
-
-const placeholderProducts = Array.from({ length: 8 }, (_, index) => ({
-  _id: `placeholder-${index}`,
-  name: "Loading...",
-  imageUrls: ["/src/800x800.png"],
-  description: "Loading...",
-  size: ["Loading..."],
-  price: "Loading...,",
-}));
+);
 
 export default function Home() {
-  const [products, setProducts] = useState<any[]>([]);
-
-  //pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  //Total number of products
-  const [total, setTotal] = useState(1);
-
-  //isLoading
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch(`/api/products?page=${currentPage}&&limit=8`);
-        console.log(process.env.BACKEND_URL);
-        console.log(process.env.TEST_ENV);
-
-        if (!res.ok) {
-          console.error("Failed to fetch products:", res);
-          throw new Error("Network response was not ok");
-        }
-        const response = await res.json();
-
-        console.log(response);
-        setProducts(response.data);
-        setTotal(response.totalPage);
-      } catch (error) {
-        console.error("Failed to fetch products:", error);
-      }
-    };
-
-    fetchProducts().then(() => {
-      //Log
-      console.log("Fetch products success");
-      setIsLoading(false);
-    });
-  }, [currentPage]);
-
   return (
-    <>
+    <div className={"flex flex-col h-screen w-screen"}>
       <MyNavbar />
-      <div className={"bg-background bg-radial"}>
-        <div className="relative flex min-h-dvh flex-col bg-background bg-radial pt-16">
-          <div className="flex items-center h-auto justify-center p-4">
-            <div
-              className={
-                "my-auto flex h-full w-full max-w-7xl flex-col gap-2 p-4"
-              }
-            >
-              {/*Effect*/}
 
-              <HeroSection />
+      <div
+        className={cn(
+          "flex-grow w-screen ",
+          "overflow-y-scroll md:snap-y md:snap-mandatory",
+          "scrollbar-hide scroll-smooth", // Note: This might require additional setup for cross-browser support
+          // "relative flex flex-col",
+        )}
+      >
+        {/*Hero Section*/}
+        <section
+          id={"hero"}
+          className="h-full w-screen  flex flex-col justify-center md:snap-start"
+        >
+          <HeroSection />
+        </section>
 
-              <Spacer y={10} />
-
-              <Mosquito />
-
-              <FeatureSection features={features} />
-
-              <OurStrength />
-
-              <Spacer y={10} />
-
-              {/*Product Grid*/}
-              <ProductGrid products={products} isLoading={isLoading} />
-            </div>
+        {/*Video Section*/}
+        <section
+          id={"video"}
+          className="w-screen h-full flex flex-col justify-center items-center md:snap-start"
+        >
+          <div className="mb-4">
+            {" "}
+            {/* Margin-bottom để đẩy video xuống một chút */}
+            <h1 className="text-center text-4xl md:text-6xl font-bold mb-4 ">
+              Lưới chống muỗi
+              <br />
+              <span className="text-2xl md:text-4xl font-normal">
+                Sản xuất tại Việt Nam
+              </span>
+            </h1>
           </div>
-        </div>
 
-        <div className="flex items-center justify-center mb-14">
-          <Pagination
-            showControls
-            initialPage={1}
-            total={total}
-            onChange={(page: number) => {
-              setCurrentPage(page);
-            }}
-          />
-        </div>
+          <Suspense
+            fallback={
+              <div className="relative w-full h-96 flex justify-center items-center">
+                {" "}
+                {/* Đảm bảo fallback video cũng được căn giữa */}
+                <NextImage
+                  src={videoThumb}
+                  alt="Video thumbnail"
+                  layout="fill"
+                  objectFit="cover"
+                />
+              </div>
+            }
+          >
+            <div className="relative w-full h-96 flex justify-center items-center">
+              {" "}
+              {/* Căn giữa video */}
+              <ResponsiveVideoLazy videoSrc={heroSection.videoUrl} />
+            </div>
+          </Suspense>
+        </section>
+
+        {/* Mosquito section */}
+        <section
+          id={"mosquito"}
+          className="h-full w-screen flex flex-col justify-center md:snap-start"
+        >
+          <Mosquito />
+        </section>
+
+        {/*Feature Section*/}
+        <section
+          id={"feature"}
+          className="sm:min-h-full md:h-full w-screen flex flex-col justify-center items-center md:snap-start overflow-visible"
+        >
+          <FeatureSection features={features} />
+        </section>
+
+        {/*Our Strength Section*/}
+        <section
+          id={"our_strength"}
+          className="h-full w-screen  flex flex-col justify-center md:snap-start overflow-visible"
+        >
+          <OurStrength />
+        </section>
+
+        {/*Testimonials Section*/}
+        <section
+          id={"testimonials"}
+          className="h-full w-screen  flex flex-col justify-center md:snap-start overflow-visible"
+        >
+          <div className="text-center mb-8">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 ">
+              Đánh giá từ khách hàng
+            </h1>
+          </div>
+        </section>
+
+        {/*Guide Section*/}
+        <section
+          id={"guide"}
+          className="h-full w-screen  flex flex-col justify-center md:snap-start overflow-visible"
+        >
+          <div className="text-center mb-8">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 ">
+              Hướng dẫn sử dụng
+            </h1>
+          </div>
+        </section>
+
+        {/*Product Grid Section*/}
+        <section
+          id={"productGrid"}
+          className="md:h-full sm:h-fit w-screen  flex flex-col justify-center md:snap-start overflow-y-auto"
+        >
+          <ProductGrid />
+        </section>
+
+        {/*Materials & Sustainability Section*/}
+        <section
+          id={"materials"}
+          className="h-full w-screen  flex flex-col justify-center md:snap-start overflow-visible"
+        >
+          <div className="text-center mb-8">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 ">
+              Vật liệu & Bền vững
+            </h1>
+          </div>
+        </section>
+
+        {/*FAQ Section*/}
+        <section
+          id={"faq"}
+          className="h-full w-screen  flex flex-col justify-center md:snap-start overflow-visible"
+        >
+          <div className="text-center mb-8">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 ">
+              Câu hỏi thường gặp
+            </h1>
+          </div>
+        </section>
+
+        {/*Newsletter Subscription Section*/}
+        <section
+          id={"newsletter"}
+          className="h-full w-screen  flex flex-col justify-center md:snap-start overflow-visible"
+        >
+          <div className="text-center mb-8">
+            <h1 className="text-4xl md:text-6xl font-bold mb-4 ">
+              Đăng ký nhận tin
+            </h1>
+          </div>
+        </section>
+
+        {/*Footer Section*/}
+        <section
+          id={"footer"}
+          className="h-full w-screen md:flex md:flex-col md:snap-start justify-end"
+        >
+          <Footer />
+        </section>
       </div>
 
       <FabButton />
-
-      <Footer />
-    </>
+    </div>
   );
 }

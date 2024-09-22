@@ -77,7 +77,6 @@ class ProductRepository implements IProductRepository {
                 data: products,
             }
 
-            console.log(result);
             return result;
 
         } catch (error: any) {

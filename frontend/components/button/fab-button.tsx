@@ -18,13 +18,16 @@ export const FabButton = () => {
 
   return (
     <div className={"fixed bottom-20 right-10 p-0 "}>
-      <Button size={"lg"} isIconOnly onClick={handlePhoneClick} className={"animate-bounce"}>
+      <Button
+          aria-label={"Phone"}
+          size={"lg"} isIconOnly onClick={handlePhoneClick} className={"animate-bounce"}>
         <SolarPhoneCallingBold />
       </Button>
 
       <Spacer y={3} />
 
       <Button
+        aria-label={"Zalo"}
         color={"primary"}
         size={"lg"}
         isIconOnly

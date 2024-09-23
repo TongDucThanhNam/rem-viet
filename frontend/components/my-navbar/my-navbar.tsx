@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Button,
   cn,
   Input,
   Kbd,
@@ -18,7 +19,6 @@ import {
 import React from "react";
 import { RemVietIcon } from "@/components/icons/remviet";
 import { siteConfig } from "@/config/site";
-import clsx from "clsx";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { CartDropdown } from "@/components/my-navbar/cart";
 import { NotificationsDropdown } from "@/components/my-navbar/notifications-dropdown";
@@ -80,39 +80,29 @@ export default function MyNavbar(props: NavbarProps) {
       <NavbarMenuToggle className="text-default-400 md:hidden" />
 
       <NavbarBrand>
-        <Link className="rounded-full bg-foreground text-background" href={"/"}>
-          <RemVietIcon />
-        </Link>
-        <span className="ml-2 font-medium">Rèm Việt</span>
+        <Button
+          className={"bg-transparent"}
+          as={Link}
+          href={"/"}
+          aria-label={"Rèm Việt"}
+          startContent={<RemVietIcon />}
+        >
+          Rèm Việt
+        </Button>
       </NavbarBrand>
 
       <NavbarContent className="max-md:hidden">
-        <ul className="hidden lg:flex gap-4 justify-start ml-2">
-          {siteConfig.navItems.map((item) => (
-            <NavbarItem key={item.href}>
-              <Link
-                className={clsx(
-                  "data-[active=true]:text-primary data-[active=true]:font-medium",
-                )}
-                color="foreground"
-                href={item.href}
-              >
-                {item.label}
-              </Link>
-            </NavbarItem>
-          ))}
-        </ul>
+        {siteConfig.navItems.map((item) => (
+          <NavbarItem key={item.href}>
+            <Link href={item.href}>{item.label}</Link>
+          </NavbarItem>
+        ))}
       </NavbarContent>
 
       <NavbarContent
         className="hidden sm:flex basis-1/5 sm:basis-full"
         justify="end"
       >
-        <NavbarItem className="hidden sm:flex gap-2">
-          {/*<Link isExternal href={siteConfig.links.github} aria-label="Github">*/}
-          {/*    <GithubIcon className="text-default-500" />*/}
-          {/*</Link>*/}
-        </NavbarItem>
         <NavbarItem className="hidden lg:flex">{searchInput}</NavbarItem>
         <NavbarItem className="hidden md:flex" />
       </NavbarContent>
@@ -121,7 +111,10 @@ export default function MyNavbar(props: NavbarProps) {
         className="w-fit data-[justify=end]:flex-grow-0"
         justify="end"
       >
-        <ThemeSwitch />
+        {/*Theme Switch*/}
+        <NavbarItem>
+          <ThemeSwitch />
+        </NavbarItem>
 
         {/*Cart item*/}
         <CartDropdown />
@@ -129,9 +122,17 @@ export default function MyNavbar(props: NavbarProps) {
         {/*Notification*/}
         <NotificationsDropdown />
 
-        <Link href="https://github.com/tongducthanhnam" target={"_blank"}>
-          <GithubIcon />
-        </Link>
+        <NavbarItem>
+          <Button
+            as={Link}
+            href={siteConfig.links.github}
+            aria-label="Github"
+            isIconOnly={true}
+            className={"bg-transparent"}
+          >
+            <GithubIcon />
+          </Button>
+        </NavbarItem>
 
         {/*User button & Dropdown */}
         <UserDropdown />

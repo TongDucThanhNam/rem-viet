@@ -4,6 +4,7 @@ import { cn, Image, Switch } from "@nextui-org/react";
 import { motion } from "framer-motion";
 
 import React, { useEffect, useRef } from "react";
+import NextImage from "next/image";
 
 interface Particle {
   x: number;
@@ -168,10 +169,11 @@ export default function Mosquito() {
       <div className="relative h-[400px] w-full overflow-hidden flex justify-center items-center p-6">
         <Image
           isBlurred
+          as={NextImage}
           className="justify-center items-center z-0"
           src={"/src/window.webp"}
           alt={"Window"}
-          width={250}
+          width={286}
           height={250}
         />
 

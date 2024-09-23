@@ -8,14 +8,6 @@ export default function HeroSection() {
   return (
     <div className={"flex flex-col items-center "}>
       <div className="text-center mb-8">
-        {/*<TextEffect*/}
-        {/*  per="word"*/}
-        {/*  as="h1"*/}
-        {/*  preset="blur"*/}
-        {/*  className={"text-4xl md:text-6xl font-bold mb-4"}*/}
-        {/*>*/}
-        {/*  {heroSection.hello}*/}
-        {/*</TextEffect>*/}
         <TextReveal
           myclass={"text-4xl md:text-6xl font-bold mb-4"}
           text={heroSection.hello}
@@ -27,13 +19,6 @@ export default function HeroSection() {
 
         <Spacer y={2} />
 
-        {/*<TextEffect*/}
-        {/*  per="char"*/}
-        {/*  preset="fade"*/}
-        {/*  className="text-xl md:text-2xl max-w-2xl mx-auto"*/}
-        {/*>*/}
-        {/*  {heroSection.description}*/}
-        {/*</TextEffect>*/}
         <TextTypingEffectWithTexts />
       </div>
 

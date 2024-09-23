@@ -41,7 +41,9 @@ export function DialogCard() {
               831 Đ. Âu Cơ
             </DialogSubtitle>
           </div>
-          <Button isIconOnly={true}>
+          <Button
+              aria-label={"Info Card"}
+              isIconOnly={true}>
             <Iconly name="Plus" set="bold" primaryColor="#000" size={24} />
           </Button>
         </div>

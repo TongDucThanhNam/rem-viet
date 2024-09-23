@@ -20,7 +20,7 @@ export default function ReviewCard() {
                 <span className="text-small text-inherit font-medium">
                   Jon Slow
                 </span>
-                <span className="text-foreground-400 text-small">
+                <span className="text-small">
                   August 1, 2024
                 </span>
               </div>
@@ -29,7 +29,7 @@ export default function ReviewCard() {
         </CardHeader>
         <CardBody className="w-full">
           <p className="font-medium text-default-900">Quá tuyệt vời, chình tôi cũng ko thể tin nổi</p>
-          <p className="mt-2 text-default-500">
+          <p className="mt-2">
             Khi sử dụng sản phẩm này nhà tôi đã hết muỗi rõ rệt, cảm ơn bạn.
           </p>
         </CardBody>

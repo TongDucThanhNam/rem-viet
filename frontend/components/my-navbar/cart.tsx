@@ -24,7 +24,9 @@ export const CartDropdown = () => {
     <Dropdown>
       <NavbarItem>
         <DropdownTrigger>
-          <Button className="bg-transparent" isIconOnly={true}>
+          <Button
+              aria-label={"Cart"}
+              className="bg-transparent" isIconOnly={true}>
             <CartIcon />
           </Button>
         </DropdownTrigger>
@@ -40,7 +42,7 @@ export const CartDropdown = () => {
                 <Image
                   alt="Product image"
                   height={80}
-                  src="/src/img_1.png"
+                  src="/src/150x150.png"
                   width={80}
                 />
               </div>

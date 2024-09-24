@@ -1,17 +1,19 @@
 import React from "react";
 import { Button, Link, Spacer } from "@nextui-org/react";
 import { heroSection } from "@/config/site";
-import { TextReveal } from "@/components/text-effect/TextReveal";
 import { TextTypingEffectWithTexts } from "@/components/text-effect/typing-text-effect";
 
 export default function HeroSection() {
   return (
     <div className={"flex flex-col items-center "}>
       <div className="text-center mb-8">
-        <TextReveal
-          myclass={"text-4xl md:text-6xl font-bold mb-4"}
-          text={heroSection.hello}
-        />
+        {/*<TextReveal*/}
+        {/*  myclass={"line-clamp-2 text-3xl md:text-6xl font-bold mb-4"}*/}
+        {/*  text={heroSection.hello}*/}
+        {/*/>*/}
+        <h1 className="text-3xl sm:line-clamp-2 md:text-6xl font-bold mb-4">
+            {heroSection.hello}
+        </h1>
 
         <h1 className="text-4xl md:text-6xl font-bold mb-4  inline-block bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-sky-800 via-slate-100 to-sky-900 bg-clip-text text-transparent">
           {heroSection.title}

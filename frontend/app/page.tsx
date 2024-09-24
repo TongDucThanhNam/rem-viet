@@ -10,12 +10,12 @@ import HeroSection from "@/components/homepage/hero-section";
 import FeatureSection from "@/components/homepage/feature-section";
 import OurStrength from "@/components/homepage/our-strength";
 import { FabButton } from "@/components/button/fab-button";
-import {features, heroSection, our_strength} from "@/config/site";
+import { features, heroSection, our_strength } from "@/config/site";
 import NextImage from "next/image";
 import videoThumb from "@/public/src/videoThump.webp";
 import ReviewCard from "@/components/card/review-card";
 import FacebookIcon from "@/components/icons/icons";
-import {YouTubeEmbed} from "@next/third-parties/google";
+import { YouTubeEmbed } from "@next/third-parties/google";
 
 const ResponsiveVideoLazy = lazy(() => import("@/components/video/video"));
 
@@ -79,22 +79,6 @@ const reviews = [
     title: "Hiệu quả vượt mong đợi",
     content:
       "Ban đầu tôi còn nghi ngờ, nhưng sau khi dùng thử, tôi đã phải thay đổi suy nghĩ. Rất đáng mua!",
-  },
-  {
-    name: "Lê Minh",
-    date: "May 20, 2024",
-    icon: <FacebookIcon className="w-5 h-5" />,
-    title: "An toàn cho cả gia đình",
-    content:
-      "Tôi rất yên tâm khi sử dụng sản phẩm này trong nhà, không có mùi khó chịu và hoàn toàn an toàn cho trẻ nhỏ.",
-  },
-  {
-    name: "Phạm Hương",
-    date: "May 5, 2024",
-    icon: <FacebookIcon className="w-5 h-5" />,
-    title: "Đáng đồng tiền bát gạo",
-    content:
-      "Giá cả hợp lý cho một sản phẩm chất lượng cao. Tôi sẽ giới thiệu cho bạn bè và người thân.",
   },
 ];
 
@@ -188,7 +172,7 @@ export default function Home() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto">
               {reviews.map((review, index) => (
-                <ReviewCard key={index}/>
+                <ReviewCard key={index} />
               ))}
             </div>
           </div>
@@ -209,7 +193,7 @@ export default function Home() {
         {/*Product Grid Section*/}
         <section
           id={"productGrid"}
-          className="sm:min-h-full md:h-full w-screen  flex flex-col justify-center md:snap-start overflow-y-auto"
+          className="sm:min-h-full md:h-full w-screen flex flex-col justify-center md:snap-start overflow-hidden"
         >
           <ProductGrid />
         </section>
@@ -217,55 +201,48 @@ export default function Home() {
         {/*Materials & Sustainability Section*/}
         <section
           id="materials"
-          className="sm:min-h-full md:h-full w-full flex flex-col justify-center items-center py-16 px-4 md:px-8 lg:px-16 md:snap-start overflow-visible"
+          className="py-16 px-4 sm:px-6 lg:px-8 w-full min-h-screen flex items-center justify-center md:snap-start overflow-visible"
         >
-          <div className="text-center mb-12 lg:mb-16">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-              Vật liệu & Quy trình sản xuất
-            </h1>
-            <p className="text-lg md:text-xl max-w-3xl mx-auto">
-              Chúng tôi cam kết sử dụng các vật liệu bền vững và quy trình sản
-              xuất thân thiện với môi trường.
-            </p>
-          </div>
-
-          <div className="w-full max-w-7xl flex flex-col lg:flex-row items-start gap-8 lg:gap-12">
-            <div className="w-full lg:w-1/2 mb-8 lg:mb-0">
-              <div
-                className="relative w-full"
-                style={{ paddingBottom: "56.25%" }}
-              >
-                <div className="aspect-w-16 aspect-h-9">
-                  <YouTubeEmbed
-                    videoid={our_strength.video}
-                    params="controls=1"
-                    playlabel="Watch video"
-                  />
-                </div>
-              </div>
+          <div className="max-w-7xl mx-auto w-full">
+            <div className="text-center mb-12">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
+                Vật liệu & Quy trình sản xuất
+              </h1>
+              <p className="text-lg sm:text-xl md:text-2xl max-w-3xl mx-auto">
+                Chúng tôi cam kết sử dụng các vật liệu bền vững và quy trình sản
+                xuất thân thiện với môi trường.
+              </p>
             </div>
 
-            <div className="w-full lg:w-1/2">
-              <div className="text-left max-w-xl mx-auto">
-                <h2 className="text-2xl md:text-3xl font-semibold mb-6">
+            <div className="grid md:grid-cols-2 gap-8 items-start">
+              <div className="aspect-w-16 aspect-h-9">
+                <YouTubeEmbed
+                  videoid={our_strength.video}
+                  params="controls=1"
+                  playlabel="Watch video"
+                />
+              </div>
+
+              <div className="text-left max-w-xl mx-auto md:mx-0">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-semibold mb-6">
                   Vật liệu của chúng tôi
                 </h2>
-                <p className="text-base md:text-lg mb-4">
+                <p className="text-base sm:text-lg lg:text-xl mb-4">
                   Chúng tôi tự hào sử dụng các vật liệu cao cấp và bền vững
                   trong quá trình sản xuất:
                 </p>
-                <ul className="list-disc text-left pl-6 mb-6">
+                <ul className="list-disc text-left pl-6 mb-6 text-base sm:text-lg">
                   <li className="mb-2">Vải organic được chứng nhận GOTS</li>
                   <li className="mb-2">Sợi tái chế từ chai nhựa PET</li>
                   <li className="mb-2">Nút áo từ vỏ dừa tự nhiên</li>
                   <li className="mb-2">Thuốc nhuộm tự nhiên không độc hại</li>
                 </ul>
-                <p className="text-base md:text-lg mb-8">
+                <p className="text-base sm:text-lg lg:text-xl mb-8">
                   Bằng cách sử dụng các vật liệu này, chúng tôi không chỉ tạo ra
                   sản phẩm chất lượng cao mà còn góp phần bảo vệ môi trường.
                 </p>
-                <Button className=" text-white w-full sm:w-auto">
-                  Tìm hiểu thêm về cam kết bền vững của chúng tôi
+                <Button variant={"shadow"} className="justify-center">
+                  Tìm hiểu thêm
                 </Button>
               </div>
             </div>
@@ -275,7 +252,7 @@ export default function Home() {
         {/*FAQ Section*/}
         <section
           id={"faq"}
-          className="h-full w-screen  flex flex-col justify-center md:snap-start overflow-visible"
+          className="sm:min-h-full h-full w-screen flex flex-col justify-center md:snap-start overflow-visible"
         >
           <div className="text-center mb-8">
             <div className="">
@@ -307,7 +284,7 @@ export default function Home() {
         {/*Newsletter Subscription Section*/}
         <section
           id={"newsletter"}
-          className="h-full w-screen  flex flex-col justify-center md:snap-start overflow-visible"
+          className="sm:min-h-full h-full w-screen  flex flex-col justify-center md:snap-start overflow-visible"
         >
           <div className="text-center mb-8">
             <div className="py-16 sm:py-24">
@@ -348,7 +325,7 @@ export default function Home() {
         {/*Footer Section*/}
         <section
           id={"footer"}
-          className="h-full w-screen md:flex md:flex-col md:snap-start justify-end"
+          className="sm:min-h-full h-full w-screen md:flex md:flex-col md:snap-start justify-end"
         >
           <Footer />
         </section>

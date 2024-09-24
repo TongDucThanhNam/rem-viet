@@ -3,7 +3,7 @@
 import { cn, Image, Switch } from "@nextui-org/react";
 import { motion } from "framer-motion";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import NextImage from "next/image";
 
 interface Particle {
@@ -17,6 +17,11 @@ interface Particle {
 
 export default function Mosquito() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+
+  const toggleOverlay = (isSelected) => {
+    setIsOverlayVisible(isSelected);
+  };
   const [isDisableParticles, setIsDisableParticles] =
     React.useState<boolean>(false);
 
@@ -158,7 +163,10 @@ export default function Mosquito() {
 
       <div className="flex justify-center">
         <Switch
-          onValueChange={(isSelected) => setIsDisableParticles(isSelected)}
+          onValueChange={(isSelected) => {
+            setIsDisableParticles(isSelected);
+            toggleOverlay(isSelected);
+          }}
           className="text-center"
           size={"lg"}
           color="primary"
@@ -167,16 +175,61 @@ export default function Mosquito() {
         </Switch>
       </div>
       <div className="relative h-[400px] w-full overflow-hidden flex justify-center items-center p-6">
-        <Image
-          isBlurred
-          as={NextImage}
-          className="justify-center items-center z-0"
-          src={"/src/window.webp"}
-          alt={"Window"}
-          width={286}
-          height={250}
-        />
+        <div className="relative w-64 h-73">
+          {/* Hình vuông tĩnh */}
+          <Image
+            isBlurred
+            as={NextImage}
+            className="justify-center items-center z-0"
+            src={"/src/window.webp"}
+            alt={"Window"}
+            width={286}
+            height={250}
+          />
 
+          {/* Hình vuông động */}
+          {/*<motion.div*/}
+          {/*  className="absolute inset-0 bg-gray-800 rounded-lg shadow-lg opacity-70"*/}
+          {/*  style={{*/}
+          {/*    backgroundImage: `*/}
+          {/*    linear-gradient(0deg, transparent 0%, transparent calc(100% - 1px), rgba(0, 0, 0, 0.5) calc(100% - 1px)),*/}
+          {/*    linear-gradient(90deg, transparent 0%, transparent calc(100% - 1px), rgba(0, 0, 0, 0.5) calc(100% - 1px))*/}
+          {/*  `,*/}
+          {/*    backgroundSize: "8px 8px",*/}
+          {/*  }}*/}
+          {/*  initial={{ y: "-100%" }}*/}
+          {/*  animate={{*/}
+          {/*    y: isOverlayVisible ? "0%" : "-100%",*/}
+          {/*  }}*/}
+          {/*  transition={{*/}
+          {/*    type: "spring",*/}
+          {/*    stiffness: 100,*/}
+          {/*    damping: 20,*/}
+          {/*  }}*/}
+          {/*/>*/}
+
+          {/* Hình vuông động */}
+          <motion.div
+            className="absolute inset-0 rounded-lg shadow-lg dark:bg-white dark:bg-opacity-10"
+            style={{
+              backgroundImage: `
+              linear-gradient(0deg, transparent 0%, transparent calc(100% - 1px), rgba(0, 0, 0, 0.5) calc(100% - 1px)),
+              linear-gradient(90deg, transparent 0%, transparent calc(100% - 1px), rgba(0, 0, 0, 0.5) calc(100% - 1px))
+            `,
+              backgroundSize: "8px 8px",
+            }}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{
+              scale: isOverlayVisible ? 1 : 0,
+              opacity: isOverlayVisible ? 1 : 0,
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 260,
+              damping: 20,
+            }}
+          />
+        </div>
         <canvas
           ref={canvasRef}
           className={cn("absolute", isDisableParticles ? "hidden" : "block")}

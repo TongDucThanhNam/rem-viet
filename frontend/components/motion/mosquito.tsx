@@ -19,7 +19,7 @@ export default function Mosquito() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isOverlayVisible, setIsOverlayVisible] = useState(false);
 
-  const toggleOverlay = (isSelected) => {
+  const toggleOverlay = (isSelected: boolean) => {
     setIsOverlayVisible(isSelected);
   };
   const [isDisableParticles, setIsDisableParticles] =
@@ -163,7 +163,7 @@ export default function Mosquito() {
 
       <div className="flex justify-center">
         <Switch
-          onValueChange={(isSelected) => {
+          onValueChange={(isSelected: boolean) => {
             setIsDisableParticles(isSelected);
             toggleOverlay(isSelected);
           }}

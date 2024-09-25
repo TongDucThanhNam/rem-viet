@@ -26,23 +26,14 @@ const CardItem = ({
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-lg">
       <div className="relative aspect-square">
-        <Image
-          src={imageUrls[0]}
-          alt={name}
-          layout="fill"
-          className=""
-          fallbackSrc="/src/800x800.png"
-
-        />
+        <NextImage src={imageUrls[0]} alt={name} layout="fill" className="" />
       </div>
       <CardBody className="p-4">
         <h3 className="text-lg font-semibold line-clamp-2 mb-2">{name}</h3>
         <div className="flex items-center justify-between">
-          <span className="text-xl font-bold">
-            {price.toLocaleString("vi-VN")}₫
-          </span>
+          <span className="text-xl font-bold">{price}₫</span>
           <div className="flex items-center">
-            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+            <Star />
             <span className="ml-1 text-sm text-gray-600">{5}</span>
           </div>
         </div>

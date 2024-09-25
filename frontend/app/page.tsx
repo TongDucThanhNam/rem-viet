@@ -17,9 +17,9 @@ import VideoSection from "@/components/homepage/video-section";
 
 const ProductGridLazy = dynamic(
   () => import("@/components/product-grid/product-grid"),
-  {
-    ssr: false,
-  },
+  // {
+  //   ssr: false,
+  // },
 );
 
 const HeroSectionComponent = dynamic(

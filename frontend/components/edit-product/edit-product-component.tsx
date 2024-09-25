@@ -98,7 +98,9 @@ export default function EditProductComponent({
   myVariantCombinationArray: VariantCombination[];
 }) {
   const [imageUrl, setImageUrl] = useState<string>("");
-  const [imageUrls, setImageUrls] = useState<string[]>(myProduct.imageUrls ?? []);
+  const [imageUrls, setImageUrls] = useState<string[]>(
+    myProduct.imageUrls ?? [],
+  );
 
   const [variantValues, setVariantValues] = useState<VariantValue[]>([
     { value: "" },
@@ -117,7 +119,7 @@ export default function EditProductComponent({
   const [variantName, setVariantName] = React.useState("");
 
   const [isVariantEnabled, setIsVariantEnabled] = React.useState(
-    myVariants ?? false,
+    myVariants ? true : false,
   );
 
   const addVariants = () => {
@@ -162,9 +164,9 @@ export default function EditProductComponent({
   };
 
   const handleRemoveImage = (index: number) => {
-    const newUrls = imageUrls.filter((_, i) => i !== index)
-    setImageUrls(newUrls)
-  }
+    const newUrls = imageUrls.filter((_, i) => i !== index);
+    setImageUrls(newUrls);
+  };
 
   const editProduct = async () => {
     console.log("Edit Product");
@@ -235,24 +237,24 @@ export default function EditProductComponent({
               <CardFooter className={"flex flex-col"}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                   {imageUrls.map((url, index) => (
-                      <div key={index} className="relative group">
-                        <NextImage
-                            src={url}
-                            alt={`Preview ${index + 1}`}
-                            width={40}
-                            height={40}
-                            className="w-full h-40 object-cover rounded-lg"
-                        />
-                        <Button
-                            color={"danger"}
-                            variant={"shadow"}
-                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => handleRemoveImage(index)}
-                            isIconOnly={true}
-                        >
-                            X
-                        </Button>
-                      </div>
+                    <div key={index} className="relative group">
+                      <NextImage
+                        src={url}
+                        alt={`Preview ${index + 1}`}
+                        width={40}
+                        height={40}
+                        className="w-full h-40 object-cover rounded-lg"
+                      />
+                      <Button
+                        color={"danger"}
+                        variant={"shadow"}
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => handleRemoveImage(index)}
+                        isIconOnly={true}
+                      >
+                        X
+                      </Button>
+                    </div>
                   ))}
                 </div>
               </CardFooter>
@@ -345,7 +347,7 @@ export default function EditProductComponent({
                     price: 0,
                   });
                 }
-                setIsVariantEnabled(!isVariantEnabled);
+                setIsVariantEnabled((prevState) => !prevState);
               }}
             >
               Kích hoạt biến thể

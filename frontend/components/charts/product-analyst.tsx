@@ -27,15 +27,30 @@ const productData = [
 export default function ProductAnalysis() {
   const [analysisType, setAnalysisType] = useState("price");
 
+  const handleSelectionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setAnalysisType(e.target.value);
+  };
+
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>Phân tích sản phẩm</CardHeader>
       <CardBody>
         <div className="mb-4">
-          <Select onValueChange={setAnalysisType} defaultValue={analysisType}>
-            <SelectItem value="price">Giá</SelectItem>
-            <SelectItem value="stock">Tồn kho</SelectItem>
-            <SelectItem value="sales">Doanh số</SelectItem>
+          <Select
+            label="Analysis Type"
+            placeholder="Select an Analysis Type"
+            onChange={handleSelectionChange}
+            selectedKeys={[analysisType]}
+          >
+            <SelectItem key={"Analyze Price"} value="price">
+              Giá
+            </SelectItem>
+            <SelectItem key={"Analyze Stock"} value="stock">
+              Tồn kho
+            </SelectItem>
+            <SelectItem key={"Analyze Profit"} value="sales">
+              Doanh số
+            </SelectItem>
           </Select>
         </div>
         <BarChart width={600} height={300} data={productData}>

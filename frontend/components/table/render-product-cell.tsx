@@ -16,10 +16,10 @@ interface Props {
 }
 
 // "createdAt": "2024-09-18T07:16:59.315Z",
-function formatDate(date) {
+function formatDate(date: any) {
   const d = new Date(date);
   return `${d.getDate()}/${d.getMonth()}/${d.getFullYear()}`;
-};
+}
 
 export const RenderCellProduct = ({ product, columnKey }: Props) => {
   const router = useRouter();
@@ -106,10 +106,8 @@ export const RenderCellProduct = ({ product, columnKey }: Props) => {
         </div>
       );
 
-      case "updatedAt":
-        return (
-            <span> {formatDate(cellValue)}</span>
-        );
+    case "updatedAt":
+      return <span> {formatDate(cellValue)}</span>;
 
     default:
       return cellValue;

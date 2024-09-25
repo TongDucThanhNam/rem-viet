@@ -1,3 +1,5 @@
+"use client"
+
 import Link from "next/link";
 import { DialogCard } from "@/components/dialog/dialog-card";
 import { footer } from "@/config/site";

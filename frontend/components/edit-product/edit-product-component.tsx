@@ -9,6 +9,7 @@ import {
   Chip,
   cn,
   Input,
+  Link,
   Spacer,
   Switch,
   Tab,
@@ -21,8 +22,6 @@ import {
   Tabs,
   Textarea,
 } from "@nextui-org/react";
-// @ts-ignore
-// import Files from 'react-files'
 import { Upload } from "react-iconly";
 import React, { useEffect, useState } from "react";
 import NextImage from "next/image";
@@ -43,6 +42,8 @@ interface VariantCombination {
 }
 
 interface Product {
+  _id?: string;
+  imageUrls?: string[];
   name: string;
   description: string;
   price: number;
@@ -87,30 +88,37 @@ function generateVariantCombinations(
   return result;
 }
 
-export default function AddProductPage() {
+export default function EditProductComponent({
+  myProduct,
+  myVariants,
+  myVariantCombinationArray,
+}: {
+  myProduct: Product;
+  myVariants: Variant[];
+  myVariantCombinationArray: VariantCombination[];
+}) {
+  const [imageUrl, setImageUrl] = useState<string>("");
+  const [imageUrls, setImageUrls] = useState<string[]>(myProduct.imageUrls ?? []);
+
   const [variantValues, setVariantValues] = useState<VariantValue[]>([
     { value: "" },
   ]);
-  const [imageUrl, setImageUrl] = useState<string>("");
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
 
   const [variantCombinations, setVariantCombinations] = useState<
     VariantCombination[]
-  >([]);
+  >(myVariantCombinationArray);
 
-  const [product, setProduct] = useState<Product>({
-    name: "",
-    description: "",
-    price: 0,
-  });
+  const [product, setProduct] = useState<Product>(myProduct);
 
-  const [variants, setVariants] = useState<Variant[]>([]);
+  const [variants, setVariants] = useState<Variant[]>(myVariants);
 
   const [maxChildIndex, setMaxChildIndex] = useState<number>(0);
 
   const [variantName, setVariantName] = React.useState("");
 
-  const [isVariantEnabled, setIsVariantEnabled] = React.useState(false);
+  const [isVariantEnabled, setIsVariantEnabled] = React.useState(
+    myVariants ?? false,
+  );
 
   const addVariants = () => {
     console.log("Before update:", variantValues);
@@ -135,11 +143,6 @@ export default function AddProductPage() {
     });
   };
 
-  const handleRemoveImage = (index: number) => {
-    const newUrls = imageUrls.filter((_, i) => i !== index);
-    setImageUrls(newUrls);
-  };
-
   useEffect(() => {
     console.log("After update:", variantValues);
   }, [variantValues]);
@@ -158,10 +161,14 @@ export default function AddProductPage() {
     });
   };
 
-  const saveProduct = async () => {
-    console.log("Save Product");
+  const handleRemoveImage = (index: number) => {
+    const newUrls = imageUrls.filter((_, i) => i !== index)
+    setImageUrls(newUrls)
+  }
+
+  const editProduct = async () => {
+    console.log("Edit Product");
     const jsonString = JSON.stringify({
-      imageurls: imageUrls,
       name: product.name,
       description: product.description,
       size: [30, 30, 10],
@@ -173,8 +180,8 @@ export default function AddProductPage() {
 
     //Gửi dữ liệu lên server
     try {
-      const response = await fetch("/api/product", {
-        method: "POST",
+      const response = await fetch(`/api/product/${product._id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -228,24 +235,24 @@ export default function AddProductPage() {
               <CardFooter className={"flex flex-col"}>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                   {imageUrls.map((url, index) => (
-                    <div key={index} className="relative group">
-                      <NextImage
-                        src={url}
-                        alt={`Preview ${index + 1}`}
-                        width={40}
-                        height={40}
-                        className="w-full h-40 object-cover rounded-lg"
-                      />
-                      <Button
-                        color={"danger"}
-                        variant={"shadow"}
-                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => handleRemoveImage(index)}
-                        isIconOnly={true}
-                      >
-                        X
-                      </Button>
-                    </div>
+                      <div key={index} className="relative group">
+                        <NextImage
+                            src={url}
+                            alt={`Preview ${index + 1}`}
+                            width={40}
+                            height={40}
+                            className="w-full h-40 object-cover rounded-lg"
+                        />
+                        <Button
+                            color={"danger"}
+                            variant={"shadow"}
+                            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => handleRemoveImage(index)}
+                            isIconOnly={true}
+                        >
+                            X
+                        </Button>
+                      </div>
                   ))}
                 </div>
               </CardFooter>
@@ -266,11 +273,11 @@ export default function AddProductPage() {
 
                     <div className={"flex flex-col gap-1 "}>
                       <span className={"text-sm"}>
-                        Kéo và thả hoặc nhấp để tải lên
+                        Kéo và thả hoặc chọn tệp ảnh
                       </span>
                       <span className={"text-sm"}>
-                        Hình ảnh nên có kích thước 500x500 hoặc 800x800 và có
-                        kích thước dưới 5MB
+                        Hình ảnh nên có kích thước 500x500 hoặc 800x800 và dưới
+                        5MB
                       </span>
                       <input style={{ display: "none" }} type="file" />
                     </div>
@@ -375,7 +382,7 @@ export default function AddProductPage() {
               className={"max-w-2xl"}
               fullWidth={true}
             >
-              <CardHeader>Thêm biến thể của sản phẩm</CardHeader>
+              <CardHeader>Thêm biến thể cho sản phẩm</CardHeader>
               <CardBody key={"Product Variants add"} className={"items-center"}>
                 <Spacer y={1} />
                 <Input
@@ -385,7 +392,7 @@ export default function AddProductPage() {
                   label={"Tên biến thể"}
                   labelPlacement={"inside"}
                   name={"variant-names"}
-                  placeholder="Nhập tên biến thể"
+                  placeholder={"Điền tên biến thể"}
                   value={variantName}
                   onValueChange={(value: string) => setVariantName(value)}
                 />
@@ -398,12 +405,12 @@ export default function AddProductPage() {
                       key={`VariantField-${index}`}
                       className={"max-w-2xl"}
                       defaultValue={value.value}
-                      label={`Giá biến thể - ${index}`}
+                      label={`Điền giá trị biến thể - ${index}`}
                       labelPlacement={"inside"}
+                      placeholder={`Giá trị biến thể - ${index}`}
                       name={`variant-value-${index}`}
                       value={value.value}
                       aria-label={`Variant Value ${index}`}
-                      // onChange={(e) => handleChildSubFieldValueChange(e, index)}
                       onValueChange={(value: string) => {
                         handleChildSubFieldValueChange(value, index);
                       }}
@@ -415,7 +422,7 @@ export default function AddProductPage() {
                 <Spacer y={1} />
 
                 <Button
-                  aria-label="Thêm biến thể"
+                  aria-label="Add Variants"
                   className={"w-fit"}
                   color="primary"
                   onPress={addVariants}
@@ -449,7 +456,7 @@ export default function AddProductPage() {
                 )}
               </TableHeader>
               <TableBody
-                emptyContent={"Chưa có biến thể nào."}
+                emptyContent={"No rows to display."}
                 items={variantCombinations}
               >
                 {(item) => (
@@ -477,13 +484,14 @@ export default function AddProductPage() {
                         key={`price-${item.key}`}
                         aria-label={`price-${item.key}`}
                         className={"w-full"}
-                        label={`Giá - ${item.key}`}
+                        label={`Giá-${item.key}`}
                         labelPlacement={"inside"}
                         name={`price-${item.key}`}
                         placeholder="10000"
                         size={"sm"}
                         tabIndex={item.key}
                         type={"number"}
+                        defaultValue={item.variantPrice.toString()}
                         onValueChange={(value: string) => {
                           //set variant price
                           setVariantCombinations((prevCombinations) => {
@@ -507,12 +515,13 @@ export default function AddProductPage() {
         ) : (
           <>
             <Input
+              value={product?.price.toString()}
               aria-label="Product Price"
               className={"max-w-2xl"}
               label={"Giá"}
               labelPlacement={"inside"}
-              name={"price"}
-              placeholder="Nhập giá sản phẩm"
+              name={"product-price"}
+              placeholder="Giá"
               type={"number"}
               onValueChange={(value: string) => {
                 setProduct({
@@ -526,8 +535,8 @@ export default function AddProductPage() {
 
         <Spacer y={5} />
 
-        <Button aria-label="Save Product" onPress={saveProduct}>
-          Lưu sản phẩm
+        <Button aria-label="Save Product" onPress={editProduct}>
+          Cập nhật sản phẩm
         </Button>
       </div>
 

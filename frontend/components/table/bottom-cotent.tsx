@@ -35,7 +35,7 @@ export default function BottomContent({
               variant="flat"
               // onPress={onPreviousPage}
             >
-              Previous
+              Trang sau
             </Button>
             <Button
               isDisabled={page === pages}
@@ -43,7 +43,7 @@ export default function BottomContent({
               variant="flat"
               // onPress={onNextPage}
             >
-              Next
+              Trang trước
             </Button>
           </div>
         </div>

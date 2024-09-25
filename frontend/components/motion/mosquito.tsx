@@ -175,16 +175,16 @@ export default function Mosquito() {
         </Switch>
       </div>
       <div className="relative h-[400px] w-full overflow-hidden flex justify-center items-center p-6">
-        <div className="relative w-64 h-73">
+        <div className="relative w-64 h-64">
           {/* Hình vuông tĩnh */}
-          <Image
-            isBlurred
-            as={NextImage}
-            className="justify-center items-center z-0"
+          <NextImage
+            // isBlurred
+            // as={NextImage}
+            className=""
             src={"/src/window.webp"}
             alt={"Window"}
-            width={286}
-            height={250}
+            fill={true}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
 
           {/* Hình vuông động */}

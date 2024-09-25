@@ -7,13 +7,11 @@ import {CardBalance2} from "../card/card-balance2";
 import {CardBalance3} from "../card/card-balance3";
 import {CardAgents} from "../card/card-agents";
 import {CardTransactions} from "../card/card-transactions";
+import ProductAnalysis from "@/components/charts/product-analyst";
 
-const Chart = dynamic(
-    () => import("../charts/steam").then((mod) => mod.Steam),
-    {
-        ssr: false,
-    },
-);
+const ProductAnalystComponent = dynamic(() => import('@/components/charts/product-analyst'), {
+    ssr: false,
+})
 
 export const Content = () => (
     <div className="h-full lg:px-6">
@@ -22,7 +20,7 @@ export const Content = () => (
             <div className="mt-6 gap-6 flex flex-col w-full">
                 {/* Card Section Top */}
                 <div className="flex flex-col gap-2">
-                    <h3 className="text-xl font-semibold">Available Balance</h3>
+                    <h3 className="text-xl font-semibold">Báo cáo</h3>
                     <div className="grid md:grid-cols-2 grid-cols-1 2xl:grid-cols-3 gap-5  justify-center w-full">
                         <CardBalance1/>
                         <CardBalance2/>
@@ -32,16 +30,14 @@ export const Content = () => (
 
                 {/* Chart */}
                 <div className="h-full flex flex-col gap-2">
-                    <h3 className="text-xl font-semibold">Statistics</h3>
-                    <div className="w-full bg-default-50 shadow-lg rounded-2xl p-6 ">
-                        <Chart/>
-                    </div>
+                    <h3 className="text-xl font-semibold">Thống kê</h3>
+                        <ProductAnalystComponent/>
                 </div>
             </div>
 
             {/* Left Section */}
             <div className="mt-4 gap-2 flex flex-col xl:max-w-md w-full">
-                <h3 className="text-xl font-semibold">Section</h3>
+                <h3 className="text-xl font-semibold">Mục lục</h3>
                 <div className="flex flex-col justify-center gap-4 flex-wrap md:flex-nowrap md:flex-col">
                     <CardAgents/>
                     <CardTransactions/>

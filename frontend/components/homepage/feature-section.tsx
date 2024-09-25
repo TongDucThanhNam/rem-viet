@@ -1,3 +1,5 @@
+"use client"
+
 import FacebookIcon from "@/components/icons/icons";
 import React from "react";
 import {motion} from "framer-motion";

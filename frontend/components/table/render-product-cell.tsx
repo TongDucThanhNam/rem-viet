@@ -1,14 +1,29 @@
+"use client";
+
 import { Chip, Tooltip } from "@nextui-org/react";
 import React from "react";
 
-import { DeleteIcon, EditIcon, EyeIcon } from "../icons/icons";
+import {
+  DeleteFilledIcon,
+  EditLinearIcon,
+  EyeFilledIcon,
+} from "../icons/icons";
+import { useRouter } from "next/navigation";
 
 interface Props {
   product: any[number];
   columnKey: any;
 }
 
+// "createdAt": "2024-09-18T07:16:59.315Z",
+function formatDate(date) {
+  const d = new Date(date);
+  return `${d.getDate()}/${d.getMonth()}/${d.getFullYear()}`;
+};
+
 export const RenderCellProduct = ({ product, columnKey }: Props) => {
+  const router = useRouter();
+
   const cellValue = product[columnKey];
 
   switch (columnKey) {
@@ -34,14 +49,20 @@ export const RenderCellProduct = ({ product, columnKey }: Props) => {
           <div>
             <Tooltip content="Details">
               <button onClick={() => console.log("View product", product.id)}>
-                <EyeIcon fill="#979797" size={20} />
+                <EyeFilledIcon fill="#979797" size={20} />
               </button>
             </Tooltip>
           </div>
           <div>
             <Tooltip color="secondary" content="Edit product">
-              <button onClick={() => console.log("Edit product", product.id)}>
-                <EditIcon fill="#979797" size={20} />
+              <button
+                onClick={() => {
+                  console.log("Edit product", product._id);
+
+                  router.push(`/edit-product/${product._id}`);
+                }}
+              >
+                <EditLinearIcon fill="#979797" size={20} />
               </button>
             </Tooltip>
           </div>
@@ -52,7 +73,7 @@ export const RenderCellProduct = ({ product, columnKey }: Props) => {
               onClick={() => console.log("Delete product", product.id)}
             >
               <button>
-                <DeleteIcon fill="#FF0080" size={20} />
+                <DeleteFilledIcon fill="#FF0080" size={20} />
               </button>
             </Tooltip>
           </div>
@@ -84,6 +105,11 @@ export const RenderCellProduct = ({ product, columnKey }: Props) => {
           <p className={"truncate"}>{cellValue}</p>
         </div>
       );
+
+      case "updatedAt":
+        return (
+            <span> {formatDate(cellValue)}</span>
+        );
 
     default:
       return cellValue;

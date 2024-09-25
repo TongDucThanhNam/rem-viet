@@ -1,17 +1,17 @@
 "use client"; // <===== REQUIRED
 
 import React from "react";
-import { Card, CardBody, Image, Skeleton } from "@nextui-org/react";
-import NextImage from "next/image";
+import { Button, Card, CardBody, CardFooter, Image } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
-import { StartIcon } from "@/components/icons/icons";
+import { Star } from "react-iconly";
+import NextImage from "next/image";
 
 const CardItem = ({
   imageUrls,
   name,
   price,
   productId,
-  isLoading,
+  // isLoading,
 }: {
   imageUrls: string[];
   name: string;
@@ -19,83 +19,42 @@ const CardItem = ({
   price: string;
   productId: string;
   productSize: string[];
-  isLoading: boolean;
+  // isLoading: boolean;
 }) => {
   const router = useRouter();
 
   return (
-    <Card
-      className="relative flex w-full flex-none flex-col gap-3 select-none"
-      isFooterBlurred={true}
-      isBlurred={true}
-      shadow={"lg"}
-      isPressable={true}
-      disableAnimation={true}
-      disableRipple={true}
-      onPress={() => {
-        router.push(`/product/${productId}`);
-      }}
-    >
-      <div className="relative w-full">
-        {isLoading ? (
-          <Skeleton>
-            <Image
-              as={NextImage}
-              width={800}
-              height={800}
-              isBlurred
-              src={imageUrls[0]}
-              fallbackSrc={"/src/800x800.png"}
-              alt="Product Image"
-              layout="responsive"
-            />
-          </Skeleton>
-        ) : (
-          <Image
-            isBlurred={true}
-            removeWrapper
-            className={"w-full h-full"}
-            as={NextImage}
-            width={800}
-            height={800}
-            src={imageUrls[0]}
-            fallbackSrc={"/src/800x800.png"}
-            alt="Product Image"
-            layout="responsive"
-          />
-        )}
-      </div>
+    <Card className="overflow-hidden transition-shadow hover:shadow-lg">
+      <div className="relative aspect-square">
+        <Image
+          src={imageUrls[0]}
+          alt={name}
+          layout="fill"
+          className=""
+          fallbackSrc="/src/800x800.png"
 
-      <CardBody className="mt-1 flex flex-col gap-2 px-1">
-        <div className="flex items-start justify-between gap-1">
-          <h3 className="text-small font-medium text-default-700">
-            {isLoading ? (
-              <Skeleton>
-                <span>{name}</span>
-              </Skeleton>
-            ) : (
-              <span>{name}</span>
-            )}
-          </h3>
-          <div className="flex items-center gap-1">
-            <StartIcon />
-            <span className="text-small text-default-500">5.0</span>
+        />
+      </div>
+      <CardBody className="p-4">
+        <h3 className="text-lg font-semibold line-clamp-2 mb-2">{name}</h3>
+        <div className="flex items-center justify-between">
+          <span className="text-xl font-bold">
+            {price.toLocaleString("vi-VN")}₫
+          </span>
+          <div className="flex items-center">
+            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+            <span className="ml-1 text-sm text-gray-600">{5}</span>
           </div>
         </div>
-        <div className="text-small font-medium text-default-500">
-          {isLoading ? (
-            <Skeleton>
-              <p className={"text-ellipsis overflow-hidden line-clamp-3 ..."}>
-                {price}₫
-              </p>
-            </Skeleton>
-          ) : (
-            <p className={"text-ellipsis overflow-hidden line-clamp-3 ..."}>
-              {price}₫
-            </p>
-          )}
-        </div>
       </CardBody>
+      <CardFooter className="p-4 pt-0">
+        <Button
+          onClick={() => router.push(`/product/${productId}`)}
+          className="w-full"
+        >
+          Xem chi tiết
+        </Button>
+      </CardFooter>
     </Card>
   );
 };

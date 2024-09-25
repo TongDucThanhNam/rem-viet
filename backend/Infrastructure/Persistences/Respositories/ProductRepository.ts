@@ -51,9 +51,9 @@ class ProductRepository implements IProductRepository {
                 _page = 1;
             }
             let _limit = limit;
-            if (limit === undefined || limit < 0) {
-                _limit = 8;
-            }
+            // if (limit === undefined || limit < 0) {
+            //     _limit = 8;
+            // }
 
             const filteredQueryData = {
                 ...(isActive && {isActive}),
@@ -72,7 +72,7 @@ class ProductRepository implements IProductRepository {
             const result = {
                 currentPage: _page,
                 totalPage: Math.ceil(totalProducts / _limit),
-                totalItems: products.length,
+                totalItems: totalProducts,
                 perPage: _limit,
                 data: products,
             }
@@ -90,6 +90,7 @@ class ProductRepository implements IProductRepository {
                 _id: productId,
                 ...queryData
             });
+
         } catch (error: any) {
             throw new Error("Error at getProductById in ProductRepository: " + error.message);
         }
@@ -109,6 +110,10 @@ class ProductRepository implements IProductRepository {
 
     async updateProductById(productId: string, productData: any, session: ClientSession): Promise<typeof ProductWithBase | null> {
         try {
+            console.log("Update product id: ", productId);
+            console.log("Update product data: ", productData);
+
+
             return await
                 ProductWithBase.findOneAndUpdate(
                     {_id: productId},

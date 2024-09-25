@@ -2,6 +2,8 @@ import {
   type SidebarItem,
   SidebarItemType,
 } from "@/components/sidebar/sidebar";
+import FacebookIcon from "@/components/icons/icons";
+import React from "react";
 
 export type SiteConfig = typeof siteConfig;
 
@@ -75,13 +77,13 @@ export const sectionNestedItems: SidebarItem[] = [
     key: "dashboard",
     href: "/dashboard",
     icon: "solar:chart-outline",
-    title: "Dashboard",
+    title: "Báo cáo",
   },
 
   //Products Nested
   {
     key: "products",
-    title: "Products",
+    title: "Sản phẩm",
     icon: "solar:pie-chart-2-outline",
     type: SidebarItemType.Nest,
     items: [
@@ -89,13 +91,13 @@ export const sectionNestedItems: SidebarItem[] = [
         key: "manage_product",
         icon: "solar:users-group-rounded-linear",
         href: "/products",
-        title: "Manage Product",
+        title: "Quản lý sản phẩm",
       },
       {
         key: "add-product",
         icon: "solar:users-group-rounded-linear",
         href: "/add-product",
-        title: "Add Product",
+        title: "Thêm sản phẩm",
       },
     ],
   },
@@ -103,7 +105,7 @@ export const sectionNestedItems: SidebarItem[] = [
   //Orders Nested
   {
     key: "orders",
-    title: "Orders",
+    title: "Đơn hàng",
     icon: "solar:pie-chart-2-outline",
     type: SidebarItemType.Nest,
     items: [
@@ -111,13 +113,35 @@ export const sectionNestedItems: SidebarItem[] = [
         key: "manage_order",
         icon: "solar:users-group-rounded-linear",
         href: "/orders",
-        title: "Manage Order",
+        title: "Quản lý đơn hàng",
       },
       {
         key: "add-order",
         icon: "solar:users-group-rounded-linear",
         href: "/add-order",
-        title: "Add Order",
+        title: "Thêm đơn hàng",
+      },
+    ],
+  },
+
+  //Nhập xuất kho Nested
+  {
+    key: "inventory",
+    title: "Nhập xuất kho",
+    icon: "solar:pie-chart-2-outline",
+    type: SidebarItemType.Nest,
+    items: [
+      {
+        key: "manage_inventory",
+        icon: "solar:users-group-rounded-linear",
+        href: "/inventory",
+        title: "Quản lý nhập xuất",
+      },
+      {
+        key: "add-inventory",
+        icon: "solar:users-group-rounded-linear",
+        href: "/add-inventory",
+        title: "Thêm nhập xuất",
       },
     ],
   },
@@ -126,7 +150,7 @@ export const sectionNestedItems: SidebarItem[] = [
     key: "home",
     href: "/",
     icon: "solar:home-2-linear",
-    title: "Home",
+    title: "Trang chủ",
   },
 ];
 
@@ -146,3 +170,60 @@ export const fab = {
   zalo: "https://zalo.me/84949491964",
   facebook: "https://www.facebook.com/profile.php?id=100076172431695",
 };
+
+
+export const faqs = [
+  {
+    id: 1,
+    question:
+        "Tôi muốn một kích thước không có trong danh sách, tôi phải làm sao?",
+    answer:
+        "Bạn hãy liên hệ chúng tôi và cung cấp kích thước bạn muốn, chúng tôi sẽ tư vấn và sản xuất theo yêu cầu của bạn.",
+  },
+  {
+    id: 2,
+    question: "Làm thế nào để đặt hàng?",
+    answer:
+        "Bạn có thể đặt hàng trực tiếp trên website hoặc liên hệ với chúng tôi qua số điện thoại hoặc email.",
+  },
+  {
+    id: 3,
+    question: "Ưu điểm của chúng tôi so với sản phẩm khác trên thị trường?",
+    answer:
+        "Chúng tôi cam kết sản phẩm của chúng tôi chất lượng và thời gian sử dụng tốt nhất. Ngoài ra vì chúng tôi sản xuất tại Việt Nam, chúng tôi có thể điều chỉnh sản phẩm cho phù hợp với bạn nhất.",
+  },
+];
+
+export const reviews = [
+  {
+    name: "Jon Slow",
+    date: "August 1, 2024",
+    icon: "123",
+    title: "Quá tuyệt vời, chính tôi cũng không thể tin nổi",
+    content: "Khi sử dụng sản phẩm này nhà tôi đã hết muỗi rõ rệt, cảm ơn bạn.",
+  },
+  {
+    name: "Mai Linh",
+    date: "July 15, 2024",
+    icon: "123",
+    title: "Sản phẩm đáng giá từng xu",
+    content:
+        "Tôi đã thử nhiều loại nhưng chưa có sản phẩm nào hiệu quả như thế này. Thực sự ấn tượng!",
+  },
+  {
+    name: "Trần Quốc",
+    date: "June 30, 2024",
+    icon: "123",
+    title: "Giải pháp hoàn hảo cho mùa hè",
+    content:
+        "Không còn phải lo lắng về muỗi khi đi dã ngoại nữa. Sản phẩm nhỏ gọn, dễ mang theo.",
+  },
+  {
+    name: "Nguyễn Thảo",
+    date: "June 1, 2024",
+    icon: "123",
+    title: "Hiệu quả vượt mong đợi",
+    content:
+        "Ban đầu tôi còn nghi ngờ, nhưng sau khi dùng thử, tôi đã phải thay đổi suy nghĩ. Rất đáng mua!",
+  },
+];

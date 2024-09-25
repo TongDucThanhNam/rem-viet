@@ -68,7 +68,7 @@ export default function AdminLayout({
           </div>
           <Spacer y={8} />
           <div className="flex items-center gap-3 px-3">
-            <Avatar isBordered size="sm" src="src/avatar.webp" />
+            <Avatar isBordered size="sm" src="/src/avatar.webp" />
             <div
               className={cn("flex max-w-full flex-col", { hidden: isCompact })}
             >
@@ -114,7 +114,7 @@ export default function AdminLayout({
                   theme === "light" ? setTheme("dark") : setTheme("light");
                 }}
               >
-                {isCompact ? <ThemeSwitch /> : "Theme Switch"}
+                {isCompact ? <ThemeSwitch /> : "Đổi theme"}
               </Button>
             </Tooltip>
 
@@ -150,7 +150,7 @@ export default function AdminLayout({
                     width={24}
                   />
                 ) : (
-                  "Help & Information"
+                  "Trợ giúp"
                 )}
               </Button>
             </Tooltip>
@@ -185,7 +185,7 @@ export default function AdminLayout({
                     width={24}
                   />
                 ) : (
-                  "Log Out"
+                  "Đăng xuất"
                 )}
               </Button>
             </Tooltip>
@@ -207,7 +207,7 @@ export default function AdminLayout({
               />
             </Button>
             <h2 className="text-medium font-medium text-default-700">
-              Overview
+              Nội dung
             </h2>
           </header>
           <main className="mt-4 h-auto w-full overflow-visible">

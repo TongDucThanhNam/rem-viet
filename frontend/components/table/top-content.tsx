@@ -31,7 +31,7 @@ export default function TopContent({
               endContent={
                 <SearchIcon className="text-default-400" width={16} />
               }
-              placeholder="Search"
+              placeholder="Tìm kiếm"
               size="sm"
               // value={filterValue}
               // onValueChange={onSearchChange}
@@ -50,7 +50,7 @@ export default function TopContent({
                       />
                     }
                   >
-                    Filter
+                    Lọc
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-80">
@@ -105,7 +105,7 @@ export default function TopContent({
                       />
                     }
                   >
-                    Sort
+                    Sắp xếp
                   </Button>
                 </DropdownTrigger>
                 <DropdownMenu
@@ -145,7 +145,7 @@ export default function TopContent({
                       />
                     }
                   >
-                    Columns
+                    Chọn cột
                   </Button>
                 </DropdownTrigger>
                 <DropdownMenu

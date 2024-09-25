@@ -7,6 +7,7 @@
     "@types/bun": "latest",
     "@types/express": "^4.17.21",
     "@types/mongoose": "^5.11.97",
+    "@types/node-telegram-bot-api": "^0.64.7",
     "bun-types": "^1.1.28"
   },
   "scripts": {
@@ -18,10 +19,12 @@
     "typescript": "^5.6.2"
   },
   "dependencies": {
+    "axios": "^1.7.7",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "mongoose": "^8.6.3",
     "morgan": "^1.10.0",
+    "node-telegram-bot-api": "^0.63.0",
     "swagger-autogen": "^2.23.7",
     "swagger-ui-express": "^5.0.1"
   }

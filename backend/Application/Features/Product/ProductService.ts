@@ -154,7 +154,11 @@ export default class ProductService implements IProductService {
     async updateProductById(productId: string, productData: any): Promise<any> {
         try {
             const session = await this.unitOfWork.startTransaction();
+
+            // console.log(productData);
             const result = await this.unitOfWork.productRepository.updateProductById(productId, productData, session);
+
+
 
             if (!result) {
                 await this.unitOfWork.abortTransaction();

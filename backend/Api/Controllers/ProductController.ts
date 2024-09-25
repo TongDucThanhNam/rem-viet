@@ -37,7 +37,7 @@ export default class ProductController {
                 sort: sort as string || "",
                 order: order as string || "",
                 page: parseInt(page as string) || 1,
-                limit: parseInt(limit as string) || 8
+                limit: parseInt(limit as string)
             }
 
             const result = await this.productServices.getAllProducts(queryData);
@@ -170,6 +170,8 @@ export default class ProductController {
                 "size": size,
                 "price": price
             }
+
+            console.log(productData);
 
             const result = await this.productServices.updateProductById(productId, productData);
 

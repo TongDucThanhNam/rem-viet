@@ -41,7 +41,7 @@ export const CardTransactions = () => {
                 <div className="flex gap-2.5 justify-center">
                     <div className="flex flex-col border-dashed border-2 border-divider py-2 px-6 rounded-xl">
             <span className="text-default-900 text-xl font-semibold">
-              Latest Transactions
+              Các đơn hàng gần nhất
             </span>
                     </div>
                 </div>

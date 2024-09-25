@@ -1,3 +1,5 @@
+"use client";
+
 import {
   cn,
   Table,
@@ -9,18 +11,19 @@ import {
 } from "@nextui-org/react";
 import React from "react";
 
+
 import { RenderCellProduct } from "@/components/table/render-product-cell";
 import Topbar from "@/components/table/topbar";
 import TopContent from "@/components/table/top-content";
 import BottomContent from "@/components/table/bottom-cotent";
 
 export const products_columns = [
-  { name: "Name", uid: "name" },
-  { name: "Description", uid: "description" },
-  { name: "Price", uid: "price" },
-  { name: "Sold", uid: "soldQuantity" },
-  { name: "Status", uid: "isActive" },
-  { name: "UpdatedAt", uid: "updatedAt" },
+  { name: "Tên sản phẩm", uid: "name" },
+  { name: "Mô tả", uid: "description" },
+  { name: "Giá", uid: "price" },
+  { name: "Đã bán", uid: "soldQuantity" },
+  { name: "Trạng thái", uid: "isActive" },
+  { name: "UpdateAt", uid: "updatedAt" },
   { name: "Actions", uid: "actions" },
 ];
 
@@ -67,10 +70,13 @@ export const TableProducts = ({ products }: { products: Product[] }) => {
               className={cn(
                 "text-sm font-semibold",
                 column.uid === "name" && "w-1/4 min-w-[100px]",
-                column.uid === "description" && "w-1/4 min-w-[100px]",
-                column.uid === "price" && "w-1/6 min-w-[80px]",
-                column.uid === "stock" && "w-1/6 min-w-[80px]",
+                column.uid === "description" && "w-1/6",
+                column.uid === "price" && "w-1/8 min-w-[90px]",
+                column.uid === "soldQuantity" && "w-1/12 min-w-[80px]",
                 column.uid === "actions" && "w-1/12 min-w-[60px]",
+                column.uid === "isActive" && "w-1/20 min-w-[80px]",
+                column.uid === "updatedAt" && "w-1/6 min-w-[80px]",
+
               )}
               hideHeader={column.uid === "actions"}
             >

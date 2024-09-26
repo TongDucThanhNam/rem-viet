@@ -38,6 +38,7 @@ type Product = {
 };
 
 export const TableProducts = ({ products }: { products: Product[] }) => {
+  const myProducts = products;
   const [page, setPage] = React.useState(1);
   const rowsPerPage = 4;
   const pages = Math.ceil(products.length / rowsPerPage);
@@ -50,7 +51,7 @@ export const TableProducts = ({ products }: { products: Product[] }) => {
 
   return (
     <div className="w-full flex flex-col gap-4">
-      {<Topbar products={products} />}
+      {<Topbar products={myProducts} />}
       <Table
         isHeaderSticky
         layout={"fixed"}

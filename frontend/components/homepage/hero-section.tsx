@@ -11,8 +11,8 @@ export default function HeroSection() {
         {/*  myclass={"line-clamp-2 text-3xl md:text-6xl font-bold mb-4"}*/}
         {/*  text={heroSection.hello}*/}
         {/*/>*/}
-        <h1 className="text-3xl sm:line-clamp-2 md:text-6xl font-bold mb-4">
-            {heroSection.hello}
+        <h1 className="text-3xl md:text-6xl font-bold mb-4">
+          {heroSection.hello}
         </h1>
 
         <h1 className="text-4xl md:text-6xl font-bold mb-4  inline-block bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-sky-800 via-slate-100 to-sky-900 bg-clip-text text-transparent">

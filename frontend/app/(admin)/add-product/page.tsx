@@ -455,20 +455,18 @@ export default function AddProductPage() {
                 {(item) => (
                   <TableRow key={item.key}>
                     <TableCell>
-                      <div className={"float-start flex gap-1"}>
-                        {Object.keys(item.values).map((key) => (
-                          <Chip
-                            key={key}
-                            aria-label={`Variant Value ${item.values[key]}`}
-                            className={
-                              "rounded-xl bg-default-100 px-[6px] capitalize text-default-800"
-                            }
-                            size="sm"
-                            variant="flat"
-                          >
-                            {item.values[key]}
-                          </Chip>
-                        ))}
+                      <div className={"sm:max-w-20 max-w-3xl"}>
+                        {Object.keys(item.values).map((key, index) => {
+                          if (index <3) {
+                            return (
+                                <Chip key={index} aria-label={`Variant ${key}`}>
+                                  {item.values[key]}
+                                </Chip>
+                            );
+                          }
+
+                          return null;
+                        })}
                       </div>
                     </TableCell>
 

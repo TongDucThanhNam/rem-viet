@@ -3,7 +3,15 @@ import React from "react";
 
 import PaymentMethod from "@/components/payment-method/payment-method";
 
-export default function PurchaseForm() {
+
+
+export default function PurchaseForm({myVariantChosen, myProduct}:{myVariantChosen: any, myProduct: any}) {
+
+  function handlePurchase() {
+    console.log("Purchased");
+  }
+
+
   return (
     <div className="flex items-center h-auto text-center mx-auto">
       <div className="flex w-full max-w-2xl py-8">
@@ -110,36 +118,36 @@ export default function PurchaseForm() {
             </div>
           </div>
 
-          {/*Address Type*/}
-          <div className="relative flex flex-col gap-2 ml-1 mt-6">
-            <span className="relative text-foreground-500">Loại địa chỉ</span>
-            <RadioGroup className="" orientation={"horizontal"}>
-              <Radio value="1">Nhà riêng</Radio>
-              <Radio value="2">Cơ quan</Radio>
-              <Radio value="3">Khác </Radio>
-            </RadioGroup>
-          </div>
-          <PaymentMethod className="w-[420px]" />
+          {/*/!*Address Type*!/*/}
+          {/*<div className="relative flex flex-col gap-2 ml-1 mt-6">*/}
+          {/*  <span className="relative text-foreground-500">Loại địa chỉ</span>*/}
+          {/*  <RadioGroup className="" orientation={"horizontal"}>*/}
+          {/*    <Radio value="1">Nhà riêng</Radio>*/}
+          {/*    <Radio value="2">Cơ quan</Radio>*/}
+          {/*    <Radio value="3">Khác </Radio>*/}
+          {/*  </RadioGroup>*/}
+          {/*</div>*/}
+          {/*<PaymentMethod className="w-[420px]" />*/}
 
-          {/*Card number*/}
-          <div className="group flex flex-col w-full group relative justify-end">
-            <Input
-              isRequired
-              label="Nhập số thẻ"
-              labelPlacement={"outside"}
-              placeholder="XXXX-XXXX-XXXX-XXXX"
-            />
-          </div>
+          {/*/!*Card number*!/*/}
+          {/*<div className="group flex flex-col w-full group relative justify-end">*/}
+          {/*  <Input*/}
+          {/*    isRequired*/}
+          {/*    label="Nhập số thẻ"*/}
+          {/*    labelPlacement={"outside"}*/}
+          {/*    placeholder="XXXX-XXXX-XXXX-XXXX"*/}
+          {/*  />*/}
+          {/*</div>*/}
 
-          {/*Cardholder Name*/}
-          <div className="group flex flex-col w-full group relative justify-end">
-            <Input
-              required
-              label="Nhập tên trên thẻ"
-              labelPlacement={"outside"}
-              placeholder="Nguyen Van A"
-            />
-          </div>
+          {/*/!*Cardholder Name*!/*/}
+          {/*<div className="group flex flex-col w-full group relative justify-end">*/}
+          {/*  <Input*/}
+          {/*    required*/}
+          {/*    label="Nhập tên trên thẻ"*/}
+          {/*    labelPlacement={"outside"}*/}
+          {/*    placeholder="Nguyen Van A"*/}
+          {/*  />*/}
+          {/*</div>*/}
         </form>
       </div>
     </div>

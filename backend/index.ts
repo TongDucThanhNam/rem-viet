@@ -49,6 +49,44 @@ app.post('/api/send-newletter', (req, res) => {
     res.sendStatus(200);
 });
 
+app.post('/api/send-product-order', (req, res) => {
+    const {
+        product,
+        variantChosen,
+        productPrice,
+        info,
+    } = req.body;
+
+    const message = `
+        Đơn hàng mới:
+        - Sản phẩm: ${product.name}
+        - Biến thể: ${JSON.stringify(variantChosen)}
+        - Giá: ${productPrice}đ
+        - Thông tin liên hệ: 
+            + Emaill: ${info.email}
+            + Tên: ${info.firstName}
+            + Họ: ${info.lastName}
+            + Số điện thoại: ${info.phoneNumber}
+            + Địa chỉ: ${info.address}
+            + Địa chỉ cụ thể (nếu có): ${info.specificAddress}
+            + Quận/Huyện: ${info.district}
+            + Thành phố: ${info.city}
+            + Mã bưu điện: ${info.postcode}
+        `;
+
+
+    bot.sendMessage(TELEGRAM_CHAT_ID, message)
+        .then(() => {
+            console.log('Tin nhắn đã được gửi!');
+            res.send('Tin nhắn đã được gửi thành công!');
+        })
+        .catch((error) => {
+            console.error('Lỗi khi gửi tin nhắn:', error);
+            res.send('Lỗi khi gửi tin nhắn!');
+        });
+    res.sendStatus(200);
+});
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

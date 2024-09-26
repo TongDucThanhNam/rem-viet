@@ -10,5 +10,8 @@
     "build:backend": "cd backend && bun run swagger",
     "build:frontend": "cd frontend && bun run build",
     "swagger": "cd backend && bun run swagger"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
   }
 }

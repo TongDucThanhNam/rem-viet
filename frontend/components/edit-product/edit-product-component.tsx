@@ -450,7 +450,7 @@ export default function EditProductComponent({
                     className={cn([
                       column.key === "price"
                         ? "flex-auto w-28"
-                        : "flex-auto w-48",
+                        : "flex-auto w-32",
                     ])}
                   >
                     {column.label}
@@ -463,21 +463,19 @@ export default function EditProductComponent({
               >
                 {(item) => (
                   <TableRow key={item.key}>
-                    <TableCell>
-                      <div className={"float-start flex gap-1"}>
-                        {Object.keys(item.values).map((key) => (
-                          <Chip
-                            key={key}
-                            aria-label={`Variant Value ${item.values[key]}`}
-                            className={
-                              "rounded-xl bg-default-100 px-[6px] capitalize text-default-800"
-                            }
-                            size="sm"
-                            variant="flat"
-                          >
-                            {item.values[key]}
-                          </Chip>
-                        ))}
+                    <TableCell className={""}>
+                      <div className={"sm:max-w-20 max-w-3xl"}>
+                        {Object.keys(item.values).map((key, index) => {
+                          if (index <3) {
+                            return (
+                                <Chip key={index} aria-label={`Variant ${key}`}>
+                                  {item.values[key]}
+                                </Chip>
+                            );
+                          }
+
+                          return null;
+                        })}
                       </div>
                     </TableCell>
 

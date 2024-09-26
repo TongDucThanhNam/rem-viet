@@ -168,7 +168,7 @@ const ProductItem: React.FC<ProductItemProps> = ({
       if (!response.ok) {
         throw new Error("Failed to send message");
       }
-      isOpen && onOpenChange(false);
+      isOpen && onOpenChange();
     } catch (error) {
       console.error("Error:", error);
     }

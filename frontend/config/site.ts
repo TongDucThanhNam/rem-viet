@@ -16,6 +16,10 @@ export const siteConfig = {
       label: "Trang chủ",
       href: "/",
     },
+    {
+      label: "Bài viết",
+      href: "/posts"
+    }
     // {
     //     label: "Bảng điều khiển",
     //     href: "/dashboard",

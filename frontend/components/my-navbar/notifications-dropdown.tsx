@@ -11,7 +11,7 @@ export const NotificationsDropdown = () => {
     return (
         <Popover showArrow offset={10} placement="bottom">
             <PopoverTrigger>
-                <NavbarItem>
+                <NavbarItem className={"ml-2 !flex gap-2"}>
                     <NotificationIcon/>
                 </NavbarItem>
             </PopoverTrigger>

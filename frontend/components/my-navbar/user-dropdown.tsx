@@ -14,7 +14,7 @@ import React from "react";
 export const UserDropdown = () => {
   return (
     <Dropdown>
-      <NavbarItem>
+      <NavbarItem className={"ml-2 !flex gap-2"}>
         <DropdownTrigger>
           <Avatar
             as="button"

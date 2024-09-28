@@ -21,8 +21,6 @@ import { RemVietIcon } from "@/components/icons/remviet";
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { CartDropdown } from "@/components/my-navbar/cart";
-import { NotificationsDropdown } from "@/components/my-navbar/notifications-dropdown";
-import { UserDropdown } from "@/components/my-navbar/user-dropdown";
 import { GithubIcon, SearchIcon } from "@/components/icons/icons";
 
 // import {AcmeIcon} from "./acme";
@@ -99,12 +97,8 @@ export default function MyNavbar(props: NavbarProps) {
         ))}
       </NavbarContent>
 
-      <NavbarContent
-        className="hidden sm:flex basis-1/5 sm:basis-full"
-        justify="end"
-      >
+      <NavbarContent className="max-md:hidden">
         <NavbarItem className="hidden lg:flex">{searchInput}</NavbarItem>
-        <NavbarItem className="hidden md:flex" />
       </NavbarContent>
 
       <NavbarContent
@@ -112,7 +106,7 @@ export default function MyNavbar(props: NavbarProps) {
         justify="end"
       >
         {/*Theme Switch*/}
-        <NavbarItem>
+        <NavbarItem className={"ml-2 !flex gap-2"}>
           <ThemeSwitch />
         </NavbarItem>
 
@@ -120,7 +114,7 @@ export default function MyNavbar(props: NavbarProps) {
         <CartDropdown />
 
         {/*Notification*/}
-        <NotificationsDropdown />
+        {/*<NotificationsDropdown />*/}
 
         <NavbarItem>
           <Button
@@ -135,7 +129,7 @@ export default function MyNavbar(props: NavbarProps) {
         </NavbarItem>
 
         {/*User button & Dropdown */}
-        <UserDropdown />
+        {/*<UserDropdown />*/}
       </NavbarContent>
 
       <NavbarMenu
@@ -150,6 +144,8 @@ export default function MyNavbar(props: NavbarProps) {
           },
         }}
       >
+        <NavbarMenuItem className="">{searchInput}</NavbarMenuItem>
+
         {siteConfig.navItems.map((item, index) => (
           <NavbarMenuItem key={`${item}-${index}`}>
             <Link

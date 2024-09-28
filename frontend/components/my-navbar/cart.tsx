@@ -22,7 +22,7 @@ interface CartDropdownProps {
 export const CartDropdown = () => {
   return (
     <Dropdown>
-      <NavbarItem>
+      <NavbarItem className={"ml-2 !flex gap-2"}>
         <DropdownTrigger>
           <Button
               aria-label={"Cart"}

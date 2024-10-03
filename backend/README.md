@@ -25,4 +25,3 @@ docker run -p 3001:3001 \
   -e DATABASE_NAME="e-commerce" \
   -t tongducthanhnam/nextui-ecommerce-be:1.3
 ```
-This project was created using `bun init` in bun v1.1.28. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.

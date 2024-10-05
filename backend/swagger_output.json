@@ -1,0 +1,413 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "verson": "1.0.1",
+    "title": "E-commerce API",
+    "description": "API documentation for E-commerce",
+    "version": "1.0.0"
+  },
+  "host": "localhost:3001/api",
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "Products",
+      "description": "Endpoints related to products"
+    },
+    {
+      "name": "Telegram",
+      "description": "Endpoints related to Telegram"
+    },
+    {
+      "name": "Posts",
+      "description": "Endpoints related to Posts"
+    }
+  ],
+  "schemes": [
+    "http"
+  ],
+  "securityDefinitions": {
+    "apiKeyAuth": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "Authorization",
+      "description": "Please enter JWT or API Key with Bearer into field"
+    }
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/posts": {
+      "get": {
+        "tags": [
+          "Posts"
+        ],
+        "description": "API to get all posts",
+        "responses": {
+          "200": {
+            "description": "Get all posts"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/posts/{id}": {
+      "get": {
+        "tags": [
+          "Posts"
+        ],
+        "description": "API to get post by id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Post id",
+            "schema": {
+              "$ref": "#/definitions/Posts"
+            },
+            "example": "115a4dca-6cc6-81a4-bcbf-fe2d7b901dcc"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get post by id"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "description": "API to get all products",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/product/{productId}": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "description": "API to get product by id",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Products"
+        ],
+        "description": "API to update product",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "example": "any"
+                },
+                "description": {
+                  "example": "any"
+                },
+                "price": {
+                  "example": "any"
+                },
+                "size": {
+                  "example": "any"
+                },
+                "imageurls": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Products"
+        ],
+        "description": "API to delete product by id",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/product/{productId}/variant": {
+      "get": {
+        "tags": [
+          "Products"
+        ],
+        "description": "API to get product and variant by id",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/product": {
+      "post": {
+        "tags": [
+          "Products"
+        ],
+        "description": "API to create product",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "example": "any"
+                },
+                "description": {
+                  "example": "any"
+                },
+                "price": {
+                  "example": "any"
+                },
+                "size": {
+                  "example": "any"
+                },
+                "variants": {
+                  "example": "any"
+                },
+                "imageurls": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/send-newletter": {
+      "post": {
+        "tags": [
+          "Telegram"
+        ],
+        "description": "API to send newletter to telegram",
+        "parameters": [
+          {
+            "name": "newletter",
+            "in": "body",
+            "description": "Newletter content",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "phoneNumber": {
+                  "type": "string",
+                  "example": "0123456789"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/send-product-order": {
+      "post": {
+        "tags": [
+          "Telegram"
+        ],
+        "description": "API to send product order to telegram",
+        "parameters": [
+          {
+            "name": "product",
+            "in": "body",
+            "description": "Product information",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "product": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "example": "product name"
+                    },
+                    "id": {
+                      "type": "string",
+                      "example": "product id"
+                    }
+                  }
+                },
+                "variantChosen": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "example": "variant name"
+                    },
+                    "id": {
+                      "type": "string",
+                      "example": "variant id"
+                    }
+                  }
+                },
+                "productPrice": {
+                  "type": "string",
+                  "example": "product price"
+                },
+                "info": {
+                  "type": "object",
+                  "properties": {
+                    "email": {
+                      "type": "string",
+                      "example": "email"
+                    },
+                    "firstName": {
+                      "type": "string",
+                      "example": "first name"
+                    },
+                    "lastName": {
+                      "type": "string",
+                      "example": "last name"
+                    },
+                    "phoneNumber": {
+                      "type": "string",
+                      "example": "phone number"
+                    },
+                    "address": {
+                      "type": "string",
+                      "example": "address"
+                    },
+                    "specificAddress": {
+                      "type": "string",
+                      "example": "specific address"
+                    },
+                    "district": {
+                      "type": "string",
+                      "example": "district"
+                    },
+                    "city": {
+                      "type": "string",
+                      "example": "city"
+                    },
+                    "postcode": {
+                      "type": "string",
+                      "example": "postcode"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Posts": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "115a4dca-6cc6-8189-9afc-ff0f4332612f"
+        }
+      }
+    }
+  }
+}

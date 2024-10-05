@@ -1,16 +1,17 @@
 require("dotenv").config();
 
-const options = {
-    openapi: true,     // Enable/Disable OpenAPI.                        By default is null
-    language: 'en-US',     // Change response language.                      By default is 'en-US'
-    disableLogs: true,       // Enable/Disable logs.                           By default is false
-    autoHeaders: true,        // Enable/Disable automatic headers recognition.  By default is true
-    autoQuery: true,        // Enable/Disable automatic query recognition.    By default is true
-    autoBody: true,        // Enable/Disable automatic body recognition.     By default is true
-    writeOutputFile: true         // Enable/Disable writing the output file.        By default is true
-};
+// const options = {
+//     openapi: true,     // Enable/Disable OpenAPI.                        By default is null
+//     language: 'en-US',     // Change response language.                      By default is 'en-US'
+//     disableLogs: true,       // Enable/Disable logs.                           By default is false
+//     autoHeaders: true,        // Enable/Disable automatic headers recognition.  By default is true
+//     autoQuery: true,        // Enable/Disable automatic query recognition.    By default is true
+//     autoBody: true,        // Enable/Disable automatic body recognition.     By default is true
+//     writeOutputFile: true         // Enable/Disable writing the output file.        By default is true
+// };
 import swaggerAutogen from 'swagger-autogen';
-const outputFile = './swagger_output.json';
+
+const outputFile = "./swagger_output.json";
 const endpointsFiles = ['./Api/Routes/*.ts'];
 // const endpointsFiles = ['./index.ts'];
 
@@ -30,7 +31,14 @@ const doc = {
             "name": "Products",
             "description": "Endpoints related to products"
         },
-
+        {
+            "name": "Telegram",
+            "description": "Endpoints related to Telegram"
+        },
+        {
+            "name": "Posts",
+            "description": "Endpoints related to Posts"
+        }
     ],
     securityDefinitions: {
         apiKeyAuth: { // This name should match the key in your route comment
@@ -40,9 +48,13 @@ const doc = {
             description: "Please enter JWT or API Key with Bearer into field"
         }
     },
-    definitions: {}
+    definitions: {
+        Posts: {
+            id: '115a4dca-6cc6-8189-9afc-ff0f4332612f',
+        }
+    }
 };
 
-swaggerAutogen(options)(outputFile, endpointsFiles, doc).then(() => {
+swaggerAutogen()(outputFile, endpointsFiles, doc).then(() => {
     console.log('Swagger documentation generated successfully');
 });

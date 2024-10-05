@@ -1,8 +1,8 @@
-import {Request, Response} from 'express';
-import IProductService from "../../Application/Persistences/IServices/IProductService";
+import type {Request, Response} from 'express';
+import type IProductService from "../../Application/Persistences/IServices/IProductService";
 import ProductService from "../../Application/Features/Product/ProductService";
 import {CreateProductRequest} from "../../Application/Features/Product/Requests/CreateProductRequest";
-import {IVariant} from "../../Domain/Interface/IVariant";
+import type {IVariant} from "../../Domain/Interface/IVariant";
 import {GetAllProductsRequest} from "../../Application/Features/Product/Requests/GetAllProductsRequest.ts";
 import {GetProductById} from "../../Application/Features/Product/Requests/getProductById.ts";
 import {GetProductAndVariantById} from "../../Application/Features/Product/Requests/GetProductAndVariantById.ts";
@@ -14,7 +14,7 @@ export default class ProductController {
     private productServices: IProductService = new ProductService();
 
     getAllProducts = async (
-        req: Request<any, any, any, GetAllProductsRequest>,
+        req: Request<GetAllProductsRequest, GetAllProductsRequest, GetAllProductsRequest, GetAllProductsRequest>,
         res: Response,
     ) => {
         /*
@@ -36,8 +36,8 @@ export default class ProductController {
                 search: search as string || "",
                 sort: sort as string || "",
                 order: order as string || "",
-                page: parseInt(page as string) || 1,
-                limit: parseInt(limit as string)
+                page: page || 1,
+                limit: limit
             }
 
             const result = await this.productServices.getAllProducts(queryData);
@@ -196,7 +196,7 @@ export default class ProductController {
                 productId
             } = req.params;
 
-            const result = await this.productServices.deleteProduct(productId);
+            const result = await this.productServices.deleteProductById(productId);
 
             res.status(200).json(result);
 

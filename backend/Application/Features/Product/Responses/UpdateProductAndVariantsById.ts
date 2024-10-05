@@ -12,7 +12,7 @@ interface Product {
 export class UpdateProductAndVariantsById extends BaseResponse {
     data: any;
 
-    constructor(message: string, statusCode: number, data: any, error: string) {
+    constructor(message: string, statusCode: number, data: any, error?: string) {
         super(message, statusCode, data, error);
         this.data = {
             productId: data._id,

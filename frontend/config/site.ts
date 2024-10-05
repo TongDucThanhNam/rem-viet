@@ -32,7 +32,7 @@ export const siteConfig = {
 };
 
 export const heroSection = {
-  hello: "Chào mừng đến với cửa hàng",
+  hello: "Chào mừng đến với",
   title: "Rèm Việt",
   description:
     "Mang đến sự bảo vệ cho gia đình bạn khỏi những tác nhân như côn trùng,khói bụi, ...",

@@ -14,6 +14,7 @@ import MaterialSection from "@/components/homepage/material-section";
 import GuideSection from "@/components/homepage/guide-section";
 import CustomerReviewSection from "@/components/homepage/customer-review-section";
 import VideoSection from "@/components/homepage/video-section";
+import HeroSection from "@/components/homepage/hero-section";
 
 const ProductGridLazy = dynamic(
   () => import("@/components/product-grid/product-grid"),
@@ -22,13 +23,9 @@ const ProductGridLazy = dynamic(
   // },
 );
 
-const HeroSectionComponent = dynamic(
-  () => import("@/components/homepage/hero-section"),
-);
-
 export default function Home() {
   return (
-    <div className={"flex flex-col h-screen w-screen  select-none"}>
+    <div className={"flex flex-col h-screen w-screen  select-none "}>
       <MyNavbar />
       <div
         className={cn(
@@ -42,9 +39,9 @@ export default function Home() {
         {/*Hero Section*/}
         <section
           id={"hero"}
-          className="h-full w-screen  flex flex-col justify-center md:snap-start"
+          className="h-full w-screen flex flex-col justify-center items-center md:snap-start"
         >
-          <HeroSectionComponent />
+          <HeroSection />
         </section>
 
         {/*Video Section*/}

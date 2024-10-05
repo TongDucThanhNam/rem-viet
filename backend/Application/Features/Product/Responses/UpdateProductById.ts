@@ -12,7 +12,7 @@ export class UpdateProductById extends BaseResponse {
     data: Product;
 
 
-    constructor(message: string, statusCode: number, data: object, error: string) {
+    constructor(message: string, statusCode: number, data: any, error?: string) {
         super(message, statusCode, data, error);
         this.data = {
             productId: data._id,

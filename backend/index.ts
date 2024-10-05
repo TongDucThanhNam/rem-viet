@@ -1,93 +1,38 @@
 import express from 'express';
 import morgan from 'morgan';
 import productRoutes from './Api/Routes/ProductRoutes';
+import telegramRoutes from './Api/Routes/TelegramRoutes';
+import postRoutes    from "./Api/Routes/PostRoutes.ts";
 import 'dotenv/config';
 
-const TelegramBot = require('node-telegram-bot-api');
+import swaggerUi from 'swagger-ui-express';
 
-const swaggerUi = require('swagger-ui-express');
-
-const swaggerFile = require('./swagger_output.json');
+import swaggerFile from './swagger_output.json';
 
 const PORT = process.env.PORT;
 const app = express()
 
 app.use(morgan("dev"));
+app.use(express.json());
 
-if (express.json) {
-    app.use(express.json());
-} else {
-    console.error("express.json() is not available");
-}
 
 //product
 app.use("/api", productRoutes);
+app.use("/api", telegramRoutes);
+app.use("/api", postRoutes);
+
 
 app.use("/api-docs",
     swaggerUi.serve,
     swaggerUi.setup(swaggerFile)
 );
 
-app.use(express.json());
-
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
-const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, {polling: false}); // polling: false để gửi tin nhắn thủ công
-
-app.post('/api/send-newletter', (req, res) => {
-    const message = req.body;
-
-    bot.sendMessage(TELEGRAM_CHAT_ID, `Khách hàng này muốn nhận thông tin tư vấn:\n${message.phoneNumber}`)
-        .then(() => {
-            console.log('Tin nhắn đã được gửi!');
-            res.send('Tin nhắn đã được gửi thành công!');
-        })
-        .catch((error) => {
-            console.error('Lỗi khi gửi tin nhắn:', error);
-            res.send('Lỗi khi gửi tin nhắn!');
-        });
-    res.sendStatus(200);
-});
-
-app.post('/api/send-product-order', (req, res) => {
-    const {
-        product,
-        variantChosen,
-        productPrice,
-        info,
-    } = req.body;
-
-    const message = `
-        Đơn hàng mới:
-        - Sản phẩm: ${product.name}
-        - Biến thể: ${JSON.stringify(variantChosen)}
-        - Giá: ${productPrice}đ
-        - Thông tin liên hệ: 
-            + Emaill: ${info.email}
-            + Tên: ${info.firstName}
-            + Họ: ${info.lastName}
-            + Số điện thoại: ${info.phoneNumber}
-            + Địa chỉ: ${info.address}
-            + Địa chỉ cụ thể (nếu có): ${info.specificAddress}
-            + Quận/Huyện: ${info.district}
-            + Thành phố: ${info.city}
-            + Mã bưu điện: ${info.postcode}
-        `;
-
-
-    bot.sendMessage(TELEGRAM_CHAT_ID, message)
-        .then(() => {
-            console.log('Tin nhắn đã được gửi!');
-            res.send('Tin nhắn đã được gửi thành công!');
-        })
-        .catch((error) => {
-            console.error('Lỗi khi gửi tin nhắn:', error);
-            res.send('Lỗi khi gửi tin nhắn!');
-        });
-    res.sendStatus(200);
-});
-
-
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 })
+
+//error handler
+app.use((err: any, req: any, res: any, next: any) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});

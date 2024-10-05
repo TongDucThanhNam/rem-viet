@@ -1,5 +1,5 @@
-import IProductService from "../../Persistences/IServices/IProductService";
-import {IUnitOfWork} from "../../Persistences/IRepositories/IUnitOfWork";
+import type IProductService from "../../Persistences/IServices/IProductService";
+import type {IUnitOfWork} from "../../Persistences/IRepositories/IUnitOfWork";
 import {UnitOfWork} from "../../../Infrastructure/Persistences/Respositories/UnitOfWork";
 import {ProductWithBase} from "../../../Domain/Entities/ProductEntities";
 import {StatusCodeEnums} from "../../../Domain/Enums/StatusCodeEnums";
@@ -137,10 +137,11 @@ export default class ProductService implements IProductService {
 
     async getProductIdByProductName(productName: string, queryData: any): Promise<any> {
         try {
+            const product: any = await this.unitOfWork.productRepository.getProductIdByProductName(productName, queryData);
             return new GetProductByIdResponse(
                 "Product found",
                 StatusCodeEnums.OK_200,
-                await this.unitOfWork.productRepository.getProductIdByProductName(productName, queryData),
+                product,
             )
 
         } catch (error: any) {
@@ -157,7 +158,6 @@ export default class ProductService implements IProductService {
 
             // console.log(productData);
             const result = await this.unitOfWork.productRepository.updateProductById(productId, productData, session);
-
 
 
             if (!result) {
@@ -212,7 +212,7 @@ export default class ProductService implements IProductService {
 
             await this.unitOfWork.commitTransaction();
 
-            return UpdateProductAndVariantsById(
+            return new UpdateProductAndVariantsById(
                 "Product and variants updated",
                 StatusCodeEnums.OK_200,
                 {
@@ -222,7 +222,8 @@ export default class ProductService implements IProductService {
                     size: productData.size,
                     price: productData.price,
                     variantNumber: variants.length
-                })
+                },
+            )
 
         } catch (error: any) {
             await this.unitOfWork.abortTransaction();

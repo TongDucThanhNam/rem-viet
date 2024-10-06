@@ -103,6 +103,8 @@ RUN bun --bun next build --no-lint
 
 # copy production dependencies and source code into final image
 FROM base AS release
+
+
 COPY --from=install /temp/prod/node_modules node_modules
 #COPY --from=prerelease /usr/src/app/index.ts .
 COPY --from=prerelease /usr/src/app/package.json .
@@ -115,9 +117,16 @@ COPY --from=prerelease /usr/src/app/public ./public
 COPY --from=prerelease /usr/src/app/.next/standalone ./
 COPY --from=prerelease /usr/src/app/.next/static ./.next/static
 
+RUN ls -la;
+# Allow all users to read the app
+RUN chmod -R 777 /usr/src/app/.next /usr/src/app/public
+
+
 # env
 ARG BACKEND_URL
 ENV BACKEND_URL=$BACKEND_URL
+
+USER nextjs
 
 
 # run the app

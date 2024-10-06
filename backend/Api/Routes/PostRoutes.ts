@@ -254,18 +254,16 @@ if (!databaseId) {
 
 //Slug map to id
 const slugMap = new Map();
-var slugify = require('slugify')
-
-
+var slugify = require("slugify");
 
 router.get("/posts", async (req, res) => {
   /*
-                    #swagger.tags = ['Posts']
-                    #swagger.description = 'API to get all posts'
-                    #swagger.responses[200] = {
-                        description: 'Get all posts',
-                    }
-                 */
+                      #swagger.tags = ['Posts']
+                      #swagger.description = 'API to get all posts'
+                      #swagger.responses[200] = {
+                          description: 'Get all posts',
+                      }
+                   */
 
   try {
     const response = await notion.databases.query({
@@ -277,7 +275,11 @@ router.get("/posts", async (req, res) => {
 
       let slug = slugify(post.properties.title.title[0].plain_text, {
         lower: true,
-        locale: 'vi'
+        locale: "vi",
+        replacement: "-", // replace spaces with replacement character, defaults to `-`
+        remove: /[*+~.()'"!:@]/g, // remove characters that match regex, defaults to `undefined`
+        strict: false, // strip special characters except replacement, defaults to `false`
+        trim: true, // trim leading and trailing replacement chars, defaults to `true`
       });
 
       slugMap.set(slug, post.id);
@@ -305,13 +307,13 @@ router.get("/posts", async (req, res) => {
 
 router.get("/posts/:id", async (req, res) => {
   /*
-                    #swagger.tags = ['Posts']
-                    #swagger.description = 'API to get post by id'
-                    #swagger.parameters['id'] = {description: 'Post id', type: 'string', schema: { $ref: "#/definitions/Posts" }, required: true, example: "115a4dca-6cc6-81a4-bcbf-fe2d7b901dcc"}
-                    #swagger.responses[200] = {
-                        description: 'Get post by id',
-                    }
-                 */
+                      #swagger.tags = ['Posts']
+                      #swagger.description = 'API to get post by id'
+                      #swagger.parameters['id'] = {description: 'Post id', type: 'string', schema: { $ref: "#/definitions/Posts" }, required: true, example: "115a4dca-6cc6-81a4-bcbf-fe2d7b901dcc"}
+                      #swagger.responses[200] = {
+                          description: 'Get post by id',
+                      }
+                   */
 
   try {
     let { id } = req.params;

@@ -28,6 +28,7 @@
     "mongoose": "^8.6.3",
     "morgan": "^1.10.0",
     "node-telegram-bot-api": "^0.63.0",
+    "slugify": "^1.6.6",
     "swagger-autogen": "^2.23.7",
     "swagger-ui-express": "^5.0.1"
   }

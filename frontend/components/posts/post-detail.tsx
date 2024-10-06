@@ -4,6 +4,7 @@ import { Chip, cn, Image, Link, Snippet } from "@nextui-org/react";
 import { AnchorIcon } from "@nextui-org/shared-icons";
 import React from "react";
 import { YouTubeEmbed } from "@next/third-parties/google";
+import EnhancedBookmark from "@/components/posts/bookmark";
 
 interface TOCItem {
   id: string;
@@ -109,8 +110,24 @@ export default function PostDetail({ myPost }: { myPost: any }) {
                           block.image.caption[0]?.plain_text ||
                           "Blog post image"
                         }
-                        width={800}
-                        height={600}
+                        className="rounded-lg shadow-md"
+                      />
+                      {block.image.caption[0]?.plain_text && (
+                        <figcaption className="mt-2 text-center text-sm text-gray-500">
+                          {block.image.caption[0].plain_text}
+                        </figcaption>
+                      )}
+                    </figure>
+                  );
+                } else if (block.image.type === "file") {
+                  return (
+                    <figure key={block.id} className="my-8">
+                      <Image
+                        src={block.image.file.url}
+                        alt={
+                          block.image.caption[0]?.plain_text ||
+                          "Blog post image"
+                        }
                         className="rounded-lg shadow-md"
                       />
                       {block.image.caption[0]?.plain_text && (
@@ -121,6 +138,7 @@ export default function PostDetail({ myPost }: { myPost: any }) {
                     </figure>
                   );
                 }
+
                 return null;
 
               case "heading_1":
@@ -288,15 +306,19 @@ export default function PostDetail({ myPost }: { myPost: any }) {
                 );
 
               case "bookmark":
+                return <EnhancedBookmark block={block} />;
+
+              //   Link preview
+              case "link_preview":
                 return (
                   <div key={block.id} className="my-6">
                     <a
-                      href={block.bookmark.url}
+                      href={block.link_preview.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-primary underline"
                     >
-                      {block.bookmark.url}
+                      {block.link_preview.url}
                     </a>
                   </div>
                 );

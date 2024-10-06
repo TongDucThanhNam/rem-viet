@@ -47,14 +47,20 @@ export const RenderCellProduct = ({ product, columnKey }: Props) => {
       return (
         <div className="flex items-center gap-4 ">
           <div>
-            <Tooltip content="Details">
-              <button onClick={() => console.log("View product", product.id)}>
+            <Tooltip content="Xem sản phẩm">
+              <button
+                onClick={() => {
+                  console.log("View product", product._id);
+
+                  router.push(`/view-product/${product._id}`);
+                }}
+              >
                 <EyeFilledIcon fill="#979797" size={20} />
               </button>
             </Tooltip>
           </div>
           <div>
-            <Tooltip color="secondary" content="Edit product">
+            <Tooltip color="secondary" content="Sửa sản phẩm">
               <button
                 onClick={() => {
                   console.log("Edit product", product._id);
@@ -69,8 +75,8 @@ export const RenderCellProduct = ({ product, columnKey }: Props) => {
           <div>
             <Tooltip
               color="danger"
-              content="Delete product"
-              onClick={() => console.log("Delete product", product.id)}
+              content="Xoá sản phẩm"
+              onClick={() => console.log("xoá sản phẩm", product.id)}
             >
               <button>
                 <DeleteFilledIcon fill="#FF0080" size={20} />

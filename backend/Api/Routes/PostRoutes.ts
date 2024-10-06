@@ -254,6 +254,9 @@ if (!databaseId) {
 
 //Slug map to id
 const slugMap = new Map();
+var slugify = require('slugify')
+
+
 
 router.get("/posts", async (req, res) => {
   /*
@@ -272,10 +275,10 @@ router.get("/posts", async (req, res) => {
     const posts = response.results.map((page) => {
       const post = page as Post;
 
-      let slug = post.properties.title.title[0].plain_text
-        .toLowerCase()
-        .replace(/[^a-z0-9-]+/g, "-")
-        .replace(/^-+|-+$/g, "");
+      let slug = slugify(post.properties.title.title[0].plain_text, {
+        lower: true,
+        locale: 'vi'
+      });
 
       slugMap.set(slug, post.id);
 

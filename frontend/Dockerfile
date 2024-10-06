@@ -111,6 +111,7 @@ COPY --from=prerelease /usr/src/app/package.json .
 #COPY --from=builder /frontend/package.json ./package.json
 #COPY --from=builder --chown=nextjs:nodejs /frontend/.next/standalone ./
 #COPY --from=builder --chown=nextjs:nodejs /frontend/.next/static ./.next/static
+COPY --from=prerelease /usr/src/app/public ./public
 COPY --from=prerelease /usr/src/app/.next/standalone ./
 COPY --from=prerelease /usr/src/app/.next/static ./.next/static
 

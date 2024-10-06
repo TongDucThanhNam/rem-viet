@@ -29,6 +29,9 @@ FROM base AS release
 COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=prerelease /usr/src/app .
 
+# Set environment variables at build time
+ARG PORT
+ENV PORT=$PORT
 RUN bun run swagger
 
 # run the app

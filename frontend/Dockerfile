@@ -94,6 +94,8 @@ COPY . .
 
 # [optional] tests & build
 ENV NODE_ENV=production
+ARG BACKEND_URL
+ENV BACKEND_URL=$BACKEND_URL
 RUN bun --bun next build --no-lint
 #RUN ls -la;sleep 10s;
 
@@ -113,6 +115,8 @@ COPY --from=prerelease /usr/src/app/.next/standalone ./
 COPY --from=prerelease /usr/src/app/.next/static ./.next/static
 
 # env
+ARG BACKEND_URL
+ENV BACKEND_URL=$BACKEND_URL
 
 
 # run the app

@@ -29,7 +29,9 @@ FROM base AS release
 COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=prerelease /usr/src/app .
 
+RUN bun run swagger
+
 # run the app
 USER bun
 EXPOSE 3001/tcp
-ENTRYPOINT [ "bun", "run", "dev" ]
+ENTRYPOINT [ "bun", "run", "start" ]

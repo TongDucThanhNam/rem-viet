@@ -277,7 +277,7 @@ router.get("/posts", async (req, res) => {
         lower: true,
         locale: "vi",
         replacement: "-", // replace spaces with replacement character, defaults to `-`
-        remove: /[*+~.()'"!:@]/g, // remove characters that match regex, defaults to `undefined`
+        remove: /[*+~.()'"!:@?]/g, // remove characters that match regex, defaults to `undefined`
         strict: false, // strip special characters except replacement, defaults to `false`
         trim: true, // trim leading and trailing replacement chars, defaults to `true`
       });

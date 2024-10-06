@@ -3,53 +3,63 @@ import dynamic from "next/dynamic";
 import MyNavbar from "@/components/my-navbar/my-navbar";
 import { cn } from "@nextui-org/react";
 import Footer from "@/components/footer/footer";
-import Mosquito from "@/components/motion/mosquito";
-import FeatureSection from "@/components/homepage/feature-section";
-import OurStrength from "@/components/homepage/our-strength";
-import { FabButton } from "@/components/button/fab-button";
 import { features, our_strength } from "@/config/site";
-import NewsletterSection from "@/components/homepage/newsletter-section";
-import FaqSection from "@/components/homepage/faq-section";
-import MaterialSection from "@/components/homepage/material-section";
-import GuideSection from "@/components/homepage/guide-section";
-import CustomerReviewSection from "@/components/homepage/customer-review-section";
-import VideoSection from "@/components/homepage/video-section";
 import HeroSection from "@/components/homepage/hero-section";
+import { FabButton } from "@/components/button/fab-button";
 
+// Dynamically import components
+const Mosquito = dynamic(() => import("@/components/motion/mosquito"));
+const FeatureSection = dynamic(
+  () => import("@/components/homepage/feature-section"),
+);
+const OurStrength = dynamic(() => import("@/components/homepage/our-strength"));
+const NewsletterSection = dynamic(
+  () => import("@/components/homepage/newsletter-section"),
+);
+const FaqSection = dynamic(() => import("@/components/homepage/faq-section"));
+const MaterialSection = dynamic(
+  () => import("@/components/homepage/material-section"),
+);
+const GuideSection = dynamic(
+  () => import("@/components/homepage/guide-section"),
+);
+const CustomerReviewSection = dynamic(
+  () => import("@/components/homepage/customer-review-section"),
+);
 const ProductGridLazy = dynamic(
   () => import("@/components/product-grid/product-grid"),
-  // {
-  //   ssr: false,
-  // },
+);
+const VideoLazy = dynamic(
+  () => import("@/components/homepage/video-section"),
+  {},
 );
 
 export default function Home() {
   return (
-    <div className={"flex flex-col h-screen w-screen  select-none "}>
+    <div className="flex flex-col h-screen w-screen select-none">
       <MyNavbar />
       <div
         className={cn(
-          "flex-grow w-screen ",
-          "overflow-y-scroll md:snap-y md:snap-mandatory",
-          "scrollbar-hide scroll-smooth", // Note: This might require additional setup for cross-browser support
-          "absolute inset-0 h-full w-full bg-white bg-[linear-gradient(to_right,#80808012_3px,transparent_3px),linear-gradient(to_bottom,#80808012_3px,transparent_3px)] bg-[size:24px_24px]",
-          // "relative flex flex-col",
+          "flex-1 w-full",
+          "overflow-y-auto md:snap-y md:snap-mandatory",
+          "scrollbar-hide scroll-smooth",
+          "bg-white bg-[linear-gradient(to_right,#80808012_3px,transparent_3px),linear-gradient(to_bottom,#80808012_3px,transparent_3px)] bg-[size:24px_24px]",
         )}
       >
-        {/*Hero Section*/}
+        {/* Hero Section */}
         <section
           id={"hero"}
-          className="h-full w-screen flex flex-col justify-center items-center md:snap-start"
+          className="h-full w-screen flex flex-col justify-center items-center md:snap-start "
         >
           <HeroSection />
         </section>
 
-        {/*Video Section*/}
+        {/* Video Section */}
         <section
           id={"video"}
           className="w-screen h-full flex flex-col justify-center items-center md:snap-start"
         >
-          <VideoSection />
+          <VideoLazy />
         </section>
 
         {/* Mosquito section */}
@@ -60,7 +70,7 @@ export default function Home() {
           <Mosquito />
         </section>
 
-        {/*Feature Section*/}
+        {/* Feature Section */}
         <section
           id={"feature"}
           className="sm:min-h-full md:h-full w-screen flex flex-col justify-center items-center md:snap-start overflow-visible"
@@ -68,7 +78,7 @@ export default function Home() {
           <FeatureSection features={features} />
         </section>
 
-        {/*Our Strength Section*/}
+        {/* Our Strength Section */}
         <section
           id={"our_strength"}
           className="sm:min-h-full md:h-full w-screen flex flex-row justify-center md:snap-start items-center overflow-visible"
@@ -76,23 +86,23 @@ export default function Home() {
           <OurStrength />
         </section>
 
-        {/*Testimonials Section*/}
+        {/* Testimonials Section */}
         <section
           id={"testimonials"}
-          className="sm:min-h-full md:h-full w-screen  flex flex-col justify-center md:snap-start overflow-visible"
+          className="sm:min-h-full md:h-full w-screen flex flex-col justify-center md:snap-start overflow-visible"
         >
           <CustomerReviewSection />
         </section>
 
-        {/*Guide Section*/}
+        {/* Guide Section */}
         <section
           id={"guide"}
-          className="h-full w-screen  flex flex-col justify-center md:snap-start overflow-visible"
+          className="h-full w-screen flex flex-col justify-center md:snap-start overflow-visible"
         >
           <GuideSection />
         </section>
 
-        {/*Product Grid Section*/}
+        {/* Product Grid Section */}
         <section
           id={"productGrid"}
           className="sm:min-h-full md:h-full w-screen flex flex-col justify-center md:snap-start overflow-hidden"
@@ -100,15 +110,15 @@ export default function Home() {
           <ProductGridLazy />
         </section>
 
-        {/*Materials & Sustainability Section*/}
+        {/* Materials & Sustainability Section */}
         <section
           id="materials"
-          className="py-16 px-4 sm:px-6 lg:px-8 w-full min-h-screen flex items-center justify-center md:snap-start overflow-visible"
+          className="w-full sm:min-h-full md:h-full flex items-center justify-center md:snap-start overflow-visible"
         >
           <MaterialSection />
         </section>
 
-        {/*FAQ Section*/}
+        {/* FAQ Section */}
         <section
           id={"faq"}
           className="sm:min-h-full h-full w-screen flex flex-col justify-center md:snap-start overflow-visible"
@@ -116,15 +126,15 @@ export default function Home() {
           <FaqSection />
         </section>
 
-        {/*Newsletter Subscription Section*/}
+        {/* Newsletter Subscription Section */}
         <section
           id={"newsletter"}
-          className="sm:min-h-full h-full w-screen  flex flex-col justify-center md:snap-start overflow-visible"
+          className="sm:min-h-full h-full w-screen flex flex-col justify-center md:snap-start overflow-visible"
         >
           <NewsletterSection />
         </section>
 
-        {/*Footer Section*/}
+        {/* Footer Section */}
         <section
           id={"footer"}
           className="sm:min-h-full h-full w-screen md:flex md:flex-col md:snap-start justify-end"
@@ -133,7 +143,7 @@ export default function Home() {
         </section>
       </div>
 
-      {/*Fab Button*/}
+      {/* Fab Button */}
       <FabButton />
     </div>
   );

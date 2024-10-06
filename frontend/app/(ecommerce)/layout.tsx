@@ -1,22 +1,21 @@
 import "@/styles/globals.css";
-import {Metadata} from "next";
-import {siteConfig} from "@/config/site";
+import { Metadata } from "next";
+import { siteConfig } from "@/config/site";
 import React from "react";
 import MyNavbar from "@/components/my-navbar/my-navbar";
-import {FabButton} from "@/components/button/fab-button";
-
+import { FabButton } from "@/components/button/fab-button";
 
 export const metadata: Metadata = {
-    title: {
-        default: siteConfig.name,
-        template: `%s - ${siteConfig.name}`,
-    },
-    description: siteConfig.description,
-    icons: {
-        icon: "/favicon.ico",
-        shortcut: "/favicon-16x16.png",
-        apple: "/apple-touch-icon.png",
-    },
+  title: {
+    default: siteConfig.name,
+    template: `%s - ${siteConfig.name}`,
+  },
+  description: siteConfig.description,
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon-16x16.png",
+    apple: "/apple-touch-icon.png",
+  },
 };
 // export const viewport: Viewport = {
 //     themeColor: [
@@ -25,19 +24,16 @@ export const metadata: Metadata = {
 //     ],
 // }
 
-
 export default function EcomerceLayout({
-                                           children,
-                                       }: {
-    children: React.ReactNode;
+  children,
+}: {
+  children: React.ReactNode;
 }) {
-    return (
-        <div className={"select-none"}>
-            <MyNavbar>
-                123
-            </MyNavbar>
-            {children}
-            <FabButton/>
-        </div>
-    );
+  return (
+    <div className={"select-none"}>
+      <MyNavbar>123</MyNavbar>
+      {children}
+      <FabButton />
+    </div>
+  );
 }

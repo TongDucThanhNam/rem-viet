@@ -4,7 +4,7 @@ import clsx from "clsx";
 import React from "react";
 
 import { siteConfig } from "@/config/site";
-import { fontSans } from "@/config/fonts";
+import { inter } from "@/config/fonts";
 
 import { Providers } from "./providers";
 
@@ -47,14 +47,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html suppressHydrationWarning lang="vi">
-      <body
-        className={clsx(
-          "min-h-screen bg-background font-sans antialiased",
-          "",
-          fontSans.variable,
-        )}
-      >
+    <html className={inter.className} suppressHydrationWarning lang="vi">
+      <body className={clsx("min-h-screen bg-background antialiased")}>
         <Providers>
           <main>{children}</main>
         </Providers>

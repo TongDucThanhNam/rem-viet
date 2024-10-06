@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import EditProductComponent from "@/components/edit-product/edit-product-component";
 import ViewProductComponent from "@/components/view-product";
 
 export default async function ViewProductPage({

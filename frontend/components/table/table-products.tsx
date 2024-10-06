@@ -11,7 +11,6 @@ import {
 } from "@nextui-org/react";
 import React from "react";
 
-
 import { RenderCellProduct } from "@/components/table/render-product-cell";
 import Topbar from "@/components/table/topbar";
 import TopContent from "@/components/table/top-content";
@@ -46,7 +45,7 @@ export const TableProducts = ({ products }: { products: Product[] }) => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
 
-    return products.slice(start, end)
+    return products.slice(start, end);
   }, [page, products]);
 
   return (
@@ -77,7 +76,6 @@ export const TableProducts = ({ products }: { products: Product[] }) => {
                 column.uid === "actions" && "w-1/12 min-w-[60px]",
                 column.uid === "isActive" && "w-1/20 min-w-[80px]",
                 column.uid === "updatedAt" && "w-1/6 min-w-[80px]",
-
               )}
               hideHeader={column.uid === "actions"}
             >

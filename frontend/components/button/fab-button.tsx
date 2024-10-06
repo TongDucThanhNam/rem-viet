@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Spacer } from "@nextui-org/react";
+import { Button, cn } from "@nextui-org/react";
 import React from "react";
 import { SolarPhoneCallingBold, ZaloIcon } from "@/components/icons/icons";
 import { fab } from "@/config/site";
@@ -17,27 +17,35 @@ export const FabButton = () => {
   };
 
   return (
-    <div className={"fixed bottom-20 right-10 p-0 "}>
+    <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 flex flex-col items-end space-y-4">
       <Button
-          aria-label={"Phone"}
-          size={"lg"} isIconOnly onClick={handlePhoneClick} className={"animate-bounce"}>
-        <SolarPhoneCallingBold />
-      </Button>
-
-      <Spacer y={3} />
-
-      <Button
-        aria-label={"Zalo"}
-        color={"primary"}
-        size={"lg"}
-        isIconOnly
-        onClick={() => shareToZalo("Hello Zalo")}
-        className={"animate-bounce"}
+        aria-label="Call us"
+        isIconOnly={true}
+        onClick={handlePhoneClick}
+        className={cn(
+          "w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg",
+          "transition-all duration-300 ease-in-out",
+          "hover:scale-110 focus:scale-110",
+          "animate-bounce",
+        )}
       >
-        <ZaloIcon />
+        <SolarPhoneCallingBold className="w-6 h-6 sm:w-7 sm:h-7" />
       </Button>
 
-      <Spacer x={1} />
+      <Button
+        isIconOnly={true}
+        aria-label="Chat on Zalo"
+        onClick={() => shareToZalo("Hello Zalo")}
+        className={cn(
+          "w-12 h-12 sm:w-14 sm:h-14 rounded-full shadow-lg",
+          "bg-blue-500 hover:bg-blue-600",
+          "transition-all duration-300 ease-in-out",
+          "hover:scale-110 focus:scale-110",
+          "animate-bounce",
+        )}
+      >
+        <ZaloIcon className="w-6 h-6 sm:w-7 sm:h-7" />
+      </Button>
     </div>
   );
 };

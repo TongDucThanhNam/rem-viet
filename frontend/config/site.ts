@@ -2,8 +2,6 @@ import {
   type SidebarItem,
   SidebarItemType,
 } from "@/components/sidebar/sidebar";
-import FacebookIcon from "@/components/icons/icons";
-import React from "react";
 
 export type SiteConfig = typeof siteConfig;
 
@@ -18,8 +16,8 @@ export const siteConfig = {
     },
     {
       label: "Bài viết",
-      href: "/posts"
-    }
+      href: "/posts",
+    },
     // {
     //     label: "Bảng điều khiển",
     //     href: "/dashboard",
@@ -35,7 +33,7 @@ export const heroSection = {
   hello: "Chào mừng đến với",
   title: "Rèm Việt",
   description:
-    "Mang đến sự bảo vệ cho gia đình bạn khỏi những tác nhân như côn trùng,khói bụi, ...",
+    "Mang đến sự bảo vệ toàn diện cho gia đình bạn khỏi những tác nhân như côn trùng,khói bụi, ...",
   videoUrl: "https://luoichongmuoi.cdn.vccloud.vn/remviet.mp4",
 };
 
@@ -88,18 +86,18 @@ export const sectionNestedItems: SidebarItem[] = [
   {
     key: "products",
     title: "Sản phẩm",
-    icon: "solar:pie-chart-2-outline",
+    icon: "product",
     type: SidebarItemType.Nest,
     items: [
       {
         key: "manage_product",
-        icon: "solar:users-group-rounded-linear",
+        icon: "manage",
         href: "/products",
         title: "Quản lý sản phẩm",
       },
       {
         key: "add-product",
-        icon: "solar:users-group-rounded-linear",
+        icon: "add",
         href: "/add-product",
         title: "Thêm sản phẩm",
       },
@@ -110,18 +108,18 @@ export const sectionNestedItems: SidebarItem[] = [
   {
     key: "orders",
     title: "Đơn hàng",
-    icon: "solar:pie-chart-2-outline",
+    icon: "order",
     type: SidebarItemType.Nest,
     items: [
       {
         key: "manage_order",
-        icon: "solar:users-group-rounded-linear",
+        icon: "manage",
         href: "/orders",
         title: "Quản lý đơn hàng",
       },
       {
         key: "add-order",
-        icon: "solar:users-group-rounded-linear",
+        icon: "add",
         href: "/add-order",
         title: "Thêm đơn hàng",
       },
@@ -132,18 +130,18 @@ export const sectionNestedItems: SidebarItem[] = [
   {
     key: "inventory",
     title: "Nhập xuất kho",
-    icon: "solar:pie-chart-2-outline",
+    icon: "manage",
     type: SidebarItemType.Nest,
     items: [
       {
         key: "manage_inventory",
-        icon: "solar:users-group-rounded-linear",
+        icon: "manage",
         href: "/inventory",
         title: "Quản lý nhập xuất",
       },
       {
         key: "add-inventory",
-        icon: "solar:users-group-rounded-linear",
+        icon: "add",
         href: "/add-inventory",
         title: "Thêm nhập xuất",
       },
@@ -153,7 +151,7 @@ export const sectionNestedItems: SidebarItem[] = [
   {
     key: "home",
     href: "/",
-    icon: "solar:home-2-linear",
+    icon: "home",
     title: "Trang chủ",
   },
 ];
@@ -175,26 +173,25 @@ export const fab = {
   facebook: "https://www.facebook.com/profile.php?id=100076172431695",
 };
 
-
 export const faqs = [
   {
     id: 1,
     question:
-        "Tôi muốn một kích thước không có trong danh sách, tôi phải làm sao?",
+      "Tôi muốn một kích thước không có trong danh sách, tôi phải làm sao?",
     answer:
-        "Bạn hãy liên hệ chúng tôi và cung cấp kích thước bạn muốn, chúng tôi sẽ tư vấn và sản xuất theo yêu cầu của bạn.",
+      "Bạn hãy liên hệ chúng tôi và cung cấp kích thước bạn muốn, chúng tôi sẽ tư vấn và sản xuất theo yêu cầu của bạn.",
   },
   {
     id: 2,
     question: "Làm thế nào để đặt hàng?",
     answer:
-        "Bạn có thể đặt hàng trực tiếp trên website hoặc liên hệ với chúng tôi qua số điện thoại hoặc email.",
+      "Bạn có thể đặt hàng trực tiếp trên website hoặc liên hệ với chúng tôi qua số điện thoại hoặc email.",
   },
   {
     id: 3,
     question: "Ưu điểm của chúng tôi so với sản phẩm khác trên thị trường?",
     answer:
-        "Chúng tôi cam kết sản phẩm của chúng tôi chất lượng và thời gian sử dụng tốt nhất. Ngoài ra vì chúng tôi sản xuất tại Việt Nam, chúng tôi có thể điều chỉnh sản phẩm cho phù hợp với bạn nhất.",
+      "Chúng tôi cam kết sản phẩm của chúng tôi chất lượng và thời gian sử dụng tốt nhất. Ngoài ra vì chúng tôi sản xuất tại Việt Nam, chúng tôi có thể điều chỉnh sản phẩm cho phù hợp với bạn nhất.",
   },
 ];
 
@@ -212,7 +209,7 @@ export const reviews = [
     icon: "123",
     title: "Sản phẩm đáng giá từng xu",
     content:
-        "Tôi đã thử nhiều loại nhưng chưa có sản phẩm nào hiệu quả như thế này. Thực sự ấn tượng!",
+      "Tôi đã thử nhiều loại nhưng chưa có sản phẩm nào hiệu quả như thế này. Thực sự ấn tượng!",
   },
   {
     name: "Trần Quốc",
@@ -220,7 +217,7 @@ export const reviews = [
     icon: "123",
     title: "Giải pháp hoàn hảo cho mùa hè",
     content:
-        "Không còn phải lo lắng về muỗi khi đi dã ngoại nữa. Sản phẩm nhỏ gọn, dễ mang theo.",
+      "Không còn phải lo lắng về muỗi khi đi dã ngoại nữa. Sản phẩm nhỏ gọn, dễ mang theo.",
   },
   {
     name: "Nguyễn Thảo",
@@ -228,6 +225,6 @@ export const reviews = [
     icon: "123",
     title: "Hiệu quả vượt mong đợi",
     content:
-        "Ban đầu tôi còn nghi ngờ, nhưng sau khi dùng thử, tôi đã phải thay đổi suy nghĩ. Rất đáng mua!",
+      "Ban đầu tôi còn nghi ngờ, nhưng sau khi dùng thử, tôi đã phải thay đổi suy nghĩ. Rất đáng mua!",
   },
 ];

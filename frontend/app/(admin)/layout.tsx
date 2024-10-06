@@ -3,7 +3,6 @@
 import Sidebar from "@/components/sidebar/sidebar";
 import { usePathname } from "next/navigation";
 
-import { Icon } from "@iconify/react";
 import {
   Avatar,
   Button,
@@ -17,6 +16,11 @@ import { RemVietIcon } from "@/components/icons/remviet";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { useTheme } from "next-themes";
 import { sectionNestedItems } from "@/config/site";
+import {
+  SolarInfoCircleLineDuotone,
+  SolarMinusCircleLineDuotone,
+  SolarSidebarMinimalisticOutline,
+} from "@/components/icons/icons";
 
 export default function AdminLayout({
   children,
@@ -133,22 +137,12 @@ export default function AdminLayout({
                 )}
                 isIconOnly={isCompact}
                 startContent={
-                  isCompact ? null : (
-                    <Icon
-                      className="flex-none text-default-500"
-                      icon="solar:info-circle-line-duotone"
-                      width={24}
-                    />
-                  )
+                  isCompact ? null : <SolarInfoCircleLineDuotone width={24} />
                 }
                 variant="light"
               >
                 {isCompact ? (
-                  <Icon
-                    className="text-default-500"
-                    icon="solar:info-circle-line-duotone"
-                    width={24}
-                  />
+                  <SolarInfoCircleLineDuotone width={24} />
                 ) : (
                   "Trợ giúp"
                 )}
@@ -168,22 +162,12 @@ export default function AdminLayout({
                 )}
                 isIconOnly={isCompact}
                 startContent={
-                  isCompact ? null : (
-                    <Icon
-                      className="flex-none rotate-180 text-default-500"
-                      icon="solar:minus-circle-line-duotone"
-                      width={24}
-                    />
-                  )
+                  isCompact ? null : <SolarMinusCircleLineDuotone width={24} />
                 }
                 variant="light"
               >
                 {isCompact ? (
-                  <Icon
-                    className="rotate-180 text-default-500"
-                    icon="solar:minus-circle-line-duotone"
-                    width={24}
-                  />
+                  <SolarMinusCircleLineDuotone width={24} />
                 ) : (
                   "Đăng xuất"
                 )}
@@ -199,12 +183,7 @@ export default function AdminLayout({
               variant="light"
               onPress={() => setIsHidden(!isHidden)}
             >
-              <Icon
-                className="text-default-500"
-                height={24}
-                icon="solar:sidebar-minimalistic-outline"
-                width={24}
-              />
+              <SolarSidebarMinimalisticOutline width={24} />
             </Button>
             <h2 className="text-medium font-medium text-default-700">
               Nội dung

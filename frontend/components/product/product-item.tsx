@@ -297,167 +297,165 @@ const ProductItem: React.FC<ProductItemProps> = ({
               Thêm vào giỏ hàng
             </Button>
           </div>
-
-
         </div>
       </div>
 
       <Modal
-          placement={"bottom-center"}
-          isOpen={isOpen}
-          onOpenChange={onOpenChange}
-          scrollBehavior={"inside"}
-          backdrop={"blur"}
-          isDismissable={false}
-          isKeyboardDismissDisabled={true}
-          classNames={{
-            wrapper: "",
-            body: "",
-            backdrop: "",
-            base: "",
-            header: "",
-            footer: "",
-            closeButton: "",
-          }}
+        placement={"bottom-center"}
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        scrollBehavior={"inside"}
+        backdrop={"blur"}
+        isDismissable={false}
+        isKeyboardDismissDisabled={true}
+        classNames={{
+          wrapper: "",
+          body: "",
+          backdrop: "",
+          base: "",
+          header: "",
+          footer: "",
+          closeButton: "",
+        }}
       >
         <ModalContent>
           {(onClose) => (
-              <>
-                <form
-                    onSubmit={handlePurchase}
-                    className="flex flex-col gap-5 py-8"
-                >
-                  <ModalHeader>Thanh toán</ModalHeader>
-                  <ModalBody className={"h-fit"}>
-                    {/*Email*/}
+            <>
+              <form
+                onSubmit={handlePurchase}
+                className="flex flex-col gap-5 py-8"
+              >
+                <ModalHeader>Thanh toán</ModalHeader>
+                <ModalBody className={"h-fit"}>
+                  {/*Email*/}
+                  <div className="group flex flex-col w-full group relative justify-end">
+                    <Input
+                      id={"email"}
+                      name={"email"}
+                      label="Email của bạn"
+                      labelPlacement="outside"
+                      placeholder="Nhập Email của bạn"
+                    />
+                  </div>
+
+                  {/*Name*/}
+                  <div className="flex flex-wrap items-center gap-4 sm:flex-nowrap">
+                    {/*First Name*/}
                     <div className="group flex flex-col w-full group relative justify-end">
                       <Input
-                          id={"email"}
-                          name={"email"}
-                          label="Email của bạn"
-                          labelPlacement="outside"
-                          placeholder="Nhập Email của bạn"
+                        required
+                        isRequired={true}
+                        id={"firstName"}
+                        name={"firstName"}
+                        label="Họ của bạn"
+                        labelPlacement="outside"
+                        placeholder="Nhập họ của bạn"
                       />
                     </div>
 
-                    {/*Name*/}
-                    <div className="flex flex-wrap items-center gap-4 sm:flex-nowrap">
-                      {/*First Name*/}
-                      <div className="group flex flex-col w-full group relative justify-end">
-                        <Input
-                            required
-                            isRequired={true}
-                            id={"firstName"}
-                            name={"firstName"}
-                            label="Họ của bạn"
-                            labelPlacement="outside"
-                            placeholder="Nhập họ của bạn"
-                        />
-                      </div>
-
-                      {/*Last Name*/}
-                      <div className="group flex flex-col w-full group relative justify-end">
-                        <Input
-                            required
-                            id={"lastName"}
-                            name={"lastName"}
-                            label="Tên của bạn"
-                            labelPlacement="outside"
-                            placeholder="Nhập tên của bạn"
-                        />
-                      </div>
+                    {/*Last Name*/}
+                    <div className="group flex flex-col w-full group relative justify-end">
+                      <Input
+                        required
+                        id={"lastName"}
+                        name={"lastName"}
+                        label="Tên của bạn"
+                        labelPlacement="outside"
+                        placeholder="Nhập tên của bạn"
+                      />
                     </div>
+                  </div>
 
+                  {/*Address*/}
+                  <div className="flex flex-wrap items-center gap-4 sm:flex-nowrap">
                     {/*Address*/}
-                    <div className="flex flex-wrap items-center gap-4 sm:flex-nowrap">
-                      {/*Address*/}
-                      <div className="group flex flex-col w-full group relative justify-end">
-                        <Input
-                            required
-                            id={"address"}
-                            name={"address"}
-                            label="Địa chỉ"
-                            labelPlacement="outside"
-                            placeholder="Lê Văn Lương, Quận 7, TP.HCM"
-                        />
-                      </div>
-
-                      {/*Specific address*/}
-                      <div className="group flex flex-col w-full group relative justify-end">
-                        <Input
-                            isRequired
-                            id={"specificAddress"}
-                            name={"specificAddress"}
-                            label="Specific address"
-                            labelPlacement="outside"
-                            placeholder="Đại học RMIT"
-                        />
-                      </div>
+                    <div className="group flex flex-col w-full group relative justify-end">
+                      <Input
+                        required
+                        id={"address"}
+                        name={"address"}
+                        label="Địa chỉ"
+                        labelPlacement="outside"
+                        placeholder="Lê Văn Lương, Quận 7, TP.HCM"
+                      />
                     </div>
 
-                    {/*City and Country*/}
-                    <div className="flex flex-wrap items-center gap-4 sm:flex-nowrap">
-                      {/*Quận, huyện */}
-                      <div className="group flex flex-col w-full group relative justify-end">
-                        <Input
-                            isRequired
-                            id={"district"}
-                            name={"district"}
-                            label="Quận, huyện"
-                            labelPlacement="outside"
-                            placeholder="Quận 7"
-                        />
-                      </div>
+                    {/*Specific address*/}
+                    <div className="group flex flex-col w-full group relative justify-end">
+                      <Input
+                        isRequired
+                        id={"specificAddress"}
+                        name={"specificAddress"}
+                        label="Specific address"
+                        labelPlacement="outside"
+                        placeholder="Đại học RMIT"
+                      />
+                    </div>
+                  </div>
 
-                      {/*City*/}
-                      <div className="group flex flex-col w-full group relative justify-end">
-                        <Input
-                            isRequired
-                            id={"city"}
-                            name={"city"}
-                            label="Tỉnh/Thành phố"
-                            labelPlacement="outside"
-                            placeholder="Hồ Chí Minh"
-                        />
-                      </div>
+                  {/*City and Country*/}
+                  <div className="flex flex-wrap items-center gap-4 sm:flex-nowrap">
+                    {/*Quận, huyện */}
+                    <div className="group flex flex-col w-full group relative justify-end">
+                      <Input
+                        isRequired
+                        id={"district"}
+                        name={"district"}
+                        label="Quận, huyện"
+                        labelPlacement="outside"
+                        placeholder="Quận 7"
+                      />
                     </div>
 
-                    {/*Postcode and Phone number*/}
-                    <div className="flex flex-wrap items-center gap-4 sm:flex-nowrap">
-                      {/*Postcode*/}
-                      <div className="group flex flex-col w-full group relative justify-end">
-                        <Input
-                            id={"postcode"}
-                            name={"postcode"}
-                            label="Mã bưu điện"
-                            labelPlacement="outside"
-                            placeholder="700000"
-                        />
-                      </div>
-
-                      {/*Phone number*/}
-                      <div className="group flex flex-col w-full group relative justify-end">
-                        <Input
-                            required
-                            id={"phoneNumber"}
-                            name={"phoneNumber"}
-                            label="Số điện thoại"
-                            labelPlacement="outside"
-                            placeholder="0901234567"
-                        />
-                      </div>
+                    {/*City*/}
+                    <div className="group flex flex-col w-full group relative justify-end">
+                      <Input
+                        isRequired
+                        id={"city"}
+                        name={"city"}
+                        label="Tỉnh/Thành phố"
+                        labelPlacement="outside"
+                        placeholder="Hồ Chí Minh"
+                      />
                     </div>
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button color="danger" variant="light" onPress={onClose}>
-                      Huỷ
-                    </Button>
-                    <Button color="primary" type={"submit"}>
-                      Tiến hành thanh toán
-                    </Button>
-                  </ModalFooter>
-                </form>
-              </>
+                  </div>
+
+                  {/*Postcode and Phone number*/}
+                  <div className="flex flex-wrap items-center gap-4 sm:flex-nowrap">
+                    {/*Postcode*/}
+                    <div className="group flex flex-col w-full group relative justify-end">
+                      <Input
+                        id={"postcode"}
+                        name={"postcode"}
+                        label="Mã bưu điện"
+                        labelPlacement="outside"
+                        placeholder="700000"
+                      />
+                    </div>
+
+                    {/*Phone number*/}
+                    <div className="group flex flex-col w-full group relative justify-end">
+                      <Input
+                        required
+                        id={"phoneNumber"}
+                        name={"phoneNumber"}
+                        label="Số điện thoại"
+                        labelPlacement="outside"
+                        placeholder="0901234567"
+                      />
+                    </div>
+                  </div>
+                </ModalBody>
+                <ModalFooter>
+                  <Button color="danger" variant="light" onPress={onClose}>
+                    Huỷ
+                  </Button>
+                  <Button color="primary" type={"submit"}>
+                    Tiến hành thanh toán
+                  </Button>
+                </ModalFooter>
+              </form>
+            </>
           )}
         </ModalContent>
       </Modal>

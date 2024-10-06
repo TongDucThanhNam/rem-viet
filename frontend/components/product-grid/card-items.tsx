@@ -1,10 +1,10 @@
 "use client"; // <===== REQUIRED
 
 import React from "react";
-import { Button, Card, CardBody, CardFooter, Image } from "@nextui-org/react";
+import { Button, Card, CardBody, CardFooter } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
-import { Star } from "react-iconly";
 import NextImage from "next/image";
+import { SolarStarLinear } from "@/components/icons/icons";
 
 const CardItem = ({
   imageUrls,
@@ -33,7 +33,7 @@ const CardItem = ({
         <div className="flex items-center justify-between">
           <span className="text-xl font-bold">{price}₫</span>
           <div className="flex items-center">
-            <Star />
+            <SolarStarLinear />
             <span className="ml-1 text-sm text-gray-600">{5}</span>
           </div>
         </div>
@@ -50,4 +50,4 @@ const CardItem = ({
   );
 };
 
-export default CardItem;
+export default React.memo(CardItem);

@@ -2,7 +2,7 @@
 
 import CardItem from "@/components/product-grid/card-items";
 import { Pagination } from "@nextui-org/react";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 export default function ProductGridComponent({
   myProducts,

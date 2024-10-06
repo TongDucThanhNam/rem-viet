@@ -13,8 +13,12 @@ import {
   Radio,
   RadioGroup,
 } from "@nextui-org/react";
-import { SearchIcon } from "@/components/icons/icons";
-import { Icon } from "@iconify/react";
+import {
+  SearchIcon,
+  SolarSortHorizontalLinear,
+  SolarSortLinear,
+  SolarTuning2Linear,
+} from "@/components/icons/icons";
 
 export default function TopContent({
   products_columns,
@@ -42,13 +46,7 @@ export default function TopContent({
                   <Button
                     className="bg-default-100 text-default-800"
                     size="sm"
-                    startContent={
-                      <Icon
-                        className="text-default-400"
-                        icon="solar:tuning-2-linear"
-                        width={16}
-                      />
-                    }
+                    startContent={<SolarTuning2Linear />}
                   >
                     Lọc
                   </Button>
@@ -97,13 +95,7 @@ export default function TopContent({
                   <Button
                     className="bg-default-100 text-default-800"
                     size="sm"
-                    startContent={
-                      <Icon
-                        className="text-default-400"
-                        icon="solar:sort-linear"
-                        width={16}
-                      />
-                    }
+                    startContent={<SolarSortLinear width={16} />}
                   >
                     Sắp xếp
                   </Button>
@@ -137,13 +129,7 @@ export default function TopContent({
                   <Button
                     className="bg-default-100 text-default-800"
                     size="sm"
-                    startContent={
-                      <Icon
-                        className="text-default-400"
-                        icon="solar:sort-horizontal-linear"
-                        width={16}
-                      />
-                    }
+                    startContent={<SolarSortHorizontalLinear width={16} />}
                   >
                     Chọn cột
                   </Button>
@@ -161,7 +147,9 @@ export default function TopContent({
                   {/*{(item) => (*/}
                   {/*  <DropdownItem key={item.uid}>{item.name}</DropdownItem>*/}
                   {/*)}*/}
-                  <DropdownItem key={"Test Selection Column"}>Test Column select</DropdownItem>
+                  <DropdownItem key={"Test Selection Column"}>
+                    Test Column select
+                  </DropdownItem>
                 </DropdownMenu>
               </Dropdown>
             </div>

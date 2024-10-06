@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/dialog/dialog";
 import { Button } from "@nextui-org/react";
-import { Iconly } from "react-iconly";
+import { SolarAddCircleBoldDuotone } from "@/components/icons/icons";
 
 export function DialogCard() {
   return (
@@ -41,10 +41,8 @@ export function DialogCard() {
               831 Đ. Âu Cơ
             </DialogSubtitle>
           </div>
-          <Button
-              aria-label={"Info Card"}
-              isIconOnly={true}>
-            <Iconly name="Plus" set="bold" primaryColor="#000" size={24} />
+          <Button aria-label={"Info Card"} isIconOnly={true}>
+            <SolarAddCircleBoldDuotone />
           </Button>
         </div>
       </DialogTrigger>

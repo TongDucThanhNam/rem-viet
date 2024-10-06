@@ -11,7 +11,7 @@ import {
   Tooltip,
 } from "@nextui-org/react";
 import React from "react";
-import { Icon } from "@iconify/react";
+import WhenIcon from "@/components/icons/when-icon";
 
 export enum SidebarItemType {
   Nest = "nest",
@@ -114,14 +114,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
             }
             startContent={
               isCompact || isNestType ? null : item.icon ? (
-                <Icon
-                  className={cn(
-                    "text-default-500 group-data-[selected=true]:text-foreground",
-                    iconClassName,
-                  )}
-                  icon={item.icon}
-                  width={24}
-                />
+                <WhenIcon icon={item.icon} />
               ) : (
                 (item.startContent ?? null)
               )
@@ -132,14 +125,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
               <Tooltip content={item.title} placement="right">
                 <div className="flex w-full items-center justify-center">
                   {item.icon ? (
-                    <Icon
-                      className={cn(
-                        "text-default-500 group-data-[selected=true]:text-foreground",
-                        iconClassName,
-                      )}
-                      icon={item.icon}
-                      width={24}
-                    />
+                    <WhenIcon icon={item.icon} />
                   ) : (
                     (item.startContent ?? null)
                   )}
@@ -161,14 +147,8 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
                       <div
                         className={"flex h-11 items-center gap-2 px-2 py-1.5"}
                       >
-                        <Icon
-                          className={cn(
-                            "text-default-500 group-data-[selected=true]:text-foreground",
-                            iconClassName,
-                          )}
-                          icon={item.icon}
-                          width={24}
-                        />
+                        <WhenIcon icon={item.icon} />
+
                         <span className="text-small font-medium text-default-500 group-data-[selected=true]:text-foreground">
                           {item.title}
                         </span>
@@ -227,14 +207,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
                   }
                   startContent={
                     isCompact ? null : item.icon ? (
-                      <Icon
-                        className={cn(
-                          "text-default-500 group-data-[selected=true]:text-foreground",
-                          iconClassName,
-                        )}
-                        icon={item.icon}
-                        width={24}
-                      />
+                      <WhenIcon icon={item.icon} />
                     ) : (
                       (item.startContent ?? null)
                     )
@@ -247,14 +220,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
                     <Tooltip content={item.title} placement="right">
                       <div className="flex w-full items-center justify-center">
                         {item.icon ? (
-                          <Icon
-                            className={cn(
-                              "text-default-500 group-data-[selected=true]:text-foreground",
-                              iconClassName,
-                            )}
-                            icon={item.icon}
-                            width={24}
-                          />
+                          <WhenIcon icon={item.icon} />
                         ) : (
                           (item.startContent ?? null)
                         )}
@@ -276,14 +242,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
             }
             startContent={
               isCompact ? null : item.icon ? (
-                <Icon
-                  className={cn(
-                    "text-default-500 group-data-[selected=true]:text-foreground",
-                    iconClassName,
-                  )}
-                  icon={item.icon}
-                  width={24}
-                />
+                <WhenIcon icon={item.icon} />
               ) : (
                 (item.startContent ?? null)
               )
@@ -296,14 +255,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
               <Tooltip content={item.title} placement="right">
                 <div className="flex w-full items-center justify-center">
                   {item.icon ? (
-                    <Icon
-                      className={cn(
-                        "text-default-500 group-data-[selected=true]:text-foreground",
-                        iconClassName,
-                      )}
-                      icon={item.icon}
-                      width={24}
-                    />
+                    <WhenIcon icon={item.icon} />
                   ) : (
                     (item.startContent ?? null)
                   )}

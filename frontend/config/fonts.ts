@@ -1,11 +1,7 @@
-import {Fira_Code as FontMono, Inter as FontSans} from "next/font/google";
+import { Nunito } from "next/font/google";
 
-export const fontSans = FontSans({
-    subsets: ["latin"],
-    variable: "--font-sans",
-});
-
-export const fontMono = FontMono({
-    subsets: ["latin"],
-    variable: "--font-mono",
+// If loading a variable font, you don't need to specify the font weight
+export const inter = Nunito({
+  subsets: ["vietnamese"],
+  display: "swap",
 });

@@ -23,9 +23,9 @@ import {
 } from "@nextui-org/react";
 // @ts-ignore
 // import Files from 'react-files'
-import { Upload } from "react-iconly";
 import React, { useEffect, useState } from "react";
 import NextImage from "next/image";
+import { SolarGalleryAddOutline } from "@/components/icons/icons";
 
 interface Variant {
   name: string;
@@ -261,7 +261,7 @@ export default function AddProductPage() {
                 >
                   <div className={"bg-transparent "}>
                     <div className={"content-center"}>
-                      <Upload primaryColor="currentColor" />
+                      <SolarGalleryAddOutline />
                     </div>
 
                     <div className={"flex flex-col gap-1 "}>
@@ -457,11 +457,11 @@ export default function AddProductPage() {
                     <TableCell>
                       <div className={"sm:max-w-20 max-w-3xl"}>
                         {Object.keys(item.values).map((key, index) => {
-                          if (index <3) {
+                          if (index < 3) {
                             return (
-                                <Chip key={index} aria-label={`Variant ${key}`}>
-                                  {item.values[key]}
-                                </Chip>
+                              <Chip key={index} aria-label={`Variant ${key}`}>
+                                {item.values[key]}
+                              </Chip>
                             );
                           }
 

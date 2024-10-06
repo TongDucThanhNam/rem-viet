@@ -1,6 +1,6 @@
 "use client"; // This is a comment
 
-import { cn, Image, Switch } from "@nextui-org/react";
+import { cn, Switch } from "@nextui-org/react";
 import { motion } from "framer-motion";
 
 import React, { useEffect, useRef, useState } from "react";
@@ -119,7 +119,7 @@ export default function Mosquito() {
   };
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center">
+    <div className="h-full flex flex-col items-center justify-center">
       <motion.div
         initial={{ opacity: 0, y: -10, scale: 0 }}
         whileInView={{

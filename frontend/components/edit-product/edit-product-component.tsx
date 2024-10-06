@@ -9,7 +9,6 @@ import {
   Chip,
   cn,
   Input,
-  Link,
   Spacer,
   Switch,
   Tab,
@@ -22,9 +21,9 @@ import {
   Tabs,
   Textarea,
 } from "@nextui-org/react";
-import { Upload } from "react-iconly";
 import React, { useEffect, useState } from "react";
 import NextImage from "next/image";
+import { SolarGalleryAddOutline } from "@/components/icons/icons";
 
 interface Variant {
   name: string;
@@ -270,7 +269,7 @@ export default function EditProductComponent({
                 >
                   <div className={"bg-transparent "}>
                     <div className={"content-center"}>
-                      <Upload primaryColor="currentColor" />
+                      <SolarGalleryAddOutline />
                     </div>
 
                     <div className={"flex flex-col gap-1 "}>
@@ -466,11 +465,11 @@ export default function EditProductComponent({
                     <TableCell className={""}>
                       <div className={"sm:max-w-20 max-w-3xl"}>
                         {Object.keys(item.values).map((key, index) => {
-                          if (index <3) {
+                          if (index < 3) {
                             return (
-                                <Chip key={index} aria-label={`Variant ${key}`}>
-                                  {item.values[key]}
-                                </Chip>
+                              <Chip key={index} aria-label={`Variant ${key}`}>
+                                {item.values[key]}
+                              </Chip>
                             );
                           }
 

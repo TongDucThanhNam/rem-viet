@@ -6,12 +6,6 @@ import React from "react";
 import { YouTubeEmbed } from "@next/third-parties/google";
 import EnhancedBookmark from "@/components/posts/bookmark";
 
-interface TOCItem {
-  id: string;
-  text: string;
-  level: number;
-}
-
 export default function PostDetail({ myPost }: { myPost: any }) {
   return (
     <div className={"container mx-auto px-4 py-8"}>

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { lazy, Suspense } from "react";
 import NextImage from "next/image";

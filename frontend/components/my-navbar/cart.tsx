@@ -25,8 +25,10 @@ export const CartDropdown = () => {
       <NavbarItem className={"ml-2 !flex gap-2"}>
         <DropdownTrigger>
           <Button
-              aria-label={"Cart"}
-              className="bg-transparent" isIconOnly={true}>
+            aria-label={"Cart"}
+            className="bg-transparent"
+            isIconOnly={true}
+          >
             <CartIcon />
           </Button>
         </DropdownTrigger>

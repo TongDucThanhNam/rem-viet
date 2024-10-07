@@ -2,7 +2,9 @@
 
 import ReviewCard from "@/components/card/review-card";
 import React from "react";
-import { reviews } from "@/config/site";
+import {reviews} from "@/config/site";
+
+
 
 export default function CustomerReviewSection() {
   return (
@@ -12,7 +14,7 @@ export default function CustomerReviewSection() {
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-7xl mx-auto">
         {reviews.map((review, index) => (
-          <ReviewCard key={index} />
+          <ReviewCard key={index} review={review} />
         ))}
       </div>
     </div>

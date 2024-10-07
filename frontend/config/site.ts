@@ -197,34 +197,30 @@ export const faqs = [
 
 export const reviews = [
   {
-    name: "Jon Slow",
-    date: "August 1, 2024",
-    icon: "123",
-    title: "Quá tuyệt vời, chính tôi cũng không thể tin nổi",
-    content: "Khi sử dụng sản phẩm này nhà tôi đã hết muỗi rõ rệt, cảm ơn bạn.",
+    userName: "Lê Phương Hoàn Mỹ",
+    reviewDate: "12/4/2024",
+    reviewTitle: "Rất tốt",
+    reviewContent:
+      "Sử dụng sản phẩm của Rèm Việt, tôi rất hài lòng với chất lượng và dịch vụ của họ.",
   },
   {
-    name: "Mai Linh",
-    date: "July 15, 2024",
-    icon: "123",
-    title: "Sản phẩm đáng giá từng xu",
-    content:
-      "Tôi đã thử nhiều loại nhưng chưa có sản phẩm nào hiệu quả như thế này. Thực sự ấn tượng!",
+    userName: "Mai Tai Sơn",
+    reviewDate: "22/5/2024",
+    reviewTitle: "Tuyệt vời",
+    reviewContent: "Sản phẩm chất lượng, giá cả phải chăng, dịch vụ tốt.",
   },
   {
-    name: "Trần Quốc",
-    date: "June 30, 2024",
-    icon: "123",
-    title: "Giải pháp hoàn hảo cho mùa hè",
-    content:
-      "Không còn phải lo lắng về muỗi khi đi dã ngoại nữa. Sản phẩm nhỏ gọn, dễ mang theo.",
+    userName: "Giang Văn Cốt",
+    reviewDate: "4/10/2024",
+    reviewTitle: "Very good",
+    reviewContent:
+      "I'm very satisfied with the product and service of Rèm Việt.",
   },
   {
-    name: "Nguyễn Thảo",
-    date: "June 1, 2024",
-    icon: "123",
-    title: "Hiệu quả vượt mong đợi",
-    content:
-      "Ban đầu tôi còn nghi ngờ, nhưng sau khi dùng thử, tôi đã phải thay đổi suy nghĩ. Rất đáng mua!",
+    userName: "Jon Slow",
+    reviewDate: "9/9/2024",
+    reviewTitle: "Incredible",
+    reviewContent:
+      "I'm very satisfied with the product and service of Rèm Việt.",
   },
 ];

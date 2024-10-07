@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Link } from "@nextui-org/react";
+import {Button, Link, Spacer} from "@nextui-org/react";
 import { heroSection } from "@/config/site";
 
 export default function HeroSection() {
@@ -33,6 +33,7 @@ export default function HeroSection() {
       <div className="flex flex-col items-center space-y-4 text-center">
         <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
           {heroSection.hello}{" "}
+          <br/>
           <span className="text-primary">{heroSection.title}</span>
         </h1>
         <p className="mx-auto max-w-[700px] text-base sm:text-lg md:text-xl text-muted-foreground">

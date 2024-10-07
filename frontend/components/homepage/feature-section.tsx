@@ -17,7 +17,7 @@ export default function FeatureSection({ features }: { features: any }) {
       <div className="py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl lg:text-center">
-            <h2 className="text-base font-semibold leading-7 text-indigo-400">
+            <h2 className="text-base font-semibold leading-7">
               Sản phẩm chất lượng
             </h2>
             <div className="overflow-hidden">
@@ -55,7 +55,7 @@ export default function FeatureSection({ features }: { features: any }) {
                   key={feature.name}
                   className="flex flex-col"
                 >
-                  <dt className="flex items-center gap-x-3 text-base font-semibold leading-7 text-white">
+                  <dt className="flex items-center gap-x-3 text-base font-semibold leading-7">
                     <FacebookIcon
                       aria-hidden="true"
                       className="h-5 w-5 flex-none text-indigo-400"

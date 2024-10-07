@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/dialog/dialog";
 import { Button } from "@nextui-org/react";
-import { SolarAddCircleBoldDuotone } from "@/components/icons/icons";
+import { SolarAddSquareBroken } from "@/components/icons/icons";
 
 export function DialogCard() {
   return (
@@ -25,7 +25,7 @@ export function DialogCard() {
         style={{
           borderRadius: "12px",
         }}
-        className="flex max-w-[200px] flex-col overflow-hidden border border-zinc-950/10 bg-white"
+        className="flex max-w-[200px] flex-col overflow-hidden border border-zinc-950/10 bg-default-50"
       >
         <DialogImage
           src="/src/150x150.png"
@@ -34,15 +34,11 @@ export function DialogCard() {
         />
         <div className="flex flex-grow flex-row items-end justify-between p-2">
           <div>
-            <DialogTitle className="text-zinc-950">
-              Của hàng Rèm Việt
-            </DialogTitle>
-            <DialogSubtitle className="text-zinc-700">
-              831 Đ. Âu Cơ
-            </DialogSubtitle>
+            <DialogTitle className="">Của hàng Rèm Việt</DialogTitle>
+            <DialogSubtitle className="">831 Đ. Âu Cơ</DialogSubtitle>
           </div>
-          <Button aria-label={"Info Card"} isIconOnly={true}>
-            <SolarAddCircleBoldDuotone />
+          <Button aria-label={"Info Card"} isIconOnly={true} color={"primary"}>
+            <SolarAddSquareBroken width={40} height={40} />
           </Button>
         </div>
       </DialogTrigger>

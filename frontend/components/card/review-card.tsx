@@ -1,7 +1,14 @@
 import { Card, CardBody, CardHeader } from "@nextui-org/react";
 import FacebookIcon from "@/components/icons/icons";
 
-export default function ReviewCard() {
+interface ReviewCardProps {
+  userName: string;
+  reviewDate: string;
+  reviewTitle: string;
+  reviewContent: string;
+}
+
+export default function ReviewCard({ review }: { review: ReviewCardProps }) {
   return (
     <>
       <Card shadow={"lg"} isBlurred={false}>
@@ -15,19 +22,19 @@ export default function ReviewCard() {
 
               <div className="inline-flex flex-col items-start">
                 <span className="text-small text-inherit font-medium">
-                  Jon Slow
+                    {review.userName}
                 </span>
-                <span className="text-small">August 1, 2024</span>
+                <span className="text-small">{review.reviewDate}</span>
               </div>
             </div>
           </div>
         </CardHeader>
         <CardBody className="w-full">
-          <p className="font-medium text-default-900">
-            Quá tuyệt vời, chình tôi cũng ko thể tin nổi
+          <p className="font-medium text-2xl">
+            {review.reviewTitle}
           </p>
           <p className="mt-2">
-            Khi sử dụng sản phẩm này nhà tôi đã hết muỗi rõ rệt, cảm ơn bạn.
+            {review.reviewContent}
           </p>
         </CardBody>
       </Card>

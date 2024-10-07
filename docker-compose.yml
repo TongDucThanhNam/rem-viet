@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - BACKEND_URL=${BACKEND_URL}
+    image:
+      tongducthanhnam/nextui-ecommerce-fe:latest
+    ports:
+      - "9999:3000"
+    volumes:
+      - ./frontend:/app
+      - /frontend/node_modules
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    environment:
+      - BACKEND_URL=${BACKEND_URL}
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=${NODE_ENV}
+        - PORT=${PORT}
+    image:
+      tongducthanhnam/nextui-ecommerce-be:latest
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - PORT=${PORT}
+      - CONNECTION_STRING=${CONNECTION_STRING}
+      - DATABASE_NAME=${DATABASE_NAME}
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - NOTION_API_KEY=${NOTION_API_KEY}
+      - NOTION_DATABASE_ID=${NOTION_DATABASE_ID}
+    volumes:
+      - ./backend:/app
+      - /backend/node_modules
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

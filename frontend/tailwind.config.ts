@@ -8,7 +8,6 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}",
-    "./node_modules/@nextui-org/react/dist/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -32,9 +31,9 @@ const config: Config = {
   plugins: [
     nextui({
       prefix: "nextui", // prefix for themes variables
-      addCommonColors: true, // override common colors (e.g. "blue", "green", "pink").
-      defaultTheme: "light", // default motion from the themes object
-      defaultExtendTheme: "light", // default motion to extend on custom themes
+      // addCommonColors: true, // override common colors (e.g. "blue", "green", "pink").
+      // defaultTheme: "light", // default motion from the themes object
+      // defaultExtendTheme: "light", // default motion to extend on custom themes
       layout: {}, // common layout tokens (applied to all themes)
       themes: {
         light: {},

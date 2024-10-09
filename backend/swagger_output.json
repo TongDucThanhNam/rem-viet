@@ -45,10 +45,10 @@
         "tags": [
           "Posts"
         ],
-        "description": "API to get all posts",
+        "description": "API to get all bai-viet",
         "responses": {
           "200": {
-            "description": "Get all posts"
+            "description": "Get all bai-viet"
           },
           "500": {
             "description": "Internal Server Error"
@@ -130,7 +130,7 @@
         "tags": [
           "Products"
         ],
-        "description": "API to get product by id",
+        "description": "API to get san-pham by id",
         "parameters": [
           {
             "name": "productId",
@@ -149,7 +149,7 @@
         "tags": [
           "Products"
         ],
-        "description": "API to update product",
+        "description": "API to update san-pham",
         "parameters": [
           {
             "name": "productId",
@@ -192,7 +192,7 @@
         "tags": [
           "Products"
         ],
-        "description": "API to delete product by id",
+        "description": "API to delete san-pham by id",
         "parameters": [
           {
             "name": "productId",
@@ -213,7 +213,7 @@
         "tags": [
           "Products"
         ],
-        "description": "API to get product and variant by id",
+        "description": "API to get san-pham and variant by id",
         "parameters": [
           {
             "name": "productId",
@@ -234,7 +234,7 @@
         "tags": [
           "Products"
         ],
-        "description": "API to create product",
+        "description": "API to create san-pham",
         "parameters": [
           {
             "name": "body",
@@ -306,7 +306,7 @@
         "tags": [
           "Telegram"
         ],
-        "description": "API to send product order to telegram",
+        "description": "API to send san-pham order to telegram",
         "parameters": [
           {
             "name": "product",
@@ -325,7 +325,7 @@
                     },
                     "id": {
                       "type": "string",
-                      "example": "product id"
+                      "example": "san-pham id"
                     }
                   }
                 },
@@ -394,6 +394,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }

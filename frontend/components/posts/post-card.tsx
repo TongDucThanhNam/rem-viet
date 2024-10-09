@@ -21,13 +21,13 @@ const PostCard = React.memo(({ post }: { post: any }) => {
       className={"relative overflow-hidden group"}
       isPressable={true}
       onPress={() => {
-        router.push(`/posts/${post.slug}.html`);
+        router.push(`/bai-viet/${post.slug}.html`);
       }}
     >
       <div className="relative w-full h-48">
         <Image
           className="z-0 object-cover rounded-t-xl"
-          src={post.cover}
+          src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${post.cover}`}
           alt={`Cover image for ${post.title}`}
         />
       </div>
@@ -37,7 +37,7 @@ const PostCard = React.memo(({ post }: { post: any }) => {
         <div className="absolute inset-0 flex flex-col p-4">
           <h2 className="text-2xl font-bold mb-2 text-white drop-shadow-md">
             <Link
-              href={`/posts/${post.slug}.html`}
+              href={`/bai-viet/${post.slug}.html`}
               className="outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black rounded"
             >
               {post.title}

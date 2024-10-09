@@ -11,7 +11,8 @@ export default function PostDetail({ myPost }: { myPost: any }) {
     <div className={"container mx-auto px-4 py-8"}>
       <div className={"max-w-3xl mx-auto"}>
         <Image
-          src={myPost.coverImage}
+          // src={myPost.coverImage}
+          src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${myPost.coverImage}`}
           alt={`Cover image for ${myPost.title}`}
         />
         <h1 className="text-4xl md:text-5xl font-bold mb-4">{myPost.title}</h1>
@@ -99,7 +100,8 @@ export default function PostDetail({ myPost }: { myPost: any }) {
                   return (
                     <figure key={block.id} className="my-8">
                       <Image
-                        src={block.image.external.url}
+                        // src={block.image.external.url}
+                        src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${block.image.external.url}`}
                         alt={
                           block.image.caption[0]?.plain_text ||
                           "Blog post image"
@@ -117,7 +119,8 @@ export default function PostDetail({ myPost }: { myPost: any }) {
                   return (
                     <figure key={block.id} className="my-8">
                       <Image
-                        src={block.image.file.url}
+                        // src={block.image.file.url}
+                        src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${block.image.file.url}`}
                         alt={
                           block.image.caption[0]?.plain_text ||
                           "Blog post image"
@@ -249,7 +252,7 @@ export default function PostDetail({ myPost }: { myPost: any }) {
                   >
                     {block.bulleted_list_item.rich_text.map(
                       (text: any, index: number) => (
-                        <li key={index} className="text-gray-700">
+                        <li key={index} className="">
                           <span>{text.plain_text}</span>
                         </li>
                       ),
@@ -259,17 +262,22 @@ export default function PostDetail({ myPost }: { myPost: any }) {
 
               case "code":
                 return (
-                  <Snippet key={block.id} className="my-6 p-4 rounded-lg">
-                    {block.code.rich_text.map((text: any) =>
-                      text.plain_text
-                        .split("\n")
-                        .map((line: string, index: number) => (
-                          <React.Fragment key={index}>
-                            {line}
-                            <br />
-                          </React.Fragment>
-                        )),
-                    )}
+                  <Snippet
+                    key={block.id}
+                    className="my-6 p-4 rounded-lg w-full md:w-auto text-sm md:text-base"
+                  >
+                    <pre className="whitespace-pre-wrap break-words">
+                      {block.code.rich_text.map((text: any) =>
+                        text.plain_text
+                          .split("\n")
+                          .map((line: string, index: number) => (
+                            <React.Fragment key={index}>
+                              {line}
+                              <br />
+                            </React.Fragment>
+                          )),
+                      )}
+                    </pre>
                   </Snippet>
                 );
 

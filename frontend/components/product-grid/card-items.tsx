@@ -26,7 +26,7 @@ const CardItem = ({
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-lg">
       <div className="relative aspect-square">
-        <NextImage src={imageUrls[0]} alt={name} layout="fill" className="" />
+        <NextImage src={imageUrls[0]} alt={name} fill={true} className="" />
       </div>
       <CardBody className="p-4">
         <h3 className="text-lg font-semibold line-clamp-2 mb-2">{name}</h3>
@@ -40,7 +40,7 @@ const CardItem = ({
       </CardBody>
       <CardFooter className="p-4 pt-0">
         <Button
-          onClick={() => router.push(`/product/${productId}`)}
+          onClick={() => router.push(`/san-pham/${productId}`)}
           className="w-full"
         >
           Xem chi tiết

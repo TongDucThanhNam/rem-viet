@@ -1,5 +1,3 @@
-import * as XLSX from "xlsx";
-
 import React, { useMemo } from "react";
 import { Button, Chip, Link, Spacer } from "@nextui-org/react";
 import {
@@ -9,29 +7,7 @@ import {
 
 export default function Topbar({ products }: { products: any }) {
   function handleExport() {
-    // Create a worksheet from the products array
-    const worksheet = XLSX.utils.json_to_sheet(products);
-
-    // Create a new workbook and append the worksheet
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Products");
-
-    // Generate a binary string representation of the workbook
-    const excelBuffer = XLSX.write(workbook, {
-      bookType: "xlsx",
-      type: "array",
-    });
-
-    // Create a Blob from the binary string
-    const file = new Blob([excelBuffer], { type: "application/octet-stream" });
-
-    // Create a link element and trigger the download
-    const element = document.createElement("a");
-    element.href = URL.createObjectURL(file);
-    element.download = "products.xlsx";
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+    console.log("Exporting...");
   }
 
   //Topbar
@@ -63,7 +39,7 @@ export default function Topbar({ products }: { products: any }) {
 
           <Button
             as={Link}
-            href={"/add-product"}
+            href={"/add-san-pham"}
             size={"sm"}
             color="primary"
             endContent={<SolarAddCircleBoldDuotone />}

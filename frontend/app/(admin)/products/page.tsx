@@ -1,6 +1,9 @@
 import React from "react";
 import { TableProducts } from "@/components/table/table-products";
 
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
 export default async function ProductPage() {
   const res = await fetch(`${process.env.BACKEND_URL}/api/products`, {
     method: "GET",

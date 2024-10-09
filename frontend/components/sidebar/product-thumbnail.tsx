@@ -75,7 +75,13 @@ export default function SwiperThumbnail({
         >
           {imageUrls.map((url, index) => (
             <SwiperSlide key={index}>
-              <Image alt={"product"} isBlurred isZoomed src={url} />
+              <Image
+                alt={"product"}
+                isBlurred
+                isZoomed
+                // src={url}
+                src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${url}`}
+              />
             </SwiperSlide>
           ))}
         </Swiper>
@@ -117,7 +123,11 @@ export default function SwiperThumbnail({
         >
           {imageUrls.map((url, index) => (
             <SwiperSlide key={index}>
-              <Image alt={"product"} src={url} />
+              <Image
+                alt={"product"}
+                // src={url}
+                src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${url}`}
+              />
             </SwiperSlide>
           ))}
         </Swiper>

@@ -187,7 +187,7 @@ export default class ProductService implements IProductService {
     async updateProductAndVariantsById(productId: string, productData: any, variantData: any): Promise<any> {
         try {
             const session = await this.unitOfWork.startTransaction();
-            //update product
+            //update san-pham
             await this.unitOfWork.productRepository.updateProductById(productId, productData, session);
 
             if (!productData) {

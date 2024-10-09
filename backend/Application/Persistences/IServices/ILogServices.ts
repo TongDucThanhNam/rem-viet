@@ -1,5 +1,5 @@
 export default interface ILogServices {
-    // login(data: any): Promise<LoginResponse> ;
+    // dang-nhap(data: any): Promise<LoginResponse> ;
     create(data: any): Promise<any>;
 
     findById(data: any): Promise<any>;

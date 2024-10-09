@@ -8,12 +8,12 @@ WORKDIR /usr/src/app
 FROM base AS install
 RUN mkdir -p /temp/dev
 COPY package.json bun.lockb /temp/dev/
-RUN cd /temp/dev && bun install --frozen-lockfile
+RUN cd /temp/dev && bun i
 
 # install with --production (exclude devDependencies)
 RUN mkdir -p /temp/prod
 COPY package.json bun.lockb /temp/prod/
-RUN cd /temp/prod && bun install --frozen-lockfile --production
+RUN cd /temp/prod && bun i --production
 
 # copy node_modules from temp directory
 # then copy all (non-ignored) project files into the image
@@ -33,20 +33,6 @@ COPY --from=prerelease /usr/src/app .
 ARG PORT
 ENV PORT=$PORT
 RUN bun run swagger
-
-# Set environment variables at build time
-ARG CONNECTION_STRING
-ENV CONNECTION_STRING=$CONNECTION_STRING
-ARG DATABASE_NAME
-ENV DATABASE_NAME=$DATABASE_NAME
-ARG TELEGRAM_BOT_TOKEN
-ENV TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
-ARG TELEGRAM_CHAT_ID
-ENV TELEGRAM_CHAT_ID=$TELEGRAM_CHAT_ID
-ARG NOTION_API_KEY
-ENV NOTION_API_KEY=$NOTION_API_KEY
-ARG NOTION_DATABASE_ID
-ENV NOTION_DATABASE_ID=$NOTION_DATABASE_ID
 
 # run the app
 USER bun

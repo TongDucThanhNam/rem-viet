@@ -4,9 +4,9 @@ import clsx from "clsx";
 import React from "react";
 
 import { siteConfig } from "@/config/site";
-import { inter } from "@/config/fonts";
-
+import { nunito } from "@/app/fonts";
 import { Providers } from "./providers";
+
 
 export const metadata: Metadata = {
   title: {
@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   description: siteConfig.description,
   icons: {
     icon: "/favicon.ico",
+  },
+  robots: {
+    follow: true,
+    index: true,
   },
   openGraph: {
     title: siteConfig.name,
@@ -39,19 +43,21 @@ export const viewport: Viewport = {
 };
 
 export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+
+
   return (
-    <html className={inter.className} suppressHydrationWarning lang="vi">
-      <body className={clsx("min-h-screen bg-background antialiased")}>
+    <html className={""} lang="vi">
+      <body className={clsx("min-h-screen bg-background", nunito.className)}>
         <Providers>
-          <main>{children}</main>
+            <main>{children}</main>
         </Providers>
+
       </body>
     </html>
   );

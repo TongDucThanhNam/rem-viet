@@ -16,7 +16,7 @@ app.use(morgan("dev"));
 app.use(express.json());
 
 
-//product
+//san-pham
 app.use("/api", productRoutes);
 app.use("/api", telegramRoutes);
 app.use("/api", postRoutes);

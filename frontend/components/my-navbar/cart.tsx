@@ -12,12 +12,9 @@ import {
   NavbarItem,
 } from "@nextui-org/react";
 import React from "react";
-import { CartIcon, CloseIcon } from "@nextui-org/shared-icons";
+import { CartIcon, CloseIcon } from "@nextui-org/shared-icons"; //Props
 
 //Props
-interface CartDropdownProps {
-  children: React.ReactNode;
-}
 
 export const CartDropdown = () => {
   return (
@@ -38,8 +35,8 @@ export const CartDropdown = () => {
         onAction={(actionKey) => console.log({ actionKey })}
       >
         <DropdownSection showDivider={true} title="Giỏ hàng của bạn.">
-          <DropdownItem>
-            <div className="flex items-center gap-x-4 border-divider py-4">
+          <DropdownItem key={"1"} href={"/"}>
+            <div className="w-96 flex items-center border-divider ">
               <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center">
                 <Image
                   alt="Product image"
@@ -58,14 +55,7 @@ export const CartDropdown = () => {
                   {/* Plus minus*/}
                 </div>
 
-                <h4 className="text-small">
-                  <a
-                    className="relative inline-flex items-center tap-highlight-transparent outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 text-medium hover:underline hover:opacity-80 active:opacity-disabled transition-opacity underline-offset-4 font-medium text-foreground"
-                    href="/"
-                  >
-                    Training shoes
-                  </a>
-                </h4>
+                <h4 className="text-small">Training shoes</h4>
                 <div className="flex items-center gap-3">
                   <p>
                     <span className="text-small text-default-500">Color: </span>
@@ -100,7 +90,7 @@ export const CartDropdown = () => {
             console.log("See all");
           }}
         >
-          <Link href="/cart">Đến trang giỏ hàng</Link>
+          <Link href={"/gio-hang"}>Đến trang giỏ hàng</Link>
         </DropdownItem>
       </DropdownMenu>
     </Dropdown>

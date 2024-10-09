@@ -16,7 +16,11 @@ export const siteConfig = {
     },
     {
       label: "Bài viết",
-      href: "/posts",
+      href: "/bai-viet",
+    },
+    {
+      label: "Sản phẩm",
+      href: "/danh-sach-san-pham",
     },
     // {
     //     label: "Bảng điều khiển",
@@ -34,7 +38,7 @@ export const heroSection = {
   title: "Rèm Việt",
   description:
     "Mang đến sự bảo vệ toàn diện cho gia đình bạn khỏi những tác nhân như côn trùng,khói bụi, ...",
-  videoUrl: "https://luoichongmuoi.cdn.vccloud.vn/remviet.mp4",
+  videoUrl: "https://luoichongmuoi.cdn.vccloud.vn/luoichongmuoi.mp4",
 };
 
 export const features = [
@@ -96,9 +100,9 @@ export const sectionNestedItems: SidebarItem[] = [
         title: "Quản lý sản phẩm",
       },
       {
-        key: "add-product",
+        key: "add-san-pham",
         icon: "add",
-        href: "/add-product",
+        href: "/add-san-pham",
         title: "Thêm sản phẩm",
       },
     ],
@@ -168,7 +172,7 @@ export const footer = {
 };
 
 export const fab = {
-  phone: "tel:0986207619",
+  phone: "0399649743",
   zalo: "https://zalo.me/84949491964",
   facebook: "https://www.facebook.com/profile.php?id=100076172431695",
 };
@@ -214,13 +218,13 @@ export const reviews = [
     reviewDate: "4/10/2024",
     reviewTitle: "Very good",
     reviewContent:
-      "I'm very satisfied with the product and service of Rèm Việt.",
+      "I'm very satisfied with the san-pham and service of Rèm Việt.",
   },
   {
     userName: "Jon Slow",
     reviewDate: "9/9/2024",
     reviewTitle: "Incredible",
     reviewContent:
-      "I'm very satisfied with the product and service of Rèm Việt.",
+      "I'm very satisfied with the san-pham and service of Rèm Việt.",
   },
 ];

@@ -1,11 +1,12 @@
 "use client";
 
+// Import và sử dụng các thành phần động, memo hóa, và sự kiện tối ưu
+import dynamic from "next/dynamic";
 import {
   Button,
   cn,
   Input,
   Kbd,
-  Link,
   Navbar,
   NavbarBrand,
   NavbarContent,
@@ -13,39 +14,36 @@ import {
   NavbarMenu,
   NavbarMenuItem,
   NavbarMenuToggle,
-  NavbarProps,
 } from "@nextui-org/react";
-
 import React from "react";
 import { RemVietIcon } from "@/components/icons/remviet";
 import { siteConfig } from "@/config/site";
-import { ThemeSwitch } from "@/components/theme-switch";
-import { CartDropdown } from "@/components/my-navbar/cart";
 import { GithubIcon, SearchIcon } from "@/components/icons/icons";
+import Link from "next/link";
 
-// import {AcmeIcon} from "./acme";
+// Dynamic import để giảm tải SSR
+const ThemeSwitch = dynamic(
+  () => import("@/components/theme-switch").then((mod) => mod.ThemeSwitch),
+  {
+    ssr: false,
+    loading: () => <Button isIconOnly={true} className={"bg-transparent"} />,
+  },
+);
+const CartDropdown = dynamic(
+  () => import("@/components/my-navbar/cart").then((mod) => mod.CartDropdown),
+  {
+    ssr: false,
+    loading: () => <Button isIconOnly={true} className={"bg-transparent"} />,
+  },
+);
 
-const menuItems = [
-  "About",
-  "Blog",
-  "Customers",
-  "Pricing",
-  "Enterprise",
-  "Changelog",
-  "Documentation",
-  "Contact Us",
-];
-
-export default function MyNavbar(props: NavbarProps) {
+export default function MyNavbar(props: any) {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const searchInput = (
     <Input
       aria-label="Search"
-      classNames={{
-        inputWrapper: "bg-default-100",
-        input: "text-sm",
-      }}
+      classNames={{ inputWrapper: "bg-default-100", input: "text-sm" }}
       endContent={
         <Kbd className="hidden lg:inline-block" keys={["command"]}>
           F
@@ -54,11 +52,15 @@ export default function MyNavbar(props: NavbarProps) {
       labelPlacement="outside"
       placeholder="Tìm kiếm ..."
       startContent={
-        <SearchIcon className="text-base text-default-400 pointer-events-none flex-shrink-0" />
+        <SearchIcon className="text-base pointer-events-none flex-shrink-0" />
       }
       type="search"
     />
   );
+
+  const handleMenuToggle = React.useCallback(() => {
+    setIsMenuOpen((prev) => !prev);
+  }, []);
 
   return (
     <Navbar
@@ -73,7 +75,7 @@ export default function MyNavbar(props: NavbarProps) {
       }}
       height="60px"
       isMenuOpen={isMenuOpen}
-      onMenuOpenChange={setIsMenuOpen}
+      onMenuOpenChange={handleMenuToggle}
     >
       <NavbarMenuToggle className="text-default-400 md:hidden" />
 
@@ -105,17 +107,10 @@ export default function MyNavbar(props: NavbarProps) {
         className="w-fit data-[justify=end]:flex-grow-0"
         justify="end"
       >
-        {/*Theme Switch*/}
         <NavbarItem className={"ml-2 !flex gap-2"}>
           <ThemeSwitch />
         </NavbarItem>
-
-        {/*Cart item*/}
         <CartDropdown />
-
-        {/*Notification*/}
-        {/*<NotificationsDropdown />*/}
-
         <NavbarItem>
           <Button
             as={Link}
@@ -127,31 +122,15 @@ export default function MyNavbar(props: NavbarProps) {
             <GithubIcon />
           </Button>
         </NavbarItem>
-
-        {/*User button & Dropdown */}
-        {/*<UserDropdown />*/}
       </NavbarContent>
 
-      <NavbarMenu
-        className="top-[calc(var(--navbar-height)_-_1px)] max-h-[70vh] bg-default-200/50 pt-6 shadow-medium backdrop-blur-md backdrop-saturate-150 dark:bg-default-100/50"
-        motionProps={{
-          initial: { opacity: 0, y: -20 },
-          animate: { opacity: 1, y: 0 },
-          exit: { opacity: 0, y: -20 },
-          transition: {
-            ease: "easeInOut",
-            duration: 0.2,
-          },
-        }}
-      >
-        <NavbarMenuItem className="">{searchInput}</NavbarMenuItem>
-
+      <NavbarMenu className="top-[calc(var(--navbar-height)_-_1px)] max-h-[70vh] bg-default-200/50 pt-6 shadow-medium backdrop-blur-md backdrop-saturate-150 dark:bg-default-100/50">
+        <NavbarMenuItem>{searchInput}</NavbarMenuItem>
         {siteConfig.navItems.map((item, index) => (
           <NavbarMenuItem key={`${item}-${index}`}>
             <Link
               className="w-full text-default-500"
               href={item.href}
-              size="md"
             >
               {item.label}
             </Link>

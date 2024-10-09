@@ -10,7 +10,7 @@ export default async function ViewProductPage({
   // console.log("Product ID:", productId);
 
   try {
-    // Fetch product
+    // Fetch san-pham
     const response = await fetch(
       `${process.env.BACKEND_URL}/api/product/${productId}/variant`,
       {
@@ -23,7 +23,7 @@ export default async function ViewProductPage({
     );
 
     if (!response.ok) {
-      throw new Error("Failed to fetch product");
+      throw new Error("Failed to fetch san-pham");
     }
 
     const data = await response.json();
@@ -68,7 +68,7 @@ export default async function ViewProductPage({
       />
     );
   } catch (error) {
-    console.error("Error fetching product:", error);
+    console.error("Error fetching san-pham:", error);
     notFound();
   }
 }

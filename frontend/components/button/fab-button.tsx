@@ -7,7 +7,9 @@ import { fab } from "@/config/site";
 
 export const FabButton = () => {
   const handlePhoneClick = () => {
-    window.location.href = `tel:${fab.phone}`; // Thay số điện thoại
+    //+84
+    const phoneNumber = `${fab.phone}`;
+    window.location.href = `tel:${phoneNumber}`;
   };
 
   const shareToZalo = (message: string | number | boolean) => {

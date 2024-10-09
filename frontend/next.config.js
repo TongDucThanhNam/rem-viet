@@ -9,8 +9,10 @@ const nextConfig = {
     optimizePackageImports: [
       "@nextui-org/react",
       "@nextui-org/shared-icons",
-      "apexcharts",
       "framer-motion",
+      "recharts",
+      "hls.js",
+      "swiper",
     ], // Opt
   },
   images: {
@@ -23,12 +25,18 @@ const nextConfig = {
         port: "",
         pathname: "/file/**",
       },
+      {
+        protocol: "https",
+        hostname: "luoichongmuoi.shop",
+        port: "",
+        pathname: "/cdn-cgi/image/**",
+      },
     ],
   },
   async rewrites() {
     return [
       {
-        source: "/api/:path*",
+        source: "/backend/api/:path*",
         destination: `${process.env.BACKEND_URL || "http://localhost:3001"}/api/:path*`,
       },
     ];

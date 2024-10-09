@@ -53,7 +53,7 @@ const columns = [
   { key: "price", label: "Price" },
 ];
 
-//itertools.product
+//itertools.san-pham
 function generateVariantCombinations(
   variants: Variant[],
 ): VariantCombination[] {
@@ -181,7 +181,7 @@ export default function EditProductComponent({
 
     //Gửi dữ liệu lên server
     try {
-      const response = await fetch(`/api/product/${product._id}`, {
+      const response = await fetch(`/api/edit-product/${product._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -192,10 +192,10 @@ export default function EditProductComponent({
       if (response.ok) {
         console.log("Product saved successfully");
       } else {
-        console.error("Failed to save product");
+        console.error("Failed to save san-pham");
       }
     } catch (error) {
-      console.error("Failed to save product", error);
+      console.error("Failed to save san-pham", error);
     }
   };
 
@@ -226,7 +226,10 @@ export default function EditProductComponent({
                   onPress={() => {
                     setImageUrls((prevUrls) => {
                       setImageUrl("");
-                      return [...prevUrls, imageUrl];
+                      return [
+                        ...prevUrls,
+                        `${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${imageUrl}`,
+                      ];
                     });
                   }}
                 >
@@ -302,7 +305,7 @@ export default function EditProductComponent({
           className={"max-w-2xl"}
           label={"Tên sản phẩm"}
           labelPlacement={"inside"}
-          name={"product-name"}
+          name={"san-pham-name"}
           placeholder="Nhập tên sản phẩm"
           value={product?.name}
           onValueChange={(value: string) => {
@@ -519,7 +522,7 @@ export default function EditProductComponent({
               className={"max-w-2xl"}
               label={"Giá"}
               labelPlacement={"inside"}
-              name={"product-price"}
+              name={"san-pham-price"}
               placeholder="Giá"
               type={"number"}
               onValueChange={(value: string) => {

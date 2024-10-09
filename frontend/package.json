@@ -6,6 +6,7 @@
     "dev-turbo": "next dev --turbo",
     "dev": "next dev",
     "build": "next build --no-lint",
+    "start-standalone": "bun --bun .next/standalone/server.js",
     "start": "bun next start",
     "lint": "eslint . --ext .ts,.tsx -c .eslintrc.json --fix",
     "build:static": "BUILD_MODE=static next build --no-lint"
@@ -26,10 +27,12 @@
     "@types/styled-components": "^5.1.34",
     "@typescript-eslint/eslint-plugin": "^8.5.0",
     "autoprefixer": "10.4.19",
+    "caniuse-lite": "^1.0.30001667",
     "clsx": "^2.1.1",
     "eslint-config-next": "14.2.3",
     "formik": "^2.4.6",
     "framer-motion": "^11.1.9",
+    "hls.js": "^1.5.15",
     "intl-messageformat": "^10.5.12",
     "next": "^14.2.13",
     "next-themes": "^0.3.0",
@@ -38,6 +41,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-files": "^3.0.3",
+    "react-query": "^3.39.3",
     "recharts": "^2.12.7",
     "sharp": "^0.33.5",
     "swiper": "^11.1.2",
@@ -46,7 +50,7 @@
     "tailwindcss": "^3.4.3",
     "typescript": "5.4.5",
     "usehooks-ts": "^3.1.0",
-    "xlsx": "^0.18.5"
+    "zustand": "^5.0.0-rc.2"
   },
   "devDependencies": {
     "@iconify-json/mdi": "^1.2.0",

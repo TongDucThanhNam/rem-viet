@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import PostDetail from "@/components/posts/post-detail";
-import { Metadata } from "next"; // Mock data for posts
+import { Metadata } from "next"; // Mock data for bai-viet
 
-// Mock data for posts
+// Mock data for bai-viet
 type Props = {
   params: { slug: string };
 };
@@ -28,6 +28,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "article",
       publishedTime: new Date().toISOString(),
       authors: ["Rem Viet"],
+      images: [
+        {
+          url: post.coverImage,
+          width: 800,
+          height: 600,
+          alt: post.title,
+        },
+      ],
     },
   };
 }
@@ -53,8 +61,14 @@ async function getPost(slug: string) {
   const fix_slug = slug ? slug.replace(".html", "") : "";
   // Fetch data from external API
   try {
-    const res = await fetch(`${process.env.BACKEND_URL}/api/posts/${fix_slug}`);
-    // Return the post
+    const res = await fetch(
+      `${process.env.BACKEND_URL}/api/posts/${fix_slug}`,
+      {
+        next: {
+          revalidate: 60 * 60 * 24 * 3, // 3 days
+        },
+      },
+    ); // Return the post
     const data = await res.json();
     if (res.ok) {
       return data;

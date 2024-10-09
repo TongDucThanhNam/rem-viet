@@ -3,8 +3,9 @@
 import FacebookIcon from "@/components/icons/icons";
 import React from "react";
 import { motion } from "framer-motion";
+import { features } from "@/config/site";
 
-export default function FeatureSection({ features }: { features: any }) {
+export default function FeatureSection() {
   const MULTIDIRECTION_SLIDE_VARIANTS = {
     hidden: { opacity: 0, x: "-25vw" },
     visible: { opacity: 1, x: 0 },

@@ -36,8 +36,8 @@ export const UserDropdown = () => {
           <p>User</p>
         </DropdownItem>
         <DropdownItem key="settings">Cài đặt</DropdownItem>
-        <DropdownItem key={"cart"}>
-          <Link href={"/cart"}>Giỏ hàng của tôi</Link>
+        <DropdownItem key={"gio-hang"}>
+          <Link href={"/gio-hang"}>Giỏ hàng của tôi</Link>
         </DropdownItem>
         <DropdownItem key="help_and_feedback">Liên hệ hỗ trợ</DropdownItem>
         <DropdownItem key="logout" className="text-danger " color="danger">

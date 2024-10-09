@@ -8,19 +8,19 @@ const productController = new ProductController();
 //getAll products route
 router.get('/products', productController.getAllProducts);
 
-//get product by id route
+//get san-pham by id route
 router.get('/product/:productId', productController.getProductById);
 
-//get product and variant by id route
+//get san-pham and variant by id route
 router.get('/product/:productId/variant', productController.getProductAndVariantById);
 
-//create product route
+//create san-pham route
 router.post('/product', productController.createProduct);
 
-//Update product route
+//Update san-pham route
 router.put('/product/:productId', productController.updateProduct);
 
-//Delete product route
+//Delete san-pham route
 router.delete('/product/:productId', productController.deleteProduct);
 
 export default router;

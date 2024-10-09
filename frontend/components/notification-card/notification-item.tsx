@@ -40,7 +40,7 @@ const NotificationItem = React.forwardRef<
     ref,
   ) => {
     /**
-     * Defines the content for different types of notifications.
+     * Defines the content for different types.ts of notifications.
      */
     const contentByType: Record<NotificationType, React.ReactNode> = {
       default: null,

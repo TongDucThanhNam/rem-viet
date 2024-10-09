@@ -1,4 +1,4 @@
-"use client";
+// "use client";
 
 import ReviewCard from "@/components/card/review-card";
 import React from "react";

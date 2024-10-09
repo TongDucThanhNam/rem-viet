@@ -1,136 +1,9 @@
 import express from "express";
 import { Client } from "@notionhq/client";
+//Slug map to id
+import slugify from "slugify";
 
 const router = express.Router();
-
-/*
-  {
-    "object": "page",
-    "id": "115a4dca-6cc6-81a4-bcbf-fe2d7b901dcc",
-    "created_time": "2024-10-04T15:23:00.000Z",
-    "last_edited_time": "2024-10-04T15:23:00.000Z",
-    "created_by": {
-      "object": "user",
-      "id": "e0478a0c-0d7d-42bc-ad31-63d507d666c4"
-    },
-    "last_edited_by": {
-      "object": "user",
-      "id": "e0478a0c-0d7d-42bc-ad31-63d507d666c4"
-    },
-    "cover": {
-      "type": "external",
-      "external": {
-        "url": "https://images.unsplash.com/photo-1503416997304-7f8bf166c121?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb"
-      }
-    },
-    "icon": null,
-    "parent": {
-      "type": "database_id",
-      "database_id": "2e317345-0779-40b1-95fb-3cc633e007d6"
-    },
-    "archived": false,
-    "in_trash": false,
-    "properties": {
-      "tags": {
-        "id": "%26Cfp",
-        "type": "multi_select",
-        "multi_select": [
-          {
-            "id": "1b62fd6c-47e3-4dea-86c2-aa4b4bdef994",
-            "name": "Space",
-            "color": "gray"
-          },
-          {
-            "id": "b99fd6fe-f3eb-4a92-815d-bf0b13321ef4",
-            "name": "Dark Mode",
-            "color": "purple"
-          },
-          {
-            "id": "c375218a-f9a5-4c3e-9cba-fa0cdb1a96ac",
-            "name": "Article",
-            "color": "pink"
-          }
-        ]
-      },
-      "Last edited time": {
-        "id": "RL_%3E",
-        "type": "last_edited_time",
-        "last_edited_time": "2024-10-04T15:23:00.000Z"
-      },
-      "Created time": {
-        "id": "%5Dbl%3A",
-        "type": "created_time",
-        "created_time": "2024-10-04T15:23:00.000Z"
-      },
-      "status": {
-        "id": "iRQ%22",
-        "type": "select",
-        "select": {
-          "id": "14b7cab2-7f1b-456f-a7ca-e4c57a2458b8",
-          "name": "published",
-          "color": "pink"
-        }
-      },
-      "publish_date": {
-        "id": "rmQ'",
-        "type": "date",
-        "date": {
-          "start": "2023-10-30",
-          "end": null,
-          "time_zone": null
-        }
-      },
-      "description": {
-        "id": "%7C%5BN%60",
-        "type": "rich_text",
-        "rich_text": [
-          {
-            "type": "text",
-            "text": {
-              "content": "What happens when Dark Mode travels at the speed of light? HyperDark, engage!",
-              "link": null
-            },
-            "annotations": {
-              "bold": false,
-              "italic": false,
-              "strikethrough": false,
-              "underline": false,
-              "code": false,
-              "color": "default"
-            },
-            "plain_text": "What happens when Dark Mode travels at the speed of light? HyperDark, engage!",
-            "href": null
-          }
-        ]
-      },
-      "title": {
-        "id": "title",
-        "type": "title",
-        "title": [
-          {
-            "type": "text",
-            "text": {
-              "content": "Beyond the Moon: Using AstroNot for HyperDark space travel?",
-              "link": null
-            },
-            "annotations": {
-              "bold": false,
-              "italic": false,
-              "strikethrough": false,
-              "underline": false,
-              "code": false,
-              "color": "default"
-            },
-            "plain_text": "Beyond the Moon: Using AstroNot for HyperDark space travel?",
-            "href": null
-          }
-        ]
-      }
-    },
-    "url": "https://www.notion.so/Beyond-the-Moon-Using-AstroNot-for-HyperDark-space-travel-115a4dca6cc681a4bcbffe2d7b901dcc",
-    "public_url": null
-  },
- */
 
 interface Post {
   object: string;
@@ -252,18 +125,29 @@ if (!databaseId) {
   process.exit(1);
 }
 
-//Slug map to id
 const slugMap = new Map();
-var slugify = require("slugify");
+
+function createSlugMap(post: Post) {
+  const slug = slugify(post.properties.title.title[0].plain_text, {
+    lower: true,
+    locale: "vi",
+    replacement: "-",
+    remove: /[*+~.()'"!:@?]/g,
+    trim: true,
+  });
+
+  slugMap.set(slug, post.id);
+  return slug;
+}
 
 router.get("/posts", async (req, res) => {
   /*
-                      #swagger.tags = ['Posts']
-                      #swagger.description = 'API to get all posts'
-                      #swagger.responses[200] = {
-                          description: 'Get all posts',
-                      }
-                   */
+                                  #swagger.tags = ['Posts']
+                                  #swagger.description = 'API to get all bai-viet'
+                                  #swagger.responses[200] = {
+                                      description: 'Get all bai-viet',
+                                  }
+                               */
 
   try {
     const response = await notion.databases.query({
@@ -273,16 +157,7 @@ router.get("/posts", async (req, res) => {
     const posts = response.results.map((page) => {
       const post = page as Post;
 
-      let slug = slugify(post.properties.title.title[0].plain_text, {
-        lower: true,
-        locale: "vi",
-        replacement: "-", // replace spaces with replacement character, defaults to `-`
-        remove: /[*+~.()'"!:@?]/g, // remove characters that match regex, defaults to `undefined`
-        strict: false, // strip special characters except replacement, defaults to `false`
-        trim: true, // trim leading and trailing replacement chars, defaults to `true`
-      });
-
-      slugMap.set(slug, post.id);
+      let slug = createSlugMap(post);
 
       return {
         id: post.id,
@@ -307,16 +182,24 @@ router.get("/posts", async (req, res) => {
 
 router.get("/posts/:id", async (req, res) => {
   /*
-                      #swagger.tags = ['Posts']
-                      #swagger.description = 'API to get post by id'
-                      #swagger.parameters['id'] = {description: 'Post id', type: 'string', schema: { $ref: "#/definitions/Posts" }, required: true, example: "115a4dca-6cc6-81a4-bcbf-fe2d7b901dcc"}
-                      #swagger.responses[200] = {
-                          description: 'Get post by id',
-                      }
-                   */
+        #swagger.tags = ['Posts']
+        #swagger.description = 'API to get post by id'
+        #swagger.parameters['id'] = {description: 'Post id', type: 'string', schema: { $ref: "#/definitions/Posts" }, required: true, example: "115a4dca-6cc6-81a4-bcbf-fe2d7b901dcc"}
+        #swagger.responses[200] = {
+            description: 'Get post by id',
+        }
+     */
 
   try {
     let { id } = req.params;
+
+    if (slugMap.size == 0) {
+      const response = await notion.databases.query({
+        database_id: databaseId,
+      });
+      response.results.forEach((page) => createSlugMap(page as Post));
+    }
+
     if (slugMap.has(id)) {
       id = slugMap.get(id);
     }

@@ -10,25 +10,19 @@ export default function NewsletterSection() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus("Sending...");
-
-    try {
-      const response = await fetch("/api/send-newletter", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ phoneNumber }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to send message");
-      }
-
-      setStatus("Message sent successfully!");
-      setPhoneNumber("");
-    } catch (error) {
-      console.error("Error:", error);
-      setStatus("Failed to send message. Please try again.");
+    const res = await fetch(`/api/send-newsletter`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        phoneNumber,
+      }),
+    });
+    if (res.ok) {
+      setStatus("Đăng ký thành công!");
+    } else {
+      setStatus("Đăng ký thất bại!");
     }
   };
 
@@ -68,6 +62,8 @@ export default function NewsletterSection() {
                 Đăng ký
               </Button>
             </form>
+
+            {status && <p className="mt-4 text-center text-white">{status}</p>}
           </div>
         </div>
       </div>

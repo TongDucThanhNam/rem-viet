@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Card, CardBody, Image, Skeleton } from "@nextui-org/react"; /*
+import { Card, CardBody, Image, Skeleton } from "@nextui-org/react";
+/*
   "title": "American civic leader and educator",
   "description": "",
   "images": [],
@@ -38,14 +39,6 @@ interface BookmarkMetadata {
   url: string;
 }
 
-async function fetchMetadata(url: string) {
-  const apiKey = "pk_f890de2ad1f6b330dab3681d1aff8c3566707bbf";
-  const apiUrl = `https://jsonlink.io/api/extract?url=${url}&api_key=${apiKey}`;
-
-  const res = await fetch(apiUrl);
-  return await res.json();
-}
-
 export default function EnhancedBookmark({
   block,
 }: {
@@ -55,12 +48,15 @@ export default function EnhancedBookmark({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = fetchMetadata(block.bookmark.url);
-    fetchData.then((data) => {
-      console.log("Metadata: ", data);
-
-      setMetadata(data);
-      setIsLoading(false);
+    const fetchData = fetch("/api/get-bookmark?url=" + block.bookmark.url);
+    fetchData.then((res) => {
+      if (res.ok) {
+        res.json().then((data) => {
+          console.log("Data:", data);
+          setMetadata(data);
+          setIsLoading(false);
+        });
+      }
     });
   }, [block.bookmark.url]);
 
@@ -73,11 +69,15 @@ export default function EnhancedBookmark({
           rel="noopener noreferrer"
           className="flex flex-col sm:flex-row"
         >
-          <div className="relative w-full sm:w-48 h-48">
+          <div className="w-full sm:w-48 h-48">
             {isLoading ? (
               <Skeleton className="h-48 w-full" />
             ) : (
-              <Image src={metadata?.images[0]} alt={metadata?.title} />
+              <Image
+                  isBlurred={true}
+                src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${metadata?.images[0]}`}
+                alt={metadata?.title || "image"}
+              />
             )}
           </div>
           <CardBody className="flex-1 p-4">
@@ -91,6 +91,7 @@ export default function EnhancedBookmark({
                 <div className="flex items-center">
                   <Image
                     src={metadata?.favicon}
+                    // src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${metadata?.favicon}`}
                     alt={"favicon"}
                     className="inline-block mr-2"
                   />

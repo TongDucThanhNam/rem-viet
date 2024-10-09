@@ -4,6 +4,8 @@ import { siteConfig } from "@/config/site";
 import React from "react";
 import MyNavbar from "@/components/my-navbar/my-navbar";
 import { FabButton } from "@/components/button/fab-button";
+import { clearCart, getCart } from "@/api/cart";
+import CartProvider from "@/app/store/CartProvider";
 
 export const metadata: Metadata = {
   title: {
@@ -13,8 +15,6 @@ export const metadata: Metadata = {
   description: siteConfig.description,
   icons: {
     icon: "/favicon.ico",
-    shortcut: "/favicon-16x16.png",
-    apple: "/apple-touch-icon.png",
   },
 };
 // export const viewport: Viewport = {
@@ -24,15 +24,23 @@ export const metadata: Metadata = {
 //     ],
 // }
 
-export default function EcomerceLayout({
+export default async function EcomerceLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const cart = await getCart();
+
+  const clearCartAction = async () => {
+    "use server";
+    return await clearCart();
+  };
+
   return (
-    <div className={"select-none"}>
-      <MyNavbar>123</MyNavbar>
-      {children}
+    <div className={""}>
+      <MyNavbar />
+      <CartProvider cart={cart}>{children}</CartProvider>
+
       <FabButton />
     </div>
   );

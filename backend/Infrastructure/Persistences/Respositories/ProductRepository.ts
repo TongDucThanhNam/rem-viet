@@ -1,5 +1,5 @@
-import IProductRepository from "../../../Application/Persistences/IRepositories/IProductRepository";
-import {ClientSession} from "mongoose";
+import type IProductRepository from "../../../Application/Persistences/IRepositories/IProductRepository";
+import type {ClientSession} from "mongoose";
 import {ProductWithBase} from "../../../Domain/Entities/ProductEntities";
 
 class ProductRepository implements IProductRepository {
@@ -110,8 +110,8 @@ class ProductRepository implements IProductRepository {
 
     async updateProductById(productId: string, productData: any, session: ClientSession): Promise<typeof ProductWithBase | null> {
         try {
-            console.log("Update product id: ", productId);
-            console.log("Update product data: ", productData);
+            console.log("Update san-pham id: ", productId);
+            console.log("Update san-pham data: ", productData);
 
 
             return await

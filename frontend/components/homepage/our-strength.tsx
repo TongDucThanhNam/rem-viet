@@ -1,6 +1,5 @@
-"use client";
+// "use client";
 
-///ts-ignore
 import { YouTubeEmbed } from "@next/third-parties/google";
 import React from "react";
 import { our_strength } from "@/config/site";

@@ -1,4 +1,4 @@
-import {IBaseUnitOfWork} from "./IBaseUnitOfWork";
+import type { IBaseUnitOfWork } from "./IBaseUnitOfWork";
 import LogRepository from "../../../Infrastructure/Persistences/Respositories/LogRepository";
 import ProductRepository from "../../../Infrastructure/Persistences/Respositories/ProductRepository";
 import VariantRepository from "../../../Infrastructure/Persistences/Respositories/VariantRepository";

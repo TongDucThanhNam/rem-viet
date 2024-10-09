@@ -180,11 +180,10 @@ export default function Mosquito() {
           <NextImage
             // isBlurred
             // as={NextImage}
-            className=""
+            className={"object-cover"}
             src={"/src/window.webp"}
             alt={"Window"}
             fill={true}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
 
           {/* Hình vuông động */}

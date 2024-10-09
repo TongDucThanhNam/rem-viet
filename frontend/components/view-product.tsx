@@ -83,7 +83,7 @@ export default function ViewProductComponent({
         {/* Product name */}
         <Snippet
           hideSymbol={true}
-          key={"product-name"}
+          key={"san-pham-name"}
           aria-label={"Product Name"}
           tabIndex={0}
         >
@@ -94,7 +94,7 @@ export default function ViewProductComponent({
 
         <Snippet
           hideSymbol={true}
-          key={"product-description"}
+          key={"san-pham-description"}
           aria-label={"Product Description"}
           codeString={myProduct.description}
         >

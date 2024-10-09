@@ -22,6 +22,9 @@ import {
   SolarSidebarMinimalisticOutline,
 } from "@/components/icons/icons";
 
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
 export default function AdminLayout({
   children,
 }: {
@@ -91,7 +94,7 @@ export default function AdminLayout({
                 isCompact={isCompact}
                 items={sectionNestedItems}
                 selectedKeys={[
-                  currentPath === "add-product" ? "products" : currentPath,
+                  currentPath === "add-san-pham" ? "products" : currentPath,
                 ]}
               />
             </ScrollShadow>{" "}

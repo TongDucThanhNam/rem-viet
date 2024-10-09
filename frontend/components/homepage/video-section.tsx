@@ -1,11 +1,7 @@
-"use client";
-
-import React, { lazy, Suspense } from "react";
+import React, { Suspense } from "react";
 import NextImage from "next/image";
 import videoThumb from "@/public/src/videoThump.webp";
-import { heroSection } from "@/config/site";
-
-const ResponsiveVideoLazy = lazy(() => import("@/components/video/video"));
+import HLSVideoPlayer from "@/components/video/hls-video"; // const ResponsiveVideoLazy = lazy(() => import("@/components/video/video"));
 
 export default function VideoSection() {
   return (
@@ -34,7 +30,11 @@ export default function VideoSection() {
         <div className="relative w-full h-96 flex justify-center items-center">
           {" "}
           {/* Căn giữa video */}
-          <ResponsiveVideoLazy videoSrc={heroSection.videoUrl} />
+          {/*<ResponsiveVideoLazy videoSrc={heroSection.videoUrl} />*/}
+          <HLSVideoPlayer
+            src={"https://luoichongmuoi.cdn.vccloud.vn/m3u8/output.m3u8"}
+            // mp4Src={"https://luoichongmuoi.cdn.vccloud.vn/remviet.mp4"}
+          />
         </div>
       </Suspense>
     </>

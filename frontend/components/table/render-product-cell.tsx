@@ -50,7 +50,7 @@ export const RenderCellProduct = ({ product, columnKey }: Props) => {
             <Tooltip content="Xem sản phẩm">
               <button
                 onClick={() => {
-                  console.log("View product", product._id);
+                  console.log("View san-pham", product._id);
 
                   router.push(`/view-product/${product._id}`);
                 }}
@@ -63,7 +63,7 @@ export const RenderCellProduct = ({ product, columnKey }: Props) => {
             <Tooltip color="secondary" content="Sửa sản phẩm">
               <button
                 onClick={() => {
-                  console.log("Edit product", product._id);
+                  console.log("Edit san-pham", product._id);
 
                   router.push(`/edit-product/${product._id}`);
                 }}

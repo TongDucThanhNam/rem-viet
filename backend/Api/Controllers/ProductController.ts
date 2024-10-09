@@ -54,7 +54,7 @@ export default class ProductController {
     ) => {
         /*
             #swagger.tags = ['Products']
-            #swagger.description = 'API to get product by id'
+            #swagger.description = 'API to get san-pham by id'
          */
 
         try {
@@ -77,7 +77,7 @@ export default class ProductController {
     ) => {
         /*
             #swagger.tags = ['Products']
-            #swagger.description = 'API to get product and variant by id'
+            #swagger.description = 'API to get san-pham and variant by id'
          */
 
         try {
@@ -100,7 +100,7 @@ export default class ProductController {
     ) => {
         /*
             #swagger.tags = ['Products']
-            #swagger.description = 'API to create product'
+            #swagger.description = 'API to create san-pham'
          */
 
         try {
@@ -132,7 +132,7 @@ export default class ProductController {
                 productData['price'] = `${min} - ${max}`;
             }
 
-            //Create product
+            //Create san-pham
             const result = await this.productServices.createProduct(
                 //ProductDataa
                 productData,
@@ -153,7 +153,7 @@ export default class ProductController {
     ) => {
         /*
             #swagger.tags = ['Products']
-            #swagger.description = 'API to update product'
+            #swagger.description = 'API to update san-pham'
          */
 
         try {
@@ -188,7 +188,7 @@ export default class ProductController {
     ) => {
         /*
             #swagger.tags = ['Products']
-            #swagger.description = 'API to delete product by id'
+            #swagger.description = 'API to delete san-pham by id'
          */
 
         try {

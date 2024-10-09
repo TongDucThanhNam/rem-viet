@@ -46,7 +46,7 @@ const ProductItem: React.FC<ProductItemProps> = ({
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [variantChosen, setVariantChosen] = React.useState<any>([]);
-  //product price
+  //san-pham price
   const [productPrice, setProductPrice] = React.useState<string>(product.price);
 
   //preprocess variants
@@ -83,7 +83,7 @@ const ProductItem: React.FC<ProductItemProps> = ({
     //not selected any variant
     if (Object.keys(variantChosen).length === 0) {
       console.log("No variant chosen");
-      // product.price = basePrice;
+      // san-pham.price = basePrice;
       setProductPrice(basePrice);
       return;
     }
@@ -104,13 +104,13 @@ const ProductItem: React.FC<ProductItemProps> = ({
       if (areObjectsEqual(values, variantChosen)) {
         console.log("Found variant: ", variant);
         setProductPrice(variant.variantPrice);
-        // product.price = variant.price;
+        // san-pham.price = variant.price;
         return;
       }
     }
 
     //set new price
-    // product.price = price;
+    // san-pham.price = price;
   }, [variantChosen]);
 
   //Compare 2 objects
@@ -154,7 +154,7 @@ const ProductItem: React.FC<ProductItemProps> = ({
       },
     };
 
-    console.log("Body: ", body);
+    // console.log("Body: ", body);
 
     try {
       const response = await fetch("/api/send-product-order", {
@@ -312,7 +312,7 @@ const ProductItem: React.FC<ProductItemProps> = ({
           wrapper: "",
           body: "",
           backdrop: "",
-          base: "",
+          base: "h-screen  bg-default-100 dark:bg-default-800",
           header: "",
           footer: "",
           closeButton: "",

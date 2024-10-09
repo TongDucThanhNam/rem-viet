@@ -1,4 +1,4 @@
-"use client";
+// "use client";
 
 import { YouTubeEmbed } from "@next/third-parties/google";
 import { our_strength } from "@/config/site";

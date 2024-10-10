@@ -6,7 +6,8 @@ import React from "react";
 import { siteConfig } from "@/config/site";
 import { nunito } from "@/app/fonts";
 import { Providers } from "./providers";
-
+import { getCart } from "@/api/cart";
+import CartProvider from "@/store/CartProvider";
 
 export const metadata: Metadata = {
   title: {
@@ -42,14 +43,14 @@ export const viewport: Viewport = {
   ],
 };
 
-export const dynamic = "force-dynamic";
+// export const dynamic = "force-dynamic";
 
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-
+  const cart = await getCart();
 
   return (
     <html className={""} lang="vi">
@@ -57,7 +58,6 @@ export default async function RootLayout({
         <Providers>
             <main>{children}</main>
         </Providers>
-
       </body>
     </html>
   );

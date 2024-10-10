@@ -4,8 +4,6 @@ import { siteConfig } from "@/config/site";
 import React from "react";
 import MyNavbar from "@/components/my-navbar/my-navbar";
 import { FabButton } from "@/components/button/fab-button";
-import { clearCart, getCart } from "@/api/cart";
-import CartProvider from "@/app/store/CartProvider";
 
 export const metadata: Metadata = {
   title: {
@@ -29,18 +27,10 @@ export default async function EcomerceLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const cart = await getCart();
-
-  const clearCartAction = async () => {
-    "use server";
-    return await clearCart();
-  };
-
   return (
     <div className={""}>
       <MyNavbar />
-      <CartProvider cart={cart}>{children}</CartProvider>
-
+      {children}
       <FabButton />
     </div>
   );

@@ -1,47 +1,46 @@
-"use client";
-import { useCart } from "@/app/store/CartProvider";
+'use client'
 
-export default function CartPopup() {
-  const { cart, setCart } = useCart()();
+import { useCartStore } from '../lib/useCartStore'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
-  return (
-    <div className="flex flex-col items-center justify-center w-1/2 p-4 bg-white rounded-lg">
-      <h2 className="mb-4 text-2xl font-bold leading-10 text-gray-800">
-        Your Cart
-      </h2>
-      {cart.products.length === 0 && (
-        <p className="mb-4 text-lg leading-7 text-gray-600">
-          You have 0 items in your cart.
-        </p>
-      )}
-      {cart.products.length > 0 && (
-        <>
-          {cart.products.map((product, index) => (
-            <div key={index} className="flex text-black w-full justify-between">
-              <div className="font-bold">{product.name}</div>
-              <div className="">
-                {product.price.toLocaleString("en-US", {
-                  style: "currency",
-                  currency: "USD",
-                })}
-              </div>
-            </div>
-          ))}
-        </>
-      )}
-      <div className="flex justify-between w-full">
-        <button
-          className="mt-6 px-4 py-2 text-lg font-bold text-white bg-green-800 rounded-lg"
-          // onClick={async () => {
-          //     setCart(await clearCartAction());
-          // }}
-        >
-          Clear Cart
-        </button>
-        <button className="mt-6 px-4 py-2 text-lg font-bold text-white bg-blue-800 rounded-lg">
-          Checkout
-        </button>
-      </div>
-    </div>
-  );
+export default function Cart() {
+    const { items, removeItem, clearCart, total } = useCartStore()
+
+    if (items.length === 0) {
+        return (
+            <Card className="w-full max-w-md mx-auto">
+                <CardContent className="pt-6">
+                    <p className="text-center text-gray-500">Your cart is empty</p>
+                </CardContent>
+            </Card>
+        )
+    }
+
+    return (
+        <Card className="w-full max-w-md mx-auto">
+            <CardHeader>
+                <CardTitle>Your Cart</CardTitle>
+            </CardHeader>
+            <CardContent>
+                {items.map((item) => (
+                    <div key={item.id} className="flex justify-between items-center mb-4">
+                        <div>
+                            <h3 className="font-semibold">{item.name}</h3>
+                            <p className="text-sm text-gray-500">
+                                ${item.price.toFixed(2)} x {item.quantity}
+                            </p>
+                        </div>
+                        <Button variant="destructive" size="sm" onClick={() => removeItem(item.id)}>
+                            Remove
+                        </Button>
+                    </div>
+                ))}
+            </CardContent>
+            <CardFooter className="flex justify-between">
+                <p className="font-semibold">Total: ${total.toFixed(2)}</p>
+                <Button onClick={clearCart}>Clear Cart</Button>
+            </CardFooter>
+        </Card>
+    )
 }

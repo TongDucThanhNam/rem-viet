@@ -1,6 +1,7 @@
 import React from "react";
-import { IconSvgProps } from "@/types";
 import NextImage from "next/image";
+
+import { IconSvgProps } from "@/types";
 import remviet from "@/public/src/remviet2.webp";
 
 interface Props {
@@ -15,6 +16,6 @@ export const RemVietIcon: React.FC<IconSvgProps> = ({
   height,
 }) => {
   return (
-    <NextImage src={remviet} alt={"Rem Viet"} width={size} height={size} />
+    <NextImage alt={"Rem Viet"} height={size} src={remviet} width={size} />
   );
 };

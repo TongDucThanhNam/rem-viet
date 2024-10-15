@@ -1,4 +1,5 @@
 import React from "react";
+
 import PostsComponent from "@/components/posts/posts";
 
 export const dynamic = "force-dynamic";

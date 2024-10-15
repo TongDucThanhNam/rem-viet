@@ -2,13 +2,13 @@
 
 import { Chip, Tooltip } from "@nextui-org/react";
 import React from "react";
+import { useRouter } from "next/navigation";
 
 import {
   DeleteFilledIcon,
   EditLinearIcon,
   EyeFilledIcon,
 } from "../icons/icons";
-import { useRouter } from "next/navigation";
 
 interface Props {
   product: any[number];
@@ -18,6 +18,7 @@ interface Props {
 // "createdAt": "2024-09-18T07:16:59.315Z",
 function formatDate(date: any) {
   const d = new Date(date);
+
   return `${d.getDate()}/${d.getMonth()}/${d.getFullYear()}`;
 }
 
@@ -50,8 +51,6 @@ export const RenderCellProduct = ({ product, columnKey }: Props) => {
             <Tooltip content="Xem sản phẩm">
               <button
                 onClick={() => {
-                  console.log("View san-pham", product._id);
-
                   router.push(`/view-product/${product._id}`);
                 }}
               >
@@ -63,8 +62,6 @@ export const RenderCellProduct = ({ product, columnKey }: Props) => {
             <Tooltip color="secondary" content="Sửa sản phẩm">
               <button
                 onClick={() => {
-                  console.log("Edit san-pham", product._id);
-
                   router.push(`/edit-product/${product._id}`);
                 }}
               >
@@ -73,11 +70,7 @@ export const RenderCellProduct = ({ product, columnKey }: Props) => {
             </Tooltip>
           </div>
           <div>
-            <Tooltip
-              color="danger"
-              content="Xoá sản phẩm"
-              onClick={() => console.log("xoá sản phẩm", product.id)}
-            >
+            <Tooltip color="danger" content="Xoá sản phẩm" onClick={() => {}}>
               <button>
                 <DeleteFilledIcon fill="#FF0080" size={20} />
               </button>

@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+
 import EditProductComponent from "@/components/edit-product/edit-product-component";
 
 export default async function EditProductPage({
@@ -63,8 +64,8 @@ export default async function EditProductPage({
     return (
       <EditProductComponent
         myProduct={myProduct}
-        myVariants={variantArray}
         myVariantCombinationArray={variantCombinationArray}
+        myVariants={variantArray}
       />
     );
   } catch (error) {

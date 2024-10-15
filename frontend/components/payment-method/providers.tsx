@@ -1,6 +1,6 @@
-import type { IconSvgProps } from "./types";
-
 import React from "react";
+
+import { IconSvgProps } from "@/types";
 
 export const MasterCardIcon: React.FC<IconSvgProps> = ({
   width = 24,

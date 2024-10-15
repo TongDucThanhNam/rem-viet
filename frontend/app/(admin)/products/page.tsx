@@ -1,4 +1,5 @@
 import React from "react";
+
 import { TableProducts } from "@/components/table/table-products";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +14,6 @@ export default async function ProductPage() {
     cache: "no-cache",
   });
   const data = await res.json();
-  console.log(data);
   const products = data.data;
   // console.log(products);
 

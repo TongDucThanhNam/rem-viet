@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Hls from "hls.js";
+// @ts-ignore
+import Hls from "hls.js/dist/hls.light"; // Use light build of hls.
 
 interface HLSVideoPlayerProps {
   src: string;
@@ -13,14 +14,16 @@ export default function HLSVideoPlayer({ src }: HLSVideoPlayerProps) {
 
   useEffect(() => {
     const video = videoRef.current;
+
     if (!video) return;
 
     if (Hls.isSupported()) {
       const hls = new Hls();
+
       hls.loadSource(src);
       hls.attachMedia(video);
 
-      hls.on(Hls.Events.ERROR, (event, data) => {
+      hls.on(Hls.Events.ERROR, (event: any, data: any) => {
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
@@ -62,16 +65,16 @@ export default function HLSVideoPlayer({ src }: HLSVideoPlayerProps) {
       ) : (
         <video
           ref={videoRef}
-          className="w-full rounded-lg shadow-lg"
-          controls={false}
           autoPlay
           loop
           muted
           playsInline
-          preload={"auto"}
+          className="w-full rounded-lg shadow-lg"
+          controls={false}
           poster={"/src/videoThump.webp"}
+          preload={"auto"}
         >
-          <track kind="captions" srcLang="en" label="English captions" />
+          <track kind="captions" label="English captions" srcLang="en" />
         </video>
       )}
     </div>

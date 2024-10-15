@@ -1,18 +1,11 @@
 "use client";
-
-import React, { useState } from "react";
-// Import Swiper React components
 import { Swiper, SwiperSlide } from "swiper/react";
-
-// Import Swiper styles
+import React, { useState } from "react";
 import "swiper/css";
 import "swiper/css/free-mode";
 import "swiper/css/navigation";
 import "swiper/css/thumbs";
-
-//using style.css
 import "@/styles/styles.css";
-// import required modules
 import { FreeMode, Navigation, Thumbs } from "swiper/modules";
 import { Image, Skeleton } from "@nextui-org/react";
 
@@ -54,7 +47,7 @@ export default function SwiperThumbnail({
           {imageUrls.map((url, index) => (
             <SwiperSlide key={index}>
               <Skeleton>
-                <Image alt={"product"} isBlurred isZoomed src={url} />
+                <Image isBlurred isZoomed alt={"product"} src={url} />
               </Skeleton>
             </SwiperSlide>
           ))}
@@ -76,9 +69,9 @@ export default function SwiperThumbnail({
           {imageUrls.map((url, index) => (
             <SwiperSlide key={index}>
               <Image
-                alt={"product"}
                 isBlurred
                 isZoomed
+                alt={"product"}
                 // src={url}
                 src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${url}`}
               />

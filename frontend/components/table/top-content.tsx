@@ -13,6 +13,7 @@ import {
   Radio,
   RadioGroup,
 } from "@nextui-org/react";
+
 import {
   SearchIcon,
   SolarSortHorizontalLinear,
@@ -188,5 +189,5 @@ export default function TopContent({
         </div>
       </div>
     );
-  }, []);
+  }, [products_columns]);
 }

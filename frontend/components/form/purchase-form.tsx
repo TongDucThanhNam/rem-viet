@@ -1,8 +1,6 @@
 import { Input, Radio, RadioGroup } from "@nextui-org/react";
 import React from "react";
 
-import PaymentMethod from "@/components/payment-method/payment-method";
-
 export default function PurchaseForm() {
   function handlePurchase() {
     console.log("Purchased");
@@ -122,27 +120,6 @@ export default function PurchaseForm() {
               <Radio value="2">Cơ quan</Radio>
               <Radio value="3">Khác </Radio>
             </RadioGroup>
-          </div>
-          <PaymentMethod className="w-[420px]" />
-
-          {/*Card number*/}
-          <div className="group flex flex-col w-full group relative justify-end">
-            <Input
-              isRequired
-              label="Nhập số thẻ"
-              labelPlacement={"outside"}
-              placeholder="XXXX-XXXX-XXXX-XXXX"
-            />
-          </div>
-
-          {/*Cardholder Name*/}
-          <div className="group flex flex-col w-full group relative justify-end">
-            <Input
-              required
-              label="Nhập tên trên thẻ"
-              labelPlacement={"outside"}
-              placeholder="Nguyen Van A"
-            />
           </div>
         </form>
       </div>

@@ -53,14 +53,14 @@ export const TableProducts = ({ products }: { products: Product[] }) => {
       {<Topbar products={myProducts} />}
       <Table
         isHeaderSticky
-        layout={"fixed"}
         aria-label="Example table with custom cells, pagination and sorting"
-        topContent={<TopContent products_columns={products_columns} />}
-        topContentPlacement={"outside"}
         bottomContent={
           <BottomContent page={page} pages={pages} setPage={setPage} />
         }
         bottomContentPlacement={"outside"}
+        layout={"fixed"}
+        topContent={<TopContent products_columns={products_columns} />}
+        topContentPlacement={"outside"}
       >
         <TableHeader columns={products_columns}>
           {(column) => (

@@ -21,11 +21,13 @@ export async function PUT(
 
     if (response.ok) {
       console.log("Product updated successfully");
+
       return NextResponse.json({
         statusCode: 200,
       });
     } else {
       console.error("Failed to update san-pham");
+
       return NextResponse.error();
     }
   } catch (error) {

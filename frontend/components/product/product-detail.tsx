@@ -2,8 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import { Spacer } from "@nextui-org/react";
+
 import ProductItem from "@/components/product/product-item";
 import ReviewComponent from "@/components/product/review-item";
+import { useCartStore } from "@/store/useCartStore";
 
 export default function ProductDetails({
   productId,
@@ -18,6 +20,8 @@ export default function ProductDetails({
     const [variants, setVariants] = useState<any>(initialData.data.variants);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
+    const addToCart = useCartStore((state) => state.addToCart);
+
     useEffect(() => {
       async function fetchProduct() {
         const res = await fetch(`/api/products/${productId}`);
@@ -25,6 +29,7 @@ export default function ProductDetails({
 
         console.log("Product fetched:", data);
         setProduct(data.product);
+
         return data;
       }
 
@@ -37,6 +42,7 @@ export default function ProductDetails({
         console.log("Product fetched");
         //variants
         const variants = data.data.variants;
+
         console.log("Variants fetched:", variants);
         setProduct(data.data.product);
         setVariants(variants);
@@ -48,6 +54,7 @@ export default function ProductDetails({
       return (
         <div>
           <ProductItem
+            addToCart={addToCart}
             isLoading={isLoading}
             product={product}
             variants={variants}
@@ -65,6 +72,7 @@ export default function ProductDetails({
       //returning button
       <div>
         <ProductItem
+          addToCart={addToCart}
           isLoading={isLoading}
           product={product}
           variants={variants}

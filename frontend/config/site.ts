@@ -39,6 +39,8 @@ export const heroSection = {
   description:
     "Mang đến sự bảo vệ toàn diện cho gia đình bạn khỏi những tác nhân như côn trùng,khói bụi, ...",
   videoUrl: "https://luoichongmuoi.cdn.vccloud.vn/luoichongmuoi.mp4",
+  image:
+    "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lvfh8led976597.webp",
 };
 
 export const features = [
@@ -65,9 +67,18 @@ export const features = [
 export const our_strength = {
   title: "Ưu thế của chúng tôi",
   content: [
-    `Chúng tôi cam kết mang đến cho bạn những sản phẩm chất lượng nhất, giá cả phải chăng nhất và dịch vụ hỗ trợ tốt nhất.",
-    "Không như các loại sản phẩm khác, sản phẩm của chúng tôi bền hơn rất nhiều, giúp bạn tiết kiệm chi phí và thời gian.",
-    "Nếu bạn cần tư vấn, hãy liên hệ với chúng tôi ngay hôm nay để được tư vấn miễn phí.`,
+    {
+      text: "Chúng tôi cam kết mang đến cho bạn những sản phẩm chất lượng nhất, giá cả phải chăng nhất và dịch vụ hỗ trợ tốt nhất.",
+      className: "text-base sm:text-lg leading-relaxed",
+    },
+    {
+      text: "Không như các loại sản phẩm khác, sản phẩm của chúng tôi bền hơn rất nhiều, giúp bạn tiết kiệm chi phí và thời gian.",
+      className: "text-base sm:text-lg leading-relaxed",
+    },
+    {
+      text: "Nếu bạn cần tư vấn, hãy liên hệ với chúng tôi ngay hôm nay để được tư vấn miễn phí.",
+      className: "text-base sm:text-lg leading-relaxed",
+    },
   ],
   button: "Liên hệ ngay",
   video: "iuYum3L2cEg",
@@ -102,7 +113,7 @@ export const sectionNestedItems: SidebarItem[] = [
       {
         key: "add-san-pham",
         icon: "add",
-        href: "/add-san-pham",
+        href: "/add-product",
         title: "Thêm sản phẩm",
       },
     ],

@@ -19,6 +19,7 @@ export default function NewsletterSection() {
         phoneNumber,
       }),
     });
+
     if (res.ok) {
       setStatus("Đăng ký thành công!");
     } else {
@@ -40,24 +41,24 @@ export default function NewsletterSection() {
               thể.
             </p>
             <form
-              onSubmit={handleSubmit}
               className="mx-auto mt-10 flex max-w-md gap-x-4"
+              onSubmit={handleSubmit}
             >
               <Input
-                value={phoneNumber}
-                id={"phone-number"}
-                type={"tel"}
-                placeholder={"0909123456"}
-                label={"Số điện thoại"}
                 color={"default"}
+                id={"phone-number"}
+                label={"Số điện thoại"}
+                placeholder={"0909123456"}
+                type={"tel"}
+                value={phoneNumber}
                 onValueChange={(value) => setPhoneNumber(value)}
               />
               <Button
+                className={""}
                 color={"primary"}
                 size={"lg"}
-                className={""}
-                variant={"shadow"}
                 type={"submit"}
+                variant={"shadow"}
               >
                 Đăng ký
               </Button>

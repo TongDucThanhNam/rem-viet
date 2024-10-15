@@ -13,15 +13,17 @@ export async function POST(request: Request) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          body: res
+          body: res,
         }),
       },
     );
+
     return NextResponse.json({
       statusCode: 200,
     });
   } catch (error) {
     console.error("Error:", error);
+
     return NextResponse.error();
   }
 }

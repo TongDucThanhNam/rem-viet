@@ -1,6 +1,7 @@
 // "use client";
 
 import React from "react";
+
 import { faqs } from "@/config/site";
 
 export default function FaqSection() {

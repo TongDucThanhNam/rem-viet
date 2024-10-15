@@ -49,6 +49,7 @@ export default function EnhancedBookmark({
 
   useEffect(() => {
     const fetchData = fetch("/api/get-bookmark?url=" + block.bookmark.url);
+
     fetchData.then((res) => {
       if (res.ok) {
         res.json().then((data) => {
@@ -64,19 +65,19 @@ export default function EnhancedBookmark({
     <div key={block.id} className="my-6">
       <Card className="overflow-hidden">
         <a
-          href={block.bookmark.url}
-          target="_blank"
-          rel="noopener noreferrer"
           className="flex flex-col sm:flex-row"
+          href={block.bookmark.url}
+          rel="noopener noreferrer"
+          target="_blank"
         >
           <div className="w-full sm:w-48 h-48">
             {isLoading ? (
               <Skeleton className="h-48 w-full" />
             ) : (
               <Image
-                  isBlurred={true}
-                src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${metadata?.images[0]}`}
                 alt={metadata?.title || "image"}
+                isBlurred={true}
+                src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${metadata?.images[0]}`}
               />
             )}
           </div>
@@ -90,10 +91,10 @@ export default function EnhancedBookmark({
               <>
                 <div className="flex items-center">
                   <Image
+                    className="inline-block mr-2"
                     src={metadata?.favicon}
                     // src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${metadata?.favicon}`}
                     alt={"favicon"}
-                    className="inline-block mr-2"
                   />
                   <h2 className="text-xl font-bold mb-2 line-clamp-2 inline-block">
                     {metadata?.title}

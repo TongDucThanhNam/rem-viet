@@ -17,11 +17,13 @@ export async function POST(request: Request) {
         }),
       },
     );
+
     return NextResponse.json({
       statusCode: 200,
     });
   } catch (error) {
     console.error("Error:", error);
+
     return NextResponse.error();
   }
 }

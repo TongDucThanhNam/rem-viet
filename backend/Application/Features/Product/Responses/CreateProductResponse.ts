@@ -1,6 +1,6 @@
 import {BaseResponse} from "../../../Common/Model/Response/BaseResponse";
-import {IProduct} from "../../../../Domain/Interface/IProduct";
-import {IVariant} from "../../../../Domain/Interface/IVariant";
+import type { IProduct } from "../../../../Domain/Interface/IProduct";
+import type { IVariant } from "../../../../Domain/Interface/IVariant";
 
 // Information about the san-pham
 interface ProductAndVariants {

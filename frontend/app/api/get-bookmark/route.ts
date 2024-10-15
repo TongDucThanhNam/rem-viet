@@ -19,8 +19,10 @@ export async function GET(request: NextRequest) {
     const apiUrl = `https://jsonlink.io/api/extract?url=${url}&api_key=${apiKey}`;
 
     const res = await fetch(apiUrl);
+
     if (!res.ok) {
       console.error("Failed to fetch bookmark:", res.statusText);
+
       return NextResponse.json(
         { error: res.statusText },
         { status: res.status },
@@ -28,11 +30,13 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await res.json();
+
     console.log("Bookmark fetched:", data);
 
     return NextResponse.json(data);
   } catch (error) {
     console.error("Failed to fetch bookmark:", error);
+
     return NextResponse.json({ error: error }, { status: 500 });
   }
 }

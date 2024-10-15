@@ -1,8 +1,9 @@
-"use client";
+// "use client";
 
 import Link from "next/link";
-import { DialogCard } from "@/components/dialog/dialog-card";
+
 import { footer } from "@/config/site";
+import { ExpandableCard } from "@/components/animation/expandable-card";
 
 export default function Footer() {
   return (
@@ -14,19 +15,19 @@ export default function Footer() {
               Địa chỉ của chúng tôi
             </h2>
             <div className="space-x-4">
-              <DialogCard />
+              <ExpandableCard />
             </div>
           </div>
           <div className="h-64 md:h-full min-h-[250px]">
             <iframe
-              src={footer.map}
-              width="100%"
-              height="100%"
-              style={{ border: 0 }}
               allowFullScreen={false}
+              height="100%"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
+              src={footer.map}
+              style={{ border: 0 }}
               title="Google Maps"
+              width="100%"
             />
           </div>
         </div>
@@ -36,8 +37,8 @@ export default function Footer() {
               {footer.navItems.map((item) => (
                 <Link
                   key={item.href}
-                  href={item.href}
                   className="hover:underline"
+                  href={item.href}
                 >
                   {item.name}
                 </Link>

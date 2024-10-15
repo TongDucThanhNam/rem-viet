@@ -1,28 +1,5 @@
 import type { MetadataRoute } from "next"; // export default function sitemap(): MetadataRoute.Sitemap {
 
-// export default function sitemap(): MetadataRoute.Sitemap {
-//   return [
-//     {
-//       url: "https://luoichongmuoi.shop",
-//       lastModified: new Date(),
-//       changeFrequency: "yearly",
-//       priority: 1,
-//     },
-//     {
-//       url: "https://luoichongmuoi.shop/posts",
-//       lastModified: new Date(),
-//       changeFrequency: "monthly",
-//       priority: 0.8,
-//     },
-//     {
-//       url: "https://luoichongmuoi.shop/product",
-//       lastModified: new Date(),
-//       changeFrequency: "weekly",
-//       priority: 0.5,
-//     },
-//   ];
-// }
-
 type Route = {
   url: string;
   lastModified: string;
@@ -38,6 +15,7 @@ async function getProductPromise(): Promise<Route[]> {
 
   const data = await res.json();
   const products = data.data;
+
   return products.map((product: any) => ({
     url: `https://luoichongmuoi.shop/san-pham/${product._id}`,
     lastModified: product.updatedAt, // 2024-10-08
@@ -55,6 +33,7 @@ async function getPostPromise(): Promise<Route[]> {
   });
 
   const posts = await res.json();
+
   return posts.map((post: any) => ({
     url: `https://luoichongmuoi.shop/bai-viet/${post.slug}.html`,
     lastModified: post.updatedAt,
@@ -76,6 +55,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const postsRoute = await getPostPromise();
 
   let fetchedRoutes: Route[] = [];
+
   for (const route of productsRoute) {
     fetchedRoutes.push(route);
   }

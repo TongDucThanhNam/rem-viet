@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
-import PostDetail from "@/components/posts/post-detail";
 import { Metadata } from "next"; // Mock data for bai-viet
+
+import PostDetail from "@/components/posts/post-detail";
 
 // Mock data for bai-viet
 type Props = {
@@ -13,6 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (post == null) {
     console.log("Post not found");
+
     return {
       title: "Post not found",
       description: "Post not found",
@@ -59,6 +61,7 @@ export default async function PostPage({
 async function getPost(slug: string) {
   //remove .html end of slug
   const fix_slug = slug ? slug.replace(".html", "") : "";
+
   // Fetch data from external API
   try {
     const res = await fetch(
@@ -70,12 +73,15 @@ async function getPost(slug: string) {
       },
     ); // Return the post
     const data = await res.json();
+
     if (res.ok) {
       return data;
     }
+
     return null;
   } catch (error) {
     console.log("Error fetching post: ", error);
+
     return null;
   }
 }

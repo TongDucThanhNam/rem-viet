@@ -2,7 +2,9 @@
 
 import { Skeleton } from "@nextui-org/react";
 import React from "react";
+
 import PostCard from "@/components/posts/post-card";
+import { WobbleCard } from "@/components/animation/wobble-card";
 
 export default function PostsComponent({
   productPosts,
@@ -26,7 +28,9 @@ export default function PostsComponent({
           isLoading ? (
             <Skeleton key={post.id} />
           ) : (
-            <PostCard post={post} key={post.id} />
+            <WobbleCard key={post.id} className={""} containerClassName="">
+              <PostCard post={post} />
+            </WobbleCard>
           ),
         )}
       </div>

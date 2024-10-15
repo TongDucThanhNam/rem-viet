@@ -1,27 +1,74 @@
 import React from "react";
-import { Button, Link } from "@nextui-org/react";
-import { heroSection } from "@/config/site";
+import { Button } from "@nextui-org/react";
+import NextImage from "next/image";
+import Link from "next/link";
 
-export default function HeroSection() {
-  return (
-    <div className="container px-4 md:px-6">
-      <div className="flex flex-col items-center space-y-4 text-center">
-        <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl">
-          {heroSection.hello} <br />
-          <span className="text-primary">{heroSection.title}</span>
-        </h1>
-        <p className="mx-auto max-w-[700px] text-base sm:text-lg md:text-xl text-muted-foreground">
-          {heroSection.description}
-        </p>
-        <div className="space-x-4">
-          <Button as={Link} href="#footer" color="primary">
-            Tư vấn ngay
-          </Button>
-          <Button as={Link} href="/danh-sach-san-pham" color="secondary">
-            Xem sản phẩm
-          </Button>
+import { TextGenerateEffect } from "@/components/animation/text-generate-effect";
+
+interface HeroSectionProps {
+  heroSection: {
+    hello: string;
+    title: string;
+    description: string;
+    image: string;
+  };
+}
+
+const HeroSection: React.FC<HeroSectionProps> = React.memo(
+  ({ heroSection }: { heroSection: any }) => {
+    return (
+      <div className="w-screen relative overflow-hidden">
+        <div className="container mx-auto px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+          <div className="flex flex-col items-center text-center justify-center lg:flex-row lg:text-left">
+            <div className="flex flex-col text-center items-center justify-center space-x-4">
+              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+                {heroSection.hello}
+                <br />
+                <span className="text-primary">{heroSection.title}</span>
+              </h1>
+              <div className="mt-3 sm:mx-auto sm:mt-5 sm:max-w-xl sm:text-lg md:mt-5 md:text-xl lg:mx-0">
+                <TextGenerateEffect words={heroSection.description} />
+              </div>
+              <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
+                <Button
+                  as={Link}
+                  className="w-full sm:w-auto"
+                  color="primary"
+                  href="/#newsletter"
+                >
+                  Tư vấn ngay
+                </Button>
+                <Button
+                  as={Link}
+                  className="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-3"
+                  color="secondary"
+                  href="/danh-sach-san-pham"
+                >
+                  Xem danh sách sản phẩm
+                </Button>
+              </div>
+            </div>
+            <div className="mt-10 lg:mt-0">
+              <div className="relative w-[400px] h-[400px]">
+                <NextImage
+                  unoptimized
+                  priority
+                  alt="Hero image"
+                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCABdAF0DASIAAhEBAxEB/8QAGQAAAwEBAQAAAAAAAAAAAAAAAQIDAAQF/8QAGBABAQEBAQAAAAAAAAAAAAAAAAECERL/xAAXAQEBAQEAAAAAAAAAAAAAAAABAAID/8QAFREBAQAAAAAAAAAAAAAAAAAAABH/2gAMAwEAAhEDEQA/APSCh0LXRzala0OtBhhemhRoJYIQsHQtBEOhaHoEfQXRPQXTNMNaHSdbpoikponKeGqHjBBFMa0lo2p6oqg3RfSetF9KmKdDrAxS3RlKaGqHh4TMUzFVDQaMjWCqJ6R3VtRDYpS1U/RtpVVR28bivkPJSXBkP5GZSbMVzAzlTMSaRrFJGsSQ1HPuOvWUd5CcW4lcureU7gQvQ8hcreQuW2EfIzKnlpDEGcqZjSKZihCQbDyNxRI6yjvLq1EtZETj1klw6dZJ5EFdfAsOFbBONwzJDIeQsPCTSDxoIRLEtRap6QQ1C8UpQn//2Q=="
+                  fill
+                  placeholder="blur"
+                  src="/src/heroimage.webp"
+                  sizes="100vw"
+                  loading="eager"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  },
+);
+
+HeroSection.displayName = "HeroSection";
+export default HeroSection;

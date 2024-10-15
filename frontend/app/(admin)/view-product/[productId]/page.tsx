@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+
 import ViewProductComponent from "@/components/view-product";
 
 export default async function ViewProductPage({
@@ -63,8 +64,8 @@ export default async function ViewProductPage({
     return (
       <ViewProductComponent
         myProduct={myProduct}
-        myVariants={variantArray}
         myVariantCombinationArray={variantCombinationArray}
+        myVariants={variantArray}
       />
     );
   } catch (error) {

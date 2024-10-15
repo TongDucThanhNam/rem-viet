@@ -1,8 +1,9 @@
 "use client";
 
-import CardItem from "@/components/product-grid/card-items";
 import { Pagination } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
+
+import CardItem from "@/components/product-grid/card-items";
 
 export default function ProductGridComponent({
   myProducts,
@@ -38,12 +39,12 @@ export default function ProductGridComponent({
         {currentProducts.map((product: any) => (
           <CardItem
             key={product._id}
-            productId={product._id}
-            imageUrls={product.imageUrls}
-            productSize={product.size}
             description={product.description}
+            imageUrls={product.imageUrls}
             name={product.name}
             price={product.price}
+            productId={product._id}
+            productSize={product.size}
           />
         ))}
       </div>

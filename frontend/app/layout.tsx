@@ -5,9 +5,8 @@ import React from "react";
 
 import { siteConfig } from "@/config/site";
 import { nunito } from "@/app/fonts";
+
 import { Providers } from "./providers";
-import { getCart } from "@/api/cart";
-import CartProvider from "@/store/CartProvider";
 
 export const metadata: Metadata = {
   title: {
@@ -50,13 +49,11 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const cart = await getCart();
-
   return (
     <html className={""} lang="vi">
-      <body className={clsx("min-h-screen bg-background", nunito.className)}>
+      <body className={nunito.className}>
         <Providers>
-            <main>{children}</main>
+          <main>{children}</main>
         </Providers>
       </body>
     </html>

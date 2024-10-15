@@ -11,6 +11,7 @@ import {
   Tooltip,
 } from "@nextui-org/react";
 import React from "react";
+
 import WhenIcon from "@/components/icons/when-icon";
 
 export enum SidebarItemType {
@@ -95,7 +96,6 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
           <ListboxItem
             {...item}
             key={`NestItem-${item.key}`}
-            textValue={item.title}
             aria-label={`Listbox item ${item.title}`}
             classNames={{
               base: cn(
@@ -119,6 +119,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
                 (item.startContent ?? null)
               )
             }
+            textValue={item.title}
             title={isCompact || isNestType ? null : item.title}
           >
             {isCompact ? (
@@ -188,6 +189,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
           item.items &&
           item.items?.length > 0 &&
           item?.type === SidebarItemType.Nest;
+
         if (isNestType) {
           //if not Compact
           if (!isCompact) {
@@ -200,6 +202,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
                 <ListboxItem
                   {...item}
                   key={`Item-${item.key}`}
+                  aria-label={item.key}
                   endContent={
                     isCompact || hideEndContent
                       ? null
@@ -213,7 +216,6 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
                     )
                   }
                   textValue={item.title}
-                  aria-label={item.key}
                   title={isCompact ? null : item.title}
                 >
                   {isCompact ? (
@@ -237,6 +239,7 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
           <ListboxItem
             {...item}
             key={`Item-${item.key}`}
+            aria-label={item.key}
             endContent={
               isCompact || hideEndContent ? null : (item.endContent ?? null)
             }
@@ -248,7 +251,6 @@ const Sidebar = React.forwardRef<HTMLElement, SidebarProps>(
               )
             }
             textValue={item.title}
-            aria-label={item.key}
             title={isCompact ? null : item.title}
           >
             {isCompact ? (

@@ -1,7 +1,8 @@
 // app/admin/layout.tsx
 import { Metadata, Viewport } from "next";
-import { siteConfig } from "@/config/site";
 import React from "react";
+
+import { siteConfig } from "@/config/site";
 
 export const metadata: Metadata = {
   title: {

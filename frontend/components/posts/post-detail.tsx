@@ -1,55 +1,158 @@
 "use client";
 
-import { Chip, cn, Image, Link, Snippet } from "@nextui-org/react";
+import { Chip, Image, Link, Snippet } from "@nextui-org/react";
 import { AnchorIcon } from "@nextui-org/shared-icons";
-import React from "react";
 import { YouTubeEmbed } from "@next/third-parties/google";
-import EnhancedBookmark from "@/components/posts/bookmark";
+import { memo } from "react";
 
-export default function PostDetail({ myPost }: { myPost: any }) {
-  return (
-    <div className={"container mx-auto px-4 py-8"}>
-      <div className={"max-w-3xl mx-auto"}>
-        <Image
-          // src={myPost.coverImage}
-          src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${myPost.coverImage}`}
-          alt={`Cover image for ${myPost.title}`}
+import EnhancedBookmark from "@/components/posts/bookmark";
+import NextImage from "next/image";
+
+const TextBlock = memo(({ text }: { text: any }) => (
+  <span
+    className={`
+      ${text.annotations.strikethrough ? "line-through" : ""}
+      ${text.annotations.underline ? "underline" : ""}
+      ${text.annotations.bold ? "font-bold" : ""}
+      ${text.annotations.italic ? "italic" : ""}
+      ${text.annotations.code ? "bg-yellow-200 dark:bg-yellow-800 px-1 rounded" : ""}
+      ${text.annotations.color !== "default" ? `text-${text.annotations.color}` : ""}
+    `}
+  >
+    {text.href ? (
+      <Link href={text.href} rel="noopener noreferrer" target="_blank">
+        {text.text.content}
+      </Link>
+    ) : (
+      text.plain_text
+    )}
+  </span>
+));
+
+TextBlock.displayName = "TextBlock";
+
+const ImageBlock = memo(({ block }: { block: any }) => (
+  <figure className="my-8">
+    <div className="relative h-96">
+      {block.image.type === "file" ? (
+        <Image src={block.image.file.url} alt="User avatar" />
+      ) : (
+        <NextImage
+          src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${block.image[block.image.type].url}`}
+          alt={block.image.caption[0]?.plain_text || "Blog post image"}
+          priority
+          fill
+          className="rounded-lg shadow-md object-cover"
         />
+      )}
+    </div>
+    {block.image.caption[0]?.plain_text && (
+      <figcaption className="mt-2 text-center text-sm text-gray-500">
+        {block.image.caption[0].plain_text}
+      </figcaption>
+    )}
+  </figure>
+));
+
+ImageBlock.displayName = "ImageBlock";
+
+const HeadingBlock = memo(
+  ({ block, level }: { block: any; level: 1 | 2 | 3 }) => {
+    const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+    const className = {
+      1: "text-4xl md:text-5xl font-bold mt-12 mb-6",
+      2: "text-3xl md:text-4xl font-semibold mt-10 mb-5",
+      3: "text-2xl md:text-3xl font-medium mt-8 mb-4",
+    }[level];
+
+    return (
+      <Tag className={`${className} text-primary`}>
+        {block[`heading_${level}`].rich_text.map((text: any, index: number) => (
+          <span key={index}>{text.plain_text}</span>
+        ))}
+      </Tag>
+    );
+  },
+);
+
+HeadingBlock.displayName = "HeadingBlock";
+
+const ListBlock = memo(
+  ({ block, type }: { block: any; type: "numbered" | "bulleted" }) => {
+    const Tag = type === "numbered" ? "ol" : "ul";
+    const className = `list-${type === "numbered" ? "decimal" : "disc"} list-inside mb-6 pl-4 space-y-2`;
+
+    return (
+      <Tag className={className}>
+        {block[`${type}_list_item`].rich_text.map(
+          (text: any, index: number) => (
+            <li key={index}>
+              <TextBlock text={text} />
+            </li>
+          ),
+        )}
+      </Tag>
+    );
+  },
+);
+
+ListBlock.displayName = "ListBlock";
+
+const CodeBlock = memo(({ block }: { block: any }) => (
+  <Snippet className="my-6 p-4 rounded-lg w-full md:w-auto text-sm md:text-base">
+    <pre className="whitespace-pre-wrap break-words">
+      {block.code.rich_text.map((text: any) =>
+        text.plain_text.split("\n").map((line: string, index: number) => (
+          <span key={index}>
+            {line}
+            <br />
+          </span>
+        )),
+      )}
+    </pre>
+  </Snippet>
+));
+
+CodeBlock.displayName = "CodeBlock";
+
+const PostDetail = ({ myPost }: { myPost: any }) => {
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="relative h-96">
+          <NextImage
+            src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${myPost.coverImage}`}
+            alt={`Cover image for ${myPost.title}`}
+            priority
+            fill
+            className="object-cover"
+          />
+        </div>
+
         <h1 className="text-4xl md:text-5xl font-bold mb-4">{myPost.title}</h1>
         <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-6">
-          <div className="flex items-center">
+          <time dateTime={myPost.created_time} className="flex items-center">
             <AnchorIcon className="mr-2 h-4 w-4" />
-            <time dateTime={myPost.created_time}>
-              Xuất bản lúc:
-              {new Date(myPost.publishDate).toLocaleDateString("vi-Vi", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </time>
-          </div>
-          <div className="flex items-center">
+            Xuất bản lúc:{" "}
+            {new Date(myPost.publishDate).toLocaleDateString("vi-Vi", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+          </time>
+          <span className="flex items-center">
             <AnchorIcon className="mr-2 h-4 w-4" />
-            <span>
-              Cập nhật lúc:{" "}
-              {new Date(myPost.lastEditedTime).toLocaleDateString()}
-            </span>
-          </div>
+            Cập nhật lúc: {new Date(myPost.lastEditedTime).toLocaleDateString()}
+          </span>
         </div>
         <p className="text-xl mb-8">{myPost.description}</p>
         <div className="flex flex-wrap gap-2 mb-8">
-          {myPost.tags.map((tag: any, index: any) => (
+          {myPost.tags.map((tag: string, index: number) => (
             <Chip
-              color={
-                index === 0
-                  ? "primary"
-                  : index === 1
-                    ? "success"
-                    : index === 2
-                      ? "warning"
-                      : "danger"
-              }
               key={tag}
+              color={
+                ["primary", "success", "warning", "danger"][index % 4] as any
+              }
             >
               {tag}
             </Chip>
@@ -59,169 +162,41 @@ export default function PostDetail({ myPost }: { myPost: any }) {
           {myPost.content.map((block: any) => {
             switch (block.type) {
               case "paragraph":
-                if (block.paragraph.rich_text.length === 0) {
-                  return (
-                    <div key={block.id} className="h-4" aria-hidden="true" />
-                  );
-                }
-                return (
+                return block.paragraph.rich_text.length === 0 ? (
+                  <div key={block.id} aria-hidden="true" className="h-4" />
+                ) : (
                   <p
                     key={block.id}
                     className={`text-${block.paragraph.color} leading-relaxed`}
                   >
                     {block.paragraph.rich_text.map(
                       (text: any, index: number) => (
-                        <span
-                          key={index}
-                          className={cn(
-                            text.annotations.strikethrough
-                              ? "line-through"
-                              : "",
-                            text.annotations.underline ? "underline" : "",
-                            text.annotations.bold ? "font-bold" : "",
-                            text.annotations.italic ? "italic" : "",
-                            text.annotations.code
-                              ? "bg-yellow-200 dark:bg-yellow-800 px-1 rounded"
-                              : "",
-                            text.annotations.color === "default"
-                              ? ""
-                              : `text-${text.annotations.color}`,
-                          )}
-                        >
-                          {text.plain_text}
-                        </span>
+                        <TextBlock key={index} text={text} />
                       ),
                     )}
                   </p>
                 );
-
               case "image":
-                if (block.image.type === "external") {
-                  return (
-                    <figure key={block.id} className="my-8">
-                      <Image
-                        // src={block.image.external.url}
-                        src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${block.image.external.url}`}
-                        alt={
-                          block.image.caption[0]?.plain_text ||
-                          "Blog post image"
-                        }
-                        className="rounded-lg shadow-md"
-                      />
-                      {block.image.caption[0]?.plain_text && (
-                        <figcaption className="mt-2 text-center text-sm text-gray-500">
-                          {block.image.caption[0].plain_text}
-                        </figcaption>
-                      )}
-                    </figure>
-                  );
-                } else if (block.image.type === "file") {
-                  return (
-                    <figure key={block.id} className="my-8">
-                      <Image
-                        // src={block.image.file.url}
-                        src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${block.image.file.url}`}
-                        alt={
-                          block.image.caption[0]?.plain_text ||
-                          "Blog post image"
-                        }
-                        className="rounded-lg shadow-md"
-                      />
-                      {block.image.caption[0]?.plain_text && (
-                        <figcaption className="mt-2 text-center text-sm text-gray-500">
-                          {block.image.caption[0].plain_text}
-                        </figcaption>
-                      )}
-                    </figure>
-                  );
-                }
-
-                return null;
-
+                return <ImageBlock key={block.id} block={block} />;
               case "heading_1":
-                return (
-                  <h1
-                    key={block.id}
-                    className="text-4xl md:text-5xl font-bold mt-12 mb-6 text-primary"
-                  >
-                    {block.heading_1.rich_text.map(
-                      (text: any, index: number) => (
-                        <span key={index}>{text.plain_text}</span>
-                      ),
-                    )}
-                  </h1>
-                );
-
               case "heading_2":
-                return (
-                  <h2
-                    key={block.id}
-                    className="text-3xl md:text-4xl font-semibold mt-10 mb-5 text-primary"
-                  >
-                    {block.heading_2.rich_text.map(
-                      (text: any, index: number) => (
-                        <span key={index}>{text.plain_text}</span>
-                      ),
-                    )}
-                  </h2>
-                );
-
               case "heading_3":
                 return (
-                  <h3
+                  <HeadingBlock
                     key={block.id}
-                    className="text-2xl md:text-3xl font-medium mt-8 mb-4 text-primary"
-                  >
-                    {block.heading_3.rich_text.map(
-                      (text: any, index: number) => (
-                        <span key={index}>{text.plain_text}</span>
-                      ),
-                    )}
-                  </h3>
+                    block={block}
+                    level={parseInt(block.type.split("_")[1]) as 1 | 2 | 3}
+                  />
                 );
-
               case "numbered_list_item":
+              case "bulleted_list_item":
                 return (
-                  <ol
+                  <ListBlock
                     key={block.id}
-                    className="list-decimal list-inside mb-6 pl-4 space-y-2"
-                  >
-                    {block.numbered_list_item.rich_text.map(
-                      (text: any, index: number) => (
-                        <span
-                          key={index}
-                          className={cn(
-                            text.annotations.strikethrough
-                              ? "line-through"
-                              : "",
-                            text.annotations.underline ? "underline" : "",
-                            text.annotations.bold ? "font-bold" : "",
-                            text.annotations.italic ? "italic" : "",
-                            text.annotations.code
-                              ? "bg-yellow-200 dark:bg-yellow-800 px-1 rounded"
-                              : "",
-                            text.annotations.color === "default"
-                              ? ""
-                              : `text-${text.annotations.color}`,
-                          )}
-                        >
-                          {text.href ? (
-                            <Link
-                              href={text.href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              {text.text.content}
-                            </Link>
-                          ) : (
-                            text.plain_text
-                          )}
-                        </span>
-                      ),
-                    )}
-                  </ol>
+                    block={block}
+                    type={block.type.split("_")[0] as "numbered" | "bulleted"}
+                  />
                 );
-
               case "quote":
                 return (
                   <blockquote
@@ -235,7 +210,6 @@ export default function PostDetail({ myPost }: { myPost: any }) {
                     ))}
                   </blockquote>
                 );
-
               case "divider":
                 return (
                   <hr
@@ -243,44 +217,8 @@ export default function PostDetail({ myPost }: { myPost: any }) {
                     className="border-t-2 border-gray-200 my-10"
                   />
                 );
-
-              case "bulleted_list_item":
-                return (
-                  <ul
-                    key={block.id}
-                    className="list-disc list-inside mb-6 pl-4 space-y-2"
-                  >
-                    {block.bulleted_list_item.rich_text.map(
-                      (text: any, index: number) => (
-                        <li key={index} className="">
-                          <span>{text.plain_text}</span>
-                        </li>
-                      ),
-                    )}
-                  </ul>
-                );
-
               case "code":
-                return (
-                  <Snippet
-                    key={block.id}
-                    className="my-6 p-4 rounded-lg w-full md:w-auto text-sm md:text-base"
-                  >
-                    <pre className="whitespace-pre-wrap break-words">
-                      {block.code.rich_text.map((text: any) =>
-                        text.plain_text
-                          .split("\n")
-                          .map((line: string, index: number) => (
-                            <React.Fragment key={index}>
-                              {line}
-                              <br />
-                            </React.Fragment>
-                          )),
-                      )}
-                    </pre>
-                  </Snippet>
-                );
-
+                return <CodeBlock key={block.id} block={block} />;
               case "callout":
                 return (
                   <div
@@ -294,37 +232,32 @@ export default function PostDetail({ myPost }: { myPost: any }) {
                     ))}
                   </div>
                 );
-
               case "video":
                 return (
                   <YouTubeEmbed
                     key={block.id}
+                    params="controls=1"
+                    playlabel="Watch video"
                     videoid={
                       block.video.external.url.split("/").pop()?.split("?")[0]
                     }
-                    params="controls=1"
-                    playlabel="Watch video"
                   />
                 );
-
               case "bookmark":
-                return <EnhancedBookmark block={block} />;
-
-              //   Link preview
+                return <EnhancedBookmark key={block.id} block={block} />;
               case "link_preview":
                 return (
                   <div key={block.id} className="my-6">
-                    <a
+                    <Link
                       href={block.link_preview.url}
-                      target="_blank"
                       rel="noopener noreferrer"
+                      target="_blank"
                       className="text-primary underline"
                     >
                       {block.link_preview.url}
-                    </a>
+                    </Link>
                   </div>
                 );
-
               default:
                 return null;
             }
@@ -333,4 +266,6 @@ export default function PostDetail({ myPost }: { myPost: any }) {
       </div>
     </div>
   );
-}
+};
+
+export default memo(PostDetail);

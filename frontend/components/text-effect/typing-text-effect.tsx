@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+
 import { useTypingEffect } from "@/components/text-effect/useTypingEffect";
 
 const texts = [
@@ -33,6 +34,7 @@ export const TextTypingEffectWithTexts: React.FC<TextTypingEffectProps> = ({
       setTimeout(() => {
         setIsFirstRender(false);
       }, 5000);
+
       return;
     }
 
@@ -50,8 +52,8 @@ export const TextTypingEffectWithTexts: React.FC<TextTypingEffectProps> = ({
       {" "}
       {/* Adjust min-height as needed */}
       <span
-        className="absolute top-0 left-0 right-0 text-xl md:text-2xl max-w-2xl mx-auto"
         aria-live="polite"
+        className="absolute top-0 left-0 right-0 text-xl md:text-2xl max-w-2xl mx-auto"
       >
         {isFirstRender ? texts[0] : textToShow || "..."}
       </span>

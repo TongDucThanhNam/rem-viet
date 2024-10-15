@@ -17,7 +17,8 @@ import {
   Variant,
 } from "framer-motion";
 import { createPortal } from "react-dom";
-import { cn } from "@/components/lib/utils";
+
+import { cn } from "@/components/lib/server-utils/utils";
 import useClickOutside from "@/components/hooks/useClickOutside";
 import { RemVietIcon } from "@/components/icons/remviet";
 
@@ -32,9 +33,11 @@ const DialogContext = React.createContext<DialogContextType | null>(null);
 
 function useDialog() {
   const context = useContext(DialogContext);
+
   if (!context) {
     throw new Error("useDialog must be used within a DialogProvider");
   }
+
   return context;
 }
 
@@ -105,15 +108,15 @@ function DialogTrigger({
   return (
     <motion.div
       ref={triggerRef}
-      layoutId={`dialog-${uniqueId}`}
+      aria-controls={`dialog-content-${uniqueId}`}
+      aria-expanded={isOpen}
+      aria-haspopup="dialog"
       className={cn("relative cursor-pointer", className)}
+      layoutId={`dialog-${uniqueId}`}
+      role="button"
+      style={style}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      style={style}
-      role="button"
-      aria-haspopup="dialog"
-      aria-expanded={isOpen}
-      aria-controls={`dialog-content-${uniqueId}`}
     >
       {children}
     </motion.div>
@@ -169,6 +172,7 @@ function DialogContent({ children, className, style }: DialogContent) {
       const focusableElements = containerRef.current?.querySelectorAll(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
       );
+
       if (focusableElements && focusableElements.length > 0) {
         setFirstFocusableElement(focusableElements[0] as HTMLElement);
         setLastFocusableElement(
@@ -191,13 +195,13 @@ function DialogContent({ children, className, style }: DialogContent) {
   return (
     <motion.div
       ref={containerRef}
-      layoutId={`dialog-${uniqueId}`}
-      className={cn("bg-transparent bg-blue-300", "overflow-hidden", className)}
-      style={style}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={`dialog-title-${uniqueId}`}
       aria-describedby={`dialog-description-${uniqueId}`}
+      aria-labelledby={`dialog-title-${uniqueId}`}
+      aria-modal="true"
+      className={cn("bg-transparent bg-blue-300", "overflow-hidden", className)}
+      layoutId={`dialog-${uniqueId}`}
+      role="dialog"
+      style={style}
     >
       {children}
     </motion.div>
@@ -216,6 +220,7 @@ function DialogContainer({ children }: DialogContainerProps) {
 
   useEffect(() => {
     setMounted(true);
+
     return () => setMounted(false);
   }, []);
 
@@ -227,10 +232,10 @@ function DialogContainer({ children }: DialogContainerProps) {
         <>
           <motion.div
             key={`backdrop-${uniqueId}`}
-            className="fixed inset-0 h-full w-1/2 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            className="fixed inset-0 h-full w-1/2 backdrop-blur-sm"
             exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
           />
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             {children}
@@ -253,10 +258,10 @@ function DialogTitle({ children, className, style }: DialogTitleProps) {
 
   return (
     <motion.div
-      layoutId={`dialog-title-container-${uniqueId}`}
-      className={className}
-      style={style}
       layout
+      className={className}
+      layoutId={`dialog-title-container-${uniqueId}`}
+      style={style}
     >
       {children}
     </motion.div>
@@ -274,8 +279,8 @@ function DialogSubtitle({ children, className, style }: DialogSubtitleProps) {
 
   return (
     <motion.div
-      layoutId={`dialog-subtitle-container-${uniqueId}`}
       className={className}
+      layoutId={`dialog-subtitle-container-${uniqueId}`}
       style={style}
     >
       {children}
@@ -305,17 +310,17 @@ function DialogDescription({
   return (
     <motion.div
       key={`dialog-description-${uniqueId}`}
+      animate="animate"
+      className={className}
+      exit="exit"
+      id={`dialog-description-${uniqueId}`}
+      initial="initial"
       layoutId={
         disableLayoutAnimation
           ? undefined
           : `dialog-description-content-${uniqueId}`
       }
       variants={variants}
-      className={className}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      id={`dialog-description-${uniqueId}`}
     >
       {children}
     </motion.div>
@@ -334,13 +339,13 @@ function DialogImage({ src, alt, className, style }: DialogImageProps) {
 
   return (
     <motion.img
-      src={src}
       alt={alt}
-      width={150}
-      height={150}
       className={cn(className)}
+      height={150}
       layoutId={`dialog-img-${uniqueId}`}
+      src={src}
       style={style}
+      width={150}
     />
   );
 }
@@ -364,15 +369,15 @@ function DialogClose({ children, className, variants }: DialogCloseProps) {
 
   return (
     <motion.button
-      onClick={handleClose}
-      type="button"
-      aria-label="Close dialog"
       key={`dialog-close-${uniqueId}`}
-      className={cn("absolute right-6 top-6", className)}
-      initial="initial"
       animate="animate"
+      aria-label="Close dialog"
+      className={cn("absolute right-6 top-6", className)}
       exit="exit"
+      initial="initial"
+      type="button"
       variants={variants}
+      onClick={handleClose}
     >
       {children || <RemVietIcon size={24} />}
     </motion.button>

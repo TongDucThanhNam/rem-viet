@@ -16,9 +16,9 @@ const PostCard = React.memo(({ post }: { post: any }) => {
 
   return (
     <Card
-      isFooterBlurred={true}
       key={post.id}
-      className={"relative overflow-hidden group"}
+      className={"relative overflow-hidden group bg-transparent"}
+      isFooterBlurred={true}
       isPressable={true}
       onPress={() => {
         router.push(`/bai-viet/${post.slug}.html`);
@@ -26,9 +26,9 @@ const PostCard = React.memo(({ post }: { post: any }) => {
     >
       <div className="relative w-full h-48">
         <Image
+          alt={`Cover image for ${post.title}`}
           className="z-0 object-cover rounded-t-xl"
           src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${post.cover}`}
-          alt={`Cover image for ${post.title}`}
         />
       </div>
       <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-70" />
@@ -37,8 +37,8 @@ const PostCard = React.memo(({ post }: { post: any }) => {
         <div className="absolute inset-0 flex flex-col p-4">
           <h2 className="text-2xl font-bold mb-2 text-white drop-shadow-md">
             <Link
-              href={`/bai-viet/${post.slug}.html`}
               className="outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-black rounded"
+              href={`/bai-viet/${post.slug}.html`}
             >
               {post.title}
             </Link>
@@ -61,6 +61,7 @@ const PostCard = React.memo(({ post }: { post: any }) => {
         <div className="flex flex-wrap gap-2">
           {post.tags.map((tag: any, index: number) => (
             <Chip
+              key={tag}
               color={
                 index === 0
                   ? "primary"
@@ -70,7 +71,6 @@ const PostCard = React.memo(({ post }: { post: any }) => {
                       ? "warning"
                       : "danger"
               }
-              key={tag}
             >
               {tag}
             </Chip>

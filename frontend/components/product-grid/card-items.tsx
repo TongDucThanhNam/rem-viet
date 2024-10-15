@@ -4,7 +4,9 @@ import React from "react";
 import { Button, Card, CardBody, CardFooter } from "@nextui-org/react";
 import { useRouter } from "next/navigation";
 import NextImage from "next/image";
+
 import { SolarStarLinear } from "@/components/icons/icons";
+import { priceVietNamDongformetter } from "@/components/lib/client-utils/utils";
 
 const CardItem = ({
   imageUrls,
@@ -26,12 +28,14 @@ const CardItem = ({
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-lg">
       <div className="relative aspect-square">
-        <NextImage src={imageUrls[0]} alt={name} fill={true} className="" />
+        <NextImage alt={name} className="" fill={true} src={imageUrls[0]} />
       </div>
       <CardBody className="p-4">
         <h3 className="text-lg font-semibold line-clamp-2 mb-2">{name}</h3>
         <div className="flex items-center justify-between">
-          <span className="text-xl font-bold">{price}₫</span>
+          <span className="text-xl font-bold">
+            {priceVietNamDongformetter(price)}
+          </span>
           <div className="flex items-center">
             <SolarStarLinear />
             <span className="ml-1 text-sm text-gray-600">{5}</span>
@@ -40,8 +44,8 @@ const CardItem = ({
       </CardBody>
       <CardFooter className="p-4 pt-0">
         <Button
-          onClick={() => router.push(`/san-pham/${productId}`)}
           className="w-full"
+          onClick={() => router.push(`/san-pham/${productId}`)}
         >
           Xem chi tiết
         </Button>

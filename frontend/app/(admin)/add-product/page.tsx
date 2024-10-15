@@ -25,7 +25,8 @@ import {
 // import Files from 'react-files'
 import React, { useEffect, useState } from "react";
 import NextImage from "next/image";
-import { SolarGalleryAddOutline } from "@/components/icons/icons";
+
+import { FileUpload } from "@/components/animation/file-upload";
 
 interface Variant {
   name: string;
@@ -112,6 +113,12 @@ export default function AddProductPage() {
 
   const [isVariantEnabled, setIsVariantEnabled] = React.useState(false);
 
+  const [files, setFiles] = useState<File[]>([]);
+  const handleFileUpload = (files: File[]) => {
+    setFiles(files);
+    console.log(files);
+  };
+
   const addVariants = () => {
     console.log("Before update:", variantValues);
 
@@ -137,6 +144,7 @@ export default function AddProductPage() {
 
   const handleRemoveImage = (index: number) => {
     const newUrls = imageUrls.filter((_, i) => i !== index);
+
     setImageUrls(newUrls);
   };
 
@@ -211,13 +219,14 @@ export default function AddProductPage() {
                 <Spacer y={1} />
 
                 <Button
-                  color={"primary"}
                   aria-label="Save Image Address"
-                  variant={"shadow"}
+                  color={"primary"}
                   fullWidth={false}
+                  variant={"shadow"}
                   onPress={() => {
                     setImageUrls((prevUrls) => {
                       setImageUrl("");
+
                       return [
                         ...prevUrls,
                         `${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${imageUrl}`,
@@ -233,18 +242,18 @@ export default function AddProductPage() {
                   {imageUrls.map((url, index) => (
                     <div key={index} className="relative group">
                       <NextImage
-                        src={url}
                         alt={`Preview ${index + 1}`}
-                        width={40}
-                        height={40}
                         className="w-full h-40 object-cover rounded-lg"
+                        height={40}
+                        src={url}
+                        width={40}
                       />
                       <Button
-                        color={"danger"}
-                        variant={"shadow"}
                         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => handleRemoveImage(index)}
+                        color={"danger"}
                         isIconOnly={true}
+                        variant={"shadow"}
+                        onClick={() => handleRemoveImage(index)}
                       >
                         X
                       </Button>
@@ -255,32 +264,7 @@ export default function AddProductPage() {
             </Card>
           </Tab>
           <Tab key="image_files" title="Tải tệp ảnh">
-            <Card>
-              <CardBody className={"items-center"}>
-                <div
-                  className={
-                    "flex flex-col rounded-lg p-10 border-2 border-gray-200/20 border-dashed h-[250px] w-[250px]  backdrop-blur-xl bg-default"
-                  }
-                >
-                  <div className={"bg-transparent "}>
-                    <div className={"content-center"}>
-                      <SolarGalleryAddOutline />
-                    </div>
-
-                    <div className={"flex flex-col gap-1 "}>
-                      <span className={"text-sm"}>
-                        Kéo và thả hoặc nhấp để tải lên
-                      </span>
-                      <span className={"text-sm"}>
-                        Hình ảnh nên có kích thước 500x500 hoặc 800x800 và có
-                        kích thước dưới 5MB
-                      </span>
-                      <input style={{ display: "none" }} type="file" />
-                    </div>
-                  </div>
-                </div>
-              </CardBody>
-            </Card>
+            <FileUpload onChange={handleFileUpload} />
           </Tab>
         </Tabs>
       </div>
@@ -348,15 +332,16 @@ export default function AddProductPage() {
             </Switch>
           </CardHeader>
           <CardBody className={"items-start"}>
-            <div>
+            <div className="space-y-6">
               {variants.map((variant, index) => (
-                <div key={index} className={"w-full items-start"}>
-                  <p className={"justify-start"}>{variant.name}</p>
-                  <div>
+                <div key={index} className="w-full">
+                  <h3 className="text-lg font-semibold mb-2">{variant.name}</h3>
+                  <div className="flex flex-wrap gap-2">
                     {variant.values.map((value, subIndex) => (
                       <Chip
                         key={subIndex}
                         aria-label={`Variant Value ${value.value}`}
+                        className="px-3 py-1 text-sm bg-primary/10 hover:bg-primary/20 transition-colors duration-200"
                       >
                         {value.value}
                       </Chip>
@@ -457,19 +442,19 @@ export default function AddProductPage() {
               >
                 {(item) => (
                   <TableRow key={item.key}>
-                    <TableCell>
-                      <div className={"sm:max-w-20 max-w-3xl"}>
-                        {Object.keys(item.values).map((key, index) => {
-                          if (index < 3) {
-                            return (
-                              <Chip key={index} aria-label={`Variant ${key}`}>
-                                {item.values[key]}
-                              </Chip>
-                            );
-                          }
-
-                          return null;
-                        })}
+                    <TableCell className={"py-4"}>
+                      <div className="flex flex-wrap gap-2 max-w-xs">
+                        {Object.entries(item.values)
+                          .slice(0, 3)
+                          .map(([key, value], index) => (
+                            <Chip
+                              key={index}
+                              aria-label={`Variant ${key}`}
+                              className="px-2 py-1 text-sm bg-primary/10 hover:bg-primary/20 transition-colors duration-200"
+                            >
+                              {`${key}: ${value}`}
+                            </Chip>
+                          ))}
                       </div>
                     </TableCell>
 

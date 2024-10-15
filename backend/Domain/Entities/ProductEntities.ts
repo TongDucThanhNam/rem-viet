@@ -27,6 +27,16 @@ export const ProductSchema = new mongoose.Schema({
   categoryId: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
 });
 
+ProductSchema.pre("save", function (next) {
+  if (this.isModified("name") || !this.slug) {
+    this.slug = this.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
+  }
+  next();
+});
+
 const ProductWithBaseSchema = new mongoose.Schema({
   ...ProductSchema.obj,
   ...BaseSchema.obj,

@@ -1,15 +1,15 @@
 // hooks/useComponentRendered.ts
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from "react";
 
 export function useComponentRendered() {
-    const [isRendered, setIsRendered] = useState(false)
-    const ref = useRef<HTMLDivElement>(null)
+  const [isRendered, setIsRendered] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (ref.current) {
-            setIsRendered(true)
-        }
-    }, [])
+  useEffect(() => {
+    if (ref.current) {
+      setIsRendered(true);
+    }
+  }, []);
 
-    return [ref, isRendered] as const
+  return [ref, isRendered] as const;
 }

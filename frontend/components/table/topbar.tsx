@@ -1,14 +1,13 @@
 import React, { useMemo } from "react";
 import { Button, Chip, Link, Spacer } from "@nextui-org/react";
+
 import {
   ExportIcon,
   SolarAddCircleBoldDuotone,
 } from "@/components/icons/icons";
 
 export default function Topbar({ products }: { products: any }) {
-  function handleExport() {
-    console.log("Exporting...");
-  }
+  function handleExport() {}
 
   //Topbar
   return useMemo(() => {
@@ -27,10 +26,10 @@ export default function Topbar({ products }: { products: any }) {
 
         <div className={"flex"}>
           <Button
-            onPress={handleExport}
-            size={"sm"}
             color="success"
+            size={"sm"}
             startContent={<ExportIcon />}
+            onPress={handleExport}
           >
             Xuất file Excel
           </Button>
@@ -39,15 +38,15 @@ export default function Topbar({ products }: { products: any }) {
 
           <Button
             as={Link}
-            href={"/add-san-pham"}
-            size={"sm"}
             color="primary"
             endContent={<SolarAddCircleBoldDuotone />}
+            href={"/add-product"}
+            size={"sm"}
           >
             Thêm sản phẩm
           </Button>
         </div>
       </div>
     );
-  }, []);
+  }, [products.length]);
 }

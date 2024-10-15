@@ -56,6 +56,7 @@ export default function ViewProductComponent({
   const variants = myVariants ?? [];
 
   const isVariantEnabled = !!myVariants;
+
   return (
     <div className="flex flex-col items-center justify-center">
       {/*Image link snippet row*/}
@@ -67,10 +68,10 @@ export default function ViewProductComponent({
         {imageUrls.map((url, index) => (
           <div key={index} className={"flex flex-col items-center"}>
             <Snippet
-              hideSymbol={true}
               key={`image-${index}`}
               aria-label={`Image URL ${index}`}
               className={"w-full"}
+              hideSymbol={true}
               tabIndex={index}
             >
               {url}
@@ -82,9 +83,9 @@ export default function ViewProductComponent({
 
         {/* Product name */}
         <Snippet
-          hideSymbol={true}
           key={"san-pham-name"}
           aria-label={"Product Name"}
+          hideSymbol={true}
           tabIndex={0}
         >
           {myProduct.name}
@@ -93,10 +94,10 @@ export default function ViewProductComponent({
         {/*  Product description */}
 
         <Snippet
-          hideSymbol={true}
           key={"san-pham-description"}
           aria-label={"Product Description"}
           codeString={myProduct.description}
+          hideSymbol={true}
         >
           Mô tả sản phẩm: ...
         </Snippet>
@@ -108,9 +109,9 @@ export default function ViewProductComponent({
             <p className={"justify-start"}>{variant.name}</p>
             {variant.values.map((value, subIndex) => (
               <Snippet
-                hideSymbol={true}
                 key={subIndex}
                 aria-label={`Variant Value ${value.value}`}
+                hideSymbol={true}
               >
                 {value.value}
               </Snippet>
@@ -151,19 +152,19 @@ export default function ViewProductComponent({
               >
                 {(item) => (
                   <TableRow key={item.key}>
-                    <TableCell className={""}>
-                      <div className={"sm:max-w-20 max-w-3xl"}>
-                        {Object.keys(item.values).map((key, index) => {
-                          if (index < 3) {
-                            return (
-                              <Chip key={index} aria-label={`Variant ${key}`}>
-                                {item.values[key]}
-                              </Chip>
-                            );
-                          }
-
-                          return null;
-                        })}
+                    <TableCell className={"py-4"}>
+                      <div className="flex flex-wrap gap-2 max-w-xs">
+                        {Object.entries(item.values)
+                          .slice(0, 3)
+                          .map(([key, value], index) => (
+                            <Chip
+                              key={index}
+                              aria-label={`Variant ${key}`}
+                              className="px-2 py-1 text-sm bg-primary/10 hover:bg-primary/20 transition-colors duration-200"
+                            >
+                              {`${key}: ${value}`}
+                            </Chip>
+                          ))}
                       </div>
                     </TableCell>
 
@@ -172,8 +173,8 @@ export default function ViewProductComponent({
                         key={`price-${item.key}`}
                         aria-label={`price-${item.key}`}
                         className={"w-full"}
-                        tabIndex={item.key}
                         hideSymbol={true}
+                        tabIndex={item.key}
                       >
                         {item.variantPrice}
                       </Snippet>

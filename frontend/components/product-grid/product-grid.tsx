@@ -1,4 +1,5 @@
 import React from "react";
+
 import ProductGridComponent from "@/components/product-grid/products";
 
 export default async function ProductGrid({}: {}) {

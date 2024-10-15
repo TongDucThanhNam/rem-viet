@@ -50,5 +50,5 @@ export default function BottomContent({
       </div>
     );
     // }, [filterSelectedKeys, page, pages, filteredItems.length, onPreviousPage, onNextPage]);
-  }, []);
+  }, [page, pages, setPage]);
 }

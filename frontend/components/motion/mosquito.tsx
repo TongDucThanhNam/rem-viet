@@ -2,7 +2,6 @@
 
 import { cn, Switch } from "@nextui-org/react";
 import { motion } from "framer-motion";
-
 import React, { useEffect, useRef, useState } from "react";
 import NextImage from "next/image";
 
@@ -27,9 +26,11 @@ export default function Mosquito() {
 
   useEffect(() => {
     const canvas = canvasRef.current;
+
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
+
     if (!ctx) return;
 
     canvas.width = 400;
@@ -44,6 +45,7 @@ export default function Mosquito() {
       const centerY = canvas.height / 2;
       const angle = Math.random() * Math.PI * 2;
       const speed = 1;
+
       return {
         x: centerX,
         y: centerY,
@@ -62,6 +64,7 @@ export default function Mosquito() {
       // Update and draw particles
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
+
         p.x += p.speedX;
         p.y += p.speedY;
         p.speedX += (Math.random() - 0.5) * 0.1; // Add slight curve
@@ -94,6 +97,7 @@ export default function Mosquito() {
       if (isDisableParticles) {
         // Clear particles
         particles.splice(0, particles.length);
+
         return;
       }
 
@@ -121,15 +125,8 @@ export default function Mosquito() {
   return (
     <div className="h-full flex flex-col items-center justify-center">
       <motion.div
-        initial={{ opacity: 0, y: -10, scale: 0 }}
-        whileInView={{
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          transition: { type: "spring" },
-        }}
         className="justify-center items-center"
-        viewport={{ once: true }}
+        initial={{ opacity: 0, y: -10, scale: 0 }}
         variants={{
           hidden: {},
           show: {
@@ -137,6 +134,13 @@ export default function Mosquito() {
               staggerChildren: 0.15,
             },
           },
+        }}
+        viewport={{ once: true }}
+        whileInView={{
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          transition: { type: "spring" },
         }}
       >
         <motion.h1
@@ -163,27 +167,28 @@ export default function Mosquito() {
 
       <div className="flex justify-center">
         <Switch
+          className="text-center"
+          color="primary"
+          size={"lg"}
           onValueChange={(isSelected: boolean) => {
             setIsDisableParticles(isSelected);
             toggleOverlay(isSelected);
           }}
-          className="text-center"
-          size={"lg"}
-          color="primary"
         >
           Ngăn côn trùng xâm nhập
         </Switch>
       </div>
-      <div className="relative h-[400px] w-full overflow-hidden flex justify-center items-center p-6">
+      <div className="relative h-[400px] w-full flex justify-center items-center p-6">
         <div className="relative w-64 h-64">
           {/* Hình vuông tĩnh */}
           <NextImage
             // isBlurred
             // as={NextImage}
-            className={"object-cover"}
-            src={"/src/window.webp"}
             alt={"Window"}
+            className={"object-cover"}
             fill={true}
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            src={"/src/window.webp"}
           />
 
           {/* Hình vuông động */}
@@ -209,18 +214,18 @@ export default function Mosquito() {
 
           {/* Hình vuông động */}
           <motion.div
+            animate={{
+              scale: isOverlayVisible ? 1 : 0,
+              opacity: isOverlayVisible ? 1 : 0,
+            }}
             className="absolute inset-0 rounded-lg shadow-lg dark:bg-white dark:bg-opacity-10"
+            initial={{ scale: 0, opacity: 0 }}
             style={{
               backgroundImage: `
               linear-gradient(0deg, transparent 0%, transparent calc(100% - 1px), rgba(0, 0, 0, 0.5) calc(100% - 1px)),
               linear-gradient(90deg, transparent 0%, transparent calc(100% - 1px), rgba(0, 0, 0, 0.5) calc(100% - 1px))
             `,
               backgroundSize: "8px 8px",
-            }}
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{
-              scale: isOverlayVisible ? 1 : 0,
-              opacity: isOverlayVisible ? 1 : 0,
             }}
             transition={{
               type: "spring",

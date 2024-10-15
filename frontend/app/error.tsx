@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { Button } from "@nextui-org/react";
-import { AnchorIcon } from "@nextui-org/shared-icons";
 
 export default function Error({
   error,
@@ -17,38 +15,63 @@ export default function Error({
   }, [error]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-md">
-        <div className="text-center">
-          <AnchorIcon
-            className="mx-auto h-12 w-12 text-red-500"
-            aria-hidden="true"
-          />
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Oops! Something went wrong
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            {error.message || "We're sorry, but an unexpected error occurred."}
-          </p>
-        </div>
-        <div className="mt-8 space-y-6">
-          <Button
-            onClick={reset}
-            className="w-full flex justify-center py-2 px-4"
-          >
-            Try again
-          </Button>
-          <div className="text-sm text-center">
-            <a
-              href="/"
-              className="font-medium text-primary hover:text-primary/80"
-            >
-              Go back to homepage
-            </a>
-          </div>
-        </div>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100vh",
+        padding: "1rem",
+        backgroundColor: "#f3f4f6",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "400px",
+          padding: "2rem",
+          backgroundColor: "white",
+          borderRadius: "0.5rem",
+          boxShadow:
+            "0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)",
+          textAlign: "center",
+        }}
+      >
+        <h2
+          style={{
+            marginBottom: "1rem",
+            fontSize: "1.5rem",
+            fontWeight: "bold",
+          }}
+        >
+          Something went wrong
+        </h2>
+        <p
+          style={{
+            marginBottom: "1.5rem",
+            fontSize: "0.875rem",
+            color: "#4b5563",
+          }}
+        >
+          {error.message || "We're sorry, but an unexpected error occurred."}
+        </p>
+        <button
+          style={{
+            width: "100%",
+            padding: "0.5rem 1rem",
+            backgroundColor: "#3b82f6",
+            color: "white",
+            border: "none",
+            borderRadius: "0.25rem",
+            cursor: "pointer",
+          }}
+          onClick={reset}
+        >
+          Try again
+        </button>
         {error.digest && (
-          <p className="mt-4 text-center text-sm text-gray-500">
+          <p
+            style={{ marginTop: "1rem", fontSize: "0.75rem", color: "#6b7280" }}
+          >
             Error ID: {error.digest}
           </p>
         )}

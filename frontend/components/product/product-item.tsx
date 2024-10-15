@@ -15,24 +15,19 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import { CartIcon } from "@nextui-org/shared-icons";
+
 import SwiperThumbnail from "@/components/sidebar/product-thumbnail";
 import { cn } from "@/components/radio/cn";
 import SizeRadioItem from "@/components/radio/size-radio-item";
 import { ExportIcon, PaymentsIcon } from "@/components/icons/icons";
-
-interface Product {
-  id: string;
-  name: string;
-  imageUrls: string[];
-  description: string;
-  price: string;
-  imageUrl: string;
-}
+import { Product } from "@/types";
+import { priceVietNamDongformetter } from "@/components/lib/client-utils/utils";
 
 interface ProductItemProps {
-  product: Product;
+  product: any;
   variants: any;
   isLoading: boolean;
+  addToCart: any;
 }
 
 const skeletonImageUrls = Array(5).fill("/src/800x800.png");
@@ -41,13 +36,18 @@ const ProductItem: React.FC<ProductItemProps> = ({
   product,
   variants,
   isLoading,
+  addToCart,
 }) => {
-  const basePrice = product.price;
+  const basePrice = product.price.toString();
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const [variantChosen, setVariantChosen] = React.useState<any>([]);
   //san-pham price
-  const [productPrice, setProductPrice] = React.useState<string>(product.price);
+  const [productPrice, setProductPrice] = React.useState<string>(
+    product.price.toString(),
+  );
+
+  const [isVariantChosen, setIsVariantChosen] = React.useState<boolean>(false);
 
   //preprocess variants
   let preProcessingVariant: { [key: string]: string[] } = {};
@@ -85,6 +85,8 @@ const ProductItem: React.FC<ProductItemProps> = ({
       console.log("No variant chosen");
       // san-pham.price = basePrice;
       setProductPrice(basePrice);
+      setIsVariantChosen(false);
+
       return;
     }
 
@@ -105,6 +107,8 @@ const ProductItem: React.FC<ProductItemProps> = ({
         console.log("Found variant: ", variant);
         setProductPrice(variant.variantPrice);
         // san-pham.price = variant.price;
+        setIsVariantChosen(true);
+
         return;
       }
     }
@@ -135,6 +139,7 @@ const ProductItem: React.FC<ProductItemProps> = ({
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
     const data = Object.fromEntries(formData.entries());
+
     console.log("Form data: ", data);
 
     const body = {
@@ -182,13 +187,13 @@ const ProductItem: React.FC<ProductItemProps> = ({
         <div className="relative h-full w-full flex-none">
           {isLoading ? (
             <SwiperThumbnail
-              isLoading={isLoading}
               imageUrls={skeletonImageUrls}
+              isLoading={isLoading}
             />
           ) : (
             <SwiperThumbnail
-              isLoading={isLoading}
               imageUrls={product.imageUrls}
+              isLoading={isLoading}
             />
           )}
         </div>
@@ -199,7 +204,9 @@ const ProductItem: React.FC<ProductItemProps> = ({
             {product.name}
           </h1>
           {/*Price*/}
-          <p className="text-xl font-medium tracking-tight">{productPrice}₫</p>
+          <p className="text-xl font-medium tracking-tight">
+            {priceVietNamDongformetter(productPrice)}
+          </p>
 
           {/*Ratings*/}
           <div className="class=my-2 flex items-center gap-2">
@@ -216,7 +223,6 @@ const ProductItem: React.FC<ProductItemProps> = ({
             <div key={index} className="flex flex-col gap-2">
               <p className="text-lg font-semibold">{key}</p>
               <RadioGroup
-                value={variantChosen[key]}
                 classNames={{
                   base: cn("", "max-w-fit"),
                   wrapper: cn("", "gap-3"),
@@ -224,6 +230,7 @@ const ProductItem: React.FC<ProductItemProps> = ({
                 defaultValue="1"
                 orientation="horizontal"
                 size="lg"
+                value={variantChosen[key]}
                 onValueChange={(value) => {
                   setVariantChosen({ ...variantChosen, [key]: value });
                 }}
@@ -239,7 +246,7 @@ const ProductItem: React.FC<ProductItemProps> = ({
 
           <Spacer y={3} />
 
-          <Accordion selectionMode="multiple" variant="bordered" className={""}>
+          <Accordion className={""} selectionMode="multiple" variant="bordered">
             <AccordionItem
               key="0"
               aria-label="Payments"
@@ -282,17 +289,32 @@ const ProductItem: React.FC<ProductItemProps> = ({
 
           <div className="mt-2 flex gap-2">
             <Button
-              onPress={onOpen}
-              color={"primary"}
               className={""}
+              color={"primary"}
               startContent={<PaymentsIcon />}
+              onPress={onOpen}
             >
               Mua ngay
             </Button>
             <Button
               className={""}
               color={"secondary"}
+              isDisabled={!isVariantChosen}
               startContent={<CartIcon />}
+              onClick={() => {
+                const selectedCartItems: Product = {
+                  id: product._id,
+                  name: product.name,
+                  price: parseFloat(productPrice) ?? 0,
+                  imageUrl: product.imageUrls[0],
+                  quantity: 1,
+                  description: product.description,
+                  variants: variantChosen,
+                };
+
+                console.log("Add to cart");
+                addToCart(selectedCartItems);
+              }}
             >
               Thêm vào giỏ hàng
             </Button>
@@ -301,29 +323,29 @@ const ProductItem: React.FC<ProductItemProps> = ({
       </div>
 
       <Modal
-        placement={"bottom-center"}
-        isOpen={isOpen}
-        onOpenChange={onOpenChange}
-        scrollBehavior={"inside"}
         backdrop={"blur"}
-        isDismissable={false}
-        isKeyboardDismissDisabled={true}
         classNames={{
           wrapper: "",
           body: "",
           backdrop: "",
-          base: "h-screen  bg-default-100 dark:bg-default-800",
+          base: "h-screen",
           header: "",
           footer: "",
           closeButton: "",
         }}
+        isDismissable={false}
+        isKeyboardDismissDisabled={true}
+        isOpen={isOpen}
+        placement={"bottom-center"}
+        scrollBehavior={"inside"}
+        onOpenChange={onOpenChange}
       >
         <ModalContent>
           {(onClose) => (
             <>
               <form
-                onSubmit={handlePurchase}
                 className="flex flex-col gap-5 py-8"
+                onSubmit={handlePurchase}
               >
                 <ModalHeader>Thanh toán</ModalHeader>
                 <ModalBody className={"h-fit"}>
@@ -331,9 +353,9 @@ const ProductItem: React.FC<ProductItemProps> = ({
                   <div className="group flex flex-col w-full group relative justify-end">
                     <Input
                       id={"email"}
-                      name={"email"}
                       label="Email của bạn"
                       labelPlacement="outside"
+                      name={"email"}
                       placeholder="Nhập Email của bạn"
                     />
                   </div>
@@ -344,11 +366,11 @@ const ProductItem: React.FC<ProductItemProps> = ({
                     <div className="group flex flex-col w-full group relative justify-end">
                       <Input
                         required
-                        isRequired={true}
                         id={"firstName"}
-                        name={"firstName"}
+                        isRequired={true}
                         label="Họ của bạn"
                         labelPlacement="outside"
+                        name={"firstName"}
                         placeholder="Nhập họ của bạn"
                       />
                     </div>
@@ -358,9 +380,9 @@ const ProductItem: React.FC<ProductItemProps> = ({
                       <Input
                         required
                         id={"lastName"}
-                        name={"lastName"}
                         label="Tên của bạn"
                         labelPlacement="outside"
+                        name={"lastName"}
                         placeholder="Nhập tên của bạn"
                       />
                     </div>
@@ -373,9 +395,9 @@ const ProductItem: React.FC<ProductItemProps> = ({
                       <Input
                         required
                         id={"address"}
-                        name={"address"}
                         label="Địa chỉ"
                         labelPlacement="outside"
+                        name={"address"}
                         placeholder="Lê Văn Lương, Quận 7, TP.HCM"
                       />
                     </div>
@@ -385,9 +407,9 @@ const ProductItem: React.FC<ProductItemProps> = ({
                       <Input
                         isRequired
                         id={"specificAddress"}
-                        name={"specificAddress"}
                         label="Specific address"
                         labelPlacement="outside"
+                        name={"specificAddress"}
                         placeholder="Đại học RMIT"
                       />
                     </div>
@@ -400,9 +422,9 @@ const ProductItem: React.FC<ProductItemProps> = ({
                       <Input
                         isRequired
                         id={"district"}
-                        name={"district"}
                         label="Quận, huyện"
                         labelPlacement="outside"
+                        name={"district"}
                         placeholder="Quận 7"
                       />
                     </div>
@@ -412,9 +434,9 @@ const ProductItem: React.FC<ProductItemProps> = ({
                       <Input
                         isRequired
                         id={"city"}
-                        name={"city"}
                         label="Tỉnh/Thành phố"
                         labelPlacement="outside"
+                        name={"city"}
                         placeholder="Hồ Chí Minh"
                       />
                     </div>
@@ -426,9 +448,9 @@ const ProductItem: React.FC<ProductItemProps> = ({
                     <div className="group flex flex-col w-full group relative justify-end">
                       <Input
                         id={"postcode"}
-                        name={"postcode"}
                         label="Mã bưu điện"
                         labelPlacement="outside"
+                        name={"postcode"}
                         placeholder="700000"
                       />
                     </div>
@@ -438,9 +460,9 @@ const ProductItem: React.FC<ProductItemProps> = ({
                       <Input
                         required
                         id={"phoneNumber"}
-                        name={"phoneNumber"}
                         label="Số điện thoại"
                         labelPlacement="outside"
+                        name={"phoneNumber"}
                         placeholder="0901234567"
                       />
                     </div>

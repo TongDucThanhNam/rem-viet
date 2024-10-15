@@ -17,7 +17,7 @@ const nextConfig = {
   },
   images: {
     // domains: ['localhost'],
-    formats: ["image/webp"],
+    formats: ["image/webp", "image/avif"],
     remotePatterns: [
       {
         protocol: "https",
@@ -30,6 +30,24 @@ const nextConfig = {
         hostname: "luoichongmuoi.shop",
         port: "",
         pathname: "/cdn-cgi/image/**",
+      },
+      {
+        protocol: "https",
+        hostname: "luoichongmuoi.shop",
+        port: "",
+        pathname: "/wp-content/uploads/**",
+      },
+      {
+        protocol: "https",
+        hostname: "luoichongmuoi.shop",
+        port: "",
+        pathname: "/wp-content/uploads/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
       },
     ],
   },

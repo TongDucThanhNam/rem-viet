@@ -1,9 +1,10 @@
 // "use client";
 
 import { YouTubeEmbed } from "@next/third-parties/google";
-import { our_strength } from "@/config/site";
 import { Button } from "@nextui-org/react";
 import React from "react";
+
+import { our_strength } from "@/config/site";
 
 export default function MaterialSection() {
   return (
@@ -21,9 +22,9 @@ export default function MaterialSection() {
       <div className="grid md:grid-cols-2 gap-8 items-start">
         <div className="aspect-w-16 aspect-h-9">
           <YouTubeEmbed
-            videoid={our_strength.video}
             params="controls=1"
             playlabel="Watch video"
+            videoid={our_strength.video}
           />
         </div>
 
@@ -45,7 +46,7 @@ export default function MaterialSection() {
             Bằng cách sử dụng các vật liệu này, chúng tôi không chỉ tạo ra sản
             phẩm chất lượng cao mà còn góp phần bảo vệ môi trường.
           </p>
-          <Button variant={"shadow"} className="justify-center">
+          <Button className="justify-center" variant={"shadow"}>
             Tìm hiểu thêm
           </Button>
         </div>

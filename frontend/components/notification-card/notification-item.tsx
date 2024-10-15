@@ -3,8 +3,9 @@
 import React from "react";
 import { Avatar, Badge, Button } from "@nextui-org/react";
 
-import { cn } from "./cn";
 import { SolarFigmaFileLinear } from "@/components/icons/icons";
+
+import { cn } from "./cn";
 
 export type NotificationType = "default" | "request" | "file";
 

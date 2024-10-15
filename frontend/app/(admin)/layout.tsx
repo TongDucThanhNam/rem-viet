@@ -1,8 +1,6 @@
 "use client";
 
-import Sidebar from "@/components/sidebar/sidebar";
 import { usePathname } from "next/navigation";
-
 import {
   Avatar,
   Button,
@@ -12,9 +10,11 @@ import {
   Tooltip,
 } from "@nextui-org/react";
 import React from "react";
+import { useTheme } from "next-themes";
+
 import { RemVietIcon } from "@/components/icons/remviet";
 import { ThemeSwitch } from "@/components/theme-switch";
-import { useTheme } from "next-themes";
+import Sidebar from "@/components/sidebar/sidebar";
 import { sectionNestedItems } from "@/config/site";
 import {
   SolarInfoCircleLineDuotone,

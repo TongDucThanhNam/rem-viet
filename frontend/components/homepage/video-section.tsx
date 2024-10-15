@@ -1,7 +1,14 @@
 import React, { Suspense } from "react";
 import NextImage from "next/image";
+
 import videoThumb from "@/public/src/videoThump.webp";
-import HLSVideoPlayer from "@/components/video/hls-video"; // const ResponsiveVideoLazy = lazy(() => import("@/components/video/video"));
+import HLSVideoPlayer from "@/components/video/hls-video";
+import { TypewriterEffectSmooth } from "@/components/animation/typewriter-effect"; // const ResponsiveVideoLazy = lazy(() => import("@/components/video/video"));
+
+const words = [
+  { text: "Dẽ dàng lắp đặt", className: "text-2xl md:text-4xl font-normal" },
+  { text: "Tiện dụng hiệu quả", className: "text-2xl md:text-4xl font-normal" },
+];
 
 export default function VideoSection() {
   return (
@@ -16,6 +23,7 @@ export default function VideoSection() {
             Sản xuất tại Việt Nam
           </span>
         </h1>
+        <TypewriterEffectSmooth words={words} />
       </div>
 
       <Suspense
@@ -23,7 +31,7 @@ export default function VideoSection() {
           <div className="relative w-full h-96 flex justify-center items-center">
             {" "}
             {/* Đảm bảo fallback video cũng được căn giữa */}
-            <NextImage src={videoThumb} alt="Video thumbnail" fill />
+            <NextImage fill alt="Video thumbnail" src={videoThumb} />
           </div>
         }
       >

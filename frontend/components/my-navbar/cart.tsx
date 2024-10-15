@@ -14,14 +14,23 @@ import {
 } from "@nextui-org/react";
 import React from "react";
 import { CartIcon, CloseIcon } from "@nextui-org/shared-icons";
-import { useCart } from "@/store/CartProvider"; //Props
+
+import { useCartStore } from "@/store/useCartStore";
 
 //Props
 
 export const CartDropdown = () => {
-  const { cart, setCart } = useCart()();
+  // const addToCart = useCartStore((state) => state.addToCart);
+  const removeFromCart = useCartStore((state) => state.removeFromCart);
 
-  console.log(cart);
+  const cart = useCartStore((state) => state.cart);
+  const total = cart.reduce(
+    (acc, product) => acc + product.price * (product.quantity as number),
+    0,
+  );
+
+  //cart lenght
+  const cartLength = cart.length || 0;
 
   return (
     <Dropdown>
@@ -32,7 +41,7 @@ export const CartDropdown = () => {
             className="bg-transparent"
             isIconOnly={true}
           >
-            <Badge content={cart.products.length} color="default">
+            <Badge color="default" content={cartLength || 0}>
               <CartIcon />
             </Badge>
           </Button>
@@ -43,62 +52,60 @@ export const CartDropdown = () => {
         onAction={(actionKey) => console.log({ actionKey })}
       >
         <DropdownSection showDivider={true} title="Giỏ hàng của bạn.">
-          {cart.products.length === 0 ? (
-            <p>Your cart is empty</p>
-          ) : (
-            cart.products.map((product, index) => (
-              <DropdownItem key={"1"} href={"/"}>
-                <div className="w-96 flex items-center border-divider ">
-                  <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center">
-                    <Image
-                      alt="Product image"
-                      height={80}
-                      src="/src/150x150.png"
-                      width={80}
-                    />
-                  </div>
-                  <div className="flex flex-1 flex-col">
-                    <div className="mt-2 flex items-center gap-2">
-                      <span className="text-small font-semibold text-default-700">
-                        {product.price}
-                      </span>
-                      <span className="text-small text-default-500">x 1</span>
-
-                      {/* Plus minus*/}
+          {cart &&
+            cart.map((product) => (
+              <DropdownItem key={product.id} href={`/san-pham/${product.id}`}>
+                <div className="w-full max-w-sm sm:max-w-md rounded-lg shadow-sm border border-border p-3 sm:p-4 transition-all duration-300 hover:shadow-md">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                    <div className="w-full sm:w-auto flex justify-center sm:justify-start">
+                      <Image
+                        alt={`${product.name} image`}
+                        className="rounded-md object-cover"
+                        height={60}
+                        src={product.imageUrl}
+                        width={60}
+                      />
                     </div>
-
-                    <h4 className="text-small">{product.name}</h4>
-                    <div className="flex items-center gap-3">
-                      <p>
-                        <span className="text-small text-default-500">
-                          Color:{" "}
+                    <div className="flex-1 min-w-0 w-full sm:w-fit">
+                      <div className="flex items-start justify-between">
+                        <h4 className="text-base sm:text-lg font-semibold text-foreground truncate pr-2 sm:max-w-sm md:max-w-xs">
+                          {product.name} {product.name}
+                        </h4>
+                        <Button
+                          aria-label="Remove item"
+                          className="h-7 w-7 sm:h-8 sm:w-8"
+                          color={"danger"}
+                          isIconOnly={true}
+                          onClick={() => removeFromCart(product)}
+                        >
+                          <CloseIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </Button>
+                      </div>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <span className="text-sm font-medium text-foreground">
+                          {product.price}
                         </span>
-                        <span className="text-small font-medium capitalize text-default-700">
-                          black
+                        <span className="text-xs sm:text-sm text-muted-foreground">
+                          x {product.quantity}
                         </span>
-                      </p>
-                      <p>
-                        <span className="text-small text-default-500">
-                          Size:{" "}
-                        </span>
-                        <span className="text-small font-medium text-default-700">
-                          42
-                        </span>
-                      </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-2">
+                        {Object.entries(product.variants).map(
+                          ([key, value], index) => (
+                            <span
+                              key={index}
+                              className="text-xs bg-secondary text-secondary-foreground px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full"
+                            >
+                              {product.variants[key]}
+                            </span>
+                          ),
+                        )}
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="z-0 group relative inline-flex items-center justify-center box-border">
-                    <Button
-                      className="bg-red-500 text-white"
-                      isIconOnly={true}
-                      startContent={<CloseIcon />}
-                    />
                   </div>
                 </div>
               </DropdownItem>
-            ))
-          )}
+            ))}
         </DropdownSection>
 
         {/* See all */}
@@ -108,6 +115,7 @@ export const CartDropdown = () => {
             console.log("See all");
           }}
         >
+          <p>Tổng cộng {total}đ</p>
           <Link href={"/gio-hang"}>Đến trang giỏ hàng</Link>
         </DropdownItem>
       </DropdownMenu>

@@ -39,8 +39,8 @@ export default function ProductAnalysis() {
           <Select
             label="Analysis Type"
             placeholder="Select an Analysis Type"
-            onChange={handleSelectionChange}
             selectedKeys={[analysisType]}
+            onChange={handleSelectionChange}
           >
             <SelectItem key={"Analyze Price"} value="price">
               Giá
@@ -53,7 +53,7 @@ export default function ProductAnalysis() {
             </SelectItem>
           </Select>
         </div>
-        <BarChart width={600} height={300} data={productData}>
+        <BarChart data={productData} height={300} width={600}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
           <YAxis />

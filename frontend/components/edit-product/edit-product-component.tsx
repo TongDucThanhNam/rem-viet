@@ -23,6 +23,7 @@ import {
 } from "@nextui-org/react";
 import React, { useEffect, useState } from "react";
 import NextImage from "next/image";
+
 import { SolarGalleryAddOutline } from "@/components/icons/icons";
 
 interface Variant {
@@ -164,6 +165,7 @@ export default function EditProductComponent({
 
   const handleRemoveImage = (index: number) => {
     const newUrls = imageUrls.filter((_, i) => i !== index);
+
     setImageUrls(newUrls);
   };
 
@@ -219,13 +221,14 @@ export default function EditProductComponent({
                 <Spacer y={1} />
 
                 <Button
-                  color={"primary"}
                   aria-label="Save Image Address"
-                  variant={"shadow"}
+                  color={"primary"}
                   fullWidth={false}
+                  variant={"shadow"}
                   onPress={() => {
                     setImageUrls((prevUrls) => {
                       setImageUrl("");
+
                       return [
                         ...prevUrls,
                         `${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${imageUrl}`,
@@ -241,18 +244,18 @@ export default function EditProductComponent({
                   {imageUrls.map((url, index) => (
                     <div key={index} className="relative group">
                       <NextImage
-                        src={url}
                         alt={`Preview ${index + 1}`}
-                        width={40}
-                        height={40}
                         className="w-full h-40 object-cover rounded-lg"
+                        height={40}
+                        src={url}
+                        width={40}
                       />
                       <Button
-                        color={"danger"}
-                        variant={"shadow"}
                         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => handleRemoveImage(index)}
+                        color={"danger"}
                         isIconOnly={true}
+                        variant={"shadow"}
+                        onClick={() => handleRemoveImage(index)}
                       >
                         X
                       </Button>
@@ -356,15 +359,16 @@ export default function EditProductComponent({
             </Switch>
           </CardHeader>
           <CardBody className={"items-start"}>
-            <div>
+            <div className="space-y-6">
               {variants.map((variant, index) => (
-                <div key={index} className={"w-full items-start"}>
-                  <p className={"justify-start"}>{variant.name}</p>
-                  <div>
+                <div key={index} className="w-full">
+                  <h3 className="text-lg font-semibold mb-2">{variant.name}</h3>
+                  <div className="flex flex-wrap gap-2">
                     {variant.values.map((value, subIndex) => (
                       <Chip
                         key={subIndex}
                         aria-label={`Variant Value ${value.value}`}
+                        className="px-3 py-1 text-sm bg-primary/10 hover:bg-primary/20 transition-colors duration-200"
                       >
                         {value.value}
                       </Chip>
@@ -407,14 +411,14 @@ export default function EditProductComponent({
                   <>
                     <Input
                       key={`VariantField-${index}`}
+                      aria-label={`Variant Value ${index}`}
                       className={"max-w-2xl"}
                       defaultValue={value.value}
                       label={`Điền giá trị biến thể - ${index}`}
                       labelPlacement={"inside"}
-                      placeholder={`Giá trị biến thể - ${index}`}
                       name={`variant-value-${index}`}
+                      placeholder={`Giá trị biến thể - ${index}`}
                       value={value.value}
-                      aria-label={`Variant Value ${index}`}
                       onValueChange={(value: string) => {
                         handleChildSubFieldValueChange(value, index);
                       }}
@@ -465,19 +469,19 @@ export default function EditProductComponent({
               >
                 {(item) => (
                   <TableRow key={item.key}>
-                    <TableCell className={""}>
-                      <div className={"sm:max-w-20 max-w-3xl"}>
-                        {Object.keys(item.values).map((key, index) => {
-                          if (index < 3) {
-                            return (
-                              <Chip key={index} aria-label={`Variant ${key}`}>
-                                {item.values[key]}
-                              </Chip>
-                            );
-                          }
-
-                          return null;
-                        })}
+                    <TableCell className={"py-4"}>
+                      <div className="flex flex-wrap gap-2 max-w-xs">
+                        {Object.entries(item.values)
+                          .slice(0, 3)
+                          .map(([key, value], index) => (
+                            <Chip
+                              key={index}
+                              aria-label={`Variant ${key}`}
+                              className="px-2 py-1 text-sm bg-primary/10 hover:bg-primary/20 transition-colors duration-200"
+                            >
+                              {`${key}: ${value}`}
+                            </Chip>
+                          ))}
                       </div>
                     </TableCell>
 
@@ -486,6 +490,7 @@ export default function EditProductComponent({
                         key={`price-${item.key}`}
                         aria-label={`price-${item.key}`}
                         className={"w-full"}
+                        defaultValue={item.variantPrice.toString()}
                         label={`Giá-${item.key}`}
                         labelPlacement={"inside"}
                         name={`price-${item.key}`}
@@ -493,7 +498,6 @@ export default function EditProductComponent({
                         size={"sm"}
                         tabIndex={item.key}
                         type={"number"}
-                        defaultValue={item.variantPrice.toString()}
                         onValueChange={(value: string) => {
                           //set variant price
                           setVariantCombinations((prevCombinations) => {
@@ -517,7 +521,6 @@ export default function EditProductComponent({
         ) : (
           <>
             <Input
-              value={product?.price.toString()}
               aria-label="Product Price"
               className={"max-w-2xl"}
               label={"Giá"}
@@ -525,6 +528,7 @@ export default function EditProductComponent({
               name={"san-pham-price"}
               placeholder="Giá"
               type={"number"}
+              value={product?.price.toString()}
               onValueChange={(value: string) => {
                 setProduct({
                   ...product,

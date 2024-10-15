@@ -1,6 +1,7 @@
 "use client";
 
 import type { CardProps } from "@nextui-org/react";
+
 import {
   Button,
   Card,
@@ -14,8 +15,9 @@ import {
 } from "@nextui-org/react";
 import React from "react";
 
-import NotificationItem from "./notification-item";
 import { SolarBellOffLinear } from "@/components/icons/icons";
+
+import NotificationItem from "./notification-item";
 
 type Notification = {
   id: string;

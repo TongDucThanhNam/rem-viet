@@ -9,7 +9,7 @@ import {
 } from "@nextui-org/react";
 import React from "react";
 
-import { cn } from "./cn";
+import { cn } from "@/components/lib/server-utils/utils";
 
 export type FeedbackRatingItemProps = Omit<RadioProps, "value"> & {
   value: string;

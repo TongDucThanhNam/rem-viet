@@ -5,8 +5,8 @@ import type { RadioGroupProps } from "@nextui-org/react";
 import { RadioGroup } from "@nextui-org/react";
 import React from "react";
 
-import { cn } from "./cn";
 import ColorRadioItem, { RatingValueEnum } from "./color-radio-item";
+import { cn } from "@/components/lib/server-utils/utils";
 
 export default function ColorRadio({ classNames, ...props }: RadioGroupProps) {
   const [value, setValue] = React.useState<RatingValueEnum | string>(

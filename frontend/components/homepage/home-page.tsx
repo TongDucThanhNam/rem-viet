@@ -4,50 +4,75 @@ import dynamic from "next/dynamic";
 import { cn } from "@/components/lib/server-utils/utils";
 import HeroSection from "@/components/homepage/hero-section";
 import { heroSection } from "@/config/site";
+import { Navbar } from "@nextui-org/react";
 
 const MyNavbar = dynamic(() => import("@/components/my-navbar/my-navbar"), {
   ssr: false,
+  loading: () => <Navbar />,
 });
 
 // Dynamic imports with custom loading states
 
 const VideoSection = dynamic(
   () => import("@/components/homepage/video-section"),
-  { ssr: false },
+  {
+    ssr: false,
+    loading: () => <p>Loading</p>,
+  },
 );
-const Mosquito = dynamic(() => import("@/components/motion/mosquito"), {
+const Mosquito = dynamic(() => import("@/components/animation/mosquito"), {
   ssr: false,
+  loading: () => <p>Loading</p>,
 });
 const FeatureSection = dynamic(
   () => import("@/components/homepage/feature-section"),
-  { ssr: false },
+  {
+    ssr: false,
+    loading: () => <p>Loading</p>,
+  },
 );
 const OurStrength = dynamic(
   () => import("@/components/homepage/our-strength"),
-  { ssr: false },
+  {
+    ssr: false,
+    loading: () => <p>Loading</p>,
+  },
 );
 const CustomerReviewSection = dynamic(
   () => import("@/components/homepage/customer-review-section"),
-  { ssr: false },
+  {
+    ssr: false,
+    loading: () => <p>Loading</p>,
+  },
 );
 const GuideSection = dynamic(
   () => import("@/components/homepage/guide-section"),
-  { ssr: false },
+  {
+    ssr: false,
+    loading: () => <p>Loading</p>,
+  },
 );
 const MaterialSection = dynamic(
   () => import("@/components/homepage/material-section"),
-  { ssr: false },
+  {
+    ssr: false,
+    loading: () => <p>Loading</p>,
+  },
 );
 const FaqSection = dynamic(() => import("@/components/homepage/faq-section"), {
   ssr: false,
 });
 const NewsletterSection = dynamic(
   () => import("@/components/homepage/newsletter-section"),
-  { ssr: false },
+  {
+    ssr: false,
+    loading: () => <p>Loading</p>,
+  },
 );
 
 const Footer = dynamic(() => import("@/components/footer/footer"), {
   ssr: false,
+  loading: () => <p>Loading</p>,
 });
 
 const Section = ({
@@ -70,7 +95,7 @@ export default function HomePage() {
       <MyNavbar />
       <div
         className={cn(
-          "max-w-full h-full",
+          "max-w-screen h-full",
           "overflow-y-auto md:snap-y md:snap-mandatory",
           "scrollbar-hide scroll-smooth",
           "bg-[linear-gradient(to_right,#80808012_3px,transparent_3px),linear-gradient(to_bottom,#80808012_3px,transparent_3px)] bg-[size:24px_24px]",
@@ -104,7 +129,6 @@ export default function HomePage() {
           >
             <FeatureSection />
           </Section>
-
           <Section
             className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-row justify-center items-center overflow-visible "
             id="our_strength"
@@ -113,21 +137,21 @@ export default function HomePage() {
           </Section>
 
           <Section
-            className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center overflow-visible "
+            className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center overflow-hidden "
             id="customer_review"
           >
             <CustomerReviewSection />
           </Section>
 
           <Section
-            className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center overflow-visible "
+            className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center overflow-visible "
             id="guide"
           >
             <GuideSection />
           </Section>
 
           <Section
-            className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex items-center justify-center overflow-visible "
+            className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex items-center justify-center  overflow-visible "
             id="materials"
           >
             <MaterialSection />

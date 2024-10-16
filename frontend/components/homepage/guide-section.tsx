@@ -39,7 +39,7 @@ const content = [
     ),
   },
   {
-    title: "Điền thông tin đơn hàng",
+    title: "Bước 3: Điền thông tin đơn hàng",
     description:
       "Số lượng: Chọn số lượng tấm lưới bạn muốn mua.\n" +
       "Điền số đo chính xác: Nhập chính xác chiều rộng và chiều cao của cửa sổ vào ô tương ứng.\n" +
@@ -76,7 +76,9 @@ const content = [
 export default function GuideSection() {
   return (
     <div className={"w-full h-full"}>
-      <h1 className="text-6xl font-bold text-center">Hướng dẫn sử dụng</h1>
+      <h2 className="text-2xl md:text-4xl font-bold text-center mb-4 md:mb-8">
+        Hướng dẫn sử dụng
+      </h2>
       <div className="p-10">
         <StickyScroll content={content} />
       </div>

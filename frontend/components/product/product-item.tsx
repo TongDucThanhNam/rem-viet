@@ -16,12 +16,12 @@ import {
 } from "@nextui-org/react";
 import { CartIcon } from "@nextui-org/shared-icons";
 
-import SwiperThumbnail from "@/components/sidebar/product-thumbnail";
-import { cn } from "@/components/radio/cn";
+import { cn } from "@/components/lib/server-utils/utils";
 import SizeRadioItem from "@/components/radio/size-radio-item";
 import { ExportIcon, PaymentsIcon } from "@/components/icons/icons";
 import { Product } from "@/types";
 import { priceVietNamDongformetter } from "@/components/lib/client-utils/utils";
+import SwiperThumbnail from "@/components/product/product-thumbnail";
 
 interface ProductItemProps {
   product: any;

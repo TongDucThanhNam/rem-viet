@@ -1,8 +1,3 @@
-import {
-  type SidebarItem,
-  SidebarItemType,
-} from "@/components/sidebar/sidebar";
-
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
@@ -39,8 +34,7 @@ export const heroSection = {
   description:
     "Mang đến sự bảo vệ toàn diện cho gia đình bạn khỏi những tác nhân như côn trùng,khói bụi, ...",
   videoUrl: "https://luoichongmuoi.cdn.vccloud.vn/luoichongmuoi.mp4",
-  image:
-    "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lvfh8led976597.webp",
+  image: "https://rem-viet.hcm.ss.bfcplatform.vn/heroimage.webp",
 };
 
 export const features = [
@@ -83,93 +77,6 @@ export const our_strength = {
   button: "Liên hệ ngay",
   video: "iuYum3L2cEg",
 };
-
-/**
- * Please check the https://nextui.org/docs/guide/routing to have a seamless router integration
- */
-
-export const sectionNestedItems: SidebarItem[] = [
-  //Dashboard
-  {
-    key: "dashboard",
-    href: "/dashboard",
-    icon: "solar:chart-outline",
-    title: "Báo cáo",
-  },
-
-  //Products Nested
-  {
-    key: "products",
-    title: "Sản phẩm",
-    icon: "product",
-    type: SidebarItemType.Nest,
-    items: [
-      {
-        key: "manage_product",
-        icon: "manage",
-        href: "/products",
-        title: "Quản lý sản phẩm",
-      },
-      {
-        key: "add-san-pham",
-        icon: "add",
-        href: "/add-product",
-        title: "Thêm sản phẩm",
-      },
-    ],
-  },
-
-  //Orders Nested
-  {
-    key: "orders",
-    title: "Đơn hàng",
-    icon: "order",
-    type: SidebarItemType.Nest,
-    items: [
-      {
-        key: "manage_order",
-        icon: "manage",
-        href: "/orders",
-        title: "Quản lý đơn hàng",
-      },
-      {
-        key: "add-order",
-        icon: "add",
-        href: "/add-order",
-        title: "Thêm đơn hàng",
-      },
-    ],
-  },
-
-  //Nhập xuất kho Nested
-  {
-    key: "inventory",
-    title: "Nhập xuất kho",
-    icon: "manage",
-    type: SidebarItemType.Nest,
-    items: [
-      {
-        key: "manage_inventory",
-        icon: "manage",
-        href: "/inventory",
-        title: "Quản lý nhập xuất",
-      },
-      {
-        key: "add-inventory",
-        icon: "add",
-        href: "/add-inventory",
-        title: "Thêm nhập xuất",
-      },
-    ],
-  },
-
-  {
-    key: "home",
-    href: "/",
-    icon: "home",
-    title: "Trang chủ",
-  },
-];
 
 export const footer = {
   map: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.2112628799364!2d106.6384076!3d10.7951252!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3175297c20ce6ff3%3A0x671008ae50b4a394!2zTMaw4bubaSBjaOG7kW5nIG114buXaQ!5e0!3m2!1svi!2s!4v1726648582357!5m2!1svi!2s",

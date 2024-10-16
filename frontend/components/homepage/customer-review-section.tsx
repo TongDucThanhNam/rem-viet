@@ -6,14 +6,15 @@ import { InfiniteMovingCards } from "@/components/animation/infinite-moving-card
 
 export default function CustomerReviewSection() {
   return (
-    <div className="h-[40rem] rounded-md flex flex-col antialiased  items-center justify-center relative overflow-hidden">
-      <h2 className="text-4xl font-bold text-center mb-8">
+    <div className="min-h-[20rem] md:h-[40rem] rounded-md flex flex-col antialiased items-center justify-center relative overflow-hidden px-4 py-8 md:py-0">
+      <h2 className="text-2xl md:text-4xl font-bold text-center mb-4 md:mb-8">
         Khách hàng nói gì về chúng tôi ?
       </h2>
       <InfiniteMovingCards
         direction="right"
         items={testimonials}
         speed="slow"
+        className={"w-full md:w-[80%] h-[20rem] md:h-[40rem]"}
       />
     </div>
   );

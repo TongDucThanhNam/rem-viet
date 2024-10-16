@@ -7,7 +7,7 @@ import React from "react";
 
 import SizeRadioItem from "@/components/radio/size-radio-item";
 
-import { cn } from "./cn";
+import { cn } from "@/components/lib/server-utils/utils";
 import { RatingValueEnum } from "./color-radio-item";
 
 export default function SizeRadio({ classNames, ...props }: RadioGroupProps) {

@@ -28,7 +28,13 @@ const CardItem = ({
   return (
     <Card className="overflow-hidden transition-shadow hover:shadow-lg">
       <div className="relative aspect-square">
-        <NextImage alt={name} className="" fill={true} src={imageUrls[0]} />
+        <NextImage
+          alt={name}
+          className=""
+          fill={true}
+          src={`${process.env.NEXT_PUBLIC_DOMAIN}/cdn-cgi/image/fit=scale-down,width=640,format=auto/${imageUrls[0]}`}
+          // src={imageUrls[0]}
+        />
       </div>
       <CardBody className="p-4">
         <h3 className="text-lg font-semibold line-clamp-2 mb-2">{name}</h3>

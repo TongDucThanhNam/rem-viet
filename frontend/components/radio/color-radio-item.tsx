@@ -7,8 +7,7 @@ import {
   VisuallyHidden,
 } from "@nextui-org/react";
 import React from "react";
-
-import { cn } from "./cn";
+import { cn } from "../lib/server-utils/utils";
 
 export enum RatingValueEnum {
   BAD = "bad",

@@ -1,6 +1,6 @@
 // import "@/styles/globals.css";
 import { Metadata } from "next";
-import React, { Suspense } from "react";
+import React from "react";
 
 import { siteConfig } from "@/config/site";
 import dynamic from "next/dynamic";

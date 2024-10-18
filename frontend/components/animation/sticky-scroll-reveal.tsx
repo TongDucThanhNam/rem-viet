@@ -1,10 +1,10 @@
 "use client";
+
 import React, { useEffect, useRef, useState } from "react";
 import { motion, useMotionValueEvent, useScroll } from "framer-motion";
-
 import { cn } from "@/components/lib/server-utils/utils";
 
-export const StickyScroll = ({
+export default function StickyScroll({
   content,
   contentClassName,
 }: {
@@ -14,12 +14,10 @@ export const StickyScroll = ({
     content?: React.ReactNode | any;
   }[];
   contentClassName?: string;
-}) => {
-  const [activeCard, setActiveCard] = React.useState(0);
-  const ref = useRef<any>(null);
+}) {
+  const [activeCard, setActiveCard] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
-    // uncomment line 22 and comment line 23 if you DONT want the overflow container and want to have it change on the entire page scroll
-    // target: ref
     container: ref,
     offset: ["start start", "end start"],
   });
@@ -30,22 +28,19 @@ export const StickyScroll = ({
     const closestBreakpointIndex = cardsBreakpoints.reduce(
       (acc, breakpoint, index) => {
         const distance = Math.abs(latest - breakpoint);
-
         if (distance < Math.abs(latest - cardsBreakpoints[acc])) {
           return index;
         }
-
         return acc;
       },
       0,
     );
-
     setActiveCard(closestBreakpointIndex);
   });
 
   const backgroundColors = [
+    "var(--slate-950)",
     "var(--slate-900)",
-    "var(--black)",
     "var(--neutral-900)",
   ];
   const linearGradients = [
@@ -78,7 +73,7 @@ export const StickyScroll = ({
                 animate={{
                   opacity: activeCard === index ? 1 : 0.3,
                 }}
-                className="text-2xl font-bold text-slate-100"
+                className="text-2xl font-bold text-white"
                 initial={{
                   opacity: 0,
                 }}
@@ -89,7 +84,7 @@ export const StickyScroll = ({
                 animate={{
                   opacity: activeCard === index ? 1 : 0.3,
                 }}
-                className="text-kg text-slate-300 max-w-sm mt-10"
+                className="text-lg text-gray-200 max-w-sm mt-10"
                 initial={{
                   opacity: 0,
                 }}
@@ -112,4 +107,4 @@ export const StickyScroll = ({
       </div>
     </motion.div>
   );
-};
+}

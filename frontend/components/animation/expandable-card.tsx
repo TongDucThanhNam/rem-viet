@@ -1,10 +1,9 @@
 "use client";
-import { Image } from "@nextui-org/image";
 import React, { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import NextImage from "next/image";
-
+import { Image } from "@nextui-org/react";
 import { useOutsideClick } from "@/components/hooks/use-outside-click";
+import NextImage from "next/image";
 
 export function ExpandableCard() {
   const [active, setActive] = useState<(typeof cards)[number] | boolean | null>(
@@ -207,7 +206,7 @@ export const CloseIcon = () => {
 
 const cards = [
   {
-    description: "Cửa hàng lưới chống muỗi",
+    description: "ĐC: 831 Đ. Âu Cơ, Tân Thành, Tân Phú",
     title: "Cửa hàng lưới chống muỗi",
     src: "/src/remviet2.webp",
     ctaText: "Liên hệ",

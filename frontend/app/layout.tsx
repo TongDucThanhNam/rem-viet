@@ -1,13 +1,13 @@
 import "@/app/styles/globals.css";
 import { Metadata, Viewport } from "next";
-import React from "react";
-
 import { siteConfig } from "@/config/site";
 import { nunito } from "@/app/fonts";
-
 import { Providers } from "./providers";
+import { GoogleAnalytics } from "@next/third-parties/google";
+import React from "react";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteConfig.url),
   title: {
     default: siteConfig.name,
     template: `%s - ${siteConfig.name}`,
@@ -21,8 +21,12 @@ export const metadata: Metadata = {
     index: true,
   },
   openGraph: {
+    type: "website",
+    locale: "vi_VN",
+    url: siteConfig.url,
     title: siteConfig.name,
     description: siteConfig.description,
+    siteName: siteConfig.name,
     images: [
       {
         url: siteConfig.image,
@@ -32,6 +36,13 @@ export const metadata: Metadata = {
       },
     ],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.name,
+    description: siteConfig.description,
+    images: [siteConfig.image],
+    creator: "@tongducthanhnam",
+  },
 };
 
 export const viewport: Viewport = {
@@ -39,22 +50,23 @@ export const viewport: Viewport = {
     { media: "(prefers-color-scheme: light)", color: "white" },
     { media: "(prefers-color-scheme: dark)", color: "black" },
   ],
+  width: "device-width",
+  initialScale: 1,
 };
 
-// export const dynamic = "force-dynamic";
-
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html className={""} lang="vi">
+    <html lang="vi">
       <body className={nunito.className}>
         <Providers>
           <main>{children}</main>
         </Providers>
       </body>
+      <GoogleAnalytics gaId="G-FL4SMXV2XL" />
     </html>
   );
 }

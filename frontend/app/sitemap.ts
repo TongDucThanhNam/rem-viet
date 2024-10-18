@@ -37,7 +37,7 @@ async function getPostPromise(): Promise<Route[]> {
   return posts.map((post: any) => ({
     url: `https://luoichongmuoi.shop/bai-viet/${post.slug}.html`,
     lastModified: post.updatedAt,
-    changeFrequency: "monthly",
+    changeFrequency: "daily",
     priority: 0.8,
   }));
 }

@@ -2,6 +2,7 @@ export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
   name: "Rèm Việt",
+  url: "https://luoichongmuoi.shop",
   description:
     "Cửa hàng Rèm Việt, chuyên cung cấp các sản phẩm lưới chống muỗi chất lượng cao. Đến với chúng tôi, bạn sẽ được phục vụ tận tình, chu đáo.",
   navItems: [
@@ -85,6 +86,14 @@ export const footer = {
     {
       name: "Đầu trang",
       href: "#hero",
+    },
+    {
+      name: "Bài viết",
+      href: "/bai-viet",
+    },
+    {
+      name: "Sản phẩm",
+      href: "/danh-sach-san-pham",
     },
   ],
 };

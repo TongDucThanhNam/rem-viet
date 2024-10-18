@@ -6,6 +6,7 @@ import { CloseIcon } from "@nextui-org/shared-icons";
 import React from "react";
 
 import { useCartStore } from "@/store/useCartStore";
+import { priceVietNamDongformetter } from "@/components/lib/client-utils/utils";
 
 export default function CartPage() {
   const removeFromCart = useCartStore((state) => state.removeFromCart);
@@ -222,7 +223,9 @@ export default function CartPage() {
                             </div>
                             <div className="flex items-center space-x-2 mt-1">
                               <span className="text-sm font-medium text-foreground">
-                                {product.price}
+                                {priceVietNamDongformetter(
+                                  product.price.toString(),
+                                )}
                               </span>
                               <span className="text-xs sm:text-sm text-muted-foreground">
                                 x {product.quantity}
@@ -252,7 +255,9 @@ export default function CartPage() {
               <Divider />
               <div className="flex justify-between">
                 <span>Tổng cộng</span>
-                <span className="text-default-800">{total}đ</span>
+                <span className="text-default-800">
+                  {priceVietNamDongformetter(total.toString())}
+                </span>
               </div>
             </div>
 

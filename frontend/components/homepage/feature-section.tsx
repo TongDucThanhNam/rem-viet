@@ -18,47 +18,47 @@ export default function FeatureSection() {
       title: "Sản xuất tại Việt Nam",
       description:
         "Sản phẩm được sản xuất tại Việt Nam, đảm bảo chất lượng, giá cả phải chăng.",
-      icon: <StreamlineProductionBelt />,
+      icon: <StreamlineProductionBelt height={30} width={30} />,
     },
     {
       title: "Chất lượng hàng đầu",
       description:
         "Chúng tôi cam kết mang đến sản phẩm chất lượng hàng đầu cho gia đình bạn.",
-      icon: <MaterialSymbolsHighQualityOutline />,
+      icon: <MaterialSymbolsHighQualityOutline height={30} width={30} />,
     },
     {
       title: "Công dụng hiệu quả",
       description:
         "Đảm bảo ngăn chặn muỗi, côn trùng, giúp gia đình bạn có không gian sống an toàn.",
-      icon: <Fa6SolidMosquitoNet />,
+      icon: <Fa6SolidMosquitoNet height={30} width={30} />,
     },
     {
       title: "Độ bền cao",
       description:
         "Sản phẩm có độ bền cao, giúp tiết kiệm chi phí cho gia đình bạn.",
-      icon: <IcOutlineShield />,
+      icon: <IcOutlineShield height={30} width={30} />,
     },
     {
       title: "Chăm sóc khách hàng 24/7",
       description: "Chúng tôi luôn sẵn lòng hỗ trợ bạn mọi lúc, mọi nơi.",
-      icon: <Ri24HoursLine />,
+      icon: <Ri24HoursLine height={30} width={30} />,
     },
     {
       title: "Thiết kế theo yêu cầu",
       description:
         "Chúng tôi có thể thiết kế theo kích thước mà khách hàng yêu cầu.",
-      icon: <FluentMdl2Design />,
+      icon: <FluentMdl2Design height={30} width={30} />,
     },
     {
       title: "Bảo hành dài hạn",
       description: "Chúng tôi cam kết bảo hành sản phẩm trong thời gian dài.",
-      icon: <FontistoDate />,
+      icon: <FontistoDate height={30} width={30} />,
     },
     {
       title: "Sáng tạo không giới hạn",
       description:
         "Chúng tôi luôn sáng tạo, đổi mới để mang lại sản phẩm tốt nhất.",
-      icon: <Icons8Idea />,
+      icon: <Icons8Idea height={30} width={30} />,
     },
   ];
 
@@ -69,14 +69,14 @@ export default function FeatureSection() {
           Mang đến không gian sống an toàn, tiện nghi
         </h2>
 
-        <p className="text-sm lg:text-base  max-w-2xl  my-4 mx-auto text-neutral-500 text-center font-normal dark:text-neutral-300">
+        <p className="text-sm lg:text-base  max-w-2xl  mx-auto text-neutral-500 text-center font-normal dark:text-neutral-300">
           Chúng tôi cung cấp các sản phẩm chất lượng, giá cả phải chăng, đảm bảo
           an toàn, tiện nghi cho gia đình bạn. Hãy đến với chúng tôi để trải
           nghiệm ngay hôm nay!
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4  relative z-10 py-10 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4  relative z-10 max-w-7xl mx-auto">
         {features.map((feature, index) => (
           <Feature key={feature.title} {...feature} index={index} />
         ))}

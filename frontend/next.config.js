@@ -17,11 +17,12 @@ const nextConfig = {
   },
   images: {
     // domains: ['localhost'],
-    deviceSizes: [
-      440, 540, 640, 828, 1080, 1280, 1400, 1536, 1700, 1920, 2560, 3840,
-    ],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 320, 374],
-    formats: ["image/webp", "image/avif"],
+    // deviceSizes: [
+    //   440, 540, 640, 828, 1080, 1280, 1400, 1536, 1700, 1920, 2560, 3840,
+    // ],
+    // imageSizes: [16, 32, 48, 64, 96, 128, 256, 320, 374],
+    // formats: ["image/webp", "image/avif"],
+    formats: ["image/webp"],
     remotePatterns: [
       {
         protocol: "https",

@@ -1,21 +1,23 @@
 "use client"; // This is a comment
 
+import { Badge } from "@nextui-org/badge";
+import { Button } from "@nextui-org/button";
 import {
-  Badge,
-  Button,
   Dropdown,
   DropdownItem,
   DropdownMenu,
   DropdownSection,
   DropdownTrigger,
-  Image,
-  Link,
-  NavbarItem,
-} from "@nextui-org/react";
+} from "@nextui-org/dropdown";
+import { Image } from "@nextui-org/image";
+import Link from "next/link";
+import { NavbarItem } from "@nextui-org/navbar";
+
 import React from "react";
 import { CartIcon, CloseIcon } from "@nextui-org/shared-icons";
 
 import { useCartStore } from "@/store/useCartStore";
+import { priceVietNamDongformetter } from "@/components/lib/client-utils/utils";
 
 //Props
 
@@ -56,7 +58,11 @@ export const CartDropdown = () => {
             cart.map((product) => (
               <DropdownItem key={product.id} href={`/san-pham/${product.id}`}>
                 <div className="w-full max-w-sm sm:max-w-md rounded-lg shadow-sm border border-border p-3 sm:p-4 transition-all duration-300 hover:shadow-md">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                  <div
+                    className={
+                      "flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-4"
+                    }
+                  >
                     <div className="w-full sm:w-auto flex justify-center sm:justify-start">
                       <Image
                         alt={`${product.name} image`}
@@ -83,7 +89,7 @@ export const CartDropdown = () => {
                       </div>
                       <div className="flex items-center space-x-2 mt-1">
                         <span className="text-sm font-medium text-foreground">
-                          {product.price}
+                          {priceVietNamDongformetter(product.price.toString())}
                         </span>
                         <span className="text-xs sm:text-sm text-muted-foreground">
                           x {product.quantity}
@@ -91,7 +97,7 @@ export const CartDropdown = () => {
                       </div>
                       <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-2">
                         {Object.entries(product.variants).map(
-                          ([key, value], index) => (
+                          ([key], index) => (
                             <span
                               key={index}
                               className="text-xs bg-secondary text-secondary-foreground px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full"
@@ -115,7 +121,7 @@ export const CartDropdown = () => {
             console.log("See all");
           }}
         >
-          <p>Tổng cộng {total}đ</p>
+          <p>Tổng cộng {priceVietNamDongformetter(total.toString())}</p>
           <Link href={"/gio-hang"}>Đến trang giỏ hàng</Link>
         </DropdownItem>
       </DropdownMenu>

@@ -1,7 +1,7 @@
 // "use client";
 
 import { YouTubeEmbed } from "@next/third-parties/google";
-import { Button } from "@nextui-org/react";
+import { Button } from "@nextui-org/button";
 import React from "react";
 
 import { our_strength } from "@/config/site";

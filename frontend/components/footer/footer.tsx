@@ -20,14 +20,15 @@ export default function Footer() {
           </div>
           <div className="h-64 md:h-full min-h-[250px]">
             <iframe
-              allowFullScreen={false}
+              src={footer.map}
+              title={"Rèm Việt Google Map"}
+              width="100%"
               height="100%"
+              style={{ border: 0 }}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              src={footer.map}
-              style={{ border: 0 }}
-              title="Google Maps"
-              width="100%"
+              allowFullScreen={false}
+              aria-hidden="true"
             />
           </div>
         </div>

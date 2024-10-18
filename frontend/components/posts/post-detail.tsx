@@ -1,5 +1,4 @@
 "use client";
-
 import { Chip, Image, Link, Snippet } from "@nextui-org/react";
 import { AnchorIcon } from "@nextui-org/shared-icons";
 import { YouTubeEmbed } from "@next/third-parties/google";
@@ -56,21 +55,37 @@ const ImageBlock = memo(({ block }: { block: any }) => (
 
 ImageBlock.displayName = "ImageBlock";
 
+interface RichTextItem {
+  plain_text: string;
+}
+
+interface HeadingBlockProps {
+  block: {
+    [key: string]: {
+      rich_text: RichTextItem[];
+    };
+  };
+  level: 1 | 2 | 3;
+}
+
 const HeadingBlock = memo(
   ({ block, level }: { block: any; level: 1 | 2 | 3 }) => {
-    const Tag = `h${level}` as keyof JSX.IntrinsicElements;
+    const Tagg = `h${level}` as "h1" | "h2" | "h3";
     const className = {
       1: "text-4xl md:text-5xl font-bold mt-12 mb-6",
       2: "text-3xl md:text-4xl font-semibold mt-10 mb-5",
       3: "text-2xl md:text-3xl font-medium mt-8 mb-4",
     }[level];
 
+    const richText = block[`heading_${level}`]?.rich_text || [];
+
     return (
-      <Tag className={`${className} text-primary`}>
-        {block[`heading_${level}`].rich_text.map((text: any, index: number) => (
-          <span key={index}>{text.plain_text}</span>
-        ))}
-      </Tag>
+      <Tagg className={`${className} text-primary`}>
+        {Array.isArray(richText) &&
+          richText.map((text: any, index: number) => (
+            <span key={index}>{text.plain_text}</span>
+          ))}
+      </Tagg>
     );
   },
 );

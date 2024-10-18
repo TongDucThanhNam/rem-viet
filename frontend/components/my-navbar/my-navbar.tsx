@@ -1,10 +1,8 @@
 "use client";
 
-// Import và sử dụng các thành phần động, memo hóa, và sự kiện tối ưu
 import dynamic from "next/dynamic";
+import { Button } from "@nextui-org/button";
 import {
-  Button,
-  cn,
   Navbar,
   NavbarBrand,
   NavbarContent,
@@ -12,50 +10,78 @@ import {
   NavbarMenu,
   NavbarMenuItem,
   NavbarMenuToggle,
-} from "@nextui-org/react";
-import React from "react";
+} from "@nextui-org/navbar";
+import React, { useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 
 import { RemVietIcon } from "@/components/icons/remviet";
 import { siteConfig } from "@/config/site";
 import { GithubIcon } from "@/components/icons/icons";
 import SearchBar from "@/components/my-navbar/search-bar";
+import { cn } from "@/components/lib/server-utils/utils";
 
-// Dynamic import để giảm tải SSR
 const ThemeSwitch = dynamic(
   () => import("@/components/theme-switch").then((mod) => mod.ThemeSwitch),
   {
     ssr: false,
-    loading: () => <Button className={"bg-transparent"} isIconOnly={true} />,
+    loading: () => <Button className="bg-transparent" isIconOnly />,
   },
 );
+
 const CartDropdown = dynamic(
   () => import("@/components/my-navbar/cart").then((mod) => mod.CartDropdown),
   {
     ssr: false,
-    loading: () => <Button className={"bg-transparent"} isIconOnly={true} />,
+    loading: () => <Button className="bg-transparent" isIconOnly />,
   },
 );
 
 export default function MyNavbar(props: any) {
-  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const handleMenuToggle = React.useCallback(() => {
+  const handleMenuToggle = useCallback(() => {
     setIsMenuOpen((prev) => !prev);
   }, []);
+
+  const navbarBaseClass = useMemo(
+    () =>
+      cn("border-default-100", {
+        "bg-default-200/50 dark:bg-default-100/50": isMenuOpen,
+      }),
+    [isMenuOpen],
+  );
+
+  const navItems = useMemo(
+    () =>
+      siteConfig.navItems.map((item) => (
+        <NavbarItem key={item.href}>
+          <Link href={item.href}>{item.label}</Link>
+        </NavbarItem>
+      )),
+    [],
+  );
+
+  const menuItems = useMemo(
+    () =>
+      siteConfig.navItems.map((item, index) => (
+        <NavbarMenuItem key={`${item}-${index}`}>
+          <Link className="w-full text-default-500" href={item.href}>
+            {item.label}
+          </Link>
+        </NavbarMenuItem>
+      )),
+    [],
+  );
 
   return (
     <Navbar
       {...props}
       isBordered
       classNames={{
-        base: cn("border-default-100", {
-          "bg-default-200/50 dark:bg-default-100/50": isMenuOpen,
-        }),
+        base: navbarBaseClass,
         wrapper: "w-full justify-center bg-transparent",
         item: "hidden md:flex",
       }}
-      height="60px"
       isMenuOpen={isMenuOpen}
       onMenuOpenChange={handleMenuToggle}
     >
@@ -63,23 +89,17 @@ export default function MyNavbar(props: any) {
 
       <NavbarBrand>
         <Button
-          aria-label={"Rèm Việt"}
+          aria-label="Rèm Việt"
           as={Link}
-          className={"bg-transparent"}
-          href={"/"}
+          className="bg-transparent"
+          href="/"
           startContent={<RemVietIcon />}
         >
           Rèm Việt
         </Button>
       </NavbarBrand>
 
-      <NavbarContent className="max-md:hidden">
-        {siteConfig.navItems.map((item) => (
-          <NavbarItem key={item.href}>
-            <Link href={item.href}>{item.label}</Link>
-          </NavbarItem>
-        ))}
-      </NavbarContent>
+      <NavbarContent className="max-md:hidden">{navItems}</NavbarContent>
 
       <NavbarContent className="max-md:hidden">
         <NavbarItem className="hidden lg:flex">
@@ -91,7 +111,7 @@ export default function MyNavbar(props: any) {
         className="w-fit data-[justify=end]:flex-grow-0"
         justify="end"
       >
-        <NavbarItem className={"ml-2 !flex gap-2"}>
+        <NavbarItem className="ml-2 !flex gap-2">
           <ThemeSwitch />
         </NavbarItem>
         <CartDropdown />
@@ -99,9 +119,9 @@ export default function MyNavbar(props: any) {
           <Button
             aria-label="Github"
             as={Link}
-            className={"bg-transparent"}
+            className="bg-transparent"
             href={siteConfig.links.github}
-            isIconOnly={true}
+            isIconOnly
           >
             <GithubIcon />
           </Button>
@@ -112,13 +132,7 @@ export default function MyNavbar(props: any) {
         <NavbarMenuItem>
           <SearchBar />
         </NavbarMenuItem>
-        {siteConfig.navItems.map((item, index) => (
-          <NavbarMenuItem key={`${item}-${index}`}>
-            <Link className="w-full text-default-500" href={item.href}>
-              {item.label}
-            </Link>
-          </NavbarMenuItem>
-        ))}
+        {menuItems}
       </NavbarMenu>
     </Navbar>
   );

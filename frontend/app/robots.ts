@@ -5,8 +5,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: "/dashboard/",
     },
     sitemap: "https://luoichongmuoi.shop/sitemap.xml",
+    host: "https://luoichongmuoi.shop",
   };
 }

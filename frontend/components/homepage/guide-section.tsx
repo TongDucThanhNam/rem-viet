@@ -1,8 +1,7 @@
 "use client";
 import React from "react";
 import Image from "next/image";
-
-import { StickyScroll } from "@/components/animation/sticky-scroll-reveal";
+import StickyScroll from "@/components/animation/sticky-scroll-reveal";
 
 const content = [
   {

@@ -114,7 +114,10 @@ const ListBlock = memo(
 ListBlock.displayName = "ListBlock";
 
 const CodeBlock = memo(({ block }: { block: any }) => (
-  <Snippet className="my-6 p-4 rounded-lg w-full md:w-auto text-sm md:text-base">
+  <Snippet
+    hideSymbol={true}
+    className="my-6 p-4 rounded-lg w-full md:w-auto text-sm md:text-base"
+  >
     <pre className="whitespace-pre-wrap break-words">
       {block.code.rich_text.map((text: any) =>
         text.plain_text.split("\n").map((line: string, index: number) => (

@@ -44,22 +44,17 @@ export default async function HeroSection() {
             </div>
           </div>
           <div className="mt-10 lg:mt-0">
-            <div className="relative w-[400px] h-[400px]">
+            <div className="">
               <NextImage
                 priority
                 alt="Hero image"
-                // blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQYHjIhHhwcHj0sLiQySUBMS0dARkVQWnNiUFVtVkVGZIhlbXd7gYKBTmCNl4x9lnN+gXz/2wBDARUXFx4aHjshITt8U0ZTfHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHx8fHz/wAARCABdAF0DASIAAhEBAxEB/8QAGQAAAwEBAQAAAAAAAAAAAAAAAQIDAAQF/8QAGBABAQEBAQAAAAAAAAAAAAAAAAECERL/xAAXAQEBAQEAAAAAAAAAAAAAAAABAAID/8QAFREBAQAAAAAAAAAAAAAAAAAAABH/2gAMAwEAAhEDEQA/APSCh0LXRzala0OtBhhemhRoJYIQsHQtBEOhaHoEfQXRPQXTNMNaHSdbpoikponKeGqHjBBFMa0lo2p6oqg3RfSetF9KmKdDrAxS3RlKaGqHh4TMUzFVDQaMjWCqJ6R3VtRDYpS1U/RtpVVR28bivkPJSXBkP5GZSbMVzAzlTMSaRrFJGsSQ1HPuOvWUd5CcW4lcureU7gQvQ8hcreQuW2EfIzKnlpDEGcqZjSKZihCQbDyNxRI6yjvLq1EtZETj1klw6dZJ5EFdfAsOFbBONwzJDIeQsPCTSDxoIRLEtRap6QQ1C8UpQn//2Q=="
-                // height={200}
-                // width={200}
-                fill={true}
-                fetchPriority={"high"}
-                loading={"eager"}
-                unselectable={"on"}
-                role={"presentation"}
-                className={"object-cover rounded-lg"}
-                placeholder="blur"
+                width={400}
+                height={400}
                 src={heroImage}
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                fetchPriority="high"
+                loading="eager"
+                className="object-cover rounded-lg"
+                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
               />
             </div>
           </div>

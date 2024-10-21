@@ -42,7 +42,7 @@ export default async function VideoSection() {
           {/* Căn giữa video */}
           {/*<ResponsiveVideoLazy videoSrc={heroSection.videoUrl} />*/}
           <HLSVideoPlayer
-            src={"https://luoichongmuoi.cdn.vccloud.vn/m3u8/output.m3u8"}
+            src={"https://rem-viet.hcm.ss.bfcplatform.vn/m3u8/output.m3u8"}
             // mp4Src={"https://luoichongmuoi.cdn.vccloud.vn/remviet.mp4"}
           />
         </div>

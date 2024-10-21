@@ -1,3 +1,5 @@
+"use server";
+
 import React from "react";
 
 import { cn } from "@/components/lib/server-utils/utils";
@@ -12,7 +14,7 @@ import {
   StreamlineProductionBelt,
 } from "@/components/icons/icons";
 
-export default function FeatureSection() {
+export default async function FeatureSection() {
   const features = [
     {
       title: "Sản xuất tại Việt Nam",

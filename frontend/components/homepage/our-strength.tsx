@@ -1,11 +1,12 @@
 // "use client";
+"use server";
 
 import { YouTubeEmbed } from "@next/third-parties/google";
 import React from "react";
 
 import { our_strength } from "@/config/site";
 
-export default function OurStrength() {
+export default async function OurStrength() {
   return (
     <div className="flex items-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto w-full">

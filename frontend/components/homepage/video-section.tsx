@@ -1,3 +1,5 @@
+"use server";
+
 import React, { Suspense } from "react";
 import NextImage from "next/image";
 
@@ -10,7 +12,7 @@ const words = [
   { text: "Tiện dụng hiệu quả", className: "text-2xl md:text-4xl font-normal" },
 ];
 
-export default function VideoSection() {
+export default async function VideoSection() {
   return (
     <>
       <div className="mb-4">

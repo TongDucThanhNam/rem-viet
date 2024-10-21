@@ -21,7 +21,7 @@ const doc = {
         title: 'E-commerce API',
         description: 'API documentation for E-commerce',
     },
-    host: `localhost:${process.env.PORT}/api`,
+    host: `${process.env.HOST}:${process.env.PORT}/api`,
     basePath: '/',
     schemes: ['http'],
     consumes: ['application/json'],

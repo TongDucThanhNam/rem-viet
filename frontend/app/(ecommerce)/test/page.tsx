@@ -1,101 +1,17 @@
-"use server";
-
 import React, { Suspense } from "react";
-import dynamic from "next/dynamic";
-
 import { cn } from "@/components/lib/server-utils/utils";
-import { Navbar } from "@nextui-org/navbar";
-
-const MyNavbar = dynamic(() => import("@/components/my-navbar/my-navbar"), {
-  // ssr: false,
-  loading: () => <Navbar />,
-});
-
-const HeroSection = dynamic(
-  () => import("@/components/homepage/hero-section"),
-  {
-    // ssr: false,
-    loading: () => <p>Loading</p>,
-  },
-);
-
-const SceneWrapper = dynamic(
-  () => import("@/components/homepage/window-section"),
-  {
-    ssr: false,
-    loading: () => <p>Loading</p>,
-  },
-);
-
-// Dynamic imports with custom loading states
-
-const VideoSection = dynamic(
-  () => import("@/components/homepage/video-section"),
-  {
-    // ssr: false,
-    loading: () => <p>Loading</p>,
-  },
-);
-const Mosquito = dynamic(() => import("@/components/animation/mosquito"), {
-  // ssr: false,
-  loading: () => <p>Loading</p>,
-});
-
-const Scene = dynamic(() => import("@/components/homepage/window-section"), {
-  // ssr: false,
-  loading: () => <p>Loading</p>,
-});
-
-const FeatureSection = dynamic(
-  () => import("@/components/homepage/feature-section"),
-  {
-    // ssr: false,
-    loading: () => <p>Loading</p>,
-  },
-);
-const OurStrength = dynamic(
-  () => import("@/components/homepage/our-strength"),
-  {
-    // ssr: false,
-    loading: () => <p>Loading</p>,
-  },
-);
-const CustomerReviewSection = dynamic(
-  () => import("@/components/homepage/customer-review-section"),
-  {
-    // ssr: false,
-    loading: () => <p>Loading</p>,
-  },
-);
-const GuideSection = dynamic(
-  () => import("@/components/homepage/guide-section"),
-  {
-    // ssr: false,
-    loading: () => <p>Loading</p>,
-  },
-);
-const MaterialSection = dynamic(
-  () => import("@/components/homepage/material-section"),
-  {
-    // ssr: false,
-    loading: () => <p>Loading</p>,
-  },
-);
-const FaqSection = dynamic(() => import("@/components/homepage/faq-section"), {
-  // ssr: false,
-});
-const NewsletterSection = dynamic(
-  () => import("@/components/homepage/newsletter-section"),
-  {
-    // ssr: false,
-    loading: () => <p>Loading</p>,
-  },
-);
-
-const Footer = dynamic(() => import("@/components/footer/footer"), {
-  // ssr: false,
-  loading: () => <p>Loading</p>,
-});
+import HeroSection from "@/components/homepage/hero-section";
+import VideoSection from "@/components/homepage/video-section";
+import Mosquito from "@/components/animation/mosquito";
+import Scene from "@/components/homepage/window-section";
+import FeatureSection from "@/components/homepage/feature-section";
+import OurStrength from "@/components/homepage/our-strength";
+import CustomerReviewSection from "@/components/homepage/customer-review-section";
+import GuideSection from "@/components/homepage/guide-section";
+import MaterialSection from "@/components/homepage/material-section";
+import FaqSection from "@/components/homepage/faq-section";
+import NewsletterSection from "@/components/homepage/newsletter-section";
+import Footer from "@/components/footer/footer";
 
 const Section = ({
   id,
@@ -114,7 +30,6 @@ const Section = ({
 export default async function Home() {
   return (
     <div className={"flex flex-col max-w-screen max-h-screen"}>
-      <MyNavbar />
       <div
         className={cn(
           "max-w-screen h-full",
@@ -149,7 +64,7 @@ export default async function Home() {
             className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center"
             id="window"
           >
-            <SceneWrapper />
+            <Scene />
           </Section>
 
           <Section

@@ -1,10 +1,11 @@
 // "use client";
+"use server";
 
 import React from "react";
 
 import { faqs } from "@/config/site";
 
-export default function FaqSection() {
+export default async function FaqSection() {
   return (
     <div className="text-center mb-8">
       <div className="">

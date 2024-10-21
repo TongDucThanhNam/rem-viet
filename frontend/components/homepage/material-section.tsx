@@ -1,4 +1,5 @@
 // "use client";
+"use server";
 
 import { YouTubeEmbed } from "@next/third-parties/google";
 import { Button } from "@nextui-org/button";
@@ -6,7 +7,7 @@ import React from "react";
 
 import { our_strength } from "@/config/site";
 
-export default function MaterialSection() {
+export default async function MaterialSection() {
   return (
     <div className="max-w-7xl mx-auto w-full">
       <div className="text-center mb-12">

@@ -1,10 +1,11 @@
-"use client";
+// "use client";
+"use server";
 
 import React from "react";
 
 import { InfiniteMovingCards } from "@/components/animation/infinite-moving-cards";
 
-export default function CustomerReviewSection() {
+export default async function CustomerReviewSection() {
   return (
     <div className="min-h-[20rem] md:h-[40rem] rounded-md flex flex-col antialiased items-center justify-center relative overflow-hidden px-4 py-8 md:py-0">
       <h2 className="text-2xl md:text-4xl font-bold text-center mb-4 md:mb-8">

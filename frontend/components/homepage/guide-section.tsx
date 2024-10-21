@@ -1,4 +1,6 @@
-"use client";
+// "use client";
+"use server";
+
 import React from "react";
 import Image from "next/image";
 import StickyScroll from "@/components/animation/sticky-scroll-reveal";
@@ -72,7 +74,7 @@ const content = [
   },
 ];
 
-export default function GuideSection() {
+export default async function GuideSection() {
   return (
     <div className={"w-full h-full"}>
       <h2 className="text-2xl md:text-4xl font-bold text-center mb-4 md:mb-8">

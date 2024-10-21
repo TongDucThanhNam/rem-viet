@@ -16,6 +16,17 @@ export const RemVietIcon: React.FC<IconSvgProps> = ({
   height,
 }) => {
   return (
-    <NextImage alt={"Rem Viet"} height={size} src={remviet} width={size} />
+    <NextImage
+      priority={true}
+      fetchPriority={"high"}
+      loading={"eager"}
+      unselectable={"on"}
+      decoding={"sync"}
+      role={"img"}
+      alt={"Rem Viet"}
+      height={size}
+      src={remviet}
+      width={size}
+    />
   );
 };

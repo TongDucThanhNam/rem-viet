@@ -1,60 +1,43 @@
-"use client";
-// "use server";
-
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera, Text } from "@react-three/drei";
 import { Slider } from "@nextui-org/slider";
-import React, { useState } from "react";
-
 import {
   Card,
   CardBody,
   CardFooter,
   CardHeader,
-  SliderValue,
   Tooltip,
 } from "@nextui-org/react";
 import { Button } from "@nextui-org/button";
 
 function WindowFrame({ width, height }: { width: number; height: number }) {
-  const frameColor = "#8b4513"; // Brown color for the frame
+  const frameColor = "#8b4513";
   const frameThickness = 0.05;
-  const measurementColor = "#573186"; // Red color for measurement lines
+  const measurementColor = "#573186";
   const lineThickness = 0.02;
   const textOffset = 0.2;
 
   return (
     <group>
-      {/* Window Frame */}
       <group>
-        {/* Top frame */}
         <mesh position={[0, height / 2 - frameThickness / 2, 0]}>
           <boxGeometry args={[width, frameThickness, frameThickness]} />
           <meshPhongMaterial color={frameColor} />
         </mesh>
-
-        {/* Bottom frame */}
         <mesh position={[0, -height / 2 + frameThickness / 2, 0]}>
           <boxGeometry args={[width, frameThickness, frameThickness]} />
           <meshPhongMaterial color={frameColor} />
         </mesh>
-
-        {/* Left frame */}
         <mesh position={[-width / 2 + frameThickness / 2, 0, 0]}>
           <boxGeometry args={[frameThickness, height, frameThickness]} />
           <meshPhongMaterial color={frameColor} />
         </mesh>
-
-        {/* Right frame */}
         <mesh position={[width / 2 - frameThickness / 2, 0, 0]}>
           <boxGeometry args={[frameThickness, height, frameThickness]} />
           <meshPhongMaterial color={frameColor} />
         </mesh>
       </group>
-
-      {/* Measurement Lines */}
       <group>
-        {/* Width measurement */}
         <mesh position={[0, height / 2 + textOffset, 0]} rotation={[0, 0, 0]}>
           <boxGeometry args={[width, lineThickness, lineThickness]} />
           <meshBasicMaterial color={measurementColor} />
@@ -68,8 +51,6 @@ function WindowFrame({ width, height }: { width: number; height: number }) {
         >
           {`${width.toFixed(2)}m`}
         </Text>
-
-        {/* Height measurement */}
         <mesh
           position={[-width / 2 - textOffset, 0, 0]}
           rotation={[0, 0, Math.PI / 2]}
@@ -92,25 +73,24 @@ function WindowFrame({ width, height }: { width: number; height: number }) {
   );
 }
 
-export default function Scene() {
-  const [height, setHeight] = useState<number>(3);
-  const [width, setWidth] = useState<number>(2);
+interface SceneProps {
+  height: number;
+  width: number;
+  onHeightChange: (value: number) => void;
+  onWidthChange: (value: number) => void;
+}
 
-  const handleHeightChange = (value: SliderValue) => {
-    if (isNaN(Number(value))) return;
-    setHeight(Number(value));
-  };
-
-  const handleWidthChange = (value: SliderValue) => {
-    if (isNaN(Number(value))) return;
-    setWidth(Number(value));
-  };
-
+export default async function Scene({
+  height,
+  width,
+  onHeightChange,
+  onWidthChange,
+}: SceneProps) {
   return (
     <div className="flex flex-col sm:min-h-screen md:min-h-full w-screen overflow-y-auto">
       <div className="flex-grow flex flex-col md:flex-row p-4 space-y-4 md:space-y-0 md:space-x-4">
         <div
-          className="w-full h-[300px] 
+          className="w-full h-[300px]
                 sm:h-[400px] md:h-[500px] lg:h-[600px] xl:h-[600]
                 sm:w-[400px] md:w-[600px] lg:w-[800px] xl:w-[900]
                 mx-auto dark:bg-black bg-white dark:bg-dot-white/[0.2] bg-dot-black/[0.2]
@@ -158,13 +138,13 @@ export default function Scene() {
                         aria-label="Height value"
                         value={height}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          setHeight(Number(e.target.value))
+                          onHeightChange(Number(e.target.value))
                         }
                         onKeyDown={(
                           e: React.KeyboardEvent<HTMLInputElement>,
                         ) => {
                           if (e.key === "Enter" && !isNaN(Number(height))) {
-                            setHeight(Number(height));
+                            onHeightChange(Number(height));
                           }
                         }}
                       />
@@ -172,7 +152,7 @@ export default function Scene() {
                   </output>
                 )}
                 value={height}
-                onChange={handleHeightChange}
+                onChange={(value) => onHeightChange(Number(value))}
               />
             </div>
 
@@ -197,13 +177,13 @@ export default function Scene() {
                         aria-label="Width value"
                         value={width}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                          setWidth(Number(e.target.value))
+                          onWidthChange(Number(e.target.value))
                         }
                         onKeyDown={(
                           e: React.KeyboardEvent<HTMLInputElement>,
                         ) => {
                           if (e.key === "Enter" && !isNaN(Number(width))) {
-                            setWidth(Number(width));
+                            onWidthChange(Number(width));
                           }
                         }}
                       />
@@ -211,14 +191,12 @@ export default function Scene() {
                   </output>
                 )}
                 value={width}
-                onChange={handleWidthChange}
+                onChange={(value) => onWidthChange(Number(value))}
               />
 
               <Button
                 color={"primary"}
                 onPress={() => {
-                  // Call the function to show the notification
-                  // useNotification("This is an info notification", "info");
                   console.log("height: ", height);
                   console.log("width: ", width);
                 }}

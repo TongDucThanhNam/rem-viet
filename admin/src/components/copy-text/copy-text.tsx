@@ -4,7 +4,7 @@ import React, { forwardRef, memo, useMemo } from "react";
 import {
   SolarCheckReadLinear,
   SolarCopyLinear,
-} from "../../../../frontend/components/icons/icons";
+} from "@/components/icons/icons";
 
 export interface CopyTextProps extends React.HTMLAttributes<HTMLDivElement> {
   className?: string;

@@ -1,140 +1,131 @@
 "use client";
 
-import { Formik } from "formik";
-import { Button, Divider, Input, Link, Spacer } from "@nextui-org/react";
 import React from "react";
+import {Button, Checkbox, Divider, Input, Link} from "@nextui-org/react";
+import {RemVietIcon} from "@/components/icons/remviet";
+import {GithubIcon, Google, SolarEyeBold, SolarEyeClosedLinear} from "@/components/icons/icons";
 
-import { GithubIcon, TwitterIcon } from "../../../../frontend/components/icons/icons";
+export default function RegisterForm() {
+    const [isVisible, setIsVisible] = React.useState(false);
+    const [isConfirmVisible, setIsConfirmVisible] = React.useState(false);
 
-const defaultSignFormData = {
-  username: "Ecommerse",
-  password: "",
-};
+    const toggleVisibility = () => setIsVisible(!isVisible);
+    const toggleConfirmVisibility = () => setIsConfirmVisible(!isConfirmVisible);
 
-export const RegisterForm: React.FC = () => {
-  // @ts-ignore
-  return (
-    <div className=" w-96">
-      <Formik
-        initialValues={defaultSignFormData}
-        // validate={handleSignFormValidate}
-        onSubmit={(values, { setSubmitting }) => {
-          setTimeout(() => {
-            setSubmitting(false);
-            // toast({
-            //     title: 'Welcome.',
-            //     description: 'Start your trip next. ',
-            // });
-            // router.replace('/');
-          }, 400);
-        }}
-      >
-        {({
-          values,
-          errors,
-          handleChange,
-          isSubmitting,
-          handleSubmit,
-          handleBlur,
-        }) => (
-          <form autoComplete="off" onSubmit={handleSubmit}>
-            <Input
-              isRequired
-              label={errors?.username || "UserName"}
-              labelPlacement={"outside"}
-              name="username"
-              placeholder="username: Arbitrary name"
-              size={"lg"}
-              value={values?.username}
-              onBlur={handleBlur}
-              onValueChange={handleChange}
-            />
-            <Spacer y={3} />
-
-            {/*Phone number*/}
-            <Input
-              isRequired
-              labelPlacement={"outside"}
-              name="phone"
-              size={"lg"}
-              placeholder="phone: 1234567890"
-              // value={values?.phone}
-              // label={errors?.phone || 'Phone'}
-              onBlur={handleBlur}
-              onValueChange={handleChange}
-            />
-            <Spacer y={3} />
-
-            {/*Password*/}
-            <Input
-              isRequired
-              name="password"
-              onBlur={handleBlur}
-              onValueChange={handleChange}
-              labelPlacement={"outside"}
-              // status={errors?.password ? 'error' : undefined}
-              label={errors?.password || "Password"}
-              placeholder=""
-              // labelLeft={<Password set="bold"/>}
-              value={values?.password}
-              type={"password"}
-              // shadow={false}
-              size={"lg"}
-            />
-            <Spacer y={3} />
-
-            {/*Recheck input  */}
-            <Input
-              isRequired
-              name="repassword"
-              onBlur={handleBlur}
-              onValueChange={handleChange}
-              labelPlacement={"outside"}
-              // status={errors?.password ? 'error' : undefined}
-              label={errors?.password || "Re-enter Password"}
-              placeholder="re-enter password"
-              // labelLeft={<Password set="bold"/>}
-              value={values?.password}
-              type={"password"}
-              // shadow={false}
-              size={"lg"}
-            />
-            <Spacer y={1} />
-
-            <Spacer y={1} />
-            <Button className="w-full" color="primary" size="lg" type="submit">
-              Sign up
-            </Button>
-
-            {/* Dont have account */}
-            <Spacer y={1} />
-            <div className="flex-row justify-center">
-              <span>Already have an account? </span>
-              <Link color="primary" href={"/login"}>
-                Sign in
-              </Link>
+    return (
+        <div
+            className="flex h-screen w-screen items-center justify-end overflow-hidden rounded-small bg-content1 p-2 sm:p-4 lg:p-8"
+            style={{
+                backgroundImage:
+                    "url(https://nextuipro.nyc3.cdn.digitaloceanspaces.com/components-images/black-background-texture.jpeg)",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+            }}
+        >
+            {/* Logo Thương Hiệu */}
+            <div className="absolute left-10 top-10">
+                <div className="flex items-center">
+                    <RemVietIcon className="text-white" size={40}/>
+                    <p className="font-medium text-white">ACME</p>
+                </div>
             </div>
-          </form>
-        )}
-      </Formik>
 
-      <Spacer y={1} />
-      <Divider />
+            {/* Lời Chứng Thực */}
+            <div className="absolute bottom-10 left-10 hidden md:block">
+                <p className="max-w-xl text-white/60">
+                    <span className="font-medium">“</span>
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eget augue nec massa
+                    volutpat aliquet.
+                    <span className="font-medium">”</span>
+                </p>
+            </div>
 
-      <Spacer y={1} />
-
-      <div className="flex content-center justify-center">
-        <Button isIconOnly={true}>
-          <GithubIcon />
-        </Button>
-
-        <Spacer y={1} />
-        <Button isIconOnly={true}>
-          <TwitterIcon />
-        </Button>
-      </div>
-
-      {/*<OtherSignInPlatform />*/}
-    </div>
-  );
-};
+            {/* Biểu Mẫu Đăng Ký */}
+            <div className="flex w-full max-w-sm flex-col gap-4 rounded-large bg-content1 px-8 pb-10 pt-6 shadow-small">
+                <p className="pb-2 text-xl font-medium">Đăng Ký</p>
+                <form className="flex flex-col gap-3" onSubmit={(e) => e.preventDefault()}>
+                    <Input
+                        isRequired
+                        label="Địa Chỉ Email"
+                        name="email"
+                        placeholder="Nhập email của bạn"
+                        type="email"
+                        variant="bordered"
+                    />
+                    <Input
+                        isRequired
+                        endContent={
+                            <button type="button" onClick={toggleVisibility}>
+                                {isVisible ? (
+                                    <SolarEyeClosedLinear/>
+                                ) : (
+                                    <SolarEyeBold/>
+                                )}
+                            </button>
+                        }
+                        label="Mật Khẩu"
+                        name="password"
+                        placeholder="Nhập mật khẩu của bạn"
+                        type={isVisible ? "text" : "password"}
+                        variant="bordered"
+                    />
+                    <Input
+                        isRequired
+                        endContent={
+                            <button type="button" onClick={toggleConfirmVisibility}>
+                                {isConfirmVisible ? (
+                                    <SolarEyeClosedLinear/>
+                                ) : (
+                                    <SolarEyeBold/>
+                                )}
+                            </button>
+                        }
+                        label="Xác Nhận Mật Khẩu"
+                        name="confirmPassword"
+                        placeholder="Xác nhận mật khẩu của bạn"
+                        type={isConfirmVisible ? "text" : "password"}
+                        variant="bordered"
+                    />
+                    <Checkbox isRequired className="py-4" size="sm">
+                        Tôi đồng ý với&nbsp;
+                        <Link href="#" size="sm">
+                            Điều Khoản
+                        </Link>
+                        &nbsp; và&nbsp;
+                        <Link href="#" size="sm">
+                            Chính Sách Bảo Mật
+                        </Link>
+                    </Checkbox>
+                    <Button color="primary" type="submit">
+                        Đăng Ký
+                    </Button>
+                </form>
+                <div className="flex items-center gap-4 py-2">
+                    <Divider className="flex-1"/>
+                    <p className="shrink-0 text-tiny text-default-500">HOẶC</p>
+                    <Divider className="flex-1"/>
+                </div>
+                <div className="flex flex-col gap-2">
+                    <Button
+                        startContent={<Google/>}
+                        variant="bordered"
+                    >
+                        Tiếp Tục với Google
+                    </Button>
+                    <Button
+                        startContent={<GithubIcon/>}
+                        variant="bordered"
+                    >
+                        Tiếp Tục với Github
+                    </Button>
+                </div>
+                <p className="text-center text-small">
+                    Đã có tài khoản?&nbsp;
+                    <Link href="/" size="sm">
+                        Đăng Nhập
+                    </Link>
+                </p>
+            </div>
+        </div>
+    );
+}

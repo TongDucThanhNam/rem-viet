@@ -8,7 +8,7 @@ import {
   Google,
   SolarEyeBold,
   SolarEyeClosedLinear,
-} from "../../../../frontend/components/icons/icons";
+} from "@/components/icons/icons";
 
 // import {AcmeIcon} from "./acme";
 

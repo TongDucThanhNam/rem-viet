@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+      args:
+        - BACKEND_URL=${BACKEND_URL}
+        - NEXT_PUBLIC_DOMAIN=${NEXT_PUBLIC_DOMAIN}
+      target: release
+    image:
+      tongducthanhnam/nextui-ecommerce-admin:latest
+    volumes:
+      - ./admin:/app
+    ports:
+      - "9999:3000"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+    environment:
+      - BACKEND_URL=${BACKEND_URL}
+
+networks:
+  app-network:
+    driver: bridge

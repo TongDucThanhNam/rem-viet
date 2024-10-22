@@ -11,7 +11,6 @@
   "dependencies": {
     "@nextui-org/react": "^2.4.8",
     "@react-three/drei": "^9.114.4",
-    "@react-three/fiber": "",
     "@tabler/icons-react": "^3.19.0",
     "framer-motion-3d": "^11.11.9",
     "next": "14.2.15",
@@ -19,7 +18,8 @@
     "react": "^18",
     "react-dom": "^18",
     "react-dropzone": "^14.2.9",
-    "recharts": "^2.13.0"
+    "recharts": "^2.13.0",
+    "sharp": "^0.33.5"
   },
   "devDependencies": {
     "@fullhuman/postcss-purgecss": "^6.0.0",

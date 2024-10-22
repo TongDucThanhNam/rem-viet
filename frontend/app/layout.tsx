@@ -1,3 +1,5 @@
+import { SpeedInsights } from "@vercel/speed-insights/next";
+
 import "@/app/styles/globals.css";
 import { Metadata } from "next";
 import { siteConfig } from "@/config/site";
@@ -66,6 +68,7 @@ export default function RootLayout({
           <main>{children}</main>
         </Providers>
       </body>
+      <SpeedInsights />
       <GoogleAnalytics gaId="G-FL4SMXV2XL" />
     </html>
   );

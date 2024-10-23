@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { Button } from "@nextui-org/button";
 import {
   Navbar,
@@ -19,22 +18,8 @@ import { siteConfig } from "@/config/site";
 import { GithubIcon } from "@/components/icons/icons";
 import SearchBar from "@/components/my-navbar/search-bar";
 import { cn } from "@/components/lib/server-utils/utils";
-
-const ThemeSwitch = dynamic(
-  () => import("@/components/theme-switch").then((mod) => mod.ThemeSwitch),
-  {
-    ssr: false,
-    loading: () => <Button className="bg-transparent" isIconOnly />,
-  },
-);
-
-const CartDropdown = dynamic(
-  () => import("@/components/my-navbar/cart").then((mod) => mod.CartDropdown),
-  {
-    ssr: false,
-    loading: () => <Button className="bg-transparent" isIconOnly />,
-  },
-);
+import { ThemeSwitch } from "@/components/theme-switch";
+import { CartDropdown } from "@/components/my-navbar/cart";
 
 export default function MyNavbar(props: any) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);

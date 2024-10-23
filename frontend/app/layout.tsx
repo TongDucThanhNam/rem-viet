@@ -5,7 +5,7 @@ import React from "react";
 
 import "@/app/styles/globals.css";
 import { siteConfig } from "@/config/site";
-import { nunito } from "@/app/fonts";
+// import { nunito } from "@/app/fonts";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
@@ -54,7 +54,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi">
-      <body className={nunito.className}>
+      <body
+      // className={nunito.className}
+      >
         <Providers>
           <main>{children}</main>
         </Providers>

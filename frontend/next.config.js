@@ -16,6 +16,7 @@ const nextConfig = {
       "@react-three/fiber",
     ], // Opt
   },
+
   images: {
     // domains: ['localhost'],
     deviceSizes: [

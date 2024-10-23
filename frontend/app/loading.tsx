@@ -4,9 +4,7 @@ import { Skeleton } from "@nextui-org/skeleton";
 export default function Loading() {
   return (
     <Skeleton>
-      <div className={"h-full w-full"}>
-        <p>Loading</p>
-      </div>
+      <div className={"h-full w-screen"}></div>
     </Skeleton>
   );
 }

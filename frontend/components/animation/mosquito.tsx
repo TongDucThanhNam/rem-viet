@@ -189,6 +189,9 @@ export default function Mosquito() {
             className={"object-cover"}
             fill={true}
             src={"/src/window.webp"}
+            // sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+
+            sizes={"(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"}
           />
 
           {/* Hình vuông động */}

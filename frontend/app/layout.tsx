@@ -1,13 +1,11 @@
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { GoogleAnalytics } from "@next/third-parties/google";
-import { Analytics } from "@vercel/analytics/react";
 import { Metadata } from "next";
-import React from "react";
+// import React from "react";
 
 import "@/app/styles/globals.css";
 import { siteConfig } from "@/config/site";
 // import { nunito } from "@/app/fonts";
 import { Providers } from "./providers";
+import SpeedInsightsWrapper from "@/components/analyst-components";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -56,15 +54,14 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body
+
       // className={nunito.className}
       >
-        <Providers>
-          <main>{children}</main>
-        </Providers>
+        {/*<Providers>*/}
+        <main>{children}</main>
+        {/*</Providers>*/}
+        <SpeedInsightsWrapper />
       </body>
-      <Analytics />
-      <SpeedInsights />
-      <GoogleAnalytics gaId="G-FL4SMXV2XL" />
     </html>
   );
 }

@@ -27,6 +27,7 @@ export default async function HeroSection() {
             <div className="mt-5 sm:mt-8 sm:flex sm:justify-center lg:justify-start">
               <Button
                 as={Link}
+                prefetch={false}
                 className="w-full sm:w-auto"
                 color="primary"
                 href="/#newsletter"
@@ -35,6 +36,7 @@ export default async function HeroSection() {
               </Button>
               <Button
                 as={Link}
+                prefetch={false}
                 className="w-full sm:w-auto mt-3 sm:mt-0 sm:ml-3"
                 color="secondary"
                 href="/danh-sach-san-pham"

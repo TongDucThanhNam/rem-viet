@@ -40,7 +40,9 @@ export default function MyNavbar(props: any) {
     () =>
       siteConfig.navItems.map((item) => (
         <NavbarItem key={item.href}>
-          <Link href={item.href}>{item.label}</Link>
+          <Link prefetch={false} href={item.href}>
+            {item.label}
+          </Link>
         </NavbarItem>
       )),
     [],
@@ -50,7 +52,11 @@ export default function MyNavbar(props: any) {
     () =>
       siteConfig.navItems.map((item, index) => (
         <NavbarMenuItem key={`${item}-${index}`}>
-          <Link className="w-full text-default-500" href={item.href}>
+          <Link
+            prefetch={false}
+            className="w-full text-default-500"
+            href={item.href}
+          >
             {item.label}
           </Link>
         </NavbarMenuItem>
@@ -76,6 +82,7 @@ export default function MyNavbar(props: any) {
         <Button
           aria-label="Rèm Việt"
           as={Link}
+          prefetch={false}
           className="bg-transparent"
           href="/"
           startContent={<RemVietIcon />}
@@ -104,6 +111,7 @@ export default function MyNavbar(props: any) {
           <Button
             aria-label="Github"
             as={Link}
+            prefetch={false}
             className="bg-transparent"
             href={siteConfig.links.github}
             isIconOnly

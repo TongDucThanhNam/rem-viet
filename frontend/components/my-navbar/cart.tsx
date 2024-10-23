@@ -122,7 +122,9 @@ export const CartDropdown = () => {
           }}
         >
           <p>Tổng cộng {priceVietNamDongformetter(total.toString())}</p>
-          <Link href={"/gio-hang"}>Đến trang giỏ hàng</Link>
+          <Link prefetch={false} href={"/gio-hang"}>
+            Đến trang giỏ hàng
+          </Link>
         </DropdownItem>
       </DropdownMenu>
     </Dropdown>

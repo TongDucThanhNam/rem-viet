@@ -1,6 +1,7 @@
 // import "@/styles/globals.css";
 import { Metadata } from "next";
 import React from "react";
+import { Navbar } from "@nextui-org/navbar";
 
 import { siteConfig } from "@/config/site";
 import dynamic from "next/dynamic";
@@ -16,13 +17,10 @@ export const metadata: Metadata = {
   },
 };
 
-const NavbarDynamic = dynamic(
-  () => import("@/components/my-navbar/my-navbar"),
-  {
-    ssr: false,
-    loading: () => <p>Navbar Loading</p>,
-  },
-);
+const MyNavbar = dynamic(() => import("@/components/my-navbar/my-navbar"), {
+  // ssr: false,
+  loading: () => <Navbar />,
+});
 
 const FABButton = dynamic(() => import("@/components/button/fab-button"), {
   ssr: false,
@@ -36,7 +34,7 @@ export default async function EcomerceLayout({
 }) {
   return (
     <div className={"flex flex-col h-screen max-w-screen"}>
-      <NavbarDynamic />
+      <MyNavbar />
       <main className={"flex-grow"}>{children}</main>
       <FABButton />
     </div>

@@ -1,23 +1,38 @@
 "use client";
 import React from "react";
+// import {
+//   Button,
+//   Card,
+//   CardBody,
+//   CardFooter,
+//   CardHeader,
+//   Divider,
+//   Image,
+//   Input,
+//   Modal,
+//   ModalBody,
+//   ModalContent,
+//   ModalFooter,
+//   ModalHeader,
+//   Skeleton,
+//   Textarea,
+//   useDisclosure,
+// } from "@nextui-org/react";
+import { Button } from "@nextui-org/button";
+import { Card, CardBody, CardFooter, CardHeader } from "@nextui-org/card";
+import { Divider } from "@nextui-org/divider";
+import { Input, Textarea } from "@nextui-org/input";
+import { Image } from "@nextui-org/image";
 import {
-  Button,
-  Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
-  Divider,
-  Image,
-  Input,
   Modal,
   ModalBody,
   ModalContent,
   ModalFooter,
   ModalHeader,
-  Skeleton,
-  Textarea,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@nextui-org/modal";
+import { Skeleton } from "@nextui-org/skeleton";
+
 import { EditIcon, MailIcon, SearchIcon } from "@nextui-org/shared-icons";
 
 import RatingProgress from "@/components/progress/rating-progress";

@@ -1,32 +1,7 @@
 import { useEffect, useState } from "react";
-import { Card, CardBody, Image, Skeleton } from "@nextui-org/react";
-/*
-  "title": "American civic leader and educator",
-  "description": "",
-  "images": [],
-  "sitename": [
-    "American civic leader and educator"
-  ],
-  "favicon": "https://deo.shopeemobile.com/shopee/shopee-pcmall-live-sg/assets/icon_favicon_1_32.0Wecxv.png",
-  "duration": 2191,
-  "domain": "vn.shp.ee",
-  "url": "https://vn.shp.ee/HWnrvUQ",
-  "source": "jsonlink"
- */
-
-/*
-  "title": "American civic leader and educator",
-  "description": "",
-  "images": [],
-  "sitename": [
-    "American civic leader and educator"
-  ],
-  "favicon": "https://deo.shopeemobile.com/shopee/shopee-pcmall-live-sg/assets/icon_favicon_1_32.0Wecxv.png",
-  "duration": 2191,
-  "domain": "vn.shp.ee",
-  "url": "https://vn.shp.ee/HWnrvUQ",
-  "source": "jsonlink"
- */
+import { Card, CardBody } from "@nextui-org/card";
+import { Image } from "@nextui-org/image";
+import { Skeleton } from "@nextui-org/skeleton";
 
 interface BookmarkMetadata {
   title: string;

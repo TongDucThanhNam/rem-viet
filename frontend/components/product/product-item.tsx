@@ -1,19 +1,19 @@
 "use client";
 import React from "react";
+import { Accordion, AccordionItem } from "@nextui-org/accordion";
+import { Button } from "@nextui-org/button";
+import { Input } from "@nextui-org/input";
 import {
-  Accordion,
-  AccordionItem,
-  Button,
-  Input,
   Modal,
   ModalBody,
   ModalContent,
   ModalFooter,
   ModalHeader,
-  RadioGroup,
-  Spacer,
   useDisclosure,
-} from "@nextui-org/react";
+} from "@nextui-org/modal";
+import { RadioGroup } from "@nextui-org/radio";
+import { Spacer } from "@nextui-org/spacer";
+
 import { CartIcon } from "@nextui-org/shared-icons";
 
 import { cn } from "@/components/lib/server-utils/utils";

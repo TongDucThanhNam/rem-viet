@@ -1,5 +1,9 @@
 "use client";
-import { Chip, Image, Link, Snippet } from "@nextui-org/react";
+import { Chip } from "@nextui-org/chip";
+import { Image } from "@nextui-org/image";
+import Link from "next/link";
+import { Snippet } from "@nextui-org/snippet";
+
 import { AnchorIcon } from "@nextui-org/shared-icons";
 import { YouTubeEmbed } from "@next/third-parties/google";
 import { memo } from "react";

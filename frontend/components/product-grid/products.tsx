@@ -1,6 +1,6 @@
 "use client";
 
-import { Pagination } from "@nextui-org/react";
+import { Pagination } from "@nextui-org/pagination";
 import React, { useEffect, useState } from "react";
 
 import CardItem from "@/components/product-grid/card-items";

@@ -1,15 +1,20 @@
 "use client";
 
-import {
-  Button,
-  RadioProps,
-  useRadio,
-  useRadioGroupContext,
-  VisuallyHidden,
-} from "@nextui-org/react";
+// import {
+//   Button,
+//   RadioProps,
+//   useRadio,
+//   useRadioGroupContext,
+//   VisuallyHidden,
+// } from "@nextui-org/react";
+
+import { Button } from "@nextui-org/button";
+import { RadioProps, useRadio, useRadioGroupContext } from "@nextui-org/radio";
+
 import React from "react";
 
 import { cn } from "@/components/lib/server-utils/utils";
+import { VisuallyHidden } from "@react-aria/visually-hidden";
 
 export type FeedbackRatingItemProps = Omit<RadioProps, "value"> & {
   value: string;

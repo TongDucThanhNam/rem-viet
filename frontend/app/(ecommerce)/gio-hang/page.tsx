@@ -1,7 +1,12 @@
 "use client";
 
 // import CustomButton from "@/components/san-pham/button";
-import { Button, Divider, Image, Input, Spacer } from "@nextui-org/react";
+// import { Button, Divider, Image, Input, Spacer } from "@nextui-org/react";
+import { Button } from "@nextui-org/button";
+import { Divider } from "@nextui-org/divider";
+import { Image } from "@nextui-org/image";
+import { Input } from "@nextui-org/input";
+import { Spacer } from "@nextui-org/spacer";
 import { CloseIcon } from "@nextui-org/shared-icons";
 import React from "react";
 

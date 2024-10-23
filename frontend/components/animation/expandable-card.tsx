@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Image } from "@nextui-org/react";
+import { Image } from "@nextui-org/image";
 import { useOutsideClick } from "@/components/hooks/use-outside-click";
 import NextImage from "next/image";
 

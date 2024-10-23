@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo } from "react";
-import { Button } from "@nextui-org/react";
+import { Button } from "@nextui-org/button";
 import { SolarPhoneCallingBold, ZaloIcon } from "@/components/icons/icons";
 import { fab } from "@/config/site";
 

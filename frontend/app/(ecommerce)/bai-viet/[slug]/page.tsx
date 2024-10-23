@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { Metadata } from "next"; // Mock data for bai-viet
-
 import PostDetail from "@/components/posts/post-detail";
 
 // Mock data for bai-viet

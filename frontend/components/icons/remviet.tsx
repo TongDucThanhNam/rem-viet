@@ -17,11 +17,6 @@ export const RemVietIcon: React.FC<IconSvgProps> = ({
 }) => {
   return (
     <NextImage
-      priority={true}
-      fetchPriority={"high"}
-      loading={"eager"}
-      unselectable={"on"}
-      decoding={"sync"}
       role={"img"}
       alt={"Rem Viet"}
       height={size}

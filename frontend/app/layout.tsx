@@ -1,12 +1,12 @@
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GoogleAnalytics } from "@next/third-parties/google";
+import { Metadata } from "next";
+import React from "react";
 
 import "@/app/styles/globals.css";
-import { Metadata } from "next";
 import { siteConfig } from "@/config/site";
 import { nunito } from "@/app/fonts";
 import { Providers } from "./providers";
-import { GoogleAnalytics } from "@next/third-parties/google";
-import React from "react";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -47,15 +47,6 @@ export const metadata: Metadata = {
   },
 };
 
-// export const viewport: Viewport = {
-//   themeColor: [
-//     { media: "(prefers-color-scheme: light)", color: "white" },
-//     { media: "(prefers-color-scheme: dark)", color: "black" },
-//   ],
-//   width: "device-width",
-//   initialScale: 1,
-// };
-
 export default function RootLayout({
   children,
 }: {
@@ -67,9 +58,9 @@ export default function RootLayout({
         <Providers>
           <main>{children}</main>
         </Providers>
+        <SpeedInsights />
+        <GoogleAnalytics gaId="G-FL4SMXV2XL" />
       </body>
-      <SpeedInsights />
-      <GoogleAnalytics gaId="G-FL4SMXV2XL" />
     </html>
   );
 }

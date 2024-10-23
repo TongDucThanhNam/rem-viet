@@ -1,13 +1,8 @@
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera, Text } from "@react-three/drei";
 import { Slider } from "@nextui-org/slider";
-import {
-  Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
-  Tooltip,
-} from "@nextui-org/react";
+import { Card, CardBody, CardFooter, CardHeader } from "@nextui-org/card";
+import { Tooltip } from "@nextui-org/tooltip";
 import { Button } from "@nextui-org/button";
 
 function WindowFrame({ width, height }: { width: number; height: number }) {

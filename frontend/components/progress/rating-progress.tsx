@@ -1,4 +1,6 @@
-import { Progress, Skeleton } from "@nextui-org/react";
+// import { Progress, Skeleton } from "@nextui-org/react";
+import { Progress } from "@nextui-org/progress";
+import { Skeleton } from "@nextui-org/skeleton";
 
 interface RatingProgressProps {
   title: string;

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Spacer } from "@nextui-org/react";
+import { Spacer } from "@nextui-org/spacer";
 
 import ProductItem from "@/components/product/product-item";
 import ReviewComponent from "@/components/product/review-item";

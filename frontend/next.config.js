@@ -7,7 +7,6 @@ const nextConfig = {
   // output: process.env.BUILD_MODE === "static" ? "export" : "standalone",
   experimental: {
     optimizePackageImports: [
-      "@nextui-org/react",
       "@nextui-org/shared-icons",
       "framer-motion",
       "recharts",

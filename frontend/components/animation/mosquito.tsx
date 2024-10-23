@@ -1,9 +1,10 @@
 "use client"; // This is a comment
 
-import { cn, Switch } from "@nextui-org/react";
+import { Switch } from "@nextui-org/switch";
 import { motion } from "framer-motion";
 import React, { useEffect, useRef, useState } from "react";
 import NextImage from "next/image";
+import { cn } from "@/components/lib/server-utils/utils";
 
 interface Particle {
   x: number;
@@ -187,7 +188,6 @@ export default function Mosquito() {
             alt={"Window"}
             className={"object-cover"}
             fill={true}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             src={"/src/window.webp"}
           />
 

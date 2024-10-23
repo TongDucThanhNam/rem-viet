@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 
 import { cn } from "@/components/lib/server-utils/utils";
 import { Navbar } from "@nextui-org/navbar";
+import Loading from "@/app/loading";
 
 const MyNavbar = dynamic(() => import("@/components/my-navbar/my-navbar"), {
   // ssr: false,
@@ -15,7 +16,7 @@ const HeroSection = dynamic(
   () => import("@/components/homepage/hero-section"),
   {
     // ssr: false,
-    loading: () => <p>Loading</p>,
+    loading: () => <Loading />,
   },
 );
 
@@ -23,7 +24,7 @@ const SceneWrapper = dynamic(
   () => import("@/components/homepage/window-section"),
   {
     ssr: false,
-    loading: () => <p>Loading</p>,
+    loading: () => <Loading />,
   },
 );
 
@@ -33,52 +34,47 @@ const VideoSection = dynamic(
   () => import("@/components/homepage/video-section"),
   {
     // ssr: false,
-    loading: () => <p>Loading</p>,
+    loading: () => <Loading />,
   },
 );
 const Mosquito = dynamic(() => import("@/components/animation/mosquito"), {
-  // ssr: false,
-  loading: () => <p>Loading</p>,
-});
-
-const Scene = dynamic(() => import("@/components/homepage/window-section"), {
-  // ssr: false,
-  loading: () => <p>Loading</p>,
+  ssr: false,
+  loading: () => <Loading />,
 });
 
 const FeatureSection = dynamic(
   () => import("@/components/homepage/feature-section"),
   {
     // ssr: false,
-    loading: () => <p>Loading</p>,
+    loading: () => <Loading />,
   },
 );
 const OurStrength = dynamic(
   () => import("@/components/homepage/our-strength"),
   {
     // ssr: false,
-    loading: () => <p>Loading</p>,
+    loading: () => <Loading />,
   },
 );
 const CustomerReviewSection = dynamic(
   () => import("@/components/homepage/customer-review-section"),
   {
     // ssr: false,
-    loading: () => <p>Loading</p>,
+    loading: () => <Loading />,
   },
 );
 const GuideSection = dynamic(
   () => import("@/components/homepage/guide-section"),
   {
     // ssr: false,
-    loading: () => <p>Loading</p>,
+    loading: () => <Loading />,
   },
 );
 const MaterialSection = dynamic(
   () => import("@/components/homepage/material-section"),
   {
     // ssr: false,
-    loading: () => <p>Loading</p>,
+    loading: () => <Loading />,
   },
 );
 const FaqSection = dynamic(() => import("@/components/homepage/faq-section"), {
@@ -88,13 +84,13 @@ const NewsletterSection = dynamic(
   () => import("@/components/homepage/newsletter-section"),
   {
     // ssr: false,
-    loading: () => <p>Loading</p>,
+    loading: () => <Loading />,
   },
 );
 
 const Footer = dynamic(() => import("@/components/footer/footer"), {
   // ssr: false,
-  loading: () => <p>Loading</p>,
+  loading: () => <Loading />,
 });
 
 const Section = ({

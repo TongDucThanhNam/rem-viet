@@ -7,7 +7,8 @@ import "swiper/css/navigation";
 import "swiper/css/thumbs";
 import "@/app/styles/globals.css";
 import { FreeMode, Navigation, Thumbs } from "swiper/modules";
-import { Image, Skeleton } from "@nextui-org/react";
+import { Image } from "@nextui-org/image";
+import { Skeleton } from "@nextui-org/skeleton";
 
 export default function SwiperThumbnail({
   imageUrls,

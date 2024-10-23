@@ -1,11 +1,8 @@
-import {
-  Card,
-  CardBody,
-  CardFooter,
-  CardHeader,
-  Chip,
-  Image,
-} from "@nextui-org/react";
+import { Card, CardBody, CardFooter, CardHeader } from "@nextui-org/card";
+
+import { Chip } from "@nextui-org/chip";
+
+import { Image } from "@nextui-org/image";
 import Link from "next/link";
 import React from "react";
 import { useRouter } from "next/navigation";

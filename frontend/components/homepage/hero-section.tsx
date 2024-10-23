@@ -51,10 +51,8 @@ export default async function HeroSection() {
                 width={400}
                 height={400}
                 src={heroImage}
-                fetchPriority="high"
-                loading="eager"
-                className="object-cover rounded-lg"
-                sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                // className="object-cover rounded-lg"
+                // sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
               />
             </div>
           </div>

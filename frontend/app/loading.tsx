@@ -1,13 +1,10 @@
 import React from "react";
-import { Skeleton } from "@nextui-org/react";
+import { Skeleton } from "@nextui-org/skeleton";
 
 export default function Loading() {
   return (
-    <section
-      className="sm:min-h-full md:h-full w-screen flex flex-col justify-center items-center md:snap-start overflow-visible"
-      id={"feature"}
-    >
-      <Skeleton />
-    </section>
+    <Skeleton>
+      <div className={"h-full w-full"}></div>
+    </Skeleton>
   );
 }

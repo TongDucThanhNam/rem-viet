@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 // import React from "react";
-
 import "@/app/styles/globals.css";
 import { siteConfig } from "@/config/site";
 // import { nunito } from "@/app/fonts";
@@ -57,9 +56,9 @@ export default function RootLayout({
 
       // className={nunito.className}
       >
-        {/*<Providers>*/}
-        <main>{children}</main>
-        {/*</Providers>*/}
+        <Providers>
+          <main>{children}</main>
+        </Providers>
         <SpeedInsightsWrapper />
       </body>
     </html>

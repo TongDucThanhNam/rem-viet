@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-// @ts-ignore
-import Hls from "hls.js/dist/hls.light"; // Use light build of hls.
+import Script from "next/script";
 
 interface HLSVideoPlayerProps {
   src: string;
@@ -17,43 +16,58 @@ export default function HLSVideoPlayer({ src }: HLSVideoPlayerProps) {
 
     if (!video) return;
 
-    if (Hls.isSupported()) {
-      const hls = new Hls();
+    const onScriptLoad = () => {
+      if (window.Hls && window.Hls.isSupported()) {
+        const hls = new window.Hls();
 
-      hls.loadSource(src);
-      hls.attachMedia(video);
+        hls.loadSource(src);
+        hls.attachMedia(video);
 
-      hls.on(Hls.Events.ERROR, (event: any, data: any) => {
-        if (data.fatal) {
-          switch (data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
-              setError(
-                "Network error. Please check your connection and try again.",
-              );
-              break;
-            case Hls.ErrorTypes.MEDIA_ERROR:
-              setError("Media error. The video could not be loaded.");
-              break;
-            default:
-              setError("An error occurred while loading the video.");
-              break;
+        hls.on(window.Hls.Events.ERROR, (event: any, data: any) => {
+          if (data.fatal) {
+            switch (data.type) {
+              case window.Hls.ErrorTypes.NETWORK_ERROR:
+                setError(
+                  "Network error. Please check your connection and try again.",
+                );
+                break;
+              case window.Hls.ErrorTypes.MEDIA_ERROR:
+                setError("Media error. The video could not be loaded.");
+                break;
+              default:
+                setError("An error occurred while loading the video.");
+                break;
+            }
           }
-        }
-      });
+        });
 
-      return () => {
-        hls.destroy();
-      };
-    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      // For browsers that natively support HLS (like Safari)
-      video.src = src;
+        return () => {
+          hls.destroy();
+        };
+      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+        // For browsers that natively support HLS (like Safari)
+        video.src = src;
+      } else {
+        setError("Your browser does not support HLS playback.");
+      }
+    };
+
+    if (window.Hls) {
+      onScriptLoad();
     } else {
-      setError("Your browser does not support HLS playback.");
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js";
+      script.onload = onScriptLoad;
+      document.body.appendChild(script);
     }
   }, [src]);
 
   return (
     <div className="relative w-full max-w-3xl mx-auto">
+      <Script
+        src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"
+        strategy="lazyOnload"
+      />
       {error ? (
         <div
           className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"

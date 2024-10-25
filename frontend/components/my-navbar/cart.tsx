@@ -19,8 +19,6 @@ import { CartIcon, CloseIcon } from "@nextui-org/shared-icons";
 import { useCartStore } from "@/store/useCartStore";
 import { priceVietNamDongformetter } from "@/components/lib/client-utils/utils";
 
-//Props
-
 export const CartDropdown = () => {
   // const addToCart = useCartStore((state) => state.addToCart);
   const removeFromCart = useCartStore((state) => state.removeFromCart);

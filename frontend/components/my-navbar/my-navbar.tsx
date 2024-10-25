@@ -8,7 +8,7 @@ import {
   NavbarItem,
   NavbarMenu,
   NavbarMenuItem,
-  NavbarMenuToggle,
+  NavbarMenuToggle
 } from "@nextui-org/navbar";
 import React, { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
@@ -18,8 +18,8 @@ import { siteConfig } from "@/config/site";
 import { GithubIcon } from "@/components/icons/icons";
 import SearchBar from "@/components/my-navbar/search-bar";
 import { cn } from "@/components/lib/server-utils/utils";
-import { ThemeSwitch } from "@/components/theme-switch";
 import { CartDropdown } from "@/components/my-navbar/cart";
+import { ThemeSwitch } from "@/components/theme-switch";
 
 export default function MyNavbar(props: any) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -31,9 +31,9 @@ export default function MyNavbar(props: any) {
   const navbarBaseClass = useMemo(
     () =>
       cn("border-default-100", {
-        "bg-default-200/50 dark:bg-default-100/50": isMenuOpen,
+        "bg-default-200/50 dark:bg-default-100/50": isMenuOpen
       }),
-    [isMenuOpen],
+    [isMenuOpen]
   );
 
   const navItems = useMemo(
@@ -45,7 +45,7 @@ export default function MyNavbar(props: any) {
           </Link>
         </NavbarItem>
       )),
-    [],
+    []
   );
 
   const menuItems = useMemo(
@@ -61,7 +61,7 @@ export default function MyNavbar(props: any) {
           </Link>
         </NavbarMenuItem>
       )),
-    [],
+    []
   );
 
   return (
@@ -71,7 +71,7 @@ export default function MyNavbar(props: any) {
       classNames={{
         base: navbarBaseClass,
         wrapper: "w-full justify-center bg-transparent",
-        item: "hidden md:flex",
+        item: "hidden md:flex"
       }}
       isMenuOpen={isMenuOpen}
       onMenuOpenChange={handleMenuToggle}
@@ -121,7 +121,8 @@ export default function MyNavbar(props: any) {
         </NavbarItem>
       </NavbarContent>
 
-      <NavbarMenu className="top-[calc(var(--navbar-height)_-_1px)] max-h-[70vh] bg-default-200/50 pt-6 shadow-medium backdrop-blur-md backdrop-saturate-150 dark:bg-default-100/50">
+      <NavbarMenu
+        className="top-[calc(var(--navbar-height)_-_1px)] max-h-[70vh] bg-default-200/50 pt-6 shadow-medium backdrop-blur-md backdrop-saturate-150 dark:bg-default-100/50">
         <NavbarMenuItem>
           <SearchBar />
         </NavbarMenuItem>

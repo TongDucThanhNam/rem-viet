@@ -3,7 +3,7 @@
     "dev": "concurrently \"bun dev:backend\" \"bun run dev:frontend\" \"bun run dev:astro\"",
     "dev:backend": "cd backend && bun run dev",
     "dev:frontend": "cd frontend && bun run dev",
-    "dev:astro": "cd astro-nextui-ecommerce && bun astro dev",
+    "dev:astro": "cd home && bun astro dev",
     "start": "concurrently \"bun run start:backend\" \"bun run start:frontend\"",
     "start:backend": "cd backend && bun start",
     "start:frontend": "cd frontend && bun start",

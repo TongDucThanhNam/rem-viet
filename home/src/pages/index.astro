@@ -1,0 +1,121 @@
+---
+import Layout from '@/layouts/Layout.astro';
+// import HeroSection from "@/components/homepage/hero-section";
+import HeroSection from "@/components/homepage/HeroSection.astro";
+import FaqSection from "@/components/homepage/faq-section";
+import {cn} from "@/components/lib/server-utils/utils";
+import Mosquito from "@/components/animation/mosquito";
+import Scene from "@/components/homepage/window-section";
+import VideoSection from "@/components/homepage/video-section";
+import FeatureSection from "@/components/homepage/feature-section";
+// import OurStrength from "@/components/homepage/our-strength";
+import OurStrength from "@/components/homepage/OurStrength.astro";
+import CustomerReviewSection from "@/components/homepage/customer-review-section";
+import GuideSection from "@/components/homepage/guide-section";
+// import MaterialSection from "@/components/homepage/material-section";
+import MaterialSection from "@/components/homepage/MaterialSection.astro";
+import NewsletterSection from "@/components/homepage/newsletter-section";
+import Footer from "@/components/footer/footer";
+---
+
+<Layout title="Lưới chống muỗi" isHomepage={true}>
+    <main class="">
+        <div
+                class={cn(
+                    "max-w-screen h-full",
+                    "overflow-y-auto md:snap-y md:snap-mandatory",
+                    "scrollbar-hide scroll-smooth",
+                    "bg-[linear-gradient(to_right,#80808012_3px,transparent_3px),linear-gradient(to_bottom,#80808012_3px,transparent_3px)] bg-[size:24px_24px]",
+                )}
+        >
+            <section
+                    class="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center w-screen md:snap-start"
+                    id="hero"
+            >
+                <HeroSection/>
+            </section>
+
+            <!--Video Section-->
+            <section
+                    class="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center w-screen md:snap-start"
+            >
+                <VideoSection client:visible/>
+            </section>
+
+
+            <section
+                    class="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center w-screen md:snap-start"
+            >
+                <Mosquito client:visible/>
+            </section>
+
+            <section
+                    class="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center w-screen md:snap-start"
+            >
+                <Scene client:visible/>
+            </section>
+
+            <section
+                    class="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center w-screen md:snap-start"
+                    id="feature"
+            >
+                <FeatureSection client:visible/>
+            </section>
+
+            <!--Our Strength-->
+            <section
+                    class="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center w-screen md:snap-start"
+                    id="our-strength"
+            >
+                <OurStrength/>
+
+            </section>
+
+            <!--Customer review-->
+            <section
+                    class="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center w-screen md:snap-start"
+                    id="customer-review"
+            >
+                <CustomerReviewSection client:visible/>
+            </section>
+
+            <!--GuideSection-->
+            <section
+                    class="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center w-screen md:snap-start"
+                    id="guide"
+            >
+                <GuideSection client:visible/>
+            </section>
+
+            <!--MaterialSection-->
+            <section
+                    class="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center w-screen md:snap-start"
+                    id="material"
+            >
+                <MaterialSection/>
+            </section>
+
+            <section
+                    class="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center w-screen md:snap-start"
+                    id="faq"
+            >
+                <FaqSection client:visible/>
+            </section>
+
+            <!--    NewsletterSection-->
+            <section
+                    class="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center w-screen md:snap-start"
+                    id="newsletter"
+            >
+                <NewsletterSection client:visible/>
+            </section>
+
+            <section
+                    id="footer"
+                    class="flex flex-col justify-center overflow-visible w-screen md:snap-start"
+            >
+                <Footer client:visible/>
+            </section>
+        </div>
+    </main>
+</Layout>

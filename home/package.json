@@ -1,0 +1,50 @@
+{
+  "name": "astro-nextui-ecommerce",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@14islands/r3f-scroll-rig": "^8.14.0",
+    "@astrojs/check": "0.9.4",
+    "@astrojs/react": "3.6.2",
+    "@astrojs/sitemap": "3.2.1",
+    "@astrojs/tailwind": "5.1.2",
+    "@nanostores/persistent": "^0.10.2",
+    "@nanostores/react": "^0.8.0",
+    "@nextui-org/react": "^2.4.8",
+    "@react-three/drei": "^9.80.9",
+    "@react-three/fiber": "^8.13.7",
+    "@types/react": "^18.2.21",
+    "@types/react-dom": "^18.2.7",
+    "astro": "^4.16.7",
+    "astro-embed": "^0.7.4",
+    "astro-page-insight": "^0.8.7",
+    "framer-motion": "^11.3.31",
+    "hls.js": "^1.5.16",
+    "mini-svg-data-uri": "^1.4.4",
+    "nanostores": "^0.11.3",
+    "notion-astro-loader": "^0.3.0",
+    "react": "^18.2.0",
+    "react-device-detect": "^2.2.3",
+    "react-dom": "^18.2.0",
+    "swiper": "^11.1.14",
+    "tailwindcss": "^3.3.3",
+    "three": "^0.158.0",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.3.0",
+    "astro-eslint-parser": "^0.17.0",
+    "eslint": "^9.13.0",
+    "eslint-plugin-astro": "^0.34.0",
+    "prettier": "^3.3.3",
+    "prettier-plugin-astro": "^0.14.1"
+  }
+}

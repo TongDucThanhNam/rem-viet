@@ -1,0 +1,22 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import ProductDetail from "../../components/product/product-detail";
+import MyNavbar from "../../components/my-navbar/my-navbar";
+const {productId} = Astro.params;
+
+const api = `${import.meta.env.PUBLIC_BACKEND_URL}/api/product/${productId}/variant`;
+// Fetch the product data
+const res = await fetch(api
+, {
+    method: "GET",
+    headers: {
+        "Content-Type": "application/json",
+    },
+});
+const data = await res.json();
+const product = data.data.product;
+const variants = data.data.variants;
+---
+<Layout title="Sản phẩm">
+    <ProductDetail myProduct={product} myVariants={variants} client:load/>
+</Layout>

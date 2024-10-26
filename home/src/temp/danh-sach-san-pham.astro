@@ -1,0 +1,20 @@
+---
+import React from "react";
+import ProductGrid from "../components/product-grid/product-grid";
+import MyNavbar from "../components/my-navbar/my-navbar";
+import Layout from "../layouts/Layout.astro";
+const res = await fetch(`${import.meta.env.BACKEND_URL}/api/products/`, {
+    method: "GET",
+    headers: {
+        "Content-Type": "application/json",
+    },
+});
+const data = await res.json();
+const products = data.data;
+---
+
+<Layout title="Danh sách sản phẩm">
+    <div class="container mx-auto px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+        <ProductGrid products={products} client:load/>
+    </div>
+</Layout>

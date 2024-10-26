@@ -1,0 +1,19 @@
+---
+import PostsComponent from '../components/posts/posts';
+import MyNavbar from '../components/my-navbar/my-navbar';
+import Layout from "../layouts/Layout.astro";
+const response = await fetch(`${import.meta.env.BACKEND_URL}/api/posts`, {
+    method: "GET",
+    headers: {
+        "Content-Type": "application/json",
+    },
+});
+const data = await response.json();
+const productPosts = data.filter((post: any) => post.status === "published");
+---
+
+<Layout title="Danh sách bài viết">
+    <div>
+        <PostsComponent productPosts={productPosts} client:load/>
+    </div>
+</Layout>

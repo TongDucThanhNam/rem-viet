@@ -1,0 +1,22 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import PostDetail from "../../components/posts/post-detail";
+const {slug} = Astro.params
+const fix_slug = slug ? slug.replace(".html", "") : "";
+
+
+const res = await fetch(
+    `${import.meta.env.BACKEND_URL}/api/posts/${fix_slug}`,
+    {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    }
+); // Return the post
+const data = await res.json();
+---
+
+<Layout title="Bài viết">
+    <PostDetail myPost={data} />
+</Layout>

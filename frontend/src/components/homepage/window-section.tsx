@@ -8,7 +8,7 @@ import { Button } from "@nextui-org/button";
 import dynamic from "next/dynamic";
 
 const ThreeScene = dynamic(() => import("@/components/homepage/ThreeScene"), {
-  ssr: false,
+  // ssr: false,
   loading: () => <p>Loading...</p>,
 });
 

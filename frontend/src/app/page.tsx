@@ -1,14 +1,10 @@
 import React, { Suspense } from "react";
-import dynamic from "next/dynamic";
 import { cn } from "@/components/lib/server-utils/utils";
-import { Navbar } from "@nextui-org/navbar";
 import Loading from "@/app/loading";
 import HeroSection from "@/components/homepage/hero-section";
 import FABButton from "@/components/button/fab-button";
-
-const MyNavbar = dynamic(() => import("@/components/my-navbar/my-navbar"), {
-  loading: () => <Navbar />,
-});
+import MyNavbar from "@/components/my-navbar/my-navbar";
+import dynamic from "next/dynamic";
 
 const VideoSection = dynamic(
   () => import("@/components/homepage/video-section"),
@@ -78,7 +74,6 @@ const NewsletterSection = dynamic(
 const Footer = dynamic(() => import("@/components/footer/footer"), {
   loading: () => <Loading />,
 });
-
 const Section = ({
   id,
   className,
@@ -93,9 +88,12 @@ const Section = ({
   </section>
 );
 
-export default function Home() {
+export default async function Home() {
+  // You can add any async operations here if needed
+  // const someData = await fetchSomeData();
+
   return (
-    <div className={"flex flex-col max-w-screen max-h-screen"}>
+    <div className="flex flex-col max-w-screen max-h-screen">
       <MyNavbar />
       <div
         className={cn(
@@ -119,73 +117,93 @@ export default function Home() {
           >
             <VideoSection />
           </Section>
+        </Suspense>
 
+        <Suspense fallback={<Loading />}>
           <Section
             className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center"
             id="mosquito"
           >
             <Mosquito />
           </Section>
+        </Suspense>
 
+        <Suspense fallback={<Loading />}>
           <Section
             className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center"
             id="window"
           >
             <SceneWrapper />
           </Section>
+        </Suspense>
 
+        <Suspense fallback={<Loading />}>
           <Section
             className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center overflow-hidden"
             id="feature"
           >
             <FeatureSection />
           </Section>
+        </Suspense>
 
+        <Suspense fallback={<Loading />}>
           <Section
             className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-row justify-center items-center overflow-visible"
             id="our_strength"
           >
             <OurStrength />
           </Section>
+        </Suspense>
 
+        <Suspense fallback={<Loading />}>
           <Section
             className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center overflow-hidden"
             id="customer_review"
           >
             <CustomerReviewSection />
           </Section>
+        </Suspense>
 
+        <Suspense fallback={<Loading />}>
           <Section
             className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center overflow-visible"
             id="guide"
           >
             <GuideSection />
           </Section>
+        </Suspense>
 
+        <Suspense fallback={<Loading />}>
           <Section
             className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex items-center justify-center overflow-visible"
             id="materials"
           >
             <MaterialSection />
           </Section>
+        </Suspense>
 
+        <Suspense fallback={<Loading />}>
           <Section
             className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center overflow-visible"
             id="faq"
           >
             <FaqSection />
           </Section>
+        </Suspense>
 
+        <Suspense fallback={<Loading />}>
           <Section
             className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center overflow-visible"
             id="newsletter"
           >
             <NewsletterSection />
           </Section>
+        </Suspense>
 
+        <Suspense fallback={<Loading />}>
           <Section
-            id={"footer"}
-            className={"flex flex-col justify-center overflow-visible"}
+            id="footer"
+            className="flex flex-col justify-center overflow-visible"
           >
             <Footer />
           </Section>

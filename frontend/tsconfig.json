@@ -26,8 +26,11 @@
       "icons/*": [
         "./icons/*"
       ],
+      "public/*": [
+        "./public/*"
+      ],
       "@/*": [
-        "./*"
+        "./src/*"
       ]
     },
     "plugins": [

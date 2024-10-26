@@ -3,7 +3,7 @@
 import React, { Suspense } from "react";
 import NextImage from "next/image";
 
-import videoThumb from "@/public/src/videoThump.webp";
+import videoThumb from "public/src/videoThump.webp";
 import HLSVideoPlayer from "@/components/video/hls-video";
 import { TypewriterEffectSmooth } from "@/components/animation/typewriter-effect"; // const ResponsiveVideoLazy = lazy(() => import("@/components/video/video"));
 

@@ -30,7 +30,7 @@ interface ProductItemProps {
   addToCart: any;
 }
 
-const skeletonImageUrls = Array(5).fill("/src/800x800.png");
+const skeletonImageUrls = Array(5).fill("/800x800.png");
 
 const ProductItem: React.FC<ProductItemProps> = ({
   product,

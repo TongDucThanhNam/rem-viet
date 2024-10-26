@@ -8,7 +8,7 @@ import React from "react";
 import { heroSection } from "@/config/site";
 
 //import image
-import heroImage from "@/public/src/heroimage.webp";
+import heroImage from "public/src/heroimage.webp";
 
 export default async function HeroSection() {
   return (

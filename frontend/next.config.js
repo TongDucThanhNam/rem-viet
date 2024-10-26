@@ -67,6 +67,13 @@ const nextConfig = {
     ];
   },
   transpilePackages: ["three"],
+  redirects: async () => [
+    {
+      source: "/",
+      destination: process.env.SUBDOMAIN_URL || 'http://localhost:4321',
+      permanent: true,
+    },
+  ],
 };
 
 module.exports = nextConfig;

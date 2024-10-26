@@ -2,7 +2,7 @@ import React from "react";
 import NextImage from "next/image";
 
 import { IconSvgProps } from "@/types";
-import remviet from "@/public/src/remviet2.webp";
+import remviet from "/public/src/remviet2.webp";
 
 interface Props {
   size?: number;

@@ -71,7 +71,7 @@ export default function HLSVideoPlayer({ src }: HLSVideoPlayerProps) {
           playsInline
           className="w-full rounded-lg shadow-lg"
           controls={false}
-          poster={"/src/videoThump.webp"}
+          poster={"/videoThump.webp"}
           preload={"auto"}
         >
           <track kind="captions" label="English captions" srcLang="en" />

@@ -175,8 +175,8 @@ export default function Mosquito() {
                     Ngăn côn trùng xâm nhập
                 </Switch>
             </div>
-            <div className="relative h-[400px] w-full flex justify-center items-center p-6">
-                <div className="relative w-64 h-64">
+            <div className="relative h-fit w-fit flex justify-center items-center p-6">
+                <div className="relative w-fit h-fit">
                     {/* Hình vuông tĩnh */}
                     <Image
                         // isBlurred
@@ -184,7 +184,7 @@ export default function Mosquito() {
                         alt={"Window"}
                         className={"object-cover"}
                         // fill={true}
-                        src={"/src/window.webp"}
+                        src={"/window.webp"}
                     />
 
                     {/* Hình vuông động */}
@@ -204,7 +204,7 @@ export default function Mosquito() {
                         }}
                         transition={{
                             type: "spring",
-                            stiffness: 260,
+                            stiffness: 223,
                             damping: 20,
                         }}
                     />

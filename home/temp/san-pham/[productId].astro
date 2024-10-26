@@ -1,7 +1,7 @@
 ---
-import Layout from "../../layouts/Layout.astro";
-import ProductDetail from "../../components/product/product-detail";
-import MyNavbar from "../../components/my-navbar/my-navbar";
+import Layout from "../../src/layouts/Layout.astro";
+import ProductDetail from "../../src/components/product/product-detail";
+import MyNavbar from "../../src/components/my-navbar/my-navbar";
 const {productId} = Astro.params;
 
 const api = `${import.meta.env.PUBLIC_BACKEND_URL}/api/product/${productId}/variant`;

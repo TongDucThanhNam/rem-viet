@@ -1,8 +1,8 @@
 ---
 import React from "react";
-import ProductGrid from "../components/product-grid/product-grid";
-import MyNavbar from "../components/my-navbar/my-navbar";
-import Layout from "../layouts/Layout.astro";
+import ProductGrid from "../src/components/product-grid/product-grid";
+import MyNavbar from "../src/components/my-navbar/my-navbar";
+import Layout from "../src/layouts/Layout.astro";
 const res = await fetch(`${import.meta.env.BACKEND_URL}/api/products/`, {
     method: "GET",
     headers: {

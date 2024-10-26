@@ -14,7 +14,7 @@ const content = [
                     alt="linear board demo"
                     className="h-full w-full object-cover"
                     height={300}
-                    src="/src/dokichthuoc.avif"
+                    src="/dokichthuoc.avif"
                     width={300}
                 />
             </div>
@@ -30,7 +30,7 @@ const content = [
                     alt="linear board demo"
                     className="h-full w-full object-cover"
                     height={300}
-                    src="/src/chon.avif"
+                    src="/chon.avif"
                     width={300}
                 />
             </div>
@@ -48,7 +48,7 @@ const content = [
                     alt="linear board demo"
                     className="h-full w-full object-cover"
                     height={300}
-                    src="/src/dienthongtin.avif"
+                    src="/dienthongtin.avif"
                     width={300}
                 />
             </div>
@@ -63,7 +63,7 @@ const content = [
                     alt="linear board demo"
                     className="h-full w-full object-cover"
                     height={300}
-                    src="/src/done.avif"
+                    src="/done.avif"
                     width={300}
                 />
             </div>

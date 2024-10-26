@@ -1,6 +1,6 @@
 ---
-import Layout from "../../layouts/Layout.astro";
-import PostDetail from "../../components/posts/post-detail";
+import Layout from "../../src/layouts/Layout.astro";
+import PostDetail from "../../src/components/posts/post-detail";
 const {slug} = Astro.params
 const fix_slug = slug ? slug.replace(".html", "") : "";
 

@@ -207,7 +207,7 @@ const cards = [
     {
         description: "ĐC: 831 Đ. Âu Cơ, Tân Thành, Tân Phú",
         title: "Cửa hàng lưới chống muỗi",
-        src: "/src/remviet2.webp",
+        src: "/remviet2.webp",
         ctaText: "Liên hệ",
         ctaLink: "https://www.facebook.com/profile.php?id=100076172431695",
         content: () => {

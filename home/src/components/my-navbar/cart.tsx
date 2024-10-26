@@ -37,8 +37,8 @@ export const CartDropdown = () => {
                         className="bg-transparent"
                         isIconOnly={true}
                     >
-                        <Badge color="default" content={cartLength || 0}>
-                            <CartIcon/>
+                        <Badge color="default" content={cartLength || 0} aria-label={`Cart items: ${cartLength || 0}`}>
+                            <CartIcon aria-label="Cart icon"/>
                         </Badge>
                     </Button>
                 </DropdownTrigger>

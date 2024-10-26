@@ -17,7 +17,7 @@ export default function ResponsiveVideo(
           playsInline
           className="absolute top-0 left-0 w-full h-full object-cover"
           controls={false}
-          poster={"/src/videoThump.webp"}
+          poster={"/assets/videoThump.webp"}
           preload={"auto"}
         >
           <source src={videoSrc} type="video/mp4" />

@@ -3,7 +3,7 @@ import React from "react";
 
 import type {IconSvgProps} from "@/types";
 // import remviet from "@/public/src/remviet2.webp";
-import {Image} from "@nextui-org/react";
+import {Image} from "@nextui-org/image";
 
 
 interface Props {
@@ -19,10 +19,11 @@ export const RemVietIcon: FC<IconSvgProps> = ({
                                               }) => {
     return (
         <Image
+            aria-label="Rèm Việt"
             role={"img"}
             alt={"Rem Viet"}
             height={size}
-            src={""}
+            src={"/remviet2.webp"}
             width={size}
         />
     );

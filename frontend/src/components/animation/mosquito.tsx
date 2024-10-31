@@ -1,10 +1,17 @@
-"use client"; // This is a comment
+"use client";
 
 import { Switch } from "@nextui-org/switch";
 import { motion } from "framer-motion";
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
 import NextImage from "next/image";
 import { cn } from "@/components/lib/server-utils/utils";
+import { useThrottle } from "@/hooks/useThrottle";
 
 interface Particle {
   x: number;
@@ -18,20 +25,36 @@ interface Particle {
 export default function Mosquito() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isOverlayVisible, setIsOverlayVisible] = useState(false);
+  const [isDisableParticles, setIsDisableParticles] = useState<boolean>(false);
 
-  const toggleOverlay = (isSelected: boolean) => {
+  const toggleOverlay = useCallback((isSelected: boolean) => {
     setIsOverlayVisible(isSelected);
-  };
-  const [isDisableParticles, setIsDisableParticles] =
-    React.useState<boolean>(false);
+  }, []);
+
+  const createParticle = useCallback((): Particle => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0, size: 0, speedX: 0, speedY: 0, life: 0 };
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 1;
+
+    return {
+      x: centerX,
+      y: centerY,
+      size: 5,
+      speedX: Math.cos(angle) * speed,
+      speedY: Math.sin(angle) * speed,
+      life: 10,
+    };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
-
     if (!ctx) return;
 
     canvas.width = 400;
@@ -39,27 +62,8 @@ export default function Mosquito() {
 
     const particles: Particle[] = [];
 
-    function createParticle() {
-      if (!canvas) return;
-
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 1;
-
-      return {
-        x: centerX,
-        y: centerY,
-        size: 5,
-        speedX: Math.cos(angle) * speed,
-        speedY: Math.sin(angle) * speed,
-        life: 10,
-      };
-    }
-
-    function animate() {
-      if (!ctx) return;
-      if (!canvas) return;
+    const animate = () => {
+      if (!ctx || !canvas) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Update and draw particles
@@ -96,32 +100,31 @@ export default function Mosquito() {
       }
 
       if (isDisableParticles) {
-        // Clear particles
         particles.splice(0, particles.length);
-
         return;
       }
 
-      // Add new particles
       if (particles.length < 10) {
-        // @ts-ignore
         particles.push(createParticle());
       }
 
       requestAnimationFrame(animate);
-    }
+    };
 
     animate();
 
     return () => {
       // Clean up if needed
     };
-  }, [isDisableParticles]);
+  }, [isDisableParticles, createParticle]);
 
-  const FADE_DOWN_ANIMATION_VARIANTS = {
-    hidden: { opacity: 0, y: -10 },
-    show: { opacity: 1, y: 0, transition: { type: "spring" } },
-  };
+  const FADE_DOWN_ANIMATION_VARIANTS = useMemo(
+    () => ({
+      hidden: { opacity: 0, y: -10 },
+      show: { opacity: 1, y: 0, transition: { type: "spring" } },
+    }),
+    [],
+  );
 
   return (
     <div className="h-full flex flex-col items-center justify-center">
@@ -171,51 +174,23 @@ export default function Mosquito() {
           className="text-center"
           color="primary"
           size={"lg"}
-          onValueChange={(isSelected: boolean) => {
+          onValueChange={useThrottle((isSelected: boolean) => {
             setIsDisableParticles(isSelected);
             toggleOverlay(isSelected);
-          }}
+          }, 200)}
         >
           Ngăn côn trùng xâm nhập
         </Switch>
       </div>
       <div className="relative h-[400px] w-full flex justify-center items-center p-6">
         <div className="relative w-64 h-64">
-          {/* Hình vuông tĩnh */}
           <NextImage
-            // isBlurred
-            // as={NextImage}
             alt={"Window"}
             className={"object-cover"}
             fill={true}
             src={"/src/window.webp"}
-            // sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-
             sizes={"(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"}
           />
-
-          {/* Hình vuông động */}
-          {/*<motion.div*/}
-          {/*  className="absolute inset-0 bg-gray-800 rounded-lg shadow-lg opacity-70"*/}
-          {/*  style={{*/}
-          {/*    backgroundImage: `*/}
-          {/*    linear-gradient(0deg, transparent 0%, transparent calc(100% - 1px), rgba(0, 0, 0, 0.5) calc(100% - 1px)),*/}
-          {/*    linear-gradient(90deg, transparent 0%, transparent calc(100% - 1px), rgba(0, 0, 0, 0.5) calc(100% - 1px))*/}
-          {/*  `,*/}
-          {/*    backgroundSize: "8px 8px",*/}
-          {/*  }}*/}
-          {/*  initial={{ y: "-100%" }}*/}
-          {/*  animate={{*/}
-          {/*    y: isOverlayVisible ? "0%" : "-100%",*/}
-          {/*  }}*/}
-          {/*  transition={{*/}
-          {/*    type: "spring",*/}
-          {/*    stiffness: 100,*/}
-          {/*    damping: 20,*/}
-          {/*  }}*/}
-          {/*/>*/}
-
-          {/* Hình vuông động */}
           <motion.div
             animate={{
               scale: isOverlayVisible ? 1 : 0,

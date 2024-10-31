@@ -5,11 +5,16 @@ import Link from "next/link";
 import { Snippet } from "@nextui-org/snippet";
 
 import { AnchorIcon } from "@nextui-org/shared-icons";
-import { YouTubeEmbed } from "@next/third-parties/google";
+// import { YouTubeEmbed } from "@next/third-parties/google";
+const LazyYouTubeEmbed = dynamic(
+  () => import("@next/third-parties/google").then((mod) => mod.YouTubeEmbed),
+  { ssr: false, loading: () => <div>Loading video...</div> },
+);
 import { memo } from "react";
 
 import EnhancedBookmark from "@/components/posts/bookmark";
 import NextImage from "next/image";
+import dynamic from "next/dynamic";
 
 const TextBlock = memo(({ text }: { text: any }) => (
   <span
@@ -256,7 +261,7 @@ const PostDetail = ({ myPost }: { myPost: any }) => {
                 );
               case "video":
                 return (
-                  <YouTubeEmbed
+                  <LazyYouTubeEmbed
                     key={block.id}
                     params="controls=1"
                     playlabel="Watch video"

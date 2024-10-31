@@ -1,86 +1,29 @@
-import React, { Suspense } from "react";
+import React from "react";
 import { cn } from "@/components/lib/server-utils/utils";
-import Loading from "@/app/loading";
+
+// Server components (default in App Router)
 import HeroSection from "@/components/homepage/hero-section";
-import FABButton from "@/components/button/fab-button";
 import MyNavbar from "@/components/my-navbar/my-navbar";
-import dynamic from "next/dynamic";
+import VideoSection from "@/components/homepage/video-section";
+import Mosquito from "@/components/animation/mosquito";
+import SceneWrapper from "@/components/homepage/window-section";
+import FeatureSection from "@/components/homepage/feature-section";
+import OurStrength from "@/components/homepage/our-strength";
+import CustomerReviewSection from "@/components/homepage/customer-review-section";
+import GuideSection from "@/components/homepage/guide-section";
+import MaterialSection from "@/components/homepage/material-section";
+import FaqSection from "@/components/homepage/faq-section";
+import NewsletterSection from "@/components/homepage/newsletter-section";
+import Footer from "@/components/footer/footer";
+import FABButton from "@/components/button/fab-button";
 
-const VideoSection = dynamic(
-  () => import("@/components/homepage/video-section"),
-  {
-    loading: () => <Loading />,
-  },
-);
-
-const Mosquito = dynamic(() => import("@/components/animation/mosquito"), {
-  loading: () => <Loading />,
-});
-
-const SceneWrapper = dynamic(
-  () => import("@/components/homepage/window-section"),
-  {
-    ssr: false,
-    loading: () => <Loading />,
-  },
-);
-
-const FeatureSection = dynamic(
-  () => import("@/components/homepage/feature-section"),
-  {
-    loading: () => <Loading />,
-  },
-);
-
-const OurStrength = dynamic(
-  () => import("@/components/homepage/our-strength"),
-  {
-    loading: () => <Loading />,
-  },
-);
-
-const CustomerReviewSection = dynamic(
-  () => import("@/components/homepage/customer-review-section"),
-  {
-    loading: () => <Loading />,
-  },
-);
-
-const GuideSection = dynamic(
-  () => import("@/components/homepage/guide-section"),
-  {
-    loading: () => <Loading />,
-  },
-);
-
-const MaterialSection = dynamic(
-  () => import("@/components/homepage/material-section"),
-  {
-    loading: () => <Loading />,
-  },
-);
-
-const FaqSection = dynamic(() => import("@/components/homepage/faq-section"), {
-  loading: () => <Loading />,
-});
-
-const NewsletterSection = dynamic(
-  () => import("@/components/homepage/newsletter-section"),
-  {
-    loading: () => <Loading />,
-  },
-);
-
-const Footer = dynamic(() => import("@/components/footer/footer"), {
-  loading: () => <Loading />,
-});
 const Section = ({
   id,
   className,
   children,
 }: {
   id: string;
-  className: string;
+  className?: string;
   children: React.ReactNode;
 }) => (
   <section className={cn("w-screen md:snap-start", className)} id={id}>
@@ -88,10 +31,7 @@ const Section = ({
   </section>
 );
 
-export default async function Home() {
-  // You can add any async operations here if needed
-  // const someData = await fetchSomeData();
-
+export default function Home() {
   return (
     <div className="flex flex-col max-w-screen max-h-screen">
       <MyNavbar />
@@ -110,104 +50,57 @@ export default async function Home() {
           <HeroSection />
         </Section>
 
-        <Suspense fallback={<Loading />}>
+        {[
+          { id: "video", Component: VideoSection },
+          { id: "mosquito", Component: Mosquito },
+          { id: "window", Component: SceneWrapper },
+          {
+            id: "feature",
+            Component: FeatureSection,
+            className: "overflow-hidden",
+          },
+          {
+            id: "our_strength",
+            Component: OurStrength,
+            className: "flex-row overflow-visible",
+          },
+          {
+            id: "customer_review",
+            Component: CustomerReviewSection,
+            className: "overflow-hidden",
+          },
+          {
+            id: "guide",
+            Component: GuideSection,
+            className: "overflow-visible",
+          },
+          {
+            id: "materials",
+            Component: MaterialSection,
+            className: "items-center justify-center overflow-visible",
+          },
+          { id: "faq", Component: FaqSection, className: "overflow-visible" },
+          {
+            id: "newsletter",
+            Component: NewsletterSection,
+            className: "overflow-visible",
+          },
+        ].map(({ id, Component, className = "" }) => (
           <Section
-            className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center"
-            id="video"
+            key={id}
+            className={`min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center ${className}`}
+            id={id}
           >
-            <VideoSection />
+            <Component />
           </Section>
-        </Suspense>
+        ))}
 
-        <Suspense fallback={<Loading />}>
-          <Section
-            className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center"
-            id="mosquito"
-          >
-            <Mosquito />
-          </Section>
-        </Suspense>
-
-        <Suspense fallback={<Loading />}>
-          <Section
-            className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center"
-            id="window"
-          >
-            <SceneWrapper />
-          </Section>
-        </Suspense>
-
-        <Suspense fallback={<Loading />}>
-          <Section
-            className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center overflow-hidden"
-            id="feature"
-          >
-            <FeatureSection />
-          </Section>
-        </Suspense>
-
-        <Suspense fallback={<Loading />}>
-          <Section
-            className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-row justify-center items-center overflow-visible"
-            id="our_strength"
-          >
-            <OurStrength />
-          </Section>
-        </Suspense>
-
-        <Suspense fallback={<Loading />}>
-          <Section
-            className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center overflow-hidden"
-            id="customer_review"
-          >
-            <CustomerReviewSection />
-          </Section>
-        </Suspense>
-
-        <Suspense fallback={<Loading />}>
-          <Section
-            className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center overflow-visible"
-            id="guide"
-          >
-            <GuideSection />
-          </Section>
-        </Suspense>
-
-        <Suspense fallback={<Loading />}>
-          <Section
-            className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex items-center justify-center overflow-visible"
-            id="materials"
-          >
-            <MaterialSection />
-          </Section>
-        </Suspense>
-
-        <Suspense fallback={<Loading />}>
-          <Section
-            className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center overflow-visible"
-            id="faq"
-          >
-            <FaqSection />
-          </Section>
-        </Suspense>
-
-        <Suspense fallback={<Loading />}>
-          <Section
-            className="min-h-fit sm:min-h-[calc(100vh-4rem)] flex flex-col justify-center overflow-visible"
-            id="newsletter"
-          >
-            <NewsletterSection />
-          </Section>
-        </Suspense>
-
-        <Suspense fallback={<Loading />}>
-          <Section
-            id="footer"
-            className="flex flex-col justify-center overflow-visible"
-          >
-            <Footer />
-          </Section>
-        </Suspense>
+        <Section
+          id="footer"
+          className="flex flex-col justify-center overflow-visible"
+        >
+          <Footer />
+        </Section>
       </div>
 
       <FABButton />

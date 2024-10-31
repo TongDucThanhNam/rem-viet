@@ -1,12 +1,14 @@
-// "use client";
-"use server";
-
-import { YouTubeEmbed } from "@next/third-parties/google";
 import React from "react";
-
+import dynamic from "next/dynamic";
 import { our_strength } from "@/config/site";
 
-export default async function OurStrength() {
+// Lazy load the YouTubeEmbed component
+const LazyYouTubeEmbed = dynamic(
+  () => import("@next/third-parties/google").then((mod) => mod.YouTubeEmbed),
+  { ssr: false, loading: () => <div>Loading video...</div> },
+);
+
+export default function OurStrength() {
   return (
     <div className="flex items-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto w-full">
@@ -33,7 +35,7 @@ export default async function OurStrength() {
           </div>
           <div className="w-full lg:w-1/2">
             <div className="aspect-w-16 aspect-h-9">
-              <YouTubeEmbed
+              <LazyYouTubeEmbed
                 params="controls=1"
                 playlabel="Watch video"
                 videoid={our_strength.video}

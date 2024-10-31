@@ -19,6 +19,7 @@ export const RemVietIcon: React.FC<IconSvgProps> = ({
     <NextImage
       role={"img"}
       alt={"Rem Viet"}
+      priority={true}
       height={size}
       src={remviet}
       width={size}

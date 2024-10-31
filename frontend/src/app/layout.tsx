@@ -4,7 +4,7 @@ import "@/app/styles/globals.css";
 import { siteConfig } from "@/config/site";
 // import { nunito } from "@/app/fonts";
 import { Providers } from "./providers";
-import SpeedInsightsWrapper from "@/components/analyst-components";
+// import SpeedInsightsWrapper from "@/components/analyst-components";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -59,7 +59,7 @@ export default function RootLayout({
         <Providers>
           <main>{children}</main>
         </Providers>
-        <SpeedInsightsWrapper />
+        {/*<SpeedInsightsWrapper />*/}
       </body>
     </html>
   );

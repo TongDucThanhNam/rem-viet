@@ -1,7 +1,13 @@
 // "use client";
 "use server";
 
-import { YouTubeEmbed } from "@next/third-parties/google";
+// import { YouTubeEmbed } from "@next/third-parties/google";
+import dynamic from "next/dynamic";
+
+const LazyYouTubeEmbed = dynamic(
+  () => import("@next/third-parties/google").then((mod) => mod.YouTubeEmbed),
+  { ssr: false, loading: () => <div>Loading video...</div> },
+);
 import { Button } from "@nextui-org/button";
 import React from "react";
 
@@ -22,7 +28,7 @@ export default async function MaterialSection() {
 
       <div className="grid md:grid-cols-2 gap-8 items-start">
         <div className="aspect-w-16 aspect-h-9">
-          <YouTubeEmbed
+          <LazyYouTubeEmbed
             params="controls=1"
             playlabel="Watch video"
             videoid={our_strength.video}

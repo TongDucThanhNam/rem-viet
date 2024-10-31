@@ -48,7 +48,8 @@ export default async function HeroSection() {
           <div className="mt-10 lg:mt-0">
             <div className="">
               <NextImage
-                priority
+                priority={true}
+                loading={"eager"}
                 alt="Hero image"
                 width={400}
                 height={400}

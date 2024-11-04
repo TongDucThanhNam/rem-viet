@@ -1,3 +1,5 @@
+const { withNextVideo } = require("next-video/process");
+
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   // output: 'export', // Zalo mini Apps
@@ -76,7 +78,21 @@ const nextConfig = {
   // ],
 };
 
-module.exports = nextConfig;
+module.exports = withNextVideo(nextConfig, {
+  provider: "amazon-s3",
+  providerConfig: {
+    "amazon-s3": {
+      endpoint: process.env.AWS_ENDPOINT,
+      // accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      // secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      // region: process.env.AWS_REGION,
+      // bucket: process.env.AWS_BUCKET,
+      // generateAssetKey: (name) => {
+      //   return `video/${name}`;
+      // }
+    },
+  },
+});
 
 const withBundleAnalyzer = require("@next/bundle-analyzer")({
   enabled: process.env.ANALYZE === "true",

@@ -4,7 +4,8 @@ interface ResponsiveVideoProps {
 
 export default function ResponsiveVideo(
   { videoSrc }: ResponsiveVideoProps = {
-    videoSrc: "https://rem-viet.hcm.ss.bfcplatform.vn/videoplayback.webm",
+    videoSrc:
+      "https://rem-viet.s3.ap-southeast-2.amazonaws.com/videoplayback.webm",
   },
 ) {
   return (

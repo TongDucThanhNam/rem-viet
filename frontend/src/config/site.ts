@@ -26,7 +26,7 @@ export const siteConfig = {
   links: {
     github: "https://github.com/tongducthanhnam",
   },
-  image: "https://rem-viet.hcm.ss.bfcplatform.vn/remviet.webp",
+  image: "https://rem-viet.s3.ap-southeast-2.amazonaws.com/remviet.webp",
 };
 
 export const heroSection = {
@@ -34,8 +34,10 @@ export const heroSection = {
   title: "Rèm Việt",
   description:
     "Mang đến sự bảo vệ toàn diện cho gia đình bạn khỏi những tác nhân như côn trùng,khói bụi, ...",
-  videoUrl: "https://rem-viet.hcm.ss.bfcplatform.vn/luoichongmuoi.mp4",
-  image: "https://rem-viet.hcm.ss.bfcplatform.vn/heroimage.webp",
+  videoUrl:
+    "https://rem-viet.s3.ap-southeast-2.amazonaws.com/luoichongmuoi.mp4",
+  videoHls: "https://rem-viet.s3.ap-southeast-2.amazonaws.com/output.m3u8",
+  image: "https://rem-viet.s3.ap-southeast-2.amazonaws.com/HeroImage.webp",
 };
 
 export const features = [

@@ -1,0 +1,42 @@
+{
+  "name": "astro-nextui-ecommerce",
+  "type": "module",
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro preview",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@repo/shared-config": "*",
+    "@14islands/r3f-scroll-rig": "^8.14.0",
+    "@astrojs/check": "0.9.4",
+    "@astrojs/react": "3.6.2",
+    "@astrojs/sitemap": "3.2.1",
+    "@astrojs/tailwind": "5.1.2",
+    "@nanostores/persistent": "^0.10.2",
+    "@nanostores/react": "^0.8.0",
+    "@react-three/drei": "^9.114.4",
+    "@react-three/fiber": "^8.17.10",
+    "astro": "^4.16.7",
+    "astro-embed": "^0.7.4",
+    "astro-page-insight": "^0.8.7",
+    "hls.js": "^1.5.16",
+    "mini-svg-data-uri": "^1.4.4",
+    "nanostores": "^0.11.3",
+    "node-telegram-bot-api": "0.66.0",
+    "react-device-detect": "^2.2.3",
+    "swiper": "^11.1.14",
+    "tailwindcss": "^3.3.3",
+    "three": "^0.158.0"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^4.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.3.0",
+    "eslint": "^9.13.0",
+    "eslint-plugin-astro": "^0.34.0",
+    "prettier-plugin-astro": "^0.14.1"
+  }
+}

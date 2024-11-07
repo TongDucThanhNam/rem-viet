@@ -3,14 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "admin",
-    "backend",
-    "frontend",
-    "home"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "start": "turbo run start",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },

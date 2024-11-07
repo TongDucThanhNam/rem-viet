@@ -1,0 +1,20 @@
+{
+  "name": "admin",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3333",
+    "build": "next build",
+    "start": "next start -p 3333",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@repo/shared-config": "*",
+    "@tabler/icons-react": "^3.19.0",
+    "react-dropzone": "^14.2.9",
+    "recharts": "^2.13.0"
+  },
+  "devDependencies": {
+    "eslint-plugin-unused-imports": "^4.1.4"
+  }
+}

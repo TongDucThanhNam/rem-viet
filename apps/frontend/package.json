@@ -1,0 +1,31 @@
+{
+  "name": "e-commerce",
+  "version": "1.2.0",
+  "private": true,
+  "scripts": {
+    "dev-turbo": "next dev --turbo",
+    "dev": "next dev & npx next-video sync -w",
+    "build": "NODE_ENV=production next build --no-lint",
+    "start-standalone": "bun --bun .next/standalone/server.js",
+    "start": "NODE_ENV=production bun next start",
+    "lint": "eslint . --ext .ts,.tsx -c .eslintrc.json --fix",
+    "build:static": "BUILD_MODE=static next build --no-lint",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/shared-config": "*",
+    "@next/third-parties": "^14.2.15",
+    "@react-aria/ssr": "^3.9.6",
+    "@react-aria/visually-hidden": "^3.8.17",
+    "autoprefixer": "^10.4.20",
+    "clsx": "^2.1.1",
+    "mini-svg-data-uri": "^1.4.4",
+    "next-video": "^1.3.3",
+    "react-error-boundary": "^4.1.2",
+    "swiper": "^11.1.2",
+    "tailwind-merge": "^2.5.4",
+    "tailwindcss": "^3.4.14",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {}
+}

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 export function useThrottle<T extends (...args: any[]) => any>(
   func: T,
@@ -27,6 +27,7 @@ export function useThrottle<T extends (...args: any[]) => any>(
           clearTimeout(timeoutRef.current);
         }
 
+        // @ts-ignore
         timeoutRef.current = setTimeout(
           () => {
             func(...args);

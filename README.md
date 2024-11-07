@@ -104,7 +104,8 @@ To get a local copy up and running follow these simple example steps.
 
 ### Prerequisites
 
-Before you begin, ensure you have met the following requirements:  
+Before you begin, ensure you have met the following requirements:
+
 - NodeJS installed
 - Bun installed (npm. yarn or pnpm are okey)
 - install concurrently:
@@ -114,8 +115,8 @@ Before you begin, ensure you have met the following requirements:
 - MongoDB installed (or use MongoDB Atlas)
 - Docker installed (optional)
 - Telegram bot token (optional)
-- Prepare the environment variables in the `.env` file in the backend, frontend folder or modifier docker-compose.yml file if you using docker.
-
+- Prepare the environment variables in the `.env` file in the backend, frontend folder or modifier docker-compose.yml
+  file if you using docker.
 
 ### Installation
 
@@ -125,24 +126,25 @@ Before you begin, ensure you have met the following requirements:
 git clone https://github.com/TongDucThanhNam/rem-viet
 ```
 
-- Install the frontend:
+- Install the dependencies:
 
 ```
-cd rem-viet/frontend
 bun i
 ```
 
-- Install the backend:
-
-```
-cd rem-viet/backend
-bun i
-```
-
-- Run all by concurrently:
+- Run the project:
 
 ```
 bun run dev
+```
+
+- Run the services separately:
+
+```
+bun run dev --filter=admin
+bun run dev --filter=backend
+bun run dev --filter=frontend
+bun run dev --filter=home
 ```
 
 - Open your browser and go to `http://localhost:3000` for frontend and `http://localhost:3001` for backend.
@@ -181,6 +183,7 @@ the [Documentation](https://github.com/TongDucThanhNam/rem-viet?tab=readme-ov-fi
 <!-- ROADMAP -->
 
 ## Roadmap
+
 - [x] Basic Frontend and Backend
 - [x] Deploy the project
 - [x] Dashboard for admin
@@ -244,22 +247,22 @@ Distributed under the MIT License. See `LICENSE` for more information.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- What I have learn -->
+
 ## What I have learned
+
 - Backend with NodeJS and ExpressJS
-  - RESTful API witb ExpressJS: Routing, Middleware
-  - MongoDB with Mongoose: CRUD, Model with schema
-  - Clean architecture: Controller, Service, Repository
-  - Swagger for API documentation: Swagger-autogen
-  - Send message to Telegram bot
+    - RESTful API witb ExpressJS: Routing, Middleware
+    - MongoDB with Mongoose: CRUD, Model with schema
+    - Clean architecture: Controller, Service, Repository
+    - Swagger for API documentation: Swagger-autogen
+    - Send message to Telegram bot
 - Frontend with NextJS and ReactJS
-  - NextJS with ReactJS: app routing structure, dymanic routing, Fetch, SSR, ...
-  - ReactJS: useState, useEffect,
-  - TailwindCSS: Styling
-  - NextUI: Using components
-  - Frammer Motion: Animation
+    - NextJS with ReactJS: app routing structure, dymanic routing, Fetch, SSR, ...
+    - ReactJS: useState, useEffect,
+    - TailwindCSS: Styling
+    - NextUI: Using components
+    - Frammer Motion: Animation
 - Dockerize the project
-
-
 
 <!-- ACKNOWLEDGMENTS -->
 
@@ -272,7 +275,6 @@ Distributed under the MIT License. See `LICENSE` for more information.
 * [NodeJS](https://nodejs.org)
 * [Next.js](https://nextjs.org)
 * [Docker](https://docker.com)
-
 
 <p align="right">(<a href="#readme-top">
   back to top

@@ -1,15 +1,21 @@
 {
+  "name": "nextui-ecommerce",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "admin",
+    "backend",
+    "frontend",
+    "home"
+  ],
   "scripts": {
-    "dev": "concurrently \"bun dev:backend\" \"bun run dev:frontend\" \"bun run dev:astro\"",
-    "dev:backend": "cd backend && bun run dev",
-    "dev:frontend": "cd frontend && bun run dev",
-    "dev:astro": "cd home && bun astro dev",
-    "start": "concurrently \"bun run start:backend\" \"bun run start:frontend\"",
-    "start:backend": "cd backend && bun start",
-    "start:frontend": "cd frontend && bun start",
-    "build": "concurrently \"bun run build:backend\" \"bun run build:frontend\"",
-    "build:backend": "cd backend && bun run swagger",
-    "build:frontend": "cd frontend && bun run build",
-    "swagger": "cd backend && bun run swagger"
-  }
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "turbo": "latest"
+  },
+  "packageManager": "npm@10.8.3"
 }

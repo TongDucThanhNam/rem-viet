@@ -108,10 +108,10 @@ Before you begin, ensure you have met the following requirements:
 
 - NodeJS installed
 - Bun installed (npm. yarn or pnpm are okey)
-- install concurrently:
-  ```sh
-  bun add -g concurrently
-  ```
+- install turborepo globally
+```sh
+bun install -g @turbo/turbo-cli
+```
 - MongoDB installed (or use MongoDB Atlas)
 - Docker installed (optional)
 - Telegram bot token (optional)
@@ -122,29 +122,34 @@ Before you begin, ensure you have met the following requirements:
 
 - Clone the repository:
 
-```
+```bash
 git clone https://github.com/TongDucThanhNam/rem-viet
 ```
 
 - Install the dependencies:
 
-```
+```bash
 bun i
 ```
 
 - Run the project:
 
-```
+```bash
 bun run dev
 ```
 
 - Run the services separately:
 
-```
+```bash
+bun run dev
+# Run admin only
 bun run dev --filter=admin
+# Run backend only
 bun run dev --filter=backend
-bun run dev --filter=frontend
-bun run dev --filter=home
+# Run frontend only
+bun run dev --filter=e-commerce
+# Run the home only
+bun run dev --filter=astro-nextui-ecommerce
 ```
 
 - Open your browser and go to `http://localhost:3000` for frontend and `http://localhost:3001` for backend.

@@ -6,15 +6,13 @@ import React, { useEffect, useState } from "react";
 import CardItem from "@/components/product-grid/card-items";
 
 export default function ProductGridComponent({
-  myProducts,
-}: {
+                                               myProducts
+                                             }: {
   myProducts: any;
 }) {
-  // console.log(myProducts);
-
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Number of items per page
+  const itemsPerPage = 8; // Number of items per page
   const total = Math.ceil(myProducts.length / itemsPerPage); // Total number of pages
 
   // Calculate the products to display on the current page
@@ -27,14 +25,13 @@ export default function ProductGridComponent({
   }, [myProducts]);
 
   return (
-    <>
+    <div className={"mx-auto"}>
       <h2 className="text-2xl font-bold tracking-tight px-10">
         Danh sách sản phẩm{" "}
       </h2>
       <div
         className={
-          "grid w-full grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 px-10"
-        }
+          "grid w-full grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4"}
       >
         {currentProducts.map((product: any) => (
           <CardItem
@@ -58,6 +55,6 @@ export default function ProductGridComponent({
           }}
         />
       </div>
-    </>
+    </div>
   );
 }

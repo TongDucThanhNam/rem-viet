@@ -8,7 +8,7 @@ import { ExpandableCard } from "@/components/animation/expandable-card";
 export default function Footer() {
   return (
     <footer className="justify-end">
-      <div className="container mx-auto px-4 py-8 md:py-12">
+      <div className="container px-4 py-8 md:py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-4">
             <h2 className="text-2xl font-bold text-primary">

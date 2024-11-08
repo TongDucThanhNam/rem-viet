@@ -5,12 +5,8 @@ import React, { useState } from "react";
 import { Card, CardBody, CardFooter, CardHeader } from "@nextui-org/card";
 import { Tooltip } from "@nextui-org/tooltip";
 import { Button } from "@nextui-org/button";
-import dynamic from "next/dynamic";
+import ThreeScene from "@/components/homepage/ThreeScene.tsx";
 
-const ThreeScene = dynamic(() => import("@/components/homepage/ThreeScene"), {
-    // ssr: false,
-    loading: () => <p>Loading...</p>,
-});
 
 export default function Scene() {
     const [height, setHeight] = useState<number>(3);

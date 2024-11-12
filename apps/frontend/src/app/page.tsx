@@ -7,7 +7,6 @@ import Footer from "@/components/footer/footer";
 
 import { BreadcrumbItem, Breadcrumbs } from "@nextui-org/breadcrumbs";
 import FABButton from "@/components/button/fab-button";
-import { Pagination } from "@nextui-org/pagination";
 import SwiperComp from "@/components/swiper/swiper";
 import { Card, CardBody } from "@nextui-org/card";
 

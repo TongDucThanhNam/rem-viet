@@ -18,14 +18,6 @@ export const siteConfig = {
             label: "Bài viết",
             href: "/bai-viet",
         },
-        {
-            label: "Sản phẩm",
-            href: "/danh-sach-san-pham",
-        },
-        // {
-        //     label: "Bảng điều khiển",
-        //     href: "/dashboard",
-        // },
     ],
     links: {
         github: "https://github.com/tongducthanhnam",

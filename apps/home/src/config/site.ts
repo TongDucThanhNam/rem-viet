@@ -1,5 +1,3 @@
-export type SiteConfig = typeof siteConfig;
-
 export const siteConfig = {
   name: "Rèm Việt",
   description:
@@ -7,11 +5,11 @@ export const siteConfig = {
   navItems: [
     {
       label: "Bài viết",
-      href: "/bai-viet",
+      href: "https://luoichongmuoi.shop/bai-viet",
     },
     {
       label: "Sản phẩm",
-      href: "/danh-sach-san-pham",
+      href: "https://luoichongmuoi.shop",
     },
   ],
   links: {

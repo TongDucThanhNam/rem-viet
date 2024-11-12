@@ -116,7 +116,7 @@ export default function MyNavbar(props: any) {
             color={"primary"}
             variant={"bordered"}
             aria-label="Buy"
-            href={siteConfig.links.github}
+            href={"https://luoichongmuoi.shop"}
             endContent={<CartIcon />}
           >
             Mua hàng

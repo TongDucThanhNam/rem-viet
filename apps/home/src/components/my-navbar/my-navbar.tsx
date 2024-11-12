@@ -113,6 +113,7 @@ export default function MyNavbar(props: any) {
 
         <NavbarItem>
           <Button
+              as={Link}
             color={"primary"}
             variant={"bordered"}
             aria-label="Buy"

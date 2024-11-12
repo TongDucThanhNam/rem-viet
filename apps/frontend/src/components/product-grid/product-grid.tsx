@@ -3,7 +3,7 @@ import React from "react";
 import ProductGridComponent from "@/components/product-grid/products";
 
 export default async function ProductGrid({}: {}) {
-  const res = await fetch(`${process.env.BACKEND_URL}/api/products/`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/products/`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

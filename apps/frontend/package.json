@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "NODE_ENV=production next build --no-lint",
     "start-standalone": "bun --bun .next/standalone/server.js",
-    "start": "NODE_ENV=production bun next start",
+    "start": "NODE_ENV=production next start",
     "lint": "eslint . --ext .ts,.tsx -c .eslintrc.json --fix",
     "build:static": "BUILD_MODE=static next build --no-lint",
     "check-types": "tsc --noEmit"

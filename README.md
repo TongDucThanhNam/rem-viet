@@ -135,15 +135,15 @@ bun i
 - Run the project:
 
 ```bash
-bun run dev
+bun run dev --parallel
 ```
 
 - Run the services separately:
 
 ```bash
-bun run dev
+bun run dev --parallel
 # Run admin only
-bun run dev --filter=admin
+bun run dev --filter=admin 
 # Run backend only
 bun run dev --filter=backend
 # Run frontend only
@@ -157,8 +157,8 @@ bun run dev --filter=astro-nextui-ecommerce
 - For production (better performance), you can build the frontend and run the backend:
 
 ```
-bun run build
-bun run start
+bun run build --parallel
+bun run start --parallel
 ```
 
 - You can also run the backend with Docker:

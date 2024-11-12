@@ -1,9 +1,18 @@
 {
   "$schema": "https://turbo.build/schema.json",
-  "tasks": {
+  "globalEnv": [
+    "BACKEND_URL",
+    "NEXT_PUBLIC_BACKEND_URL"
+  ],
+  "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "env": [
+        "BACKEND_URL",
+        "NEXT_PUBLIC_BACKEND_URL",
+        "NEXT_PUBLIC_DOMAIN"
+      ]
     },
     "check-types": {
       "dependsOn": ["^check-types"]

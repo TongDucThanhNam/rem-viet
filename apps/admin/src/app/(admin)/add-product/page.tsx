@@ -114,11 +114,9 @@ export default function AddProductPage() {
     const [files, setFiles] = useState<File[]>([]);
     const handleFileUpload = (files: File[]) => {
         setFiles(files);
-        console.log(files);
     };
 
     const addVariants = () => {
-        console.log("Before update:", variantValues);
 
         setVariants((prevVariants) => {
             const updatedVariants = [
@@ -147,7 +145,6 @@ export default function AddProductPage() {
     };
 
     useEffect(() => {
-        console.log("After update:", variantValues);
     }, [variantValues]);
 
     const handleChildSubFieldValueChange = (value: string, index: number) => {
@@ -165,7 +162,6 @@ export default function AddProductPage() {
     };
 
     const saveProduct = async () => {
-        console.log("Save Product");
         const jsonString = JSON.stringify({
             imageurls: imageUrls,
             name: product.name,
@@ -174,8 +170,6 @@ export default function AddProductPage() {
             price: product.price,
             variants: variantCombinations,
         });
-
-        console.log(jsonString);
 
         //Gửi dữ liệu lên server
         try {

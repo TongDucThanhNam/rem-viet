@@ -180,3 +180,9 @@ sketch
 # typescript
 next-env.d.ts
 .turbo
+
+# Cloudflare/TanStack local state
+.alchemy/
+.wrangler/
+.tanstack/
+.antigravitycli/

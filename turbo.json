@@ -1,17 +1,26 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
   "globalEnv": [
-    "BACKEND_URL",
-    "NEXT_PUBLIC_BACKEND_URL"
+    "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL",
+    "ADMIN_EMAILS",
+    "CORS_ORIGIN",
+    "CLOUDFLARE_ACCOUNT_ID",
+    "CLOUDFLARE_DATABASE_ID",
+    "CLOUDFLARE_D1_TOKEN",
+    "ALCHEMY_PASSWORD"
   ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
       "env": [
-        "BACKEND_URL",
-        "NEXT_PUBLIC_BACKEND_URL",
-        "NEXT_PUBLIC_DOMAIN"
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "ADMIN_EMAILS",
+        "CORS_ORIGIN"
       ]
     },
     "check-types": {
@@ -21,9 +30,20 @@
       "persistent": true,
       "cache": false
     },
-    "start": {
-      "dependsOn": ["^start"],
+    "serve": {
       "persistent": true,
+      "cache": false
+    },
+    "db:push": {
+      "cache": false
+    },
+    "db:generate": {
+      "cache": false
+    },
+    "deploy": {
+      "cache": false
+    },
+    "destroy": {
       "cache": false
     }
   }

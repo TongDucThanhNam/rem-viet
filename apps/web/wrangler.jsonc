@@ -1,0 +1,42 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rem-viet-web-local",
+  "main": "@tanstack/react-start/server-entry",
+  "compatibility_date": "2026-03-10",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "nodejs_compat_populate_process_env",
+  ],
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "none",
+    "html_handling": "auto-trailing-slash",
+    "run_worker_first": false,
+  },
+  "vars": {
+    "CORS_ORIGIN": "http://localhost:3001",
+    "BETTER_AUTH_SECRET": "development-secret-change-me",
+    "BETTER_AUTH_URL": "http://localhost:3001",
+    "ADMIN_EMAILS": "admin@example.com",
+    "TELEGRAM_BOT_TOKEN": "",
+    "TELEGRAM_CHAT_ID": "",
+    "JSONLINK_API_KEY": "",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_id": "rem-viet-local",
+      "database_name": "rem-viet-local",
+      "migrations_dir": "../../packages/db/src/migrations",
+      "preview_database_id": "rem-viet-local",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "PRODUCT_IMAGES",
+      "bucket_name": "rem-viet-product-images-local",
+      "preview_bucket_name": "rem-viet-product-images-local",
+    },
+  ],
+}

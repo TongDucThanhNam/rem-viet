@@ -11,12 +11,12 @@ import {
 } from "@/components/icons/icons";
 
 interface Props {
-  product: any[number];
-  columnKey: any;
+  product: Record<string, unknown>;
+  columnKey: string;
 }
 
 // "createdAt": "2024-09-18T07:16:59.315Z",
-function formatDate(date: any) {
+function formatDate(date: string | number | Date) {
   const d = new Date(date);
 
   return `${d.getDate()}/${d.getMonth()}/${d.getFullYear()}`;
@@ -93,16 +93,14 @@ export const RenderCellProduct = ({ product, columnKey }: Props) => {
     // Price
     case "price":
       return (
-        // TODO: Add a currency formatter
-        <span>{cellValue}</span>
+        <span>{new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(cellValue))}</span>
       );
     //Description
     case "description":
       return (
-        // TODO: Add a hover effect to show the full description
-        <div className={""}>
-          <p className={"truncate"}>{cellValue}</p>
-        </div>
+        <Tooltip content={String(cellValue)} delay={500}>
+          <p className="truncate max-w-xs">{String(cellValue)}</p>
+        </Tooltip>
       );
 
     case "updatedAt":

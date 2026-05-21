@@ -1,0 +1,20 @@
+{
+  "name": "@rem-viet/infra",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "dev": "alchemy dev",
+    "deploy": "alchemy deploy",
+    "destroy": "alchemy destroy"
+  },
+  "dependencies": {
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@rem-viet/config": "workspace:*",
+    "alchemy": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@rem-viet/env",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "exports": {
+    "./server": "./src/server.ts",
+    "./web": "./src/web.ts"
+  },
+  "dependencies": {
+    "@t3-oss/env-core": "^0.13.1",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@rem-viet/config": "workspace:*",
+    "@rem-viet/infra": "workspace:*",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

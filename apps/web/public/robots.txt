@@ -1,0 +1,6 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+Sitemap: https://luoichongmuoi.shop/sitemap.xml
+Host: https://luoichongmuoi.shop

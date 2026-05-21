@@ -1,0 +1,29 @@
+{
+  "name": "@rem-viet/api",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@rem-viet/auth": "workspace:*",
+    "@rem-viet/db": "workspace:*",
+    "@rem-viet/env": "workspace:*",
+    "@trpc/client": "catalog:",
+    "@trpc/server": "catalog:",
+    "dotenv": "catalog:",
+    "drizzle-orm": "^0.45.1",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@rem-viet/config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

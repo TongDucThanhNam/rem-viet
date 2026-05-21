@@ -1,20 +1,65 @@
 {
-  "name": "nextui-ecommerce",
-  "version": "1.0.0",
+  "name": "rem-viet",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "type": "module",
+  "workspaces": {
+    "packages": [
+      "apps/web",
+      "packages/api",
+      "packages/auth",
+      "packages/config",
+      "packages/db",
+      "packages/env",
+      "packages/infra",
+      "packages/ui"
+    ],
+    "catalog": {
+      "dotenv": "^17.2.2",
+      "zod": "^4.1.13",
+      "typescript": "^6",
+      "@types/node": "^22.13.14",
+      "@libsql/client": "0.15.15",
+      "libsql": "0.5.22",
+      "@trpc/server": "^11.16.0",
+      "@trpc/client": "^11.16.0",
+      "better-auth": "1.6.9",
+      "@types/react-dom": "^19.2.3",
+      "alchemy": "^0.91.2"
+    }
+  },
   "scripts": {
-    "build": "turbo run build --parallel",
-    "dev": "turbo run dev --parallel",
-    "start": "turbo run start --parallel",
-    "lint": "turbo run lint --parallel",
+    "dev": "CHOKIDAR_USEPOLLING=true bun --filter web dev:bare --host 127.0.0.1",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "audit:migration-parity": "bun scripts/audit-migration-parity.ts",
+    "smoke:migration": "bun scripts/smoke-migration.ts",
+    "dev:web": "CHOKIDAR_USEPOLLING=true bun --filter web dev:bare --host 127.0.0.1",
+    "dev:cloudflare": "turbo -F @rem-viet/infra dev",
+    "serve": "bun --filter web serve",
+    "db:push": "turbo -F @rem-viet/db db:push",
+    "db:generate": "turbo -F @rem-viet/db db:generate",
+    "db:mongo-to-d1:sql": "bun --cwd packages/db mongo-to-d1:sql",
+    "db:notion-to-d1:sql": "bun --cwd packages/db notion-to-d1:sql",
+    "db:migration:summary": "bun --cwd packages/db migration:summary",
+    "db:migration:verify": "bun --cwd packages/db migration:verify",
+    "db:migration:verify:fixture": "bun --cwd packages/db migration:verify:fixture",
+    "db:migrate:local": "bun --cwd apps/web wrangler d1 migrations apply rem-viet-local --local --config wrangler.jsonc && bun --cwd apps/web wrangler d1 migrations apply rem-viet-local --local --persist-to ../../.alchemy/miniflare --config wrangler.jsonc",
+    "deploy": "turbo -F @rem-viet/infra deploy",
+    "destroy": "turbo -F @rem-viet/infra destroy",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
-  "devDependencies": {
-    "turbo": "latest"
+  "dependencies": {
+    "@rem-viet/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
   },
-  "packageManager": "npm@10.9.0"
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251213.0",
+    "@rem-viet/config": "workspace:*",
+    "@types/node": "catalog:",
+    "tailwindcss": "^4.2.2",
+    "turbo": "^2.8.12",
+    "typescript": "catalog:"
+  },
+  "packageManager": "bun@1.3.12"
 }

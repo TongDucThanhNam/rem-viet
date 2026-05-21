@@ -1,0 +1,4 @@
+{
+  "extends": "@rem-viet/config/tsconfig.base.json",
+  "files": []
+}

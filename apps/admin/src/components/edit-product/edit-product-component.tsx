@@ -123,7 +123,6 @@ export default function EditProductComponent({
   );
 
   const addVariants = () => {
-    console.log("Before update:", variantValues);
 
     setVariants((prevVariants) => {
       const updatedVariants = [
@@ -146,7 +145,6 @@ export default function EditProductComponent({
   };
 
   useEffect(() => {
-    console.log("After update:", variantValues);
   }, [variantValues]);
 
   const handleChildSubFieldValueChange = (value: string, index: number) => {
@@ -170,7 +168,6 @@ export default function EditProductComponent({
   };
 
   const editProduct = async () => {
-    console.log("Edit Product");
     const jsonString = JSON.stringify({
       name: product.name,
       description: product.description,
@@ -178,8 +175,6 @@ export default function EditProductComponent({
       price: product.price,
       variants: variantCombinations,
     });
-
-    console.log(jsonString);
 
     //Gửi dữ liệu lên server
     try {

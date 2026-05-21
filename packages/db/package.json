@@ -1,0 +1,36 @@
+{
+  "name": "@rem-viet/db",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "mongo-to-d1:sql": "bun src/scripts/mongo-to-d1-sql.ts",
+    "notion-to-d1:sql": "bun src/scripts/notion-to-d1-sql.ts",
+    "migration:summary": "bun src/scripts/migration-summary.ts",
+    "migration:verify": "bun scripts/verify-import-sql.ts",
+    "migration:verify:fixture": "bun scripts/verify-import-fixture.ts"
+  },
+  "dependencies": {
+    "@libsql/client": "catalog:",
+    "@rem-viet/env": "workspace:*",
+    "dotenv": "catalog:",
+    "drizzle-orm": "^0.45.1",
+    "libsql": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@rem-viet/config": "workspace:*",
+    "drizzle-kit": "^0.31.8",
+    "mongodb": "^6.21.0",
+    "typescript": "catalog:"
+  }
+}

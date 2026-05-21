@@ -1,0 +1,5 @@
+{
+  "extends": "@rem-viet/config/tsconfig.base.json",
+  "include": ["src/**/*.ts", "env.d.ts"],
+  "exclude": ["node_modules", "dist"]
+}

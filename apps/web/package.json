@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@libsql/client": "catalog:",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
     "@rem-viet/api": "workspace:*",
     "@rem-viet/auth": "workspace:*",
     "@rem-viet/env": "workspace:*",
@@ -26,12 +28,15 @@
     "@trpc/tanstack-react-query": "^11.16.0",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
+    "framer-motion": "^12.40.0",
     "libsql": "catalog:",
     "lucide-react": "^1.8.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "sonner": "^2.0.7",
+    "swiper": "^12.1.4",
     "tailwindcss": "^4.2.2",
+    "three": "^0.184.0",
     "zod": "catalog:"
   },
   "devDependencies": {
@@ -43,6 +48,7 @@
     "@testing-library/react": "^16.3.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "catalog:",
+    "@types/three": "^0.184.1",
     "@vitejs/plugin-react": "^6.0.1",
     "alchemy": "catalog:",
     "jsdom": "^29.0.2",

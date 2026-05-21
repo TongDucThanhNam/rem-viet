@@ -3,7 +3,7 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { PackageSearch } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import HomeCarousel from "@/components/home-carousel";
+import HeroSection from "@/components/hero-section";
 import {
   FaqSection,
   FeatureSection,
@@ -55,7 +55,7 @@ function HomeComponent() {
         className="flex w-full items-center justify-center px-4 py-6"
         id="hero"
       >
-        <HomeCarousel />
+        <HeroSection />
       </section>
 
       <section className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6">

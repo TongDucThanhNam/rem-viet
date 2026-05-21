@@ -18,7 +18,7 @@ import { Button } from "@rem-viet/ui/components/button";
 import { Card, CardContent } from "@rem-viet/ui/components/card";
 import { Input } from "@rem-viet/ui/components/input";
 import { Label } from "@rem-viet/ui/components/label";
-import ProductGallery from "@/components/product-gallery";
+import SwiperThumbnail from "@/components/product-thumbnail";
 import ReviewSummary from "@/components/review-summary";
 import { addCartItem, formatCurrency, parseProductPrice } from "@/lib/cart";
 import { formatProductPrice } from "@/lib/price";
@@ -185,10 +185,12 @@ function ProductRoute() {
         <div className="h-full w-full max-w-[96rem] px-2 lg:px-24">
           {product ? (
             <div className="relative flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8">
-              <ProductGallery
-                imageUrls={product.imageUrls}
-                productName={product.name}
-              />
+              <div className="relative h-full w-full flex-none">
+                <SwiperThumbnail
+                  imageUrls={product.imageUrls}
+                  isLoading={false}
+                />
+              </div>
 
               <aside className="flex flex-col">
                 <div>

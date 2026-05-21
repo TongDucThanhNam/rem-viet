@@ -22,6 +22,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
 import { useTRPC } from "@/utils/trpc";
+import ThreeScene from "./three-scene";
 
 const features = [
   {
@@ -500,29 +501,21 @@ export function MosquitoGuardSection() {
 export function SizeEstimatorSection() {
   const [height, setHeight] = useState(3);
   const [width, setWidth] = useState(2);
-  const previewWidth = Math.max(34, Math.min(80, width * 18));
-  const previewHeight = Math.max(40, Math.min(88, height * 18));
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => setIsMounted(true), []);
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-10">
       <div className="grid gap-6 border bg-background p-4 shadow-sm lg:grid-cols-[1.2fr_0.8fr] lg:p-6">
         <div className="relative flex min-h-[420px] items-center justify-center overflow-hidden bg-[linear-gradient(to_right,#80808018_1px,transparent_1px),linear-gradient(to_bottom,#80808018_1px,transparent_1px)] bg-[size:28px_28px]">
-          <div className="absolute left-4 top-4 text-xs font-semibold uppercase text-muted-foreground">
+          <div className="absolute left-4 top-4 text-xs font-semibold uppercase text-muted-foreground z-10">
             Mô phỏng kích thước
           </div>
-          <div
-            className="relative border-[14px] border-primary/80 bg-background shadow-2xl transition-all duration-300"
-            style={{ width: `${previewWidth}%`, height: `${previewHeight}%` }}
-          >
-            <div className="absolute inset-y-0 left-1/2 w-2 -translate-x-1/2 bg-primary/50" />
-            <div className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 bg-primary/50" />
-            <div className="absolute -top-9 left-1/2 -translate-x-1/2 border bg-background px-2 py-1 text-xs font-medium">
-              Rộng {width.toFixed(2)}m
-            </div>
-            <div className="absolute -left-11 top-1/2 -translate-y-1/2 -rotate-90 border bg-background px-2 py-1 text-xs font-medium">
-              Cao {height.toFixed(2)}m
-            </div>
-          </div>
+          {isMounted ? (
+            <ThreeScene height={height} width={width} />
+          ) : (
+            <div className="size-full animate-pulse bg-muted" />
+          )}
         </div>
 
         <div className="flex flex-col justify-between gap-6">

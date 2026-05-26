@@ -7,7 +7,7 @@ import { siteConfig } from "@/lib/site-config";
 const addressCard = {
   title: "Cửa hàng lưới chống muỗi",
   description: "ĐC: 831 Đ. Âu Cơ, Tân Thành, Tân Phú",
-  image: "/src/remviet2.webp",
+  image: "/src/luoichongmuoi.avif",
   href: siteConfig.links.facebook,
   content:
     "831 Đ. Âu Cơ, Tân Thành, Tân Phú, Hồ Chí Minh 70000. Cửa hàng chuyên cung cấp các loại rèm, lưới chống côn trùng, chất lượng tốt nhất thị trường.",

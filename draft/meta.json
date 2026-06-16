@@ -1,0 +1,15 @@
+{
+  "slug": "premium-mosquito-net",
+  "title": "Premium Custom Mosquito Net",
+  "description": "A high-end landing page for custom-fit window mosquito nets featuring a clean home catalog aesthetic and elegant Vietnamese typography.",
+  "tags": ["premium", "landing-page", "ecommerce", "home-decor"],
+  "entry": "./index.html",
+  "thumbnail": "./assets/window-mosquito-net-hero.png",
+  "author": "Antigravity",
+  "featured": true,
+  "publishedAt": "2026-05-20",
+  "runtime": {
+    "css": ["./style.css"],
+    "js": ["./script.js"]
+  }
+}

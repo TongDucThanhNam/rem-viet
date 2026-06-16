@@ -2,19 +2,64 @@
     --bg-color: #F8F5EF;
     --text-color: #111111;
     --accent-color: #B58A43;
-    
+
     --font-primary: 'Playfair Display', serif;
     --font-secondary: 'Be Vietnam Pro', sans-serif;
-    
+
     --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
     --ease-in-out-expo: cubic-bezier(1, 0, 0, 1);
+
+    /* === Design tokens — fluid type scale + spacing rhythm (AWWWARDS-grade
+       consistency). Section sizes below reference these instead of hardcoded
+       px/vw so the whole page breathes on one ladder. === */
+
+    /* Type scale (fluid via clamp; min→ideal→max) */
+    --fs-display: clamp(64px, 13vw, 200px);   /* hero title, signature moments */
+    --fs-h1: clamp(40px, 7vw, 96px);          /* section titles */
+    --fs-h2: clamp(28px, 3.5vw, 48px);        /* sub-titles, card titles large */
+    --fs-h3: clamp(20px, 1.8vw, 28px);
+    --fs-lead: clamp(18px, 1.6vw, 24px);      /* descriptive lead paragraphs */
+    --fs-body: 16px;
+    --fs-small: 14px;
+    --fs-eyebrow: 12px;                       /* (01) section eyebrows */
+    --fs-label: 10px;                         /* stat labels */
+
+    /* Spacing rhythm */
+    --space-section: clamp(96px, 16vh, 200px); /* section vertical padding */
+    --space-block: clamp(48px, 8vh, 96px);     /* intra-section gap */
+    --space-gutter: 4vw;                       /* horizontal page padding */
+
+    /* Accent variants — the brass voice. Light = trầm, dark = sáng lên
+       để nổi trên nền đen. */
+    --accent: #B58A43;
+    --accent-soft: #C9A86A;
+
+    /* Muted text (desc/labels) — theme-aware via color-mix so it works
+       on both cream and black backgrounds. */
+    --text-muted: color-mix(in srgb, var(--text-color) 60%, transparent);
+    --text-faint: color-mix(in srgb, var(--text-color) 38%, transparent);
+    --hairline: color-mix(in srgb, var(--text-color) 12%, transparent);
+    --hairline-strong: color-mix(in srgb, var(--text-color) 24%, transparent);
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* Theme engine — driven by `useThemeBySection()` which sets
+   `<html data-theme="...">` based on the section currently crossing the
+   viewport's middle. Inheriting `--accent-color` and `--font-*` from the
+   base :root keeps the brand voice consistent across themes. */
+:root[data-theme="dark"] {
+    --bg-color: #111111;
+    --text-color: #F8F5EF;
+    --accent: #D6BB82;
+    --accent-soft: #E2C896;
 }
+
+:root[data-theme="light"] {
+    --bg-color: #F8F5EF;
+    --text-color: #111111;
+}
+
+/* The `* { margin:0; padding:0; box-sizing:border-box }` reset was removed —
+   Tailwind v4 preflight handles it. Keep the landing-specific globals below. */
 
 .has-custom-cursor,
 .has-custom-cursor * {
@@ -30,43 +75,19 @@ body {
     overflow-x: hidden;
 }
 
+body > div {
+    min-width: 0;
+    overflow-x: hidden;
+}
+
 body.is-loading {
     overflow: hidden;
 }
 
-/* Custom Cursor */
-.cursor {
-    position: fixed;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    z-index: 10000;
-    mix-blend-mode: difference;
-}
-
-.cursor-dot {
-    width: 12px;
-    height: 12px;
-    background-color: #fff;
-    border-radius: 50%;
-    position: absolute;
-    transform: translate(-50%, -50%);
-    transition: width 0.3s var(--ease-out-expo), height 0.3s var(--ease-out-expo), background-color 0.3s;
-}
-
-.cursor-text {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    color: #000;
-    font-size: 10px;
-    text-transform: uppercase;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    opacity: 0;
-    white-space: nowrap;
-    transition: opacity 0.3s;
-}
-
+/* Custom Cursor — base styles migrated to Tailwind utilities in
+   custom-cursor-raw.tsx. These state-driven rules stay in CSS because they
+   use JS-toggled state classes (.hovering / .has-text) + descendant
+   selectors that can't be utilities. */
 .cursor.hovering .cursor-dot {
     width: 60px;
     height: 60px;
@@ -83,79 +104,33 @@ body.is-loading {
     opacity: 1;
 }
 
-/* Loader */
-.loader {
+/* Scroll Progress Bar
+   Pinned to the top edge of the viewport. Width is driven by
+   framer-motion's `scaleX` (cheaper compositor-only animation than
+   animating `width: %`). Color picks up `--accent-color` so it
+   re-tints automatically when `useThemeBySection` flips the
+   `data-theme` attribute on <html> as you scroll. */
+.scroll-progress {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
-    height: 100vh;
-    z-index: 9000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    height: 3px;
+    background-color: var(--accent-color);
+    transform-origin: 0 50%;
+    z-index: 9999;
     pointer-events: none;
-}
-
-.loader-overlay {
-    position: absolute;
-    left: 0;
-    width: 100%;
-    height: 50vh;
-    background-color: var(--text-color);
-}
-
-.loader-overlay-top { top: 0; transform-origin: top; }
-.loader-overlay-bottom { bottom: 0; transform-origin: bottom; }
-
-.loader-counter {
-    position: relative;
-    z-index: 9001;
-    font-family: var(--font-primary);
-    font-size: 15vw;
-    color: var(--bg-color);
-    font-weight: 400;
-}
-
-/* Nav */
-.nav {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    padding: 2vw 4vw;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 100;
-    mix-blend-mode: difference;
-    color: #fff;
-}
-
-.nav-brand {
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-}
-
-.nav-links {
-    display: flex;
-    gap: 3vw;
-}
-
-.nav-links a, .nav-cta {
-    font-size: 12px;
-    text-decoration: none;
-    color: #fff;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    display: inline-block;
     will-change: transform;
 }
 
+/* Loader + Nav — migrated to Tailwind utilities in their components.
+   .nav-cta is kept only as a hook class (excluded from useMagneticScope),
+   no styles of its own. */
+
 /* Grid System */
 .container {
+    width: 100%;
+    max-width: 100%;
     padding: 0 4vw;
 }
 
@@ -173,6 +148,16 @@ body.is-loading {
 
 .align-center { align-items: center; }
 
+.section-eyebrow {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    opacity: 0.72;
+    margin-bottom: 18px;
+}
+
 /* Image Masks & Parallax */
 .img-mask {
     overflow: hidden;
@@ -189,106 +174,165 @@ body.is-loading {
     transform: scale(1.2); /* Pre-animation state */
 }
 
-/* Hero Section */
-.hero {
-    height: 100vh;
-    padding: 0 4vw;
-    display: flex;
-    align-items: flex-end;
-    padding-bottom: 5vh;
-}
+/* Legacy `.hero` / `.hero-grid` / `.hero-heading` / `.hero-desc` /
+   `.btn-explore` / `.hero-visual` rules were removed — the live hero uses
+   `.hero-new` (Tailwind utilities in hero.tsx). These old 6/4-grid rules
+   had zero JSX references. Keep `.img-mask` below — ParallaxImage uses it. */
 
-.hero-grid {
-    display: grid;
-    grid-template-columns: 6fr 4fr;
-    gap: 4vw;
-    width: 100%;
-    align-items: end;
-}
-
-.hero-eyebrow {
-    display: flex;
-    gap: 20px;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    margin-bottom: 2vh;
-}
-
-.hero-heading {
-    font-family: var(--font-primary);
-    font-size: 11vw;
-    line-height: 0.85;
-    font-weight: 400;
-    letter-spacing: -0.02em;
-    margin-left: -0.5vw;
-    margin-bottom: 4vh;
-}
-
-.hero-heading .line {
+/* New full-bleed hero */
+/* Hero — most layout/typography now lives in Tailwind utilities in hero.tsx.
+   These rules remain only for what Tailwind can't express: the ::after overlay
+   gradient, the kicker underline (GSAP-tweened --kicker-underline-w var),
+   the SplitText mask (.hero-title-line), the SVG-noise grain, the radial
+   vignette, and the glassmorphism feature bar. The plain `.hero-new`,
+   `.hero-new-bg img`, `.hero-new-content`, `.hero-new-title` etc. are no
+   longer needed as classes — their Tailwind replacements carry the styles. */
+.hero-new-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
     overflow: hidden;
 }
 
-.hero-heading .word {
+.hero-new-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.74) 0%, rgba(0, 0, 0, 0.38) 48%, rgba(0, 0, 0, 0.08) 100%),
+        linear-gradient(0deg, rgba(0, 0, 0, 0.46) 0%, rgba(0, 0, 0, 0) 42%);
+}
+
+/* Hero-specific film grain — heavier than the page-wide .noise-overlay so
+   the photographic backdrop reads as cinema, not a stock photo. Drifts at a
+   different parallax speed than the bg image for depth. */
+.hero-grain {
+    position: absolute;
+    inset: -10%;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.12;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='heroNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23heroNoise)'/%3E%3C/svg%3E");
+    will-change: transform;
+}
+
+/* Hero vignette — deepens the bg at the edges + corners to focus the eye
+   on the bottom-left content block. Sits above the grain so it reads. */
+.hero-vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background: radial-gradient(
+        ellipse 90% 70% at 30% 80%,
+        transparent 0%,
+        rgba(0, 0, 0, 0.35) 80%,
+        rgba(0, 0, 0, 0.55) 100%
+    );
+    will-change: transform;
+}
+
+/* Kicker underline — draws in via --kicker-underline-w (tweened by GSAP).
+   The kicker's other styles (color, font, spacing) are Tailwind utilities
+   in hero.tsx; only the pseudo-element needs CSS. */
+.hero-new-kicker {
+    --kicker-underline-w: 0;
+}
+.hero-new-kicker::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: calc(var(--kicker-underline-w) * 40px);
+    height: 1px;
+    background: var(--accent-soft);
+}
+
+/* SplitText mask — overflow:hidden line wrappers. Children are inline-block. */
+.hero-title-line {
     display: block;
-    transform: translateY(100%); /* Pre-animation state */
+    overflow: hidden;
 }
 
-.hero-heading .italic {
-    font-style: italic;
-    color: var(--accent-color);
+.hero-title-line > span,
+.hero-title-char {
+    display: inline-block;
 }
 
-.hero-desc {
-    max-width: 400px;
+.hero-title-line > span {
+    white-space: nowrap;
+}
+
+/* Glassmorphism feature bar — kept as a class because it combines absolute
+   positioning with a multi-property backdrop-blur grid that reads cleaner in
+   CSS. The per-feature tiles use Tailwind utilities in hero.tsx. */
+.hero-features-bar {
+    position: absolute;
+    left: 4vw;
+    right: 4vw;
+    bottom: 5vh;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(18px);
+    transform: translateY(0) scale(1);
+    transform-origin: center bottom;
+}
+
+/* Scroll cue — a small "scroll" label + bouncing line at the hero's
+   right-bottom. Bounces on an infinite yoyo while the hero is in view to
+   invite the user downward. Hidden on coarse pointers / narrow screens. */
+.hero-scroll-cue {
+    position: absolute;
+    right: 4vw;
+    bottom: 6vh;
+    z-index: 2;
     display: flex;
-    gap: 2vw;
-    align-items: flex-start;
-}
-
-.hero-desc p {
-    font-size: 14px;
-    line-height: 1.6;
-    color: #555;
-    opacity: 0;
-}
-
-.btn-explore {
-    display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 15px;
-    text-decoration: none;
-    color: var(--text-color);
-    font-size: 12px;
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 10px;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
-    opacity: 0;
+    writing-mode: vertical-rl;
+    will-change: transform, opacity;
 }
 
-.btn-explore svg {
-    width: 50px;
-    height: 50px;
-    fill: none;
-    stroke: var(--text-color);
-    stroke-width: 1;
+.hero-scroll-cue-line {
+    width: 1px;
+    height: 56px;
+    background: linear-gradient(to bottom, var(--accent-soft), transparent);
+    will-change: transform;
 }
 
-.hero-visual {
-    height: 70vh;
+@media (pointer: coarse), (max-width: 768px) {
+    .hero-scroll-cue { display: none; }
 }
 
 /* Marquee */
 .marquee {
-    padding: 10vh 0;
+    padding: var(--space-block) 0;
     overflow: hidden;
     white-space: nowrap;
-    border-top: 1px solid rgba(17, 17, 17, 0.1);
-    border-bottom: 1px solid rgba(17, 17, 17, 0.1);
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
 }
 
 .marquee-inner {
     display: inline-block;
     animation: marquee 20s linear infinite;
+    /* GSAP writes skewX on scroll velocity (see marquee.tsx). transform-origin
+       center keeps the skew symmetric instead of drifting sideways. */
+    transform-origin: center;
+    will-change: transform;
 }
 
 .marquee-inner span {
@@ -303,39 +347,40 @@ body.is-loading {
     100% { transform: translateX(-33.33%); }
 }
 
-/* Details Section */
-.details {
-    padding: 20vh 0;
+/* Benefits Section — sits between Marquee and Craft. No `dark-theme`
+   class is hard-coded here; the theme engine flips it via the global
+   :root[data-theme] variables. */
+/* Benefits — base styles migrated to Tailwind in benefits.tsx.
+   .benefit-card + .benefit-card-icon stay as hook classes backing the
+   ::before accent line + the @media (hover:hover) state rules below. */
+@media (hover: hover) {
+    .benefit-card:hover {
+        opacity: 1;
+    }
+    .benefit-card:hover::before {
+        transform: scaleX(1);
+    }
+    .benefit-card:hover .benefit-card-icon {
+        transform: translateY(-4px);
+    }
 }
-
-.details-intro h2 {
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    margin-bottom: 4vh;
-}
-
-.details-intro p {
-    font-family: var(--font-primary);
-    font-size: 2.5vw;
-    line-height: 1.3;
-}
-
-.details-visual {
-    position: relative;
-    height: 80vh;
-}
-
-.details-stats {
+.benefit-card::before {
+    content: "";
     position: absolute;
-    bottom: -5vh;
-    left: -5vw;
-    background: var(--bg-color);
-    padding: 40px;
-    display: flex;
-    gap: 40px;
-    border: 1px solid rgba(17, 17, 17, 0.1);
+    top: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.5s var(--ease-out-expo);
 }
+
+/* Legacy `.details` / `.details-intro` / `.details-visual` / `.details-stats`
+   section removed — it was the old stats section with zero JSX references
+   (BentoDetails replaced it). .stat-item / .stat-num / .stat-lbl below are
+   still used by BentoDetails. */
 
 .stat-item {
     display: flex;
@@ -344,157 +389,70 @@ body.is-loading {
 
 .stat-num {
     font-family: var(--font-primary);
-    font-size: 40px;
-    color: var(--accent-color);
+    font-size: clamp(36px, 3.5vw, 52px);
+    color: var(--accent);
 }
 
 .stat-lbl {
-    font-size: 10px;
+    font-size: var(--fs-label);
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: #777;
+    color: var(--text-muted);
 }
 
-/* Measure Section */
-.measure {
-    padding: 10vh 0;
+/* Measure Section — base styles migrated to Tailwind in measure-guide.tsx.
+   .measure-content + .reveal-item stay as hook classes (the reveal-item
+   animation reset + prefers-reduced-motion fallback below). */
+.measure-content .reveal-item {
+    will-change: transform, opacity;
+}
+@media (prefers-reduced-motion: reduce) {
+    .measure-content .reveal-item {
+        opacity: 1 !important;
+        transform: none !important;
+    }
 }
 
-.massive-text {
-    font-family: var(--font-primary);
-    font-size: 18vw;
-    line-height: 0.8;
-    text-align: center;
-    letter-spacing: -0.02em;
-    margin-bottom: 10vh;
+/* Accordion state — .acc-item.is-open toggles the icon rotation + opens the
+   body. The base accordion/body styles migrated to Tailwind in
+   measure-guide.tsx; these descendant state rules stay. */
+.acc-item.is-open .acc-icon {
+    transform: rotate(45deg);
 }
-
-.portrait-mask {
-    height: 120vh;
-    width: 80%;
-    margin: 0 auto;
-}
-
-.measure-content {
-    padding-top: 20vh;
-}
-
-.measure-content h3 {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.2em;
-    margin-bottom: 20px;
-}
-
-.measure-desc {
-    font-family: var(--font-primary);
-    font-size: 24px;
-    line-height: 1.4;
-    margin-bottom: 60px;
-}
-
-/* Accordion */
-.accordion {
-    border-top: 1px solid rgba(17, 17, 17, 0.1);
-}
-
-.acc-item {
-    border-bottom: 1px solid rgba(17, 17, 17, 0.1);
-}
-
-.acc-head {
-    display: flex;
-    justify-content: space-between;
-    padding: 30px 0;
-    font-size: 16px;
-    font-weight: 500;
-}
-
-.acc-body {
-    display: grid;
-    grid-template-rows: 0fr;
-    transition: grid-template-rows 0.5s var(--ease-out-expo);
-    color: #666;
-}
-
-.acc-body-inner {
-    overflow: hidden;
-}
-
 .acc-item.is-open .acc-body {
     grid-template-rows: 1fr;
 }
 
-.acc-body p {
-    padding-bottom: 30px;
-    font-size: 14px;
-    line-height: 1.6;
-}
+/* Footer — migrated to Tailwind utilities in curtain-footer.tsx.
+   .footer / .curtain-footer kept as hook classes (used by useThemeBySection
+   + the data-theme engine); they carry no styles of their own. */
 
-/* Footer */
-.footer {
-    padding: 20vh 4vw 5vh;
-    background-color: var(--text-color);
-    color: var(--bg-color);
-}
-
-.footer-cta h2 {
-    font-family: var(--font-primary);
-    font-size: 6vw;
-    font-weight: 400;
-    margin-bottom: 2vh;
-}
-
-.massive-link {
-    font-family: var(--font-primary);
-    font-size: 8vw;
-    font-weight: 400;
-    font-style: italic;
-    color: var(--accent-color);
-    text-decoration: none;
-    display: block;
-    margin-bottom: 15vh;
-    transition: color 0.3s;
-}
-
-.massive-link:hover {
-    color: #fff;
-}
-
-.footer-bottom {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-top: 3vh;
-}
-
-.footer-socials {
-    display: flex;
-    gap: 40px;
-}
-
-.footer-socials a {
-    color: var(--bg-color);
-    text-decoration: none;
-}
-
-/* ScrollImageReveal & Storytelling */
+/* ScrollImageReveal & Storytelling — .threat/.craft/.threat-title/.craft-title
+   base styles migrated to Tailwind in their components. .dark-theme kept
+   as a hook (data-theme flips colors via :root[data-theme] vars). */
 .dark-theme { background-color: var(--text-color); color: var(--bg-color); }
-.threat { padding: 15vh 0; }
-.threat-content { max-width: 600px; margin: 0 auto 10vh; text-align: center; }
-.threat-title { font-family: var(--font-primary); font-size: 4vw; margin-bottom: 2vh; }
-.threat-desc { font-size: 16px; line-height: 1.6; color: #999; }
-.craft { padding: 15vh 0; }
-.craft-text { padding-left: 4vw; }
-.craft-title { font-family: var(--font-primary); font-size: 3vw; margin-bottom: 2vh; }
-.craft-desc { font-size: 14px; line-height: 1.6; color: #555; }
-/* Massive Typography & Main Wrap */
+
+/* === Threat pinned narrative ===
+   Most layout/typography lives in Tailwind utilities in threat.tsx now.
+   These rules remain only for context-driven styling that Tailwind can't
+   express: hiding the legacy .container/.threat-content markup when pinned,
+   and forcing the RevealImage to fill the backdrop edge-to-edge. */
+.threat.pinned .container,
+.threat.pinned .threat-content,
+.threat.pinned .section-eyebrow { display: none; }
+
+.threat-backdrop .reveal-container,
+.threat-backdrop .reveal-mask,
+.threat-backdrop .reveal-img {
+    width: 100%;
+    height: 100%;
+}
+.threat-backdrop .reveal-container[data-aspect] .reveal-mask { aspect-ratio: auto; }
+/* Massive Typography & Main Wrap — single source of truth above
+   (.massive-text uses var(--fs-display)). Kept here only for the
+   plain (non-centered) variant used by section headings; the centered
+   margin-bottom lives in the earlier rule. */
 .massive-text {
-    font-size: clamp(40px, 10vw, 150px);
-    line-height: 1;
     font-family: var(--font-primary);
 }
 
@@ -502,122 +460,233 @@ body.is-loading {
     background-color: var(--bg-color);
     position: relative;
     z-index: 2;
-    margin-bottom: 100vh; /* Space for Curtain Footer */
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    margin-bottom: 100dvh; /* Space for Curtain Footer */
 }
 
 /* Bento Box Layout */
-.bento-details { padding: 20vh 0; }
-.bento-title { margin-bottom: 10vh; }
+/* bento-details padding + .bento-heading + .bento-title migrated to Tailwind
+   utilities in bento-details.tsx. .bento-grid + .bento-box* + .bento-content
+   + .stat-item + .stat-num/.stat-lbl stay — they back complex grid layout,
+   the :has(.bento-bg)::after gradient overlay, and descendant selectors. */
 .bento-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(2, 300px);
+    grid-template-rows: repeat(3, 300px);
     gap: 20px;
 }
 .bento-box {
-    background: rgba(0, 0, 0, 0.03);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    border-radius: 20px;
+    background: color-mix(in srgb, var(--text-color) 4%, transparent);
+    border: 1px solid color-mix(in srgb, var(--text-color) 8%, transparent);
+    border-radius: 8px;
     padding: 40px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    transition: transform 0.4s cubic-bezier(0.1, 0.8, 0.2, 1);
-}
-.bento-box:hover { transform: translateY(-10px); }
-.bento-large { grid-column: span 2; grid-row: span 2; }
-
-/* Horizontal Gallery Scroll */
-.horizontal-scroll {
-    height: 300vh; /* scrollable area */
     position: relative;
-}
-.sticky-wrapper {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    display: flex;
-    align-items: center;
     overflow: hidden;
+    /* Hover-lift, 3D tilt and glare are driven by GSAP quickTo in
+       bento-details.tsx (BentoBox). The CSS `transform` here is intentionally
+       left blank so the inline GSAP transform is not overridden on hover.
+       A deeper drop-shadow appears on hover to sell the lift. */
+    transition: box-shadow 0.4s var(--ease-out-expo);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
-.gallery-title {
+@media (hover: hover) {
+    .bento-box:hover {
+        box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.35);
+    }
+}
+/* Moving glare layer — a soft radial highlight that follows the cursor,
+   positioned via --glare-x/--glare-y (0–1) set by GSAP in BentoBox.
+   Hidden on coarse pointers (the tilt is skipped there too). */
+.bento-glare {
     position: absolute;
-    top: 15vh;
-    left: 4vw;
-    z-index: 10;
-    font-size: clamp(40px, 8vw, 120px);
-    font-family: var(--font-primary);
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 0.4s var(--ease-out-expo);
+    background: radial-gradient(
+        circle 180px at calc(var(--glare-x, 0.5) * 100%) calc(var(--glare-y, 0.5) * 100%),
+        rgba(255, 255, 255, 0.22),
+        transparent 70%
+    );
 }
-.gallery-track {
-    display: flex;
-    gap: 4vw;
-    padding-left: 50vw;
-    padding-right: 50vw;
-    height: 60vh;
-    will-change: transform;
+@media (hover: hover) {
+    .bento-box:hover .bento-glare { opacity: 1; }
 }
-.gallery-item {
-    width: 60vw;
-    flex-shrink: 0;
+@media (pointer: coarse) {
+    .bento-glare { display: none; }
+}
+.bento-large { grid-column: span 2; grid-row: span 2; }
+.bento-wide  { grid-column: span 2; grid-row: span 1; }
+.bento-small { grid-column: span 1; grid-row: span 1; }
+.bento-stat  { justify-content: center; }
+.bento-stat .stat-item {
+    /* Push the label to the bottom for a "huge number + caption" feel
+       matching the original draft design. */
+    height: auto;
+    flex-grow: 1;
+    justify-content: space-between;
+}
+
+.bento-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
     height: 100%;
+    z-index: 1;
 }
-.gallery-item img {
+.bento-bg img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    border-radius: 10px;
+    /* The transform (y parallax, base scale, whileHover scale) is driven by
+       framer-motion on the motion.img in bento-details.tsx — do NOT add a
+       CSS `transition: transform` here or it will smooth over the
+       framer-motion tween. */
+    will-change: transform;
 }
-
-/* Curtain Footer */
-.curtain-footer {
-    position: fixed;
+.bento-box:has(.bento-bg)::after {
+    content: '';
+    position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 100vh;
-    z-index: 1;
+    height: 70%;
+    /* Fade to the section's bg so the gradient reads correctly on both
+       cream and black sections (the box content sits above this overlay). */
+    background: linear-gradient(
+        to top,
+        color-mix(in srgb, var(--bg-color) 96%, transparent) 0%,
+        color-mix(in srgb, var(--bg-color) 0%, transparent) 100%
+    );
+    z-index: 2;
+    pointer-events: none;
+}
+.bento-content,
+.stat-item {
+    position: relative;
+    z-index: 3;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    background-color: var(--text-color);
-    color: var(--bg-color);
+    justify-content: space-between;
+    height: 100%;
 }
-.curtain-footer .footer-cta { margin: 0; text-align: center; }
+.bento-box h3 {
+    position: relative;
+    z-index: 3;
+    max-width: 520px;
+    font-family: var(--font-primary);
+    font-size: 28px;
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: 0;
+}
+.bento-box p {
+    position: relative;
+    z-index: 3;
+    max-width: 520px;
+    line-height: 1.6;
+    color: color-mix(in srgb, var(--text-color) 66%, transparent);
+}
+
+/* Stat typography */
+.stat-item {
+    display: flex;
+    flex-direction: column;
+}
+.stat-num {
+    font-family: var(--font-primary);
+    font-size: 52px;
+    color: var(--accent-color);
+    /* `font-variant-numeric: tabular-nums` keeps each digit the same width
+       so the layout doesn't jitter as the count-up animates. */
+    font-variant-numeric: tabular-nums;
+    display: inline-block;
+    min-height: 1.1em;
+}
+.stat-lbl {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: color-mix(in srgb, var(--text-color) 58%, transparent);
+}
+
+/* Horizontal Gallery Scroll */
+/* Horizontal gallery — base styles (section/wrapper/title/track/item/img/
+   caption + caption span/strong) migrated to Tailwind utilities in
+   horizontal-gallery.tsx. Only the ::after gradient overlay stays (pseudo). */
+.gallery-item::after {
+    content: "";
+    position: absolute;
+    inset: auto 0 0;
+    height: 45%;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0));
+    pointer-events: none;
+}
+
+/* FAQ */
+/* FAQ — base styles migrated to Tailwind in faq.tsx. Only state-class hooks
+   (.active icon rotation, :last-child border) stay. */
+.faq-item:last-child {
+    border-bottom: 1px solid color-mix(in srgb, var(--text-color) 12%, transparent);
+}
+.faq-item.active .faq-icon {
+    transform: rotate(45deg);
+}
+
+/* Curtain Footer base styles migrated to Tailwind in curtain-footer.tsx.
+   .curtain-footer kept as a hook class for useThemeBySection. */
 
 .noise-overlay {
     position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
+    top: 0; left: 0; width: 100vw; height: 100dvh;
     pointer-events: none;
     z-index: 9999;
-    opacity: 0.04;
+    opacity: 0.06;
+    /* `overlay` blend makes the grain react to underlying luminance —
+       grain darkens bright areas and lightens dark areas, giving the
+       film-stock texture an AWWWARDS site has. Falls back gracefully
+       (browsers without blend-mode support just show the noise at opacity). */
+    mix-blend-mode: overlay;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-.reveal-container { width: 100%; margin: 0 auto; }
-.reveal-mask { width: 100%; overflow: hidden; will-change: clip-path; }
-.reveal-img { width: 100%; height: 100%; object-fit: cover; will-change: transform; }
+/* Vignette — a fixed, subtle radial darkening at the viewport edges.
+   Adds cinematic depth and pulls the eye toward content. Sits below the
+   noise overlay (lower z) so grain still reads on top. Both layers are
+   pointer-events:none so they never intercept clicks. */
+.vignette-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    pointer-events: none;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 55%,
+        color-mix(in srgb, #000 18%, transparent) 100%
+    );
+}
+
+/* RevealImage base styles (.reveal-container/mask/img) now live in Tailwind
+   utilities in reveal-image.tsx. Only the [data-aspect] attribute selector —
+   which can't be a utility — stays here. */
 .reveal-container[data-aspect="wide"] .reveal-mask { aspect-ratio: 16/9; }
 .reveal-container[data-aspect="portrait"] .reveal-mask { aspect-ratio: 3/4; }
 .reveal-container[data-aspect="landscape"] .reveal-mask { aspect-ratio: 4/3; }
 
-/* Responsive */
+/* Responsive — only rules for classes still alive in JSX (component-level
+   responsive now lives in Tailwind variants like max-[1024px]: / sm:). */
 @media (max-width: 1024px) {
-    .hero {
-        height: auto;
-        min-height: 100vh;
-        padding-top: 12vh;
-        align-items: flex-start;
-    }
-
-    .hero-grid {
-        grid-template-columns: 1fr;
-        gap: 8vw;
-    }
-
-    .hero-visual {
-        height: 50vh;
-        margin-bottom: 5vh;
+    .hero-features-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        bottom: 4vh;
     }
 
     .grid-12 {
@@ -625,46 +694,175 @@ body.is-loading {
         flex-direction: column;
         gap: 8vw;
     }
-    
-    .hero-heading { 
-        font-size: 18vw; 
-        margin-bottom: 4vh; 
-    }
-    
+
     .portrait-mask { width: 100%; height: 60vh; }
-    .details-visual { height: 50vh; }
-    
-    .measure-content { padding-top: 5vh; }
-    .details-stats { 
-        position: relative; 
-        bottom: 0; 
-        left: 0; 
-        border: none; 
-        padding: 20px 0; 
-        flex-wrap: wrap;
-        gap: 20px;
-    }
-    
+
     .marquee-inner span { font-size: 8vw; }
-    
-    .nav-links { display: none; }
-    
+
     .col-4, .col-5, .col-6, .col-8 { grid-column: span 1; }
     .col-start-8 { grid-column-start: auto; }
-    
-    .threat-title { font-size: 8vw; }
-    .craft-title { font-size: 8vw; }
-    .craft-text { padding-left: 0; padding-top: 5vh; }
-    
+
     .bento-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         grid-template-rows: auto;
     }
-    .bento-large {
-        grid-column: span 1;
+    .bento-large,
+    .bento-wide {
+        grid-column: span 2;
         grid-row: span 1;
     }
-    #smooth-wrapper { margin-bottom: 70vh; }
-    .curtain-footer { height: 70vh; }
+    .bento-small,
+    .bento-stat {
+        grid-column: span 1;
+        min-height: 220px;
+    }
+    #smooth-wrapper { margin-bottom: 70dvh; }
+    .curtain-footer { height: 70dvh; }
     .gallery-item { width: 85vw; }
+}
+
+@media (max-width: 640px) {
+    .container {
+        padding: 0 22px;
+    }
+
+    .hero-features-bar {
+        left: 22px;
+        right: 22px;
+        grid-template-columns: 1fr;
+        overflow: hidden;
+    }
+
+    .bento-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .bento-large,
+    .bento-wide,
+    .bento-small,
+    .bento-stat {
+        grid-column: span 1;
+        min-height: 260px;
+    }
+
+    .bento-box {
+        padding: 28px;
+    }
+}
+
+/* ================================================
+   SSR FALLBACK: Reveal hidden content without JS
+   ================================================
+   framer-motion renders hidden `initial` states as INLINE
+   STYLES in the SSR HTML. If React hydration fails, these
+   persist forever → blank page.
+
+   CSS animations override inline styles while running and
+   with `fill-mode: both`. We trigger them after the loader
+   finishes (body.is-loading is removed by the loader's
+   inline script). If hydration later succeeds, framer-motion
+   takes over — both converge to the same visible end state.
+
+   NOTE: The legacy hero entrance (.hero-heading/.hero-desc/
+   .hero-visual/.btn-explore) was removed in the Tailwind
+   migration — the live hero uses GSAP + SplitText masks.
+   ================================================ */
+
+/* ---- Scroll-triggered reveals (Threat, Craft images) ---- */
+body:not(.is-loading) .reveal-mask {
+    animation: fm-clip-reveal-center 1s var(--ease-out-expo) 0.3s both;
+}
+
+/* ---- MeasureGuide image ---- */
+body:not(.is-loading) .portrait-mask {
+    animation: fm-clip-reveal-down 1.5s var(--ease-out-expo) 0.4s both;
+}
+
+/* ---- Text reveals (Benefits, MeasureGuide, CurtainFooter) ---- */
+body:not(.is-loading) .benefit-card {
+    animation: fm-reveal-up 0.9s var(--ease-out-expo) both;
+}
+body:not(.is-loading) .benefit-card:nth-child(1) { animation-delay: 0.4s; }
+body:not(.is-loading) .benefit-card:nth-child(2) { animation-delay: 0.5s; }
+body:not(.is-loading) .benefit-card:nth-child(3) { animation-delay: 0.6s; }
+body:not(.is-loading) .benefit-card:nth-child(4) { animation-delay: 0.7s; }
+
+body:not(.is-loading) .measure-content .reveal-item,
+body:not(.is-loading) .measure-content .acc-item {
+    animation: fm-reveal-up 0.7s var(--ease-out-expo) both;
+}
+body:not(.is-loading) .measure-content .reveal-item:nth-of-type(1),
+body:not(.is-loading) .measure-content .acc-item:nth-of-type(1) { animation-delay: 0.3s; }
+body:not(.is-loading) .measure-content .reveal-item:nth-of-type(2),
+body:not(.is-loading) .measure-content .acc-item:nth-of-type(2) { animation-delay: 0.4s; }
+body:not(.is-loading) .measure-content .reveal-item:nth-of-type(3),
+body:not(.is-loading) .measure-content .acc-item:nth-of-type(3) { animation-delay: 0.5s; }
+body:not(.is-loading) .measure-content .reveal-item:nth-of-type(4),
+body:not(.is-loading) .measure-content .acc-item:nth-of-type(4) { animation-delay: 0.6s; }
+
+body:not(.is-loading) .footer-cta h2 {
+    animation: fm-reveal-up 1s var(--ease-out-expo) 0.3s both;
+}
+body:not(.is-loading) .footer-cta a {
+    animation: fm-reveal-up 1s var(--ease-out-expo) 0.5s both;
+}
+body:not(.is-loading) .footer-bottom {
+    animation: fm-fade-in 1s var(--ease-out-expo) 0.7s both;
+}
+
+/* ---- Keyframes ---- */
+@keyframes fm-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+@keyframes fm-reveal-up {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fm-clip-reveal-down {
+    from { clip-path: inset(100% 0 0 0); }
+    to   { clip-path: inset(0% 0 0 0); }
+}
+@keyframes fm-clip-reveal-center {
+    from { clip-path: inset(0% 50% 0% 50%); }
+    to   { clip-path: inset(0% 0 0 0); }
+}
+@keyframes heroParallax {
+    from { transform: translateY(0); }
+    to { transform: translateY(150px); }
+}
+@keyframes featureBarReveal {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(42px) scale(0.98);
+    }
+}
+
+/* Prefer native scroll-driven animations in modern Chromium */
+@supports (animation-timeline: view()) {
+    .hero-new-bg img {
+        animation: heroParallax linear both;
+        animation-timeline: view();
+        animation-range: entry 0% exit 100%;
+    }
+
+    .hero-features-bar {
+        animation: featureBarReveal linear both;
+        animation-timeline: view();
+        animation-range: exit 0% exit 50%;
+    }
+
+    body:not(.is-loading) .benefit-card,
+    body:not(.is-loading) .reveal-item,
+    body:not(.is-loading) .acc-item,
+    body:not(.is-loading) .reveal-mask,
+    body:not(.is-loading) .portrait-mask {
+        animation-timeline: view();
+        animation-range: entry 0% entry 40%;
+        animation-delay: 0s;
+    }
 }

@@ -1,0 +1,46 @@
+{
+  "last_cycle": [
+    {
+      "task_id": "track-1-theme-benefits",
+      "verdict": "accept",
+      "reason": "Verifier PASS. Code trên disk đúng slot, check-types + build PASS, navigation anchor map OK. Hai nit (dead SECTION_TO_THEME.home và routeTree.gen.ts auto-regen) không block ship."
+    },
+    {
+      "task_id": "track-2-cursor-progress-anchors",
+      "verdict": "override_accept",
+      "reason": "Verifier viết 'No explicit VERDICT found' — không phải FAIL về chất lượng. Code thật trên disk (custom-cursor-raw.tsx, navigation.tsx, scroll-progress.tsx mới, routes/index.tsx) đều có edit hợp lệ trong slot. Navigation anchors đã remap #vision → #threat đúng. check-types + build PASS. Slot isolation OK vì tất cả file diff nằm trong slot của track 2 (trừ threat.tsx cleanup do track 1 cũng touch nhưng đó là cleanup mục đích). Producer đã wire data-cursor label đầy đủ."
+    },
+    {
+      "task_id": "track-3-bento-measure-polish",
+      "verdict": "manual_retry",
+      "reason": "Bento hover-tilt, count-up cho 2 stat mới (10+ năm, 99.9%) đều work — 5/6 features pass. CHỈ fail 1 chỗ: parallax trong .bento-bg — producer dùng <motion.div className='bento-bg-parallax'> absolutely-positioned rỗng thay vì wrap <img> thành <motion.img> với useTransform. Fix: thay <div className='bento-bg'><img /></div> thành wrap img bằng motion.div với y=bgY từ useTransform (giống pattern trong components/landing/threat.tsx RevealImage), hoặc chuyển thẳng <img> thành <motion.img style={{y: bgY, scale: 1.1}}>. Bỏ hẳn .bento-bg-parallax div rỗng. Slot scope giữ nguyên: chỉ sửa bento-details.tsx. KHÔNG touch measure-guide.tsx (đã pass). Sau khi fix: check-types + build phải pass."
+    },
+    {
+      "task_id": "track-4-footer-marquee-craft",
+      "verdict": "manual_retry",
+      "reason": "Producer hoàn toàn KHÔNG edit 3 file claim (curtain-footer.tsx, marquee.tsx, craft.tsx) — last write time 21:43:34, trước cả khi plan start. git diff --name-only xác nhận 3 file này không xuất hiện. Deliverable là báo cáo LLM-generated về edits không tồn tại. Retry với instruction: BẮT BUỘC dùng Edit/Write tool để thực sự sửa file. Verify bằng `git diff apps/web/src/components/landing/curtain-footer.tsx apps/web/src/components/landing/marquee.tsx apps/web/src/components/landing/craft.tsx` phải show diff trước khi viết deliverable. (1) Curtain-footer: wrap footer-cta trong motion.div useInView once:true, staggered fade-up title 30px/d0, massive-link 40px/d0.2, footer-bottom 20px/d0.4 ease [0.19,1,0.22,1]. (2) Marquee: thêm state isPaused, hover-pause qua animationPlayState, scroll-driven speed 30s→12s dùng useScroll+useTransform trên motion.div wrapper. (3) Craft: thêm framer-motion useScroll+useTransform cho img trong .reveal-mask (scale [1.2,1] + y [-30,0]). Sau khi sửa: check-types + build PASS, và git diff phải show 3 file đã đổi."
+    }
+  ],
+  "next_cycle": [
+    {
+      "task_id": "track-3-bento-measure-polish",
+      "title": "Track 3 (retry) — sửa parallax bento-bg",
+      "prompt": "Bạn retry cho track 3. Track đã có code pass 5/6 features (hover-tilt, hover-lift, count-up cho 10+ năm độ bền và 99.9% chống muỗi). CHỈ fail 1 chỗ: parallax trong .bento-bg. Trong apps/web/src/components/landing/bento-details.tsx hiện có <motion.div className='bento-bg-parallax' style={{y: bgY}} /> đặt absolutely-positioned RỖNG — không parallax gì cả. Spec yêu cầu parallax cho ảnh trong .bento-bg. Fix: với 2 BentoBox có ảnh (bento-large dùng fiberglass-mesh.png, bento-wide dùng window-mosquito-net-hero.png), wrap <img> thành <motion.img> với useTransform scroll-driven (y: bgY, scale: 1.05 để tránh edge khi parallax). Pattern tham khảo: components/landing/threat.tsx RevealImage (dùng useScroll + useTransform). Sau khi sửa, BỎ HẲN motion.div.bento-bg-parallax rỗng. Slot scope chỉ bento-details.tsx — KHÔNG touch measure-guide.tsx. CHẠY và PASS: cd apps/web && bun run check-types && bun run build. Kết thúc viết deliverable.md.",
+      "assigned_to": "coder",
+      "verified_by": "verifier",
+      "verify_prompt": "Verify track 3 retry độc lập. Chạy: cd apps/web && bun run check-types && bun run build. Cả 2 phải pass. Mở apps/web/src/components/landing/bento-details.tsx và xác nhận: (1) KHÔNG còn <motion.div className='bento-bg-parallax'> rỗng nữa. (2) Bên trong <BentoBox className='bento-large'> và <BentoBox className='bento-wide'>, <div className='bento-bg'> chứa <motion.img> (không phải <img>) với style yêu cầu scale ≥ 1.05 hoặc useTransform scroll-driven. (3) bgY motion value được áp lên motion.img chứ không phải div rỗng. (4) Các features khác (count-up, hover-tilt, hover-lift) vẫn còn nguyên. (5) measure-guide.tsx KHÔNG bị sửa. Báo cáo PASS/FAIL với evidence.",
+      "timeout_ms": 1200000
+    },
+    {
+      "task_id": "track-4-footer-marquee-craft",
+      "title": "Track 4 (retry) — footer/marquee/craft phải edit thật file",
+      "prompt": "Bạn retry cho track 4. LẦN TRƯỚC bạn KHÔNG edit gì cả — last write time của 3 file vẫn 21:43, trước cả khi plan start. Deliverable.md nói bạn đã sửa nhưng git diff trống. Lần này BẮT BUỘC dùng Edit/Write tool để thật sự sửa file. Slot scope: apps/web/src/components/landing/curtain-footer.tsx, apps/web/src/components/landing/marquee.tsx, apps/web/src/components/landing/craft.tsx, apps/web/src/landing.css (chỉ thêm block .marquee:hover và keyframes phụ nếu cần). TUYỆT ĐỐI KHÔNG touch các file khác. Verify đã sửa bằng cách chạy `git diff --stat` cho 3 file trên — phải show thay đổi trước khi viết deliverable.md. (1) Curtain-footer: import { motion } from 'framer-motion'. Wrap <div className='footer-cta'> và <div className='footer-bottom'> trong motion.div với useInView(once:true, margin:'-30%'). Title fade-up 30px duration 1s d0, massive-link fade-up 40px d0.2, footer-bottom fade-up 20px d0.4 ease [0.19,1,0.22,1]. Giữ nguyên className 'footer curtain-footer' và id='order'. data-cursor 'Đặt may' ở massive-link giữ nguyên. (2) Marquee: import useState, motion. Thêm const [isPaused, setIsPaused] = useState(false). Thêm onMouseEnter/Leave để toggle. Wrap <div className='marquee-inner'> trong motion.div với useScroll → useTransform tính animationDuration từ 30s→12s theo scrollY. Áp style={{animationDuration: `${duration}s`, animationPlayState: isPaused ? 'paused' : 'running'}}. KHÔNG phá 3 <span> lặp text. (3) Craft: import { motion, useScroll, useTransform } from 'framer-motion'. Trong component, thêm useRef cho container và useScroll({target: containerRef, offset:['start end','end start']}). Wrap <img> bên trong .reveal-mask thành <motion.img style={{scale, y}}> với useTransform(scrollYProgress, [0, 0.5, 1], [1.2, 1, 1.1], ['0%', '8%', '20%']). Thêm scroll-trigger fade-up cho heading/desc. CHẠY và PASS: cd apps/web && bun run check-types && bun run build. Kết thúc viết deliverable.md.",
+      "assigned_to": "coder",
+      "verified_by": "verifier",
+      "verify_prompt": "Verify track 4 retry độc lập. ĐÂY LÀ RETRY LẦN 2, lần trước producer không edit gì cả. Chạy: cd apps/web && bun run check-types && bun run build. Cả 2 phải pass. Dùng `git diff --stat apps/web/src/components/landing/curtain-footer.tsx apps/web/src/components/landing/marquee.tsx apps/web/src/components/landing/craft.tsx` — phải show thay đổi (không phải trống). Mở 3 file và xác nhận: (1) curtain-footer.tsx có framer-motion import, motion.div với useInView wrap footer-cta, có staggered fade-up cho title/massive-link/footer-bottom. (2) marquee.tsx có useState hover-pause, áp dụng animationPlayState hoặc tương đương, scroll-driven speed. (3) craft.tsx có framer-motion useScroll+useTransform cho img trong .reveal-mask (scale [1.2,1] + y transform). Nếu diff stat trống cho 3 file → FAIL ngay lập tức. Báo cáo PASS/FAIL với output git diff.",
+      "timeout_ms": 1200000
+    }
+  ],
+  "plan_complete": false,
+  "message_to_user": "Vòng 1: 1 module (theme + benefits) đã xong. 2 module (cursor/progress/anchor, bento/measures) có vấn đề nhỏ — cho team sửa lại. Footer/marquee/craft chưa được code thật, sẽ viết lại."
+}

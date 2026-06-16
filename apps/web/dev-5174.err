@@ -1,0 +1,345 @@
+$ vite dev --host "127.0.0.1" --port "5174" --strictPort
+(node:120012) [DEP0205] DeprecationWarning: `module.register()` is deprecated. Use `module.registerHooks()` instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[2m2:34:26 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:34:26 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:34:34 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:34:34 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:34:44 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:34:44 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:34:55 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:34:55 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:35:06 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:35:06 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:35:16 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:35:16 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:35:27 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:35:27 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:35:37 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:35:37 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:35:41 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:35:41 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:35:44 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:35:44 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:35:48 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:35:48 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:35:49 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:35:49 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:35:59 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:35:59 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:36:00 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:36:00 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:36:09 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:36:09 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:36:09 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:36:09 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:36:20 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:36:20 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:36:20 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:36:20 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:36:31 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:36:31 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:36:33 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:36:33 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+TypeError: Cannot read properties of undefined (reading 'update')
+    at runInRunnerObject (workers/runner-worker/index.js:107:3)
+    at async Promise.all (index 0)
+    at loadEntries (C:/Users/terasumi/Documents/source_code/rem-viet/node_modules/.bun/@tanstack+start-server-core@1.169.1/node_modules/@tanstack/start-server-core/src/createStartHandler.ts:107:53) {
+  cause: TypeError: Cannot read properties of undefined (reading 'update')
+      at runInRunnerObject (workers/runner-worker/index.js:107:3)
+      at async Promise.all (index 0)
+      at loadEntries (C:/Users/terasumi/Documents/source_code/rem-viet/node_modules/.bun/@tanstack+start-server-core@1.169.1/node_modules/@tanstack/start-server-core/src/createStartHandler.ts:107:53) {
+    remote: true
+  },
+  status: 500,
+  statusText: undefined,
+  headers: undefined,
+  data: undefined,
+  body: undefined,
+  unhandled: true
+}
+TypeError: Cannot read properties of undefined (reading 'update')
+    at runInRunnerObject (workers/runner-worker/index.js:107:3)
+    ... 4 lines matching cause stack trace ...
+    at maybeCaptureError (workers/runner-worker/index.js:51:10) {
+  cause: TypeError: Cannot read properties of undefined (reading 'update')
+      at runInRunnerObject (workers/runner-worker/index.js:107:3)
+      at async Promise.all (index 0)
+      at loadEntries (C:/Users/terasumi/Documents/source_code/rem-viet/node_modules/.bun/@tanstack+start-server-core@1.169.1/node_modules/@tanstack/start-server-core/src/createStartHandler.ts:107:53)
+      at startRequestResolver (C:/Users/terasumi/Documents/source_code/rem-viet/node_modules/.bun/@tanstack+start-server-core@1.169.1/node_modules/@tanstack/start-server-core/src/createStartHandler.ts:344:23)
+      at Object.fetch (C:/Users/terasumi/Documents/source_code/rem-viet/node_modules/.bun/@tanstack+react-start@1.168.9+524090186f163e0d/node_modules/@tanstack/react-start/src/default-entry/server.ts:16:14)
+      at maybeCaptureError (workers/runner-worker/index.js:51:10) {
+    remote: true
+  },
+  status: 500,
+  statusText: undefined,
+  headers: undefined,
+  data: undefined,
+  body: undefined,
+  unhandled: true
+}
+TypeError: Cannot read properties of undefined (reading 'update')
+    at runInRunnerObject (workers/runner-worker/index.js:107:3)
+    at async Promise.all (index 0)
+    at loadEntries (C:/Users/terasumi/Documents/source_code/rem-viet/node_modules/.bun/@tanstack+start-server-core@1.169.1/node_modules/@tanstack/start-server-core/src/createStartHandler.ts:107:53) {
+  cause: TypeError: Cannot read properties of undefined (reading 'update')
+      at runInRunnerObject (workers/runner-worker/index.js:107:3)
+      at async Promise.all (index 0)
+      at loadEntries (C:/Users/terasumi/Documents/source_code/rem-viet/node_modules/.bun/@tanstack+start-server-core@1.169.1/node_modules/@tanstack/start-server-core/src/createStartHandler.ts:107:53) {
+    remote: true
+  },
+  status: 500,
+  statusText: undefined,
+  headers: undefined,
+  data: undefined,
+  body: undefined,
+  unhandled: true
+}
+[2m2:37:03 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:37:03 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:37:12 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:37:12 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:37:16 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:37:16 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:37:39 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:37:39 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:37:44 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:37:44 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:37:49 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:37:49 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:37:50 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:37:50 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:37:58 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:37:58 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:37:59 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:37:59 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:38:09 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:38:09 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:38:09 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:38:09 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:38:19 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:38:19 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:38:20 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:38:20 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:38:30 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:38:30 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:38:30 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:38:30 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:38:41 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:38:41 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:38:41 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:38:41 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:38:51 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:38:51 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:38:52 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:38:52 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:39:02 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:39:02 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:39:02 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:39:02 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:39:13 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:39:13 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:39:13 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:39:13 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:39:22 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:39:22 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:39:23 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:39:23 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:39:41 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:39:41 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:39:41 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:39:41 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:39:47 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:39:47 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:39:47 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:39:47 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:40:03 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:40:03 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:40:04 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:40:04 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:40:14 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:40:14 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:40:14 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:40:14 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:40:33 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:40:33 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:40:33 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:40:33 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:40:46 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:40:46 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:40:46 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:40:46 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:40:56 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:40:56 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:40:56 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:40:56 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:41:07 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:41:07 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:41:08 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:41:08 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:41:16 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mscale not eligible for reset. Try splitting into individual properties
+[2m2:41:16 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mscale not eligible for reset. Try splitting into individual properties
+[2m2:41:17 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:41:17 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+TypeError: Cannot read properties of null (reading 'useEffect')
+    at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=4a71f293:716:30)
+    at QueryClientProvider (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/modern-BqsmiZXU.js?v=0ec21b2e:2550:15)
+    at Object.react_stack_bottom_frame (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:5307:11)
+    at renderWithHooks (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2793:19)
+    at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2931:17)
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285)
+    at renderNodeDestructive (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3341:265)
+    at finishFunctionComponent (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2809:233)
+    at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2947:5)
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285)
+TypeError: Cannot read properties of null (reading 'useEffect')
+    at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=4a71f293:716:30)
+    ... 8 lines matching cause stack trace ...
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285) {
+  cause: TypeError: Cannot read properties of null (reading 'useEffect')
+      at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=4a71f293:716:30)
+      at QueryClientProvider (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/modern-BqsmiZXU.js?v=0ec21b2e:2550:15)
+      at Object.react_stack_bottom_frame (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:5307:11)
+      at renderWithHooks (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2793:19)
+      at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2931:17)
+      at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285)
+      at renderNodeDestructive (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3341:265)
+      at finishFunctionComponent (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2809:233)
+      at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2947:5)
+      at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285),
+  status: 500,
+  statusText: undefined,
+  headers: undefined,
+  data: undefined,
+  body: undefined,
+  unhandled: true
+}
+[2m2:41:20 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:41:20 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+TypeError: Cannot read properties of null (reading 'useEffect')
+    at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=4a71f293:716:30)
+    at QueryClientProvider (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/modern-BqsmiZXU.js?v=0ec21b2e:2550:15)
+    at Object.react_stack_bottom_frame (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:5307:11)
+    at renderWithHooks (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2793:19)
+    at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2931:17)
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285)
+    at renderNodeDestructive (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3341:265)
+    at finishFunctionComponent (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2809:233)
+    at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2947:5)
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285)
+TypeError: Cannot read properties of null (reading 'useEffect')
+    at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=4a71f293:716:30)
+    ... 8 lines matching cause stack trace ...
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285) {
+  cause: TypeError: Cannot read properties of null (reading 'useEffect')
+      at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=4a71f293:716:30)
+      at QueryClientProvider (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/modern-BqsmiZXU.js?v=0ec21b2e:2550:15)
+      at Object.react_stack_bottom_frame (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:5307:11)
+      at renderWithHooks (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2793:19)
+      at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2931:17)
+      at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285)
+      at renderNodeDestructive (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3341:265)
+      at finishFunctionComponent (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2809:233)
+      at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2947:5)
+      at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285),
+  status: 500,
+  statusText: undefined,
+  headers: undefined,
+  data: undefined,
+  body: undefined,
+  unhandled: true
+}
+[2m2:41:22 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:41:22 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+TypeError: Cannot read properties of null (reading 'useEffect')
+    at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=4a71f293:716:30)
+    at QueryClientProvider (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/modern-BqsmiZXU.js?v=0ec21b2e:2550:15)
+    at Object.react_stack_bottom_frame (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:5307:11)
+    at renderWithHooks (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2793:19)
+    at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2931:17)
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285)
+    at renderNodeDestructive (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3341:265)
+    at finishFunctionComponent (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2809:233)
+    at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2947:5)
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285)
+TypeError: Cannot read properties of null (reading 'useEffect')
+    at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=4a71f293:716:30)
+    ... 8 lines matching cause stack trace ...
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285) {
+  cause: TypeError: Cannot read properties of null (reading 'useEffect')
+      at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=4a71f293:716:30)
+      at QueryClientProvider (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/modern-BqsmiZXU.js?v=0ec21b2e:2550:15)
+      at Object.react_stack_bottom_frame (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:5307:11)
+      at renderWithHooks (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2793:19)
+      at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2931:17)
+      at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285)
+      at renderNodeDestructive (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3341:265)
+      at finishFunctionComponent (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2809:233)
+      at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2947:5)
+      at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285),
+  status: 500,
+  statusText: undefined,
+  headers: undefined,
+  data: undefined,
+  body: undefined,
+  unhandled: true
+}
+Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+TypeError: Cannot read properties of null (reading 'useEffect')
+    at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=4a71f293:716:30)
+    at QueryClientProvider (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/modern-BqsmiZXU.js?v=0ec21b2e:2550:15)
+    at Object.react_stack_bottom_frame (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:5307:11)
+    at renderWithHooks (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2793:19)
+    at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2931:17)
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285)
+    at renderNodeDestructive (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3341:265)
+    at finishFunctionComponent (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2809:233)
+    at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2947:5)
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285)
+TypeError: Cannot read properties of null (reading 'useEffect')
+    at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=4a71f293:716:30)
+    ... 8 lines matching cause stack trace ...
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285) {
+  cause: TypeError: Cannot read properties of null (reading 'useEffect')
+      at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=4a71f293:716:30)
+      at QueryClientProvider (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/modern-BqsmiZXU.js?v=0ec21b2e:2550:15)
+      at Object.react_stack_bottom_frame (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:5307:11)
+      at renderWithHooks (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2793:19)
+      at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2931:17)
+      at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285)
+      at renderNodeDestructive (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3341:265)
+      at finishFunctionComponent (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2809:233)
+      at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:2947:5)
+      at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=4a71f293:3360:285),
+  status: 500,
+  statusText: undefined,
+  headers: undefined,
+  data: undefined,
+  body: undefined,
+  unhandled: true
+}
+[2m2:42:29 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target [object NodeList] not found. https://gsap.com
+[2m2:42:29 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mGSAP target  not found. https://gsap.com
+[2m2:42:37 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mscale not eligible for reset. Try splitting into individual properties
+[2m2:42:37 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mscale not eligible for reset. Try splitting into individual properties
+[2m2:42:37 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mscale not eligible for reset. Try splitting into individual properties
+[2m2:42:37 AM[22m [33m[1m[vite][22m[39m [33m[2m(client)[22m[39m [2m[console.warn] [22mscale not eligible for reset. Try splitting into individual properties

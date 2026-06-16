@@ -62,7 +62,6 @@ import { Route as ApiProductProductIdRouteImport } from './routes/api/product/$p
 import { Route as ApiProductImagesKeyRouteImport } from './routes/api/product-images/$key'
 import { Route as ApiPostsSlugRouteImport } from './routes/api/posts/$slug'
 import { Route as ApiOrdersOrderIdRouteImport } from './routes/api/orders/$orderId'
-import { Route as ApiLogsLogIdRouteImport } from './routes/api/logs/$logId'
 import { Route as ApiEditProductProductIdRouteImport } from './routes/api/edit-product/$productId'
 import { Route as ApiCategoriesCategoryIdRouteImport } from './routes/api/categories/$categoryId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -340,11 +339,6 @@ const ApiOrdersOrderIdRoute = ApiOrdersOrderIdRouteImport.update({
   path: '/$orderId',
   getParentRoute: () => ApiOrdersRoute,
 } as any)
-const ApiLogsLogIdRoute = ApiLogsLogIdRouteImport.update({
-  id: '/$logId',
-  path: '/$logId',
-  getParentRoute: () => ApiLogsRoute,
-} as any)
 const ApiEditProductProductIdRoute = ApiEditProductProductIdRouteImport.update({
   id: '/api/edit-product/$productId',
   path: '/api/edit-product/$productId',
@@ -438,7 +432,7 @@ export interface FileRoutesByFullPath {
   '/api/add-product': typeof ApiAddProductRoute
   '/api/categories': typeof ApiCategoriesRouteWithChildren
   '/api/get-bookmark': typeof ApiGetBookmarkRoute
-  '/api/logs': typeof ApiLogsRouteWithChildren
+  '/api/logs': typeof ApiLogsRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/api/product': typeof ApiProductRouteWithChildren
@@ -461,7 +455,6 @@ export interface FileRoutesByFullPath {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/categories/$categoryId': typeof ApiCategoriesCategoryIdRoute
   '/api/edit-product/$productId': typeof ApiEditProductProductIdRoute
-  '/api/logs/$logId': typeof ApiLogsLogIdRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRoute
   '/api/posts/$slug': typeof ApiPostsSlugRoute
   '/api/product-images/$key': typeof ApiProductImagesKeyRoute
@@ -505,7 +498,7 @@ export interface FileRoutesByTo {
   '/api/add-product': typeof ApiAddProductRoute
   '/api/categories': typeof ApiCategoriesRouteWithChildren
   '/api/get-bookmark': typeof ApiGetBookmarkRoute
-  '/api/logs': typeof ApiLogsRouteWithChildren
+  '/api/logs': typeof ApiLogsRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/api/product': typeof ApiProductRouteWithChildren
@@ -528,7 +521,6 @@ export interface FileRoutesByTo {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/categories/$categoryId': typeof ApiCategoriesCategoryIdRoute
   '/api/edit-product/$productId': typeof ApiEditProductProductIdRoute
-  '/api/logs/$logId': typeof ApiLogsLogIdRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRoute
   '/api/posts/$slug': typeof ApiPostsSlugRoute
   '/api/product-images/$key': typeof ApiProductImagesKeyRoute
@@ -573,7 +565,7 @@ export interface FileRoutesById {
   '/api/add-product': typeof ApiAddProductRoute
   '/api/categories': typeof ApiCategoriesRouteWithChildren
   '/api/get-bookmark': typeof ApiGetBookmarkRoute
-  '/api/logs': typeof ApiLogsRouteWithChildren
+  '/api/logs': typeof ApiLogsRoute
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/api/product': typeof ApiProductRouteWithChildren
@@ -596,7 +588,6 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/categories/$categoryId': typeof ApiCategoriesCategoryIdRoute
   '/api/edit-product/$productId': typeof ApiEditProductProductIdRoute
-  '/api/logs/$logId': typeof ApiLogsLogIdRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRoute
   '/api/posts/$slug': typeof ApiPostsSlugRoute
   '/api/product-images/$key': typeof ApiProductImagesKeyRoute
@@ -665,7 +656,6 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/categories/$categoryId'
     | '/api/edit-product/$productId'
-    | '/api/logs/$logId'
     | '/api/orders/$orderId'
     | '/api/posts/$slug'
     | '/api/product-images/$key'
@@ -732,7 +722,6 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/categories/$categoryId'
     | '/api/edit-product/$productId'
-    | '/api/logs/$logId'
     | '/api/orders/$orderId'
     | '/api/posts/$slug'
     | '/api/product-images/$key'
@@ -799,7 +788,6 @@ export interface FileRouteTypes {
     | '/api/auth/$'
     | '/api/categories/$categoryId'
     | '/api/edit-product/$productId'
-    | '/api/logs/$logId'
     | '/api/orders/$orderId'
     | '/api/posts/$slug'
     | '/api/product-images/$key'
@@ -844,7 +832,7 @@ export interface RootRouteChildren {
   ApiAddProductRoute: typeof ApiAddProductRoute
   ApiCategoriesRoute: typeof ApiCategoriesRouteWithChildren
   ApiGetBookmarkRoute: typeof ApiGetBookmarkRoute
-  ApiLogsRoute: typeof ApiLogsRouteWithChildren
+  ApiLogsRoute: typeof ApiLogsRoute
   ApiOrdersRoute: typeof ApiOrdersRouteWithChildren
   ApiPostsRoute: typeof ApiPostsRouteWithChildren
   ApiProductRoute: typeof ApiProductRouteWithChildren
@@ -1238,13 +1226,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOrdersOrderIdRouteImport
       parentRoute: typeof ApiOrdersRoute
     }
-    '/api/logs/$logId': {
-      id: '/api/logs/$logId'
-      path: '/$logId'
-      fullPath: '/api/logs/$logId'
-      preLoaderRoute: typeof ApiLogsLogIdRouteImport
-      parentRoute: typeof ApiLogsRoute
-    }
     '/api/edit-product/$productId': {
       id: '/api/edit-product/$productId'
       path: '/api/edit-product/$productId'
@@ -1411,17 +1392,6 @@ const ApiCategoriesRouteWithChildren = ApiCategoriesRoute._addFileChildren(
   ApiCategoriesRouteChildren,
 )
 
-interface ApiLogsRouteChildren {
-  ApiLogsLogIdRoute: typeof ApiLogsLogIdRoute
-}
-
-const ApiLogsRouteChildren: ApiLogsRouteChildren = {
-  ApiLogsLogIdRoute: ApiLogsLogIdRoute,
-}
-
-const ApiLogsRouteWithChildren =
-  ApiLogsRoute._addFileChildren(ApiLogsRouteChildren)
-
 interface ApiOrdersRouteChildren {
   ApiOrdersOrderIdRoute: typeof ApiOrdersOrderIdRoute
 }
@@ -1514,7 +1484,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAddProductRoute: ApiAddProductRoute,
   ApiCategoriesRoute: ApiCategoriesRouteWithChildren,
   ApiGetBookmarkRoute: ApiGetBookmarkRoute,
-  ApiLogsRoute: ApiLogsRouteWithChildren,
+  ApiLogsRoute: ApiLogsRoute,
   ApiOrdersRoute: ApiOrdersRouteWithChildren,
   ApiPostsRoute: ApiPostsRouteWithChildren,
   ApiProductRoute: ApiProductRouteWithChildren,

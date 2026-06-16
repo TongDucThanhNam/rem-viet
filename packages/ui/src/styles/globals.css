@@ -5,6 +5,10 @@
 @source "../**/*.{ts,tsx}";
 
 @custom-variant dark (&:is(.dark *));
+/* Landing-page variants: fine-pointer + hover-capable devices, plus JS-driven
+   state classes (.active/.is-open toggled by accordion components). */
+@custom-variant hoverable (@media (hover: hover));
+@custom-variant coarse (@media (pointer: coarse));
 
 :root {
   --background: #FDFCF9;
@@ -147,6 +151,47 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+
+  /* === Landing-page design tokens ===
+     These auto-generate Tailwind utilities so the landing markup can use
+     `text-display`, `text-h1`, `p-section`, `gap-block`, `text-brand`,
+     `border-hairline`, `animate-marquee`, etc. instead of var() / custom
+     classes. The brand/accent tokens reference the landing theme vars
+     (defined in apps/web/src/landing.css :root[data-theme]) which flip with
+     the section, so `text-brand` always reflects the active theme. */
+
+  /* Type scale (fluid clamp). */
+  --text-display: clamp(64px, 13vw, 200px);
+  --text-h1: clamp(40px, 7vw, 96px);
+  --text-h2: clamp(28px, 3.5vw, 48px);
+  --text-h3: clamp(20px, 1.8vw, 28px);
+  --text-lead: clamp(18px, 1.6vw, 24px);
+  --text-body: 16px;
+  --text-small: 14px;
+  --text-eyebrow: 12px;
+  --text-label: 10px;
+
+  /* Spacing rhythm. */
+  --spacing-section: clamp(96px, 16vh, 200px);
+  --spacing-block: clamp(48px, 8vh, 96px);
+
+  /* Brand colors — resolve through the landing theme vars so they flip with
+     data-theme. `--color-brand-*` (not `--color-accent`, which is taken by
+     the shadcn palette) avoids a token collision. */
+  --color-brand: var(--accent);
+  --color-brand-soft: var(--accent-soft);
+  --color-ink: var(--text-color);
+  --color-canvas: var(--bg-color);
+  --color-muted-ink: color-mix(in srgb, var(--text-color) 60%, transparent);
+  --color-faint-ink: color-mix(in srgb, var(--text-color) 38%, transparent);
+  --color-hairline: color-mix(in srgb, var(--text-color) 12%, transparent);
+  --color-hairline-strong: color-mix(in srgb, var(--text-color) 24%, transparent);
+
+  /* Animations — register the keyframes (defined in landing.css) as utilities
+     so `animate-marquee` etc. work. */
+  --animate-marquee: marquee 20s linear infinite;
+  --animate-hero-parallax: heroParallax linear;
+  --animate-feature-bar-reveal: featureBarReveal ease-out forwards;
 }
 
 @layer base {

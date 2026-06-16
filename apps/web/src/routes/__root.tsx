@@ -145,10 +145,22 @@ function RootDocument() {
     pathname.startsWith("/edit-product/") ||
     pathname.startsWith("/view-product/");
   const isStandaloneRoute = pathname === "/not-found";
+  // The landing page (`/`) is the AWWWARDS-style immersive design from
+  // `components/landing/`. It ships its own `<Navigation />` and
+  // `<CurtainFooter />` (see `routes/index.tsx`), plus its own contact
+  // affordances via the custom cursor + magnetic CTA. Rendering the
+  // standard `<Header />` / `<SiteFooter />` / `<FloatingContact />` on
+  // top of it stacks two nav bars and two footer columns — the user
+  // sees the regular header overlay and only the parts of the hero
+  // that bleed through. So `/` joins the chrome-hidden set.
+  const isLandingRoute = pathname === "/";
   const hideSiteChrome =
-    isAuthRoute || isAdminRoute || isLegacyAdminRoute || isStandaloneRoute;
-  const showSiteFooter =
-    !hideSiteChrome && (pathname === "/" || pathname === "/gioi-thieu");
+    isAuthRoute ||
+    isAdminRoute ||
+    isLegacyAdminRoute ||
+    isStandaloneRoute ||
+    isLandingRoute;
+  const showSiteFooter = !hideSiteChrome && pathname === "/gioi-thieu";
 
   return (
     <html lang="vi">

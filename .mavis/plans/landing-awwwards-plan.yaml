@@ -1,0 +1,453 @@
+version: 1
+plan:
+  name: 'Landing mới full AWWWARDS — chuyển hero mới, bento background, gallery caption, FAQ, curtain footer fixed, magnetic đầy đủ'
+  max_concurrency: 3
+  max_consecutive_failures: 2
+  max_cycles: 6
+  verifier_config:
+    default_verifiers: [verifier]
+    audit_sample_rate: 0.0
+tasks:
+  - id: hero-magnetic
+    title: 'Track A — Hero mới full-bleed + Features bar + Magnetic cho .hover-target'
+    assigned_to: coder
+    verified_by: verifier
+    timeout_ms: 1800000
+    prompt: |
+      Bối cảnh: Landing page mới của dự án `rem-viet` (apps/web) đang được port từ
+      `draft/index.html` (chuẩn AWWWARDS) sang React + TanStack Start. File chuẩn
+      gốc: `C:\Users\terasumi\Documents\source_code\rem-viet\draft\index.html`,
+      `draft/style.css`, `draft/script.js`. Code hiện tại: `apps/web/src/components/landing/`,
+      `apps/web/src/landing.css`, `apps/web/src/components/custom-cursor-raw.tsx`,
+      `apps/web/src/components/loading-screen-raw.tsx`.
+
+      ĐỌC TRƯỚC khi code: `draft/index.html` (đặc biệt section .hero-new + .hero-features-bar),
+      `draft/style.css` (section "NEW HEADER AND HERO" từ line ~784 trở đi),
+      `apps/web/src/components/landing/hero.tsx`, `apps/web/src/landing.css` (phần hero),
+      `apps/web/src/components/custom-cursor-raw.tsx`, `apps/web/src/hooks/use-magnetic.ts` (nếu có),
+      `apps/web/src/components/landing/navigation.tsx`.
+
+      DELIVERABLE 1 — Sửa `apps/web/src/components/landing/hero.tsx`:
+        - Bỏ hoàn toàn layout `.hero` 6/4 grid hiện tại, thay bằng layout `.hero-new` giống draft:
+          full-bleed background image, overlay nội dung bên trái.
+        - Background image: `/assets/7c9323bc-888a-4cba-b876-f0aa79b35158.png` (đã có trong public/assets).
+        - Hero copy giống draft: subtitle "GIẢI PHÁP TOÀN DIỆN" (style .hero-subtitle có gạch đứng
+          trái màu accent), title 2 dòng mask-reveal "Cho không gian" + "Sống tinh tế." (từ 2
+          dòng có .line > .word, word thứ 2 có class .highlight màu accent), desc 2 dòng.
+        - 2 CTA trong `.hero-actions`:
+            * `.btn-primary` "KHÁM PHÁ NGAY" → href="#details"
+            * `.btn-video` "XEM VIDEO" với play icon SVG tròn (giống draft line 76-79) → href="#video"
+        - Animation entrance dùng framer-motion (đã có sẵn): hero bg scale 1.1→1 + blur 10px→0
+          (duration 1.8, ease expo-out), từng `.hero-title .word` translateY 100%→0 (delay stagger
+          0.1, delay 0.2s tổng, duration 1.2, ease expo-out), subtitle/desc/actions/features fade-up
+          (opacity 0→1, y 30→0, stagger 0.1, delay 0.6s tổng).
+        - Giữ prop `isLoaded` (parent truyền vào) để đồng bộ với Loader.
+        - Native CSS scroll-driven parallax trên `.hero-new-bg img`: translateY 0→150px theo
+          `animation-timeline: view()` (xem draft line 922-933). Thêm rule `@supports` tương ứng
+          vào `landing.css`.
+
+      DELIVERABLE 2 — Thêm `.hero-features-bar` (glassmorphism, 4 feature items) ở cuối section:
+        - Markup: 4 `.feature-item`, mỗi item gồm `.f-icon` (SVG inline 24x24) + `.f-text`
+          (strong label + span sub). Copy nguyên 4 feature từ draft line 83-99:
+            * LƯỚI CHỐNG MUỖI — Hiệu quả, an toàn (icon shield-check)
+            * RÈM CỬA CAO CẤP — Thẩm mỹ, đa dạng (icon grid 4 ô)
+            * CHỐNG NẮNG UV — Bảo vệ sức khỏe (icon sun)
+            * AN TOÀN — Cho mọi nhà (icon home)
+        - CSS: `position: absolute; bottom: 4vh; left/right: 0; margin: 0 auto; width: 90%;
+          max-width: 1200px; background: rgba(255,255,255,0.6); backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px); border-radius: 40px; display: flex;
+          justify-content: space-between; padding: 20px 40px; z-index: 10;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.05);`
+        - Thêm rule `@supports (animation-timeline: view())` cho featureBarReveal (draft line
+          1075-1085): feature bar fade out + slide down + scale 0.95 khi cuộn ra khỏi viewport
+          (animation-range: exit 0% exit 50%).
+        - Responsive @media (max-width: 1024px): stack column, gap 20px, border-radius 20px
+          (draft line 1122-1128).
+        - KHÔNG dùng Tailwind cho phần hero mới (giữ đồng nhất với file hiện tại đang dùng class
+          thuần + framer-motion).
+
+      DELIVERABLE 3 — Magnetic buttons cho `.hover-target`:
+        - Hiện tại `apps/web/src/hooks/use-magnetic.ts` (hoặc `hooks/use-magnetic.tsx`) đã có.
+          Verify nó hoạt động (nếu thiếu thì tạo mới: hook trả về `{ ref, x, y }` dùng
+          framer-motion `useMotionValue` + `useSpring` + mouse listener, bounciness 0.15, stiffness
+          150, damping 15).
+        - Áp dụng magnetic cho TẤT CẢ `.hover-target` qua file
+          `apps/web/src/components/custom-cursor-raw.tsx` hoặc một hook mới
+          `use-magnetic-scope.tsx` mount 1 lần ở `routes/index.tsx`. Cách implement: querySelectorAll
+          `.hover-target` trong useEffect, gắn mouseenter/mousemove/mouseleave listener, dùng
+          framer-motion `animate(target, { x: x*0.3, y: y*0.3 }, { type: "spring", bounce: 0.15,
+          duration: 0.6 })` (giống draft script.js line 32-46). Cũng reset x,y=0 khi mouseleave.
+        - Selector mục tiêu: `.nav-links a`, `.icon-btn`, `.btn-primary`, `.massive-link`,
+          `.play-icon`, `.btn-video` (bỏ qua Custom Cursor element).
+
+      DELIVERABLE 4 — `apps/web/src/landing.css` — bổ sung các rule mới (chèn trước `/* Responsive */`,
+      KHÔNG xóa rule cũ): `.hero-new`, `.hero-new-bg`, `.hero-new-content`, `.hero-new-text`,
+      `.hero-subtitle` (+ `::before`), `.hero-title`, `.hero-title .line`, `.hero-title .word`,
+      `.hero-title .highlight`, `.hero-desc`, `.hero-actions`, `.btn-primary`, `.btn-video`,
+      `.play-icon`, `.hero-features-bar`, `.feature-item`, `.f-icon`, `.f-text`, các rule
+      `@supports (animation-timeline: view())` cho hero parallax và feature bar reveal, responsive
+      overrides. Copy y nguyên từ draft/style.css line 897-1134 (chỉ phần hero new + features bar).
+
+      DELIVERABLE 5 — Cập nhật `apps/web/src/routes/index.tsx` (chỉ nếu cần import hook magnetic
+      mới), giữ nguyên thứ tự component: LoaderScreen → CustomCursorRaw → Navigation → Hero →
+      Threat → Marquee → Craft → BentoDetails → HorizontalGallery → MeasureGuide → (mới) FAQ →
+      CurtainFooter.
+
+      Tài nguyên:
+        - Fonts đã có sẵn (Be Vietnam Pro + Playfair Display) qua `index.css` + tailwind config
+          (class `font-vietnam`, `font-playfair`).
+        - Assets đã có trong `apps/web/public/assets/`.
+        - KHÔNG sửa file nào ngoài scope: chỉ `hero.tsx`, `landing.css` (append), `custom-cursor-raw.tsx`
+          (nếu cần), file hook magnetic mới, và `routes/index.tsx` (chỉ import thêm).
+
+      Kiểm tra sau khi sửa:
+        - `bun run --filter web typecheck` (hoặc tsc) phải PASS.
+        - Không được xóa/bỏ prop `isLoaded` của Hero (Loader phụ thuộc).
+        - Không dùng `framer-motion` thay vì CSS ở nơi CSS đã đủ mạnh (giữ file gọn).
+
+      Khi xong, viết `deliverable.md` ở workspace root tóm tắt: file đã sửa, file mới tạo, rule
+      CSS mới thêm, cách verify bằng tay (mở `/` xem hero full-bleed + features bar + di chuột vào
+      nav/button thấy magnetic). Báo lại nếu có xung đột với file khác trong plan.
+
+    verify_prompt: |
+      Bạn là verifier độc lập. KHÔNG chỉ đọc deliverable.md của producer. PHẢI tự mở file và
+      đối chiếu với draft AWWWARDS.
+
+      CÁCH VERIFY:
+        1. Đọc `C:\Users\terasumi\Documents\source_code\rem-viet\draft\index.html` line 58-101
+           (section .hero-new + .hero-features-bar). Đây là source of truth.
+        2. Đọc `C:\Users\terasumi\Documents\source_code\rem-viet\draft\style.css` line 784-1134.
+        3. Đọc `apps/web/src/components/landing/hero.tsx` — kiểm tra:
+            * KHÔNG còn dùng class `.hero`/`.hero-grid` cũ. PHẢI dùng `.hero-new`, `.hero-new-bg`,
+              `.hero-new-content`, `.hero-new-text`, `.hero-subtitle`, `.hero-title` với `.line` +
+              `.word`, `.hero-actions` chứa `.btn-primary` + `.btn-video`.
+            * Background image src = `/assets/7c9323bc-888a-4cba-b876-f0aa79b35158.png`.
+            * Có markup `.hero-features-bar` với đủ 4 feature items copy đúng từ draft.
+            * Prop `isLoaded` còn nguyên, framer-motion entrance animations giống draft.
+        4. Đọc `apps/web/src/landing.css` — kiểm tra các class `.hero-new*`, `.hero-features-bar`,
+           `.feature-item`, `.btn-primary`, `.btn-video` có CSS giống draft.
+        5. Đọc `apps/web/src/components/custom-cursor-raw.tsx` HOẶC file hook magnetic mới —
+           kiểm tra querySelectorAll('.hover-target') có gắn mouse listener + spring animation
+           với bounce 0.15 (hoặc tương đương), reset khi mouseleave.
+        6. CHẠY `cd apps/web && bun run typecheck` (hoặc `npx tsc --noEmit`). PHẢI PASS. Nếu fail
+           thì FAIL task này, list file + lỗi.
+        7. Verify với câu lệnh PowerShell (KHÔNG dùng bash):
+            ```powershell
+            $hero = Get-Content "apps\web\src\components\landing\hero.tsx" -Raw
+            if ($hero -notmatch "hero-new-bg" -or $hero -notmatch "hero-features-bar") {
+              throw "hero.tsx chưa chuyển sang hero-new + features bar"
+            }
+            $css = Get-Content "apps\web\src\landing.css" -Raw
+            foreach ($cls in @(".hero-new", ".hero-features-bar", ".feature-item", ".btn-primary", ".btn-video")) {
+              if ($css -notmatch [regex]::Escape($cls)) { throw "landing.css thiếu $cls" }
+            }
+            ```
+
+      FAIL nếu:
+        - Vẫn còn dùng class `.hero`/`.hero-grid` cũ.
+        - Thiếu features bar hoặc copy text không khớp draft.
+        - Magnetic chỉ áp cho 1 phần tử (phải áp tất cả `.hover-target`).
+        - Typecheck fail.
+        - Class CSS mới thiếu hoặc sai giá trị rõ ràng so với draft.
+
+      PASS chỉ khi TẤT CẢ checklist trên đạt. Trả về report rõ ràng, kèm đường dẫn file + dòng
+      nếu có vấn đề.
+
+  - id: sections-bento-gallery-faq
+    title: 'Track B — Bento có bg image + Gallery caption + FAQ section mới + CSS tương ứng'
+    assigned_to: coder
+    verified_by: verifier
+    timeout_ms: 1800000
+    prompt: |
+      Bối cảnh: xem `draft/index.html` line 173-234 (Bento + Horizontal Gallery) và line 291-342
+      (FAQ), `draft/style.css` line 458-521 (Bento) + 644-714 (Gallery caption + FAQ), và code
+      React hiện tại `apps/web/src/components/landing/{bento-details,horizontal-gallery}.tsx`
+      (chưa có faq.tsx).
+
+      ĐỌC TRƯỚC: `apps/web/src/components/landing/bento-details.tsx`,
+      `apps/web/src/components/landing/horizontal-gallery.tsx`,
+      `apps/web/src/landing.css` (phần bento + gallery),
+      `apps/web/src/routes/index.tsx`.
+
+      DELIVERABLE 1 — `apps/web/src/components/landing/bento-details.tsx`:
+        - Bento grid 4 columns, 2 rows, 4 boxes (giống draft line 174-209):
+            * `.bento-box.bento-large` (span 2 col + 2 row) — bg image `/assets/fiberglass-mesh.png`,
+              nội dung "Sợi Thủy Tinh Siêu Cấp" + desc dài.
+            * `.bento-box` — stat "0%" + "Chất độc hại".
+            * `.bento-box` — stat "∞" + "Lưu thông khí".
+            * `.bento-box.bento-wide` (span 2 col) — bg image `/assets/window-mosquito-net-hero.png`,
+              nội dung "Đạt Chuẩn Quốc Tế" + desc.
+        - Box có background image: cấu trúc
+          ```tsx
+          <div className="bento-box bento-large">
+            <div className="bento-bg">
+              <img src="/assets/fiberglass-mesh.png" alt="Sợi Thủy Tinh Siêu Cấp" />
+            </div>
+            <div className="bento-content"> ... </div>
+          </div>
+          ```
+        - Hiệu ứng hover: `transform: translateY(-10px)` cho box, `scale 1.05` cho bg image
+          (transition 0.4s cubic-bezier(0.1, 0.8, 0.2, 1)).
+        - Thêm pseudo-element `.bento-box:has(.bento-bg)::after` để tạo gradient overlay dưới
+          (background linear-gradient to top từ rgba(245,238,220,0.95) → transparent, height 70%,
+          z-index 2) — copy từ draft style.css line 496-503.
+
+      DELIVERABLE 2 — `apps/web/src/components/landing/horizontal-gallery.tsx`:
+        - Giữ nguyên logic scroll-driven horizontal transform hiện có.
+        - Thêm `.gallery-caption` cho từng `.gallery-item` (4 items, copy text từ draft line 216-231):
+            * Gallery 1 "Phòng Khách" / "Đón ánh sáng tự nhiên trọn vẹn."
+            * Gallery 2 "Phòng Ngủ" / "Bảo vệ giấc ngủ sâu không côn trùng."
+            * Gallery 3 "Nhà Bếp" / "Ngăn mùi và giữ không khí lưu thông."
+            * Gallery 4 "Không Gian Mở" / "Giao hòa hoàn hảo với thiên nhiên."
+        - Markup: trong mỗi `.gallery-item` thêm `<div class="gallery-caption"><h3>...</h3><p>...</p></div>`.
+        - CSS: caption `position: absolute; bottom: 0; left: 0; width: 100%; padding: 40px;
+          background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); color: white;
+          transform: translateY(20px); opacity: 0; transition: all 0.5s ease;`
+        - `.gallery-item:hover .gallery-caption` → `transform: translateY(0); opacity: 1;`
+        - `position: relative; overflow: hidden;` cho `.gallery-item` (gallery-item cũ trong CSS
+          đã có nhưng check lại).
+
+      DELIVERABLE 3 — Tạo MỚI `apps/web/src/components/landing/faq.tsx`:
+        - Section `<section className="faq-section font-sans" id="faq">`.
+        - Trong: `.container` chứa `<h2 className="massive-text font-playfair">FAQ</h2>` +
+          `.faq-accordion` chứa 4 `.faq-item`.
+        - 4 FAQ items copy nguyên từ draft line 296-339:
+            * "Kích thước có bao gồm viền không?" → "Có. Kích thước chúng tôi chế tác là kích thước
+              phủ bì, đã tính cả phần viền dán. Bạn chỉ cần đo mép ngoài cùng của khung."
+            * "Đo bên trong hay bên ngoài khung?" → "Đo cạnh ngoài của khung (phủ bì) để sản phẩm
+              khi dán lên sẽ vừa khít và che phủ hoàn toàn viền cửa."
+            * "Lưới có làm tối nhà không?" → "Hoàn toàn không. Sợi thủy tinh tàng hình trong suốt
+              khi nhìn từ khoảng cách trên 2m, không cản trở tầm nhìn và ánh sáng."
+            * "Có nhận may kích thước cửa lớn?" → "Có. Hệ thống dây chuyền của chúng tôi hỗ trợ
+              chế tác mảng lưới lớn nguyên khối không chắp vá cho các hệ cửa đi, lùa."
+        - Mỗi item:
+          ```tsx
+          <div className={`faq-item ${isActive ? "active" : ""}`}>
+            <div className="faq-head hover-target" onClick={...}>
+              <span>{q}</span>
+              <span className="faq-icon">+</span>
+            </div>
+            <div className="faq-body" ref={bodyRef} style={{ height: isActive ? innerH : 0 }}>
+              <div className="faq-body-inner"><p>{a}</p></div>
+            </div>
+          </div>
+          ```
+        - Logic accordion: dùng useState, đóng mở 1 item tại 1 thời điểm. Khi mở, set height =
+          `bodyRef.current.scrollHeight` (tương tự draft script.js line 188-207). Khi đóng, set
+          height = 0. Khi `isActive`, icon transform rotate(45deg) (CSS rule `.faq-item.active
+          .faq-icon { transform: rotate(45deg); }` — copy từ draft line 700-702).
+        - Import trong `apps/web/src/routes/index.tsx`: thêm `import { Faq } from
+          "@/components/landing/faq";` và đặt `<Faq />` SAU `<MeasureGuide />`, TRƯỚC
+          `<CurtainFooter />`.
+
+      DELIVERABLE 4 — `apps/web/src/landing.css` — bổ sung (chèn trước `/* Responsive */`):
+        - `.bento-box:has(.bento-bg)` + `::after` gradient overlay (copy từ draft line 496-503).
+        - `.bento-bg` absolute, full, z-index 1; `.bento-bg img` cover, transition scale 1.05 hover
+          (line 483-495).
+        - `.bento-content, .stat-item` z-index 3.
+        - `.gallery-item` position: relative, overflow: hidden.
+        - `.gallery-caption` + hover (line 648-673).
+        - `.faq-section { padding: 15vh 0 25vh 0; background-color: var(--bg-color); }`
+        - `.faq-accordion` margin-top 10vh, border-top 1px solid rgba(0,0,0,0.1).
+        - `.faq-item` border-bottom 1px solid rgba(0,0,0,0.1).
+        - `.faq-head` padding 30px 0, flex space-between, align center, cursor pointer, font-size 24px.
+        - `.faq-icon` font-size 30px, font-weight 300, transition transform 0.4s.
+        - `.faq-item.active .faq-icon` transform rotate(45deg).
+        - `.faq-body` height 0, overflow hidden, transition height 0.4s cubic-bezier(0.1,0.8,0.2,1).
+        - `.faq-body-inner` padding-bottom 30px, font-size 16px, opacity 0.7, max-width 600px, line-height 1.6.
+
+      DELIVERABLE 5 — KHÔNG sửa file ngoài phạm vi. Đảm bảo `routes/index.tsx` thêm đúng 1 import
+      và 1 component.
+
+      Kiểm tra:
+        - `cd apps/web && bun run typecheck` PASS.
+        - Bento có đủ 4 boxes, 2 box có bg image.
+        - Gallery có caption trong từng item.
+        - FAQ section render đầy đủ 4 items, accordion hoạt động.
+        - Không xóa/bỏ class CSS cũ.
+
+      Viết `deliverable.md` tóm tắt file đã sửa, file mới tạo, rule CSS mới.
+
+    verify_prompt: |
+      Bạn là verifier độc lập. ĐỌC `draft/index.html` line 173-234 + 291-342 và
+      `draft/style.css` line 458-521 + 644-714 làm source of truth.
+
+      VERIFY:
+        1. Mở `apps/web/src/components/landing/bento-details.tsx`:
+            * PHẢI có 4 `.bento-box`, trong đó 1 `.bento-large` và 1 `.bento-wide`.
+            * 2 box có bg image src là `/assets/fiberglass-mesh.png` và
+              `/assets/window-mosquito-net-hero.png`.
+            * Markup đúng: `.bento-bg > img` đứng trước `.bento-content`.
+        2. Mở `apps/web/src/components/landing/horizontal-gallery.tsx`:
+            * 4 `.gallery-item` đều có `.gallery-caption` bên trong với `<h3>` và `<p>` copy
+              đúng từ draft (Phòng Khách / Phòng Ngủ / Nhà Bếp / Không Gian Mở).
+        3. Mở `apps/web/src/components/landing/faq.tsx` (file mới):
+            * Section có id="faq", 4 `.faq-item`, mỗi item có `.faq-head` (clickable) +
+              `.faq-body`.
+            * 4 câu hỏi + 4 trả lời khớp draft từng chữ.
+            * Logic accordion: dùng useState, mở 1 đóng các còn lại, set height = scrollHeight
+              khi mở, = 0 khi đóng.
+        4. Mở `apps/web/src/routes/index.tsx` — PHẢI có import `Faq` + `<Faq />` đặt giữa
+           `<MeasureGuide />` và `<CurtainFooter />`.
+        5. Mở `apps/web/src/landing.css` — check các class mới: `.bento-bg`, `.bento-content`,
+           `.faq-section`, `.faq-item`, `.faq-head`, `.faq-icon`, `.faq-body`, `.faq-body-inner`,
+           `.gallery-caption`. Mỗi class có rule khớp draft.
+        6. CHẠY `cd apps/web && bun run typecheck`. PHẢI PASS.
+        7. PowerShell check nhanh:
+            ```powershell
+            $f = Test-Path "apps\web\src\components\landing\faq.tsx"
+            if (-not $f) { throw "faq.tsx chưa được tạo" }
+            $bento = Get-Content "apps\web\src\components\landing\bento-details.tsx" -Raw
+            if ($bento -notmatch "bento-large" -or $bento -notmatch "bento-wide" -or $bento -notmatch "bento-bg") {
+              throw "bento-details chưa đủ boxes hoặc thiếu bento-bg"
+            }
+            ```
+
+      FAIL nếu thiếu bất kỳ mục nào, FAQ copy sai text, hoặc typecheck fail.
+
+  - id: footer-loader-wrapper
+    title: 'Track C — Curtain footer fixed full-screen + smooth-wrapper spacing + Loader polish'
+    assigned_to: coder
+    verified_by: verifier
+    timeout_ms: 1500000
+    prompt: |
+      Bối cảnh: Curtain footer trong draft là "đặc sản" AWWWARDS — fixed full-screen ở dưới,
+      z-index 1, smooth-wrapper có margin-bottom 100vh để tạo khoảng trống cho footer trượt
+      lên. Hiện React port đang để footer inline, mất hiệu ứng. Loader cũng cần polish
+      (counter % + split overlay + body.is-loading).
+
+      ĐỌC TRƯỚC: `draft/index.html` line 22-26 (loader markup), line 345-358 (curtain footer),
+      `draft/style.css` line 36-68 (loader) + 571-587 (curtain footer) + 451-456
+      (smooth-wrapper margin-bottom), `apps/web/src/components/loading-screen-raw.tsx`,
+      `apps/web/src/components/landing/curtain-footer.tsx`, `apps/web/src/landing.css`
+      (phần .footer, .curtain-footer, #smooth-wrapper).
+
+      DELIVERABLE 1 — `apps/web/src/landing.css` — sửa 3 rule chính:
+        - `.curtain-footer`: thêm `position: fixed; bottom: 0; left: 0; width: 100%; height: 100vh;
+          z-index: 1; display: flex; flex-direction: column; justify-content: center; align-items:
+          center; background-color: var(--text-color); color: var(--bg-color);`
+          (Rule hiện tại đã có `position: fixed; bottom: 0; left: 0; width: 100%;` nhưng thiếu
+          `z-index: 1` — QUAN TRỌNG. Verify đã có `z-index: 1` chưa, nếu chưa thêm vào.)
+        - `.curtain-footer .footer-cta` → `margin: 0; text-align: center;`
+        - `#smooth-wrapper`: PHẢI có `margin-bottom: 100vh;` (xem draft line 451-456).
+          Nếu rule hiện tại thiếu giá trị này, thêm vào. Đây là khoảng trống để curtain footer
+          fixed ở dưới không che mất nội dung cuối.
+        - Responsive @media (max-width: 1024px): `#smooth-wrapper { margin-bottom: 70vh; }` và
+          `.curtain-footer { height: 70vh; }` (draft line 779-780).
+
+      DELIVERABLE 2 — `apps/web/src/components/landing/curtain-footer.tsx`:
+        - Giữ nguyên markup hiện tại (đã đúng theo draft).
+        - Cấu trúc: `.footer-cta` chứa `<h2>` "Bắt đầu" + "dự án của bạn." (2 dòng) +
+          `<a class="massive-link">` "tuvan@luxemesh.vn" (mailto:).
+        - `.footer-bottom` chứa copyright + socials (Instagram + Facebook).
+        - Thêm `data-cursor="Đặt may"` cho `.massive-link` (đã có).
+        - Đảm bảo class `hover-target` có ở `.massive-link` và 2 social link (đã có, verify).
+
+      DELIVERABLE 3 — `apps/web/src/components/loading-screen-raw.tsx`:
+        - Markup: `.loader` chứa `.loader-counter` (text "0%" cập nhật khi animate) +
+          `.loader-overlay.loader-overlay-top` + `.loader-overlay.loader-overlay-bottom`.
+        - Dùng framer-motion `animate(0, 100, { duration: 2, ease: [0.76, 0, 0.24, 1], onUpdate:
+          (v) => setCounter(Math.round(v) + "%") })`. onComplete → finishLoading.
+        - finishLoading: animate counter opacity 0 + y -50 (duration 0.5), animate
+          `.loader-overlay-top` scaleY 0, `.loader-overlay-bottom` scaleY 0 (duration 1, delay
+          0.2, ease [0.76, 0, 0.24, 1]). onComplete của overlay-bottom: set loader display none,
+          remove class `is-loading` trên document.body, gọi onComplete callback (parent
+          `routes/index.tsx` set isLoaded true).
+        - Loader CSS (rule đã có sẵn trong landing.css line 86-118): `position: fixed; top/left 0;
+          width/height 100vw/vh; z-index 9000; display: flex; justify-content/align-items center;
+          pointer-events: none;` — verify đủ.
+        - Counter style: `font-family: var(--font-primary); font-size: 15vw; color: var(--bg-color);
+          font-weight: 400;` — verify.
+        - Overlay top/bottom: `position: absolute; left 0; width 100%; height 50vh; background-color:
+          var(--text-color);`. Top: `top: 0; transform-origin: top;`. Bottom: `bottom: 0;
+          transform-origin: bottom;`.
+        - Body `is-loading`: `overflow: hidden;` (line 33-35).
+        - Nếu file hiện tại đã có logic này rồi thì giữ nguyên, chỉ polish nếu thiếu.
+
+      DELIVERABLE 4 — KHÔNG sửa file ngoài scope. File đụng: chỉ `landing.css`, `curtain-footer.tsx`,
+      `loading-screen-raw.tsx`.
+
+      Kiểm tra:
+        - `cd apps/web && bun run typecheck` PASS.
+        - Mở `/` thấy loader với counter % ở giữa, 2 tấm overlay đen top/bottom, animate count
+          0→100 trong 2s, sau đó overlay tách ra scaleY 0, footer fixed ở dưới cùng.
+
+      Viết `deliverable.md` tóm tắt thay đổi.
+
+    verify_prompt: |
+      Bạn là verifier độc lập.
+
+      VERIFY:
+        1. Mở `apps/web/src/landing.css`, search rule `#smooth-wrapper` — PHẢI có
+           `margin-bottom: 100vh;` (responsive có thể là 70vh ở max-width 1024px).
+        2. Mở `apps/web/src/landing.css`, search rule `.curtain-footer` — PHẢI có
+           `position: fixed; bottom: 0; left: 0; width: 100%; height: 100vh; z-index: 1;`
+           (z-index 1 là bắt buộc để nằm dưới #smooth-wrapper z-index 2).
+        3. Mở `apps/web/src/components/landing/curtain-footer.tsx` — markup đầy đủ:
+            * `.footer-cta` có `<h2>` "Bắt đầu" + "dự án của bạn." và `<a class="massive-link
+              hover-target">` mailto.
+            * `.footer-bottom` có copyright + 2 social link.
+        4. Mở `apps/web/src/components/loading-screen-raw.tsx`:
+            * Markup có `.loader-counter` + 2 `.loader-overlay`.
+            * Logic animate counter 0→100 trong ~2s, sau đó split 2 overlay scaleY 0, xóa
+              class `is-loading` trên body, gọi onComplete callback.
+        5. CHẠY `cd apps/web && bun run typecheck` — PHẢI PASS.
+        6. PowerShell:
+            ```powershell
+            $css = Get-Content "apps\web\src\landing.css" -Raw
+            if ($css -notmatch "#smooth-wrapper[\s\S]{0,200}margin-bottom:\s*100vh") {
+              throw "#smooth-wrapper thiếu margin-bottom: 100vh"
+            }
+            $cf = $css -match "curtain-footer[\s\S]{0,400}position:\s*fixed"
+            if (-not $cf) { throw "curtain-footer chưa position: fixed" }
+            if ($css -notmatch "curtain-footer[\s\S]{0,400}z-index:\s*1") {
+              throw "curtain-footer thiếu z-index: 1"
+            }
+            ```
+
+      FAIL nếu thiếu margin-bottom trên smooth-wrapper, thiếu z-index:1 trên footer, hoặc
+      typecheck fail.
+
+  - id: final-integration-check
+    title: 'Final integration — build, typecheck, route /, kiểm tra visual end-to-end'
+    assigned_to: verifier
+    depends_on: [hero-magnetic, sections-bento-gallery-faq, footer-loader-wrapper]
+    role: verify-as-task
+    timeout_ms: 1500000
+    prompt: |
+      Sau khi 3 track trên đã PASS, bạn là gate cuối. Verify end-to-end:
+
+      1. CHẠY `cd apps/web && bun run typecheck` (hoặc `npx tsc --noEmit`) — PHẢI PASS.
+      2. CHẠY `cd apps/web && bun run build` — PHẢI PASS không lỗi.
+      3. ĐỌC `apps/web/src/routes/index.tsx` — verify thứ tự:
+         LoadingScreenRaw → CustomCursorRaw → Navigation → Hero → Threat → Marquee →
+         Craft → BentoDetails → HorizontalGallery → MeasureGuide → Faq → CurtainFooter.
+      4. ĐỌC `apps/web/src/landing.css` — tổng cộng có các class quan trọng:
+         `.nav`, `.hero-new`, `.hero-features-bar`, `.feature-item`, `.threat`,
+         `.marquee`, `.craft`, `.bento-details`, `.bento-grid`, `.bento-box`,
+         `.bento-large`, `.bento-wide`, `.bento-bg`, `.horizontal-scroll`,
+         `.sticky-wrapper`, `.gallery-track`, `.gallery-item`, `.gallery-caption`,
+         `.measure`, `.faq-section`, `.faq-item`, `.faq-head`, `.faq-icon`,
+         `.faq-body`, `.curtain-footer`, `.footer`, `.massive-link`,
+         `.noise-overlay`, `.loader`, `.loader-overlay`, `.loader-counter`,
+         `#smooth-wrapper`. Mỗi class phải tồn tại.
+      5. ASSET CHECK: mở `apps/web/public/assets/` — verify có 8 files:
+         7c9323bc-888a-4cba-b876-f0aa79b35158.png, invisible_threat.png, craft_mesh.png,
+         fiberglass-mesh.png, window-mosquito-net-hero.png, gallery_1.png, gallery_2.png,
+         gallery_3.png, lifestyle_breeze.png, measurement-guide.png. Nếu thiếu bất kỳ
+         file nào mà code đang reference → FAIL.
+      6. PowERShell helper:
+         ```powershell
+         $missing = @()
+         foreach ($f in @("7c9323bc-888a-4cba-b876-f0aa79b35158.png","invisible_threat.png","craft_mesh.png","fiberglass-mesh.png","window-mosquito-net-hero.png","gallery_1.png","gallery_2.png","gallery_3.png","lifestyle_breeze.png","measurement-guide.png")) {
+           if (-not (Test-Path "apps\web\public\assets\$f")) { $missing += $f }
+         }
+         if ($missing.Count -gt 0) { throw "Thiếu assets: $($missing -join ', ')" }
+         ```
+
+      BÁO CÁO:
+      - PASS/FAIL tổng thể.
+      - Liệt kê từng mục check (1-6) kèm trạng thái.
+      - Nếu FAIL, đưa ra gap cụ thể (file, dòng, rule CSS) để orchestrator biết đường retry.
+
+      KHÔNG sửa code. Chỉ verify.

@@ -1,0 +1,373 @@
+version: 1
+plan:
+  name: 'Nâng cấp Landing LUXE MESH lên AWWWARDS SOTD-wannabe'
+  max_concurrency: 4
+  max_consecutive_failures: 2
+  max_cycles: 8
+  verifier_config:
+    default_verifiers: [verifier]
+    audit_sample_rate: 0.0
+  auto_reject_retries: 1
+tasks:
+  - id: track-1-theme-benefits
+    title: 'Track 1 — Benefits section + theme engine theo viewport'
+    assigned_to: coder
+    timeout_ms: 1800000
+    prompt: |
+      Bạn là coder cho landing page LUXE MESH (workspace C:\Users\terasumi\Documents\source_code\rem-viet).
+      App web: apps\web. Stack: React 19 + TanStack Start + framer-motion 12 + Tailwind v4 + Lenis smooth scroll.
+      Đọc AGENTS.md ở root repo trước, đặc biệt mục "Landing page migration" — KHÔNG vi phạm các quy tắc ở đó.
+      Đọc draft/style.css và draft/script.js để hiểu intent gốc.
+
+      Mục tiêu track này — làm 2 việc ĐỘC LẬP, không đụng các file mà track khác sẽ sửa:
+
+      (1) TẠO MỚI section <Benefits /> — section này THIẾU trong React version nhưng CÓ trong draft
+          (id="benefits", class .benefits.dark-theme, 4-col grid với .benefit-card, border-top mỏng).
+          Tạo file: apps\web\src\components\landing\benefits.tsx
+          - Section id="benefits", className="benefits font-sans" (KHÔNG thêm "dark-theme" hard-coded
+            nữa — để theme engine quản).
+          - Tiêu đề lớn font-playfair (ví dụ: "Giá Trị Vượt Trội") + phụ đề font-vietnam.
+          - 4 cards trong 1 grid responsive (4 cột desktop, 2 tablet, 1 mobile), mỗi card có
+            icon SVG outline 32x32, h3 24px font-playfair, mô tả ngắn 14-16px opacity 0.7.
+          - Nội dung 4 cards: (a) Sợi Thủy Tinh Cao Cấp — bền bỉ vượt trội; (b) May Đo Vừa Khít —
+            đo chuẩn từng mm; (c) Bảo Vệ Vô Hình — chống muỗi UV; (d) Lắp Đặt Tận Nơi — dịch vụ
+            chuyên nghiệp. Bạn có thể chỉnh wording cho sang, miễn đúng tinh thần.
+          - Thêm framer-motion scroll-trigger: mỗi card fade-up + slight y stagger 0.1s khi vào viewport
+            (dùng useInView + once: true, ease [0.19,1,0.22,1], duration 0.9).
+          - Chèn <Benefits /> vào routes/index.tsx ngay SAU <Marquee /> và TRƯỚC <Craft />.
+            Tìm đúng dòng chèn để không phá thứ tự các section khác.
+
+      (2) TẠO MỚI theme engine theo viewport — hook apps\web\src\hooks\use-theme-by-section.ts
+          - Cơ chế: dùng IntersectionObserver (rootMargin "-50% 0px -50% 0px" để section nào chiếm
+            giữa viewport thì active) trên TẤT CẢ section có id (home, threat, benefits, craft, details,
+            lifestyle, measure, faq, order).
+          - Map mỗi id -> theme: dark cho "threat" + "lifestyle" (gallery), light cho còn lại.
+            (Phù hợp draft: threat.dark-theme, gallery ngầm dark qua asset và layout).
+          - Khi active section đổi, set <html data-theme="dark"|"light">. CustomCursorRaw và
+            Navigation dùng CSS var (--text-color, --bg-color, --accent-color) — hook này sẽ làm
+            giá trị var đổi theo data-theme, đảm bảo contrast đúng.
+          - Mount hook 1 lần ở routes/index.tsx trong HomeComponent (gọi useThemeBySection()).
+          - Tạo block CSS trong landing.css:
+            :root[data-theme="dark"]  { --bg-color: #111; --text-color: #F8F5EF; }
+            :root[data-theme="light"] { --bg-color: #F8F5EF; --text-color: #111; }
+            đặt NGAY SAU block :root hiện tại (giữ nguyên --accent-color, --font-*).
+          - XÓA class "dark-theme" hard-coded khỏi Threat, HorizontalGallery (không xóa CSS rule
+            cũ .dark-theme ở landing.css, vẫn giữ để tránh regression). KHÔNG thêm class dark-theme
+            vào <Benefits /> vừa tạo.
+          - KHÔNG sửa custom-cursor-raw.tsx, navigation.tsx, bento-details.tsx, measure-guide.tsx,
+            craft.tsx, marquee.tsx, curtain-footer.tsx, faq.tsx — đó là slot của track khác.
+
+      File bạn sẽ sửa / tạo (liệt kê rõ để tránh đụng track khác):
+        + apps\web\src\components\landing\benefits.tsx (MỚI)
+        + apps\web\src\hooks\use-theme-by-section.ts (MỚI)
+        + apps\web\src\landing.css (chỉ thêm block :root[data-theme] + .benefits theo draft)
+        + apps\web\src\routes\index.tsx (import Benefits + useThemeBySection, chèn <Benefits />,
+          gọi hook trong HomeComponent)
+        + apps\web\src\components\landing\threat.tsx (XÓA " dark-theme" khỏi className)
+        + apps\web\src\components\landing\horizontal-gallery.tsx (XÓA " dark-theme" nếu có)
+
+      Sau khi code xong, CHẠY và PASS:
+        cd apps\web
+        bun run check-types
+        bun run build
+      Cả 2 phải xanh. Nếu fail, tự sửa trước khi exit.
+
+      Kết thúc, viết deliverable.md ngắn gồm: (a) danh sách file đã sửa/tạo, (b) kết quả
+      check-types + build, (c) mô tả 1 dòng cho mỗi thay đổi.
+    verified_by: verifier
+    verify_prompt: |
+      Verify track 1 độc lập — KHÔNG re-read deliverable.md để chấm.
+      Chạy lại 2 lệnh:
+        cd apps\web && bun run check-types
+        cd apps\web && bun run build
+      Cả 2 phải pass với exit code 0. Nếu fail, FAIL với lý do cụ thể (file nào, lỗi gì).
+
+      Sau đó mở file và kiểm chứng:
+      1) apps\web\src\components\landing\benefits.tsx tồn tại, export Benefits, có section id="benefits",
+         KHÔNG có "dark-theme" trong className, có 4 .benefit-card (hoặc tương đương), dùng
+         framer-motion để scroll-trigger fade-up.
+      2) apps\web\src\hooks\use-theme-by-section.ts tồn tại, export useThemeBySection, dùng
+         IntersectionObserver, set <html data-theme="...">. KHÔNG gọi DOM thô ngoài hook.
+      3) apps\web\src\routes\index.tsx đã import cả 2 trên và gọi useThemeBySection() trong
+         HomeComponent. <Benefits /> nằm giữa <Marquee /> và <Craft /> (đúng thứ tự).
+      4) threat.tsx và horizontal-gallery.tsx KHÔNG còn "dark-theme" trong className.
+      5) landing.css có block :root[data-theme="dark"] và :root[data-theme="light"] đặt đúng chỗ
+         (sau :root, trước các rule khác).
+      6) File track khác KHÔNG bị đụng: dùng git diff --name-only HEAD để xác nhận
+         custom-cursor-raw.tsx, navigation.tsx, bento-details.tsx, measure-guide.tsx, craft.tsx,
+         marquee.tsx, curtain-footer.tsx, faq.tsx, scroll-progress.tsx (nếu tồn tại) KHÔNG
+         nằm trong diff.
+
+      Báo cáo PASS/FAIL với evidence (paste 5-10 dòng output của `bun run check-types` + build).
+
+  - id: track-2-cursor-progress-anchors
+    title: 'Track 2 — Cursor label + Scroll progress bar + Smooth anchor nav'
+    assigned_to: coder
+    timeout_ms: 1800000
+    prompt: |
+      Bạn là coder cho landing LUXE MESH. Stack như track 1.
+      Slot CỦA BẠN (không đụng track khác):
+        + apps\web\src\components\custom-cursor-raw.tsx (sửa — thêm label theo data-cursor)
+        + apps\web\src\components\scroll-progress.tsx (MỚI — thanh progress ở top viewport)
+        + apps\web\src\components\landing\navigation.tsx (sửa anchor link + thêm data-cursor)
+        + apps\web\src\routes\index.tsx (CHỈ chèn <ScrollProgress /> ngay sau <LoadingScreenRaw />,
+          KHÔNG sửa phần còn lại)
+        + apps\web\src\landing.css (chỉ thêm block .scroll-progress)
+
+      KHÔNG sửa: benefits.tsx, threat.tsx, use-theme-by-section.ts, bento-details.tsx,
+      measure-guide.tsx, craft.tsx, marquee.tsx, curtain-footer.tsx, faq.tsx, hero.tsx,
+      use-magnetic*.ts.
+
+      (1) Cursor label — apps\web\src\components\custom-cursor-raw.tsx
+          Hiện đã có dot với mix-blend-difference. Thêm cơ chế "label":
+          - Khi rê chuột vào element có attribute `data-cursor="..."`, dot phóng to 60-80px và
+            hiển thị text label ở giữa (font-vietnam, uppercase, tracking-widest, 10-11px, color
+            tương phản với dot).
+          - Dùng data-cursor hiện có ở curtain-footer ("Đặt may") và tự thêm ở navigation CTA
+            "Tư Vấn" -> data-cursor="Liên hệ" và bất kỳ nơi nào có .hover-target quan trọng
+            (các nav link, btn-primary). KHÔNG thêm vào từng thẻ — chỉ 4-6 chỗ chủ chốt.
+          - Class đã có .cursor.hovering / .cursor.has-text trong landing.css — dùng lại, không
+            trùng class.
+          - Giữ nguyên cấu trúc file, chỉ thêm logic querySelectorAll('[data-cursor]') trong
+            useEffect, attach mousemove/mouseleave.
+
+      (2) Scroll progress bar — apps\web\src\components\scroll-progress.tsx (MỚI)
+          - Thanh ngang fixed top:0, left:0, height 2-3px, width = scrollYProgress * 100vw.
+          - Dùng framer-motion useScroll + useSpring (stiffness 120, damping 20) để mượt.
+          - Màu accent: var(--accent-color) — tự đổi khi theme đổi (do track 1 set data-theme).
+          - Z-index cao (z-[9999]) để nằm trên cùng.
+          - Mount trong routes/index.tsx, đặt ngay sau <LoadingScreenRaw /> (trước <CustomCursorRaw />).
+
+      (3) Smooth anchor nav — apps\web\src\components\landing\navigation.tsx
+          - Hiện các MagneticLink dùng href="#vision" (KHÔNG tồn tại), "#details", "#measure".
+            Cập nhật lại:
+              "Tầm Nhìn"    -> href="#threat"  (anchor đến section threat — đổi label thành "Câu Chuyện"
+                                            cho hợp, hoặc giữ "Tầm Nhìn" cũng được, miễn map đúng id)
+              "Chi Tiết"    -> href="#details"
+              "Cách Đo"     -> href="#measure"
+              Nav CTA "Tư Vấn" -> href="#order", thêm data-cursor="Liên hệ"
+          - Thêm data-cursor="Xem" cho 3 nav link chính (Tầm Nhìn / Chi Tiết / Cách Đo).
+          - Thêm onClick handler: e.preventDefault() + window.scrollTo với behavior:'smooth' (vì
+            Lenis đã smooth-scroll, cách đơn giản nhất là dùng Lenis instance qua useEffect nếu
+            đã mount global; nếu không, dùng document.getElementById(href.slice(1))?.scrollIntoView
+            với behavior:'smooth' — Lenis sẽ tự override).
+          - KHÔNG thay đổi kiểu dáng nav. Chỉ sửa href, label (nếu cần), data-cursor, onClick.
+
+      Sau khi code xong CHẠY:
+        cd apps\web
+        bun run check-types
+        bun run build
+      Cả 2 phải pass. Tự sửa nếu fail.
+
+      Kết thúc, viết deliverable.md.
+    verified_by: verifier
+    verify_prompt: |
+      Verify track 2 độc lập. Chạy:
+        cd apps\web && bun run check-types
+        cd apps\web && bun run build
+      Phải pass.
+
+      Kiểm chứng:
+      1) apps\web\src\components\scroll-progress.tsx tồn tại, export ScrollProgress, dùng
+         useScroll + useSpring của framer-motion, fixed position top:0, không SSR-crash.
+      2) routes\index.tsx đã import ScrollProgress và mount NGAY SAU <LoadingScreenRaw />.
+         Dùng `git diff -U2 routes/index.tsx` để xác nhận chỉ thêm 2 dòng (import + JSX), không
+         sửa phần khác (cụ thể: KHÔNG đụng section list, KHÔNG đụng hook calls).
+      3) navigation.tsx: 3 nav link href map đúng id tồn tại trong DOM
+         ("#threat"/"#home"/"#details"/"#measure"). Có data-cursor. KHÔNG còn href="#vision"
+         (trừ khi đã thêm id="vision" ở đâu đó).
+      4) custom-cursor-raw.tsx: có logic querySelectorAll('[data-cursor]'), toggling class
+         .has-text và set label text. Không hardcode danh sách selector cụ thể cho từng element.
+      5) git diff --name-only HEAD: các file ngoài slot của track 2 KHÔNG bị đụng.
+         Slot hợp lệ: custom-cursor-raw.tsx, scroll-progress.tsx, navigation.tsx,
+         routes/index.tsx, landing.css.
+
+      Báo cáo PASS/FAIL với evidence.
+
+  - id: track-3-bento-measure-polish
+    title: 'Track 3 — Bento + Measure-Guide polish (hover tilt, stat count-up, mask reveal mạnh hơn)'
+    assigned_to: coder
+    timeout_ms: 1800000
+    prompt: |
+      Slot CỦA BẠN (không đụng track khác):
+        + apps\web\src\components\landing\bento-details.tsx
+        + apps\web\src\components\landing\measure-guide.tsx
+        + apps\web\src\landing.css (chỉ thêm block cho .bento-box:hover và .measure-content
+          animation nếu cần)
+
+      KHÔNG sửa: benefits.tsx, threat.tsx, use-theme-by-section.ts, custom-cursor-raw.tsx,
+      scroll-progress.tsx, navigation.tsx, routes/index.tsx, hero.tsx, craft.tsx, marquee.tsx,
+      curtain-footer.tsx, faq.tsx, horizontal-gallery.tsx, use-magnetic*.ts, use-scroll-animation.ts.
+
+      (1) Bento polish — apps\web\src\components\landing\bento-details.tsx
+          - Bento box (.bento-box) HIỆN tĩnh. Thêm:
+            (a) Hover tilt nhẹ: dùng framer-motion useMotionValue + useTransform cho rotateX/rotateY
+                theo vị trí chuột (max ±4deg). Wrap bento-box trong motion.div, perspective 1000px
+                ở parent. Hiệu ứng: Ảnh .bento-bg img scale 1.05 + content fade-up 4px.
+            (b) Stat count-up: 2 .stat-num hiện là text tĩnh ("0%", "∞"). Làm count-up cho
+                "0%" -> "0%" (giữ nguyên nếu khó), thêm 2 stat mới với số liệu thật:
+                - "10" năm với label "Độ bền" — count 0->10 trong 1.5s khi vào viewport.
+                - "99.9" % với label "Chống muỗi" — count 0->99.9 với 1 decimal, 1.5s.
+                Dùng useInView + useMotionValue + animate (của framer-motion) hoặc một helper nhỏ
+                useCountUp(value, duration).
+            (c) Image parallax nhẹ trong .bento-bg: scrollYProgress của từng card -> translateY
+                ±15px tùy chiều scroll. Dùng useScroll + useTransform.
+          - Đảm bảo mobile (≤768px) KHÔNG có hover tilt (pointer: coarse) — chỉ giữ count-up
+            và parallax.
+
+      (2) Measure-Guide polish — apps\web\src\components\landing\measure-guide.tsx
+          - Hiện có .parallax-img (đã có data-speed từ draft) — chắc chắn nó đang parallax bằng
+            CSS scroll-timeline hoặc motion. Nếu chưa, thêm bằng framer-motion useScroll +
+            useTransform cho y từ -50 đến +50px theo scrollYProgress.
+          - Thêm scroll-trigger reveal cho .measure-content: fade-up + slight x slide khi vào
+            viewport (inView, once:true, stagger 0.1s giữa tiêu đề/desc).
+          - Nếu file chưa dùng framer-motion, thêm import. Nếu đã có hook useScrollAnimation.ts
+            không phù hợp (nó chỉ toggle class), dùng motion trực tiếp.
+
+      Sau khi code xong:
+        cd apps\web
+        bun run check-types
+        bun run build
+      Cả 2 phải pass.
+
+      Kết thúc, viết deliverable.md.
+    verified_by: verifier
+    verify_prompt: |
+      Verify track 3 độc lập. Chạy:
+        cd apps\web && bun run check-types
+        cd apps\web && bun run build
+      Phải pass.
+
+      Kiểm chứng:
+      1) bento-details.tsx có import từ framer-motion (useMotionValue, useTransform, useScroll
+         HOẶC animate). Có ít nhất 1 component con (BentoCard hoặc inline) dùng motion.div.
+         Có 4 bento-box. stat-num "10" và "99.9" tồn tại cùng label tương ứng.
+      2) measure-guide.tsx có framer-motion hook (useScroll/useTransform HOẶC useInView), và
+         parallax-img có y transform theo scroll.
+      3) git diff --name-only HEAD: chỉ các file trong slot của track 3 bị sửa. Nếu bất kỳ
+         file slot của track 1/2 nằm trong diff, FAIL.
+      4) KHÔNG touch theme (data-theme) — track này không được set data-theme trên root.
+
+      Báo cáo PASS/FAIL với evidence.
+
+  - id: track-4-footer-marquee-craft
+    title: 'Track 4 — Footer CTA reveal + Marquee hover-pause + Craft image scale-in'
+    assigned_to: coder
+    timeout_ms: 1800000
+    prompt: |
+      Slot CỦA BẠN (không đụng track khác):
+        + apps\web\src\components\landing\curtain-footer.tsx
+        + apps\web\src\components\landing\marquee.tsx
+        + apps\web\src\components\landing\craft.tsx
+        + apps\web\src\landing.css (chỉ thêm block .marquee:hover và keyframes phụ nếu cần)
+
+      KHÔNG sửa: benefits.tsx, threat.tsx, use-theme-by-section.ts, custom-cursor-raw.tsx,
+      scroll-progress.tsx, navigation.tsx, routes/index.tsx, hero.tsx, bento-details.tsx,
+      measure-guide.tsx, faq.tsx, horizontal-gallery.tsx, use-magnetic*.ts, use-scroll-animation.ts.
+
+      (1) Curtain-footer polish — apps\web\src\components\landing\curtain-footer.tsx
+          - Wrap phần .footer-cta trong motion.div với useInView (once:true, margin "-30%").
+          - Title "Bắt đầu / dự án của bạn." fade-up 30px, duration 1s, ease [0.19,1,0.22,1],
+            delay 0.
+          - <a class="massive-link"> tuvan@luxemesh.vn fade-up 40px, duration 1s, delay 0.2.
+          - <div class="footer-bottom"> fade-up 20px, delay 0.4.
+          - KHÔNG đổi nội dung text, KHÔNG đổi className, KHÔNG đổi id="order". data-cursor
+            "Đặt may" ở massive-link đã có — giữ nguyên.
+
+      (2) Marquee polish — apps\web\src\components\landing\marquee.tsx
+          - Hiện 3 <span> lặp text. Thêm hover-pause: state isPaused, onMouseEnter set true,
+            onMouseLeave set false. Khi paused, animation-play-state = paused (dùng style).
+          - Thêm framer-motion scroll-driven speed: scrollYProgress của viewport -> animationDuration
+            từ 30s (chậm, khi ở top) -> 12s (nhanh, khi cuộn nhanh). Có thể dùng motion.div với
+            style={{animationDuration: `${duration}s`, animationPlayState: paused ? 'paused' : 'running'}}.
+            KHÔNG phá keyframe marquee đã có trong landing.css.
+          - Touch/drag để scroll ngang: trên mobile (pointer: coarse), KHÔNG drag (để scroll dọc tự nhiên).
+            Trên desktop, nếu thời gian cho phép: thêm useState offsetX + onMouseDown/onMouseMove/onMouseUp
+            để drag. Nếu quá phức tạp, skip drag — hover-pause + scroll-speed là đủ.
+
+      (3) Craft image scale-in — apps\web\src\components\landing\craft.tsx
+          - Đã có 1 reveal-mask (line 37) dùng framer-motion? Kiểm tra. Nếu Ảnh chỉ CSS mask tĩnh,
+            thêm framer-motion useScroll + useTransform cho img: scale [1.2, 1] + y [-30, 0] theo
+            scrollYProgress [0, 0.5]. Dùng offset ["start end", "end start"] như Threat.
+          - Thêm scroll-trigger cho heading + desc (fade-up khi vào viewport).
+
+      Sau khi code xong:
+        cd apps\web
+        bun run check-types
+        bun run build
+      Cả 2 phải pass.
+
+      Kết thúc, viết deliverable.md.
+    verified_by: verifier
+    verify_prompt: |
+      Verify track 4 độc lập. Chạy:
+        cd apps\web && bun run check-types
+        cd apps\web && bun run build
+      Phải pass.
+
+      Kiểm chứng:
+      1) curtain-footer.tsx có motion.div từ framer-motion, có useInView hoặc initial/animate
+         với trigger, structure giữ nguyên id="order" và className "footer curtain-footer".
+      2) marquee.tsx có state hover-pause, áp dụng animationPlayState. Có scroll-driven speed
+         (useTransform hoặc dùng scrollY qua useScroll). KHÔNG phá 3 <span> structure.
+      3) craft.tsx: img trong .reveal-mask có scroll-driven transform (scale HOẶC y) — xác nhận
+         bằng cách grep "useTransform\|useScroll\|animate(" trong file.
+      4) git diff --name-only HEAD: chỉ các file trong slot của track 4 bị sửa. File slot
+         track 1/2/3 KHÔNG nằm trong diff.
+
+      Báo cáo PASS/FAIL với evidence.
+
+  - id: track-5-integration-gate
+    title: 'Track 5 — Integration gate: build pass, anchor map đúng, không regress'
+    assigned_to: verifier
+    role: verify-as-task
+    depends_on: [track-1-theme-benefits, track-2-cursor-progress-anchors, track-3-bento-measure-polish, track-4-footer-marquee-craft]
+    timeout_ms: 1200000
+    prompt: |
+      Bạn là integration verifier — KHÔNG sửa code product. Nhiệm vụ: chạy toàn bộ
+      integration check, FAIL nếu phát hiện regression, ngược lại báo PASS.
+
+      Chạy lần lượt:
+        cd apps\web
+        bun run check-types
+        bun run build
+      Cả 2 phải pass.
+
+      Sau đó, đọc routes/index.tsx và verify:
+      (A) Section list đầy đủ theo thứ tự:
+          Hero -> Threat -> Marquee -> Benefits -> Craft -> BentoDetails -> HorizontalGallery
+          -> MeasureGuide -> Faq. (Bạn KHÔNG chèn Benefits — track 1 đã làm; nhiệm vụ bạn chỉ
+          là verify thứ tự.)
+      (B) <ScrollProgress /> mount NGAY SAU <LoadingScreenRaw /> (track 2).
+      (C) useThemeBySection() được gọi trong HomeComponent (track 1).
+      (D) KHÔNG có class "dark-theme" hard-coded trên Threat, HorizontalGallery (track 1).
+
+      (E) Navigation anchor map:
+          - Mở components/landing/navigation.tsx
+          - Lấy tất cả href="#..." trong file
+          - Với mỗi href, tìm element có id tương ứng trong DOM (grep `id="..."` trong
+            apps\web\src\components\landing/*.tsx). Mỗi anchor phải có 1 section tồn tại.
+          - KHÔNG ĐƯỢC còn href="#vision" (id vision không tồn tại trong app).
+
+      (F) Idempotency / không trùng file:
+          - git diff --stat HEAD: liệt kê các file bị sửa. Đảm bảo TẤT CẢ file sửa đều thuộc
+            slot của 1 trong 4 track trên. Nếu có file ngoài slot (hero.tsx, faq.tsx, use-magnetic*.ts,
+            use-scroll-animation.ts, horizontal-gallery.tsx TRỪ className cleanup nếu có) bị
+            sửa mà KHÔNG thuộc slot, FAIL.
+
+      (G) Visual smoke (best-effort, không bắt buộc):
+          - Nếu có thể, `bun run dev:bare` 3s rồi kill, parse log xem có lỗi nào không.
+            Nếu không có môi trường, bỏ qua.
+
+      Báo cáo: PASS/FAIL với evidence (output check-types + build, danh sách section ids,
+      danh sách file diff).
+    verified_by: verifier
+    verify_prompt: |
+      Verify track 5 (gate) bằng cách: đọc output của track 5. Phải có:
+        - bun run check-types + build pass.
+        - Section list đúng thứ tự.
+        - <ScrollProgress /> mount đúng vị trí.
+        - useThemeBySection() được gọi.
+        - Navigation anchors đều map tới id tồn tại.
+        - File diff nằm trong slot hợp lệ.
+      Nếu thiếu bất kỳ mục nào, FAIL với lý do cụ thể. Nếu đủ, PASS.

@@ -1,0 +1,22 @@
+{
+  "last_cycle": [
+    {
+      "task_id": "track-5-integration-gate",
+      "verdict": "manual_retry",
+      "reason": "Verifier phát hiện issue thật: <Faq /> component chưa được mount trong routes/index.tsx mặc dù file components/landing/faq.tsx đã tồn tại. Section list thiếu FAQ. Mình đã check thật trên disk: line 51-58 chỉ có Hero, Threat, Marquee, Benefits, Craft, BentoDetails, HorizontalGallery, MeasureGuide. Cần import Faq và mount ngay sau MeasureGuide (trước </main>)."
+    }
+  ],
+  "next_cycle": [
+    {
+      "task_id": "track-5-integration-gate",
+      "title": "Track 5 (retry) — mount <Faq /> + integration verify",
+      "prompt": "Bạn retry cho track 5. Vấn đề: routes/index.tsx thiếu <Faq /> section. Có 2 việc cần làm:\n\n(1) EDIT apps/web/src/routes/index.tsx:\n- Thêm import { Faq } from '@/components/landing/faq'; (cùng nhóm import các component landing khác).\n- Thêm <Faq /> vào trong <main id=\"smooth-wrapper\"> NGAY SAU <MeasureGuide />, trước thẻ đóng </main>. Section list đầy đủ phải là: Hero -> Threat -> Marquee -> Benefits -> Craft -> BentoDetails -> HorizontalGallery -> MeasureGuide -> Faq.\n- KHÔNG touch các phần khác của file. KHÔNG touch section list components khác. Chỉ thêm 1 import line + 1 JSX line.\n\n(2) Verify tổng:\n- cd apps/web && bun run check-types && bun run build. Cả 2 phải pass.\n- git diff --stat: diff vẫn phải ổn (routeTree.gen.ts auto-regen là BÌNH THƯỜNG, không tính).\n\nViết deliverable.md ngắn gọn: ghi rõ đã mount Faq ở đâu + output check-types/build pass.",
+      "assigned_to": "coder",
+      "verified_by": "verifier",
+      "verify_prompt": "Verify track 5 retry. cd apps/web && bun run check-types && bun run build. Cả 2 phải pass. Mở routes/index.tsx, xác nhận: (1) có import Faq từ '@/components/landing/faq'. (2) <Faq /> mount ngay sau <MeasureGuide /> trong <main>. Section list đầy đủ 9 thành phần. git diff --name-only ngoài slot cho phép (routeTree.gen.ts là auto-regen) — KHÔNG có file ngoài slot bị touch. Báo cáo PASS/FAIL với evidence.",
+      "timeout_ms": 600000
+    }
+  ],
+  "plan_complete": false,
+  "message_to_user": "Verifier phát hiện FAQ section bị thiếu trên landing — mình giao cho team mount lại."
+}

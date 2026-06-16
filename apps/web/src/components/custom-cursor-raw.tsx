@@ -1,86 +1,143 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+
+type CursorLabelTarget = HTMLElement & {
+  __cursorLabelBound?: boolean;
+};
+
+const INTERACTIVE_SELECTOR =
+  ".hover-target, a, button, [role='button'], input, textarea, select, summary, [data-cursor]";
 
 export function CustomCursorRaw() {
   const cursorRef = useRef<HTMLDivElement>(null);
-  const [isHovered, setIsHovered] = useState(false);
-  const [hasText, setHasText] = useState(false);
-  const [cursorText, setCursorText] = useState("");
+  const textRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Hide cursor on touch devices
-    if (window.matchMedia("(pointer: coarse)").matches) return;
+    if (typeof window === "undefined") return;
 
-    // Set custom cursor class on root element
-    document.documentElement.classList.add("has-custom-cursor");
+    const cursor = cursorRef.current;
+    const cursorText = textRef.current;
+    if (!cursor || !cursorText) return;
+
+    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+    if (coarsePointer) {
+      cursor.style.display = "none";
+      return;
+    }
+
+    document.body.classList.add("has-custom-cursor");
 
     let mouseX = window.innerWidth / 2;
     let mouseY = window.innerHeight / 2;
     let cursorX = mouseX;
     let cursorY = mouseY;
-    let animationFrameId: number;
+    let rafId = 0;
 
-    const onMouseMove = (e: MouseEvent) => {
-      mouseX = e.clientX;
-      mouseY = e.clientY;
+    const setLabel = (label: string) => {
+      cursorText.textContent = label;
+      cursor.classList.add("has-text");
+      cursor.classList.remove("hovering");
     };
 
-    const animateCursor = () => {
-      // Smooth cursor follow (softer floaty feel)
-      cursorX += (mouseX - cursorX) * 0.1;
-      cursorY += (mouseY - cursorY) * 0.1;
-      if (cursorRef.current) {
-        cursorRef.current.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0)`;
-      }
-      animationFrameId = requestAnimationFrame(animateCursor);
+    const setHover = () => {
+      cursorText.textContent = "";
+      cursor.classList.remove("has-text");
+      cursor.classList.add("hovering");
     };
 
-    const handleMouseOver = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const hoverTarget =
-        target.closest(".hover-target") ||
-        target.closest("a") ||
-        target.closest("button") ||
-        target.closest(".space-card") ||
-        target.closest(".feature-card");
-
-      if (hoverTarget) {
-        const text = hoverTarget.getAttribute("data-cursor");
-        if (text) {
-          setCursorText(text);
-          setHasText(true);
-          setIsHovered(false);
-        } else {
-          setCursorText("");
-          setHasText(false);
-          setIsHovered(true);
-        }
-      } else {
-        setCursorText("");
-        setHasText(false);
-        setIsHovered(false);
-      }
+    const clearHover = () => {
+      cursorText.textContent = "";
+      cursor.classList.remove("has-text", "hovering");
     };
+
+    const onMouseMove = (event: MouseEvent) => {
+      mouseX = event.clientX;
+      mouseY = event.clientY;
+    };
+
+    const raf = () => {
+      cursorX += (mouseX - cursorX) * 0.14;
+      cursorY += (mouseY - cursorY) * 0.14;
+      cursor.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0)`;
+      rafId = window.requestAnimationFrame(raf);
+    };
+
+    const onMouseOver = (event: MouseEvent) => {
+      const target = (event.target as Element | null)?.closest(
+        INTERACTIVE_SELECTOR,
+      ) as HTMLElement | null;
+      if (!target || cursor.contains(target)) return;
+
+      const label = target.getAttribute("data-cursor");
+      if (label) setLabel(label);
+      else setHover();
+    };
+
+    const onMouseOut = (event: MouseEvent) => {
+      const target = (event.target as Element | null)?.closest(
+        INTERACTIVE_SELECTOR,
+      ) as HTMLElement | null;
+      if (!target) return;
+
+      const related = event.relatedTarget as Node | null;
+      if (related && target.contains(related)) return;
+      clearHover();
+    };
+
+    const cleanupLabelListeners: Array<() => void> = [];
+
+    const bindLabelTargets = () => {
+      document.querySelectorAll<CursorLabelTarget>("[data-cursor]").forEach((target) => {
+        if (target.__cursorLabelBound) return;
+        target.__cursorLabelBound = true;
+
+        const onEnter = () => {
+          const label = target.getAttribute("data-cursor");
+          if (label) setLabel(label);
+        };
+        const onLeave = clearHover;
+
+        target.addEventListener("mouseenter", onEnter);
+        target.addEventListener("mouseleave", onLeave);
+        cleanupLabelListeners.push(() => {
+          target.removeEventListener("mouseenter", onEnter);
+          target.removeEventListener("mouseleave", onLeave);
+          target.__cursorLabelBound = false;
+        });
+      });
+    };
+
+    bindLabelTargets();
+
+    const observer = new MutationObserver(bindLabelTargets);
+    observer.observe(document.body, { childList: true, subtree: true });
 
     window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseover", handleMouseOver);
-    animationFrameId = requestAnimationFrame(animateCursor);
+    document.addEventListener("mouseover", onMouseOver);
+    document.addEventListener("mouseout", onMouseOut);
+    rafId = window.requestAnimationFrame(raf);
 
     return () => {
-      document.documentElement.classList.remove("has-custom-cursor");
+      observer.disconnect();
+      cleanupLabelListeners.forEach((cleanup) => cleanup());
       window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseover", handleMouseOver);
-      cancelAnimationFrame(animationFrameId);
+      document.removeEventListener("mouseover", onMouseOver);
+      document.removeEventListener("mouseout", onMouseOut);
+      window.cancelAnimationFrame(rafId);
+      document.body.classList.remove("has-custom-cursor");
     };
   }, []);
 
   return (
     <div
-      className={`cursor ${isHovered ? "hovering" : ""} ${hasText ? "has-text" : ""}`}
+      className="cursor pointer-events-none fixed top-0 left-0 z-[10000] [mix-blend-mode:difference]"
       id="cursor"
       ref={cursorRef}
     >
-      <div className="cursor-dot" />
-      <div className="cursor-text">{cursorText}</div>
+      <div className="cursor-dot absolute h-3 w-3 rounded-full bg-white -translate-x-1/2 -translate-y-1/2 [transition:width_0.3s_var(--ease-out-expo),height_0.3s_var(--ease-out-expo),background-color_0.3s]" />
+      <div
+        className="cursor-text font-vietnam absolute -translate-x-1/2 -translate-y-1/2 text-[10px] font-medium tracking-[0.1em] text-black uppercase opacity-0 whitespace-nowrap [transition:opacity_0.3s]"
+        ref={textRef}
+      />
     </div>
   );
 }

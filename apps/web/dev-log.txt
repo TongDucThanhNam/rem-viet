@@ -1,0 +1,391 @@
+
+  [32m[1mVITE[22m v8.0.13[39m  [2mready in [0m[1m6268[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5175[22m/[39m
+  [32m➜[39m  [1mDebug[22m:   [2m[33mhttp://127.0.0.1:[1m5175[22m[2m/__debug[39m[22m
+[2m1:19:16 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css?direct, /src/index.css, /src/components/landing/faq.tsx[22m
+[2m1:19:16 AM[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mhmr update [39m[2m/src/index.css, /@id/virtual:cloudflare/worker-entry[22m
+[vite] hot updated: virtual:cloudflare/worker-entry
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[2m1:21:03 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css?direct, /src/index.css[22m
+[2m1:21:03 AM[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m1:21:03 AM[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+TypeError: Cannot read properties of null (reading 'useEffect')
+    at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=9e68da8f:716:30)
+    at QueryClientProvider (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/modern-BqsmiZXU.js?v=9e68da8f:2550:15)
+    at Object.react_stack_bottom_frame (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:5307:11)
+    at renderWithHooks (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:2793:19)
+    at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:2931:17)
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:3360:285)
+    at renderNodeDestructive (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:3341:265)
+    at finishFunctionComponent (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:2809:233)
+    at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:2947:5)
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:3360:285)
+TypeError: Cannot read properties of null (reading 'useEffect')
+    at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=9e68da8f:716:30)
+    ... 8 lines matching cause stack trace ...
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:3360:285) {
+  cause: TypeError: Cannot read properties of null (reading 'useEffect')
+      at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=9e68da8f:716:30)
+      at QueryClientProvider (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/modern-BqsmiZXU.js?v=9e68da8f:2550:15)
+      at Object.react_stack_bottom_frame (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:5307:11)
+      at renderWithHooks (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:2793:19)
+      at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:2931:17)
+      at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:3360:285)
+      at renderNodeDestructive (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:3341:265)
+      at finishFunctionComponent (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:2809:233)
+      at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:2947:5)
+      at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:3360:285),
+  status: 500,
+  statusText: undefined,
+  headers: undefined,
+  data: undefined,
+  body: undefined,
+  unhandled: true
+}
+Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+TypeError: Cannot read properties of null (reading 'useEffect')
+    at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=9e68da8f:716:30)
+    at QueryClientProvider (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/modern-BqsmiZXU.js?v=9e68da8f:2550:15)
+    at Object.react_stack_bottom_frame (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:5307:11)
+    at renderWithHooks (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:2793:19)
+    at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:2931:17)
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:3360:285)
+    at renderNodeDestructive (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:3341:265)
+    at finishFunctionComponent (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:2809:233)
+    at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:2947:5)
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:3360:285)
+TypeError: Cannot read properties of null (reading 'useEffect')
+    at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=9e68da8f:716:30)
+    ... 8 lines matching cause stack trace ...
+    at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:3360:285) {
+  cause: TypeError: Cannot read properties of null (reading 'useEffect')
+      at Object.exports.useEffect (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react.js?v=9e68da8f:716:30)
+      at QueryClientProvider (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/modern-BqsmiZXU.js?v=9e68da8f:2550:15)
+      at Object.react_stack_bottom_frame (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:5307:11)
+      at renderWithHooks (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:2793:19)
+      at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:2931:17)
+      at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:3360:285)
+      at renderNodeDestructive (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:3341:265)
+      at finishFunctionComponent (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:2809:233)
+      at renderElement (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:2947:5)
+      at retryNode (C:/Users/terasumi/Documents/source_code/rem-viet/apps/web/node_modules/.vite/deps_ssr/react-dom_server.js?v=9e68da8f:3360:285),
+  status: 500,
+  statusText: undefined,
+  headers: undefined,
+  data: undefined,
+  body: undefined,
+  unhandled: true
+}
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[2m1:27:13 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css?direct, /src/index.css, /src/components/landing/horizontal-gallery.tsx[22m
+[2m1:27:13 AM[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mhmr update [39m[2m/src/index.css, /@id/virtual:cloudflare/worker-entry[22m
+[vite] hot updated: virtual:cloudflare/worker-entry
+[vite] program reload
+[2m1:32:48 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css?direct, /src/index.css, /src/components/landing/horizontal-gallery.tsx[22m
+[2m1:32:48 AM[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mhmr update [39m[2m/src/index.css, /@id/virtual:cloudflare/worker-entry[22m
+[vite] hot updated: virtual:cloudflare/worker-entry
+[vite] program reload
+[2m1:33:26 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css?direct, /src/index.css, /src/components/landing/horizontal-gallery.tsx[22m
+[2m1:33:26 AM[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mhmr update [39m[2m/src/index.css, /@id/virtual:cloudflare/worker-entry[22m
+[vite] hot updated: virtual:cloudflare/worker-entry
+[vite] program reload
+[2m1:33:32 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css?direct, /src/index.css, /src/components/landing/horizontal-gallery.tsx[22m
+[2m1:33:32 AM[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mhmr update [39m[2m/src/index.css, /@id/virtual:cloudflare/worker-entry[22m
+[vite] hot updated: virtual:cloudflare/worker-entry
+[vite] program reload
+[2m1:45:40 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css?direct, /src/index.css, /src/components/landing/horizontal-gallery.tsx[22m
+[2m1:45:40 AM[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mhmr update [39m[2m/src/index.css, /@id/virtual:cloudflare/worker-entry[22m
+[vite] hot updated: virtual:cloudflare/worker-entry
+[vite] program reload
+[2m1:45:45 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/index.css?direct, /src/index.css, /src/components/landing/horizontal-gallery.tsx[22m
+[2m1:45:45 AM[22m [36m[1m[vite][22m[39m [34m[2m(ssr)[22m[39m [32mhmr update [39m[2m/src/index.css, /@id/virtual:cloudflare/worker-entry[22m
+[vite] hot updated: virtual:cloudflare/worker-entry
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload
+[vite] program reload

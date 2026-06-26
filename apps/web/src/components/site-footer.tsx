@@ -24,7 +24,7 @@ export default function SiteFooter() {
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
             src={siteConfig.footer.map}
-            title="Rèm Việt Google Map"
+            title="Rèm Vina Google Map"
           />
         </div>
 

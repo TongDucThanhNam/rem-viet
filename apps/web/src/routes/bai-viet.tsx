@@ -9,11 +9,11 @@ export const Route = createFileRoute("/bai-viet")({
   loader: () => getPostsPageData(),
   head: () => ({
     meta: [
-      { title: "Danh sách bài viết - Rèm Việt" },
+      { title: "Danh sách bài viết - Rèm Vina" },
       {
         name: "description",
         content:
-          "Các bài viết tư vấn về rèm cửa, lưới chống muỗi và giải pháp cho nhà ở từ Rèm Việt.",
+          "Các bài viết tư vấn về rèm cửa, lưới chống muỗi và giải pháp cho nhà ở từ Rèm Vina.",
       },
     ],
   }),

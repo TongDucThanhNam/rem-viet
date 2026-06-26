@@ -16,7 +16,7 @@
   <img src="./images/remviet2.webp" alt="Logo" width="80" height="80" />
   </a>
 
-<h3 align="center">Rèm Việt</h3>
+<h3 align="center">Rèm Vina</h3>
   <div >
   <p align="center"> 
     A Full-stack E-commerce website for selling curtains and blinds. Frontend is built with ReactJS, Backend is built with NodeJS, ExpressJS, MongoDB.

@@ -184,9 +184,9 @@ body.is-loading {
    These rules remain only for what Tailwind can't express: the ::after overlay
    gradient, the kicker underline (GSAP-tweened --kicker-underline-w var),
    the SplitText mask (.hero-title-line), the SVG-noise grain, the radial
-   vignette, and the glassmorphism feature bar. The plain `.hero-new`,
-   `.hero-new-bg img`, `.hero-new-content`, `.hero-new-title` etc. are no
-   longer needed as classes — their Tailwind replacements carry the styles. */
+   vignette, and the glassmorphism feature bar. Base hero layout/typography
+   still lives in Tailwind utilities; `.hero-new*` classes are kept as hooks
+   for pseudo-elements, animation, and narrow-mobile overrides. */
 .hero-new-bg {
     position: absolute;
     inset: 0;
@@ -434,20 +434,87 @@ body.is-loading {
 
 /* === Threat pinned narrative ===
    Most layout/typography lives in Tailwind utilities in threat.tsx now.
-   These rules remain only for context-driven styling that Tailwind can't
-   express: hiding the legacy .container/.threat-content markup when pinned,
-   and forcing the RevealImage to fill the backdrop edge-to-edge. */
+   These rules stay here because the pinned section needs context-driven image
+   grading, blend layers, and state-specific overlays that are awkward as
+   one-off utility strings. */
 .threat.pinned .container,
 .threat.pinned .threat-content,
 .threat.pinned .section-eyebrow { display: none; }
 
-.threat-backdrop .reveal-container,
-.threat-backdrop .reveal-mask,
-.threat-backdrop .reveal-img {
-    width: 100%;
-    height: 100%;
+.threat-backdrop {
+    isolation: isolate;
+    background: #050505;
 }
-.threat-backdrop .reveal-container[data-aspect] .reveal-mask { aspect-ratio: auto; }
+
+.threat-backdrop-item {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform-origin: center;
+}
+
+.threat-backdrop-item:first-child {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1.04);
+}
+
+.threat-backdrop-img {
+    filter: brightness(0.72) contrast(1.06) saturate(0.9);
+}
+
+.threat-backdrop-grade {
+    background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.58) 0%, rgba(0, 0, 0, 0.24) 42%, rgba(0, 0, 0, 0.68) 100%),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.28) 46%, rgba(0, 0, 0, 0.62) 100%);
+}
+
+.threat-backdrop-grade::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    mix-blend-mode: screen;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+    background-size: 34px 34px;
+    mask-image: radial-gradient(circle at 50% 46%, black 0%, transparent 62%);
+}
+
+.threat-backdrop-item[data-tone="danger"] .threat-backdrop-img {
+    filter: brightness(0.62) contrast(1.16) saturate(0.82);
+}
+
+.threat-backdrop-item[data-tone="danger"] .threat-backdrop-grade {
+    background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.64) 0%, rgba(0, 0, 0, 0.32) 44%, rgba(0, 0, 0, 0.78) 100%),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.74) 0%, rgba(10, 18, 16, 0.24) 48%, rgba(0, 0, 0, 0.66) 100%);
+}
+
+.threat-backdrop-item[data-tone="solution"] .threat-backdrop-img {
+    filter: brightness(0.54) contrast(1.18) saturate(0.72);
+}
+
+.threat-backdrop-item[data-tone="solution"] .threat-backdrop-grade {
+    background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.62) 0%, rgba(16, 13, 8, 0.36) 44%, rgba(0, 0, 0, 0.72) 100%),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(181, 138, 67, 0.18) 48%, rgba(0, 0, 0, 0.64) 100%);
+}
+
+.threat-backdrop-item[data-tone="solution"] .threat-backdrop-grade::after {
+    opacity: 0.18;
+}
+
+.threat-backdrop-item[data-tone="result"] .threat-backdrop-img {
+    filter: brightness(0.66) contrast(1.02) saturate(0.82);
+}
+
+.threat-backdrop-item[data-tone="result"] .threat-backdrop-grade {
+    background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.56) 0%, rgba(0, 0, 0, 0.18) 46%, rgba(0, 0, 0, 0.66) 100%),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.68) 0%, rgba(10, 19, 17, 0.16) 46%, rgba(0, 0, 0, 0.56) 100%);
+}
 /* Massive Typography & Main Wrap — single source of truth above
    (.massive-text uses var(--fs-display)). Kept here only for the
    plain (non-centered) variant used by section headings; the centered
@@ -726,11 +793,85 @@ body.is-loading {
         padding: 0 22px;
     }
 
+    .hero-new {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-end;
+        padding: 92px 22px 22px;
+    }
+
+    .hero-new-bg::after {
+        background:
+            linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.28) 38%, rgba(0, 0, 0, 0.68) 100%),
+            linear-gradient(90deg, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0.1) 100%);
+    }
+
+    .hero-new-content {
+        max-width: none;
+    }
+
+    .hero-new-kicker {
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        font-size: 10px;
+        letter-spacing: 0.16em;
+    }
+
+    .hero-new-title {
+        font-size: clamp(62px, 18vw, 86px);
+        line-height: 0.84;
+    }
+
+    .hero-new-content > p:not(.hero-new-kicker) {
+        max-width: 34ch;
+        margin-top: 16px;
+        font-size: 13px;
+        line-height: 1.55;
+    }
+
+    .hero-new-actions {
+        margin-top: 20px;
+    }
+
+    .hero-new-link {
+        min-height: 44px;
+        width: fit-content;
+        max-width: 100%;
+        padding-inline: 16px;
+        font-size: 11px;
+    }
+
     .hero-features-bar {
-        left: 22px;
-        right: 22px;
-        grid-template-columns: 1fr;
+        position: static;
+        left: auto;
+        right: auto;
+        bottom: auto;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 22px;
         overflow: hidden;
+        background-color: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(14px);
+    }
+
+    .hero-feature {
+        min-height: 68px;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .hero-feature svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .hero-feature span {
+        font-size: 9px;
+        line-height: 1.2;
+    }
+
+    .hero-feature strong {
+        font-size: 12px;
+        line-height: 1.25;
     }
 
     .bento-grid {

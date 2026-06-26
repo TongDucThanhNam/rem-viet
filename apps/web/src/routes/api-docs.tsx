@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/api-docs")({
   head: () => ({
     meta: [
-      { title: "API docs - Rèm Việt" },
+      { title: "API docs - Rèm Vina" },
       {
         name: "description",
         content:

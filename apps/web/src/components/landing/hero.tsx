@@ -38,7 +38,7 @@ const features = [
  * The entrance is gated on `isLoaded` (set true by `<LoadingScreenRaw>`'s
  * `onComplete`). When it flips, a single GSAP timeline plays the whole
  * choreography:
- *   kicker (underline draws) 0.10 → LUXE 0.18 → MESH 0.30 → desc 0.58
+ *   kicker (underline draws) 0.10 → Rèm 0.18 → Vina 0.30 → desc 0.58
  *   → CTA 0.76 → features 0.90 → scroll cue 1.05.
  *
  * The title uses SplitText to split each masked line (`.hero-title-line` =
@@ -132,15 +132,15 @@ export function Hero({ isLoaded }: { isLoaded: boolean }) {
       // Split each masked title line into chars (mask = .hero-title-line).
       const split1 = title1Ref.current
         ? new SplitText(title1Ref.current, {
-            type: "chars",
-            charsClass: "hero-title-char",
-          })
+          type: "chars",
+          charsClass: "hero-title-char",
+        })
         : null;
       const split2 = title2Ref.current
         ? new SplitText(title2Ref.current, {
-            type: "chars",
-            charsClass: "hero-title-char",
-          })
+          type: "chars",
+          charsClass: "hero-title-char",
+        })
         : null;
 
       const tl = gsap.timeline({ defaults: { ease: "cinematic" } });
@@ -216,7 +216,6 @@ export function Hero({ isLoaded }: { isLoaded: boolean }) {
           ref={bgImgRef}
         />
       </div>
-      <div className="hero-grain" aria-hidden="true" ref={grainRef} />
       <div className="hero-vignette" aria-hidden="true" ref={vignetteRef} />
 
       <div className="hero-new-content relative z-2 w-full max-w-[760px]">
@@ -230,12 +229,12 @@ export function Hero({ isLoaded }: { isLoaded: boolean }) {
         <h1 className="hero-new-title m-0 font-playfair text-display font-normal leading-[0.82] tracking-[-0.01em] xl:text-[clamp(54px,10vw,112px)] lg:text-[clamp(42px,9vw,78px)] sm:text-[54px] sm:leading-[0.88]">
           <span className="hero-title-line block overflow-hidden">
             <span className="inline-block" ref={title1Ref}>
-              LUXE
+              Rèm
             </span>
           </span>
           <span className="hero-title-line block overflow-hidden">
             <span className="inline-block text-brand italic" ref={title2Ref}>
-              MESH.
+              Vina
             </span>
           </span>
         </h1>
@@ -248,7 +247,7 @@ export function Hero({ isLoaded }: { isLoaded: boolean }) {
           từng khung, giữ không gian thoáng sáng mà vẫn bảo vệ gia đình mỗi ngày.
         </p>
 
-        <div className="mt-8.5" ref={actionsRef}>
+        <div className="hero-new-actions mt-8.5" ref={actionsRef}>
           <a
             href="#order"
             className="hero-new-link hover-target inline-flex min-h-12 w-auto items-center justify-start gap-3 rounded-lg border border-white/28 bg-white/12 px-4.5 text-[12px] font-medium tracking-[0.12em] text-white uppercase no-underline backdrop-blur-[14px] will-change-transform sm:w-full sm:justify-center"
@@ -282,11 +281,6 @@ export function Hero({ isLoaded }: { isLoaded: boolean }) {
             </div>
           </div>
         ))}
-      </div>
-
-      <div className="hero-scroll-cue font-vietnam" ref={scrollCueRef}>
-        Cuộn xuống
-        <span className="hero-scroll-cue-line" />
       </div>
     </section>
   );

@@ -31,7 +31,7 @@ export default function HomeCarousel() {
       <div className="relative h-[220px] sm:h-[300px]">
         {images.map((image, index) => (
           <img
-            alt={`Rèm Việt banner ${index + 1}`}
+            alt={`Rèm Vina banner ${index + 1}`}
             className={`absolute inset-0 size-full object-cover shadow-lg transition-opacity duration-500 ${
               index === activeIndex ? "opacity-100" : "opacity-0"
             }`}

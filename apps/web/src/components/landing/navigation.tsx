@@ -47,7 +47,7 @@ export function Navigation() {
         data-cursor="Lên đầu"
         onClick={(event) => handleAnchorClick(event, "#home")}
       >
-        LUXE MESH
+        Rèm Vina
       </a>
       <div className="font-vietnam flex gap-[3vw] max-[1024px]:hidden">
         <MagneticLink

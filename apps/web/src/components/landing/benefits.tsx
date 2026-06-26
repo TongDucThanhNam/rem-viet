@@ -108,7 +108,7 @@ export function Benefits() {
             Giữ nhà thoáng, sạch và yên tĩnh.
           </h2>
           <p className="mx-auto max-w-[560px] text-base leading-[1.6] opacity-70">
-            Bốn cam kết làm nên trải nghiệm của LUXE MESH, từ vật liệu, độ vừa
+            Bốn cam kết làm nên trải nghiệm của Rèm Vina, từ vật liệu, độ vừa
             khít đến dịch vụ lắp đặt trọn gói.
           </p>
         </div>

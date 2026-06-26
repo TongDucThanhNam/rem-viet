@@ -5,7 +5,7 @@ import { TextGenerateEffect } from "./text-generate-effect";
 
 const heroSectionConfig = {
   hello: "Chào mừng đến với",
-  title: "Rèm Việt",
+  title: "Rèm Vina",
   description:
     "Mang đến sự bảo vệ toàn diện cho gia đình bạn khỏi những tác nhân như côn trùng, khói bụi, ...",
 };

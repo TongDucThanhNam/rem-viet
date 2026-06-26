@@ -19,11 +19,11 @@ import {
 export const Route = createFileRoute("/gioi-thieu")({
   head: () => ({
     meta: [
-      { title: "Giới thiệu Rèm Việt" },
+      { title: "Giới thiệu Rèm Vina" },
       {
         name: "description",
         content:
-          "Rèm Việt cung cấp rèm cửa và lưới chống muỗi sản xuất tại Việt Nam, hỗ trợ tư vấn kích thước và đặt hàng theo yêu cầu.",
+          "Rèm Vina cung cấp rèm cửa và lưới chống muỗi sản xuất tại Việt Nam, hỗ trợ tư vấn kích thước và đặt hàng theo yêu cầu.",
       },
     ],
   }),
@@ -43,7 +43,7 @@ function AboutRoute() {
               <h1 className="text-4xl font-bold tracking-normal sm:text-5xl md:text-6xl">
                 Chào mừng đến với
                 <br />
-                <span className="text-primary">Rèm Việt</span>
+                <span className="text-primary">Rèm Vina</span>
               </h1>
               <p className="mt-5 max-w-xl text-base leading-8 text-muted-foreground md:text-xl">
                 Mang đến sự bảo vệ toàn diện cho gia đình bạn khỏi những tác

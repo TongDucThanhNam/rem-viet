@@ -56,11 +56,11 @@ export default function SignInForm({
   });
 
   return (
-    <AuthLayout quote="Cổng đăng nhập vào hệ thống Rèm Việt">
+    <AuthLayout quote="Cổng đăng nhập vào hệ thống Rèm Vina">
       <div className="mb-6">
         <p className="text-xl font-semibold">Đăng nhập</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Truy cập trang quản trị Rèm Việt.
+          Truy cập trang quản trị Rèm Vina.
         </p>
       </div>
 

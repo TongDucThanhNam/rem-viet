@@ -5,7 +5,7 @@ type RemVietLogoProps = {
 export default function RemVietLogo({ size = 32 }: RemVietLogoProps) {
   return (
     <img
-      alt="Rèm Việt"
+      alt="Rèm Vina"
       className="shrink-0 rounded-full object-cover"
       height={size}
       src="/src/remviet2.webp"

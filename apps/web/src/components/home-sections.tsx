@@ -91,7 +91,7 @@ const guideSteps = [
   {
     title: "Điền thông tin",
     description:
-      "Gửi thông tin liên hệ để Rèm Việt xác nhận lại đơn và lịch tư vấn.",
+      "Gửi thông tin liên hệ để Rèm Vina xác nhận lại đơn và lịch tư vấn.",
     image: "/src/dienthongtin.avif",
   },
   {
@@ -107,15 +107,15 @@ const faqs = [
     question:
       "Tôi muốn một kích thước không có trong danh sách, tôi phải làm sao?",
     answer:
-      "Bạn hãy liên hệ Rèm Việt và cung cấp kích thước mong muốn. Đội ngũ sẽ tư vấn cấu hình, báo giá và sản xuất theo yêu cầu.",
+      "Bạn hãy liên hệ Rèm Vina và cung cấp kích thước mong muốn. Đội ngũ sẽ tư vấn cấu hình, báo giá và sản xuất theo yêu cầu.",
   },
   {
     question: "Làm thế nào để đặt hàng?",
     answer:
-      "Bạn có thể đặt trực tiếp trên website hoặc để lại số điện thoại. Rèm Việt sẽ xác nhận sản phẩm, kích thước và lịch giao lắp.",
+      "Bạn có thể đặt trực tiếp trên website hoặc để lại số điện thoại. Rèm Vina sẽ xác nhận sản phẩm, kích thước và lịch giao lắp.",
   },
   {
-    question: "Ưu điểm của Rèm Việt so với sản phẩm khác trên thị trường?",
+    question: "Ưu điểm của Rèm Vina so với sản phẩm khác trên thị trường?",
     answer:
       "Sản phẩm được sản xuất tại Việt Nam, dễ tùy chỉnh kích thước, vật liệu bền và có đội ngũ hỗ trợ sau bán hàng.",
   },
@@ -124,7 +124,7 @@ const faqs = [
 const testimonials = [
   {
     quote:
-      "Sử dụng sản phẩm của Rèm Việt, tôi rất hài lòng với chất lượng và dịch vụ của họ.",
+      "Sử dụng sản phẩm của Rèm Vina, tôi rất hài lòng với chất lượng và dịch vụ của họ.",
     name: "Lê Phương Hoàn Mỹ",
     title: "Rất tốt",
   },
@@ -134,7 +134,7 @@ const testimonials = [
     title: "Tuyệt vời",
   },
   {
-    quote: "Rèm Việt tư vấn nhanh, đo kích thước kỹ và giao đúng mẫu đã chọn.",
+    quote: "Rèm Vina tư vấn nhanh, đo kích thước kỹ và giao đúng mẫu đã chọn.",
     name: "Giang Văn Cốt",
     title: "Rất hài lòng",
   },
@@ -169,7 +169,7 @@ const strengthItems = [
   {
     title: "Tư vấn miễn phí",
     description:
-      "Đội ngũ Rèm Việt hỗ trợ chọn mẫu, đo kích thước và cấu hình sản phẩm theo từng không gian.",
+      "Đội ngũ Rèm Vina hỗ trợ chọn mẫu, đo kích thước và cấu hình sản phẩm theo từng không gian.",
     icon: CircleDollarSign,
   },
 ];
@@ -590,7 +590,7 @@ export function SizeEstimatorSection() {
               </span>
             </p>
             <p className="mt-2 text-xs text-muted-foreground">
-              Nếu kích thước thực tế khác danh sách có sẵn, Rèm Việt sẽ tư vấn
+              Nếu kích thước thực tế khác danh sách có sẵn, Rèm Vina sẽ tư vấn
               mẫu phù hợp theo yêu cầu.
             </p>
           </div>
@@ -613,7 +613,7 @@ export function MaterialSection() {
             Vật liệu bền, quy trình sản xuất linh hoạt
           </h2>
           <p className="mt-4 text-sm leading-7 text-muted-foreground">
-            Rèm Việt tập trung vào độ bền, khả năng tùy chỉnh và sự tiện dụng
+            Rèm Vina tập trung vào độ bền, khả năng tùy chỉnh và sự tiện dụng
             khi dùng hằng ngày.
           </p>
         </div>
@@ -660,7 +660,7 @@ export function VideoSection() {
               allowFullScreen
               className="size-full"
               src="https://www.youtube.com/embed/iuYum3L2cEg"
-              title="Rèm Việt video"
+              title="Rèm Vina video"
             />
           </div>
         </div>
@@ -717,7 +717,7 @@ export function OurStrengthSection() {
               allowFullScreen
               className="size-full"
               src="https://www.youtube.com/embed/iuYum3L2cEg?controls=1"
-              title="Ưu thế Rèm Việt"
+              title="Ưu thế Rèm Vina"
             />
           </div>
         </div>

@@ -129,7 +129,7 @@ export default function AdminShell({
                 <RemVietLogo size={36} />
               </div>
               <span className="truncate text-sm font-bold uppercase">
-                Rèm Việt
+                Rèm Vina
               </span>
             </div>
             <Button

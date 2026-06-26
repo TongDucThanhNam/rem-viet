@@ -19,7 +19,7 @@ function ForgotPasswordRoute() {
   }
 
   return (
-    <AuthLayout quote="Khôi phục quyền truy cập vào hệ thống Rèm Việt">
+    <AuthLayout quote="Khôi phục quyền truy cập vào hệ thống Rèm Vina">
       <div className="mb-6">
         <p className="text-xl font-semibold">Quên mật khẩu?</p>
         <p className="mt-2 text-sm text-muted-foreground">

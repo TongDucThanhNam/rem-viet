@@ -5,10 +5,10 @@ export const Route = createFileRoute("/manifest.webmanifest")({
     handlers: {
       GET: async () =>
         Response.json({
-          name: "Cửa hàng lưới chống muỗi",
-          short_name: "Lưới chống muỗi",
+          name: "Rèm Vina",
+          short_name: "Rèm Vina",
           description:
-            "Cửa hàng chuyên cung cấp lưới chống muỗi, lưới chống côn trùng cho cửa sổ và cửa ra vào. Bảo vệ gia đình bạn khỏi côn trùng một cách hiệu quả.",
+            "Rèm Vina chuyên cung cấp rèm cửa, lưới chống muỗi và lưới chống côn trùng cho cửa sổ, cửa ra vào.",
           start_url: "/",
           display: "standalone",
           background_color: "#ffffff",

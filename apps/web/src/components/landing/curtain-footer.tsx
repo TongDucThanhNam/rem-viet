@@ -62,15 +62,15 @@ export function CurtainFooter() {
           dự án của bạn.
         </h2>
         <a
-          href="mailto:tuvan@luxemesh.vn"
+          href="mailto:tuvan@remvina.vn"
           className="massive-link hover-target font-playfair mb-[15vh] block text-[8vw] font-normal text-[var(--accent)] italic no-underline transition-colors duration-300 hover:text-white"
           data-cursor="Đặt may"
         >
-          tuvan@luxemesh.vn
+          tuvan@remvina.vn
         </a>
       </div>
       <div className="footer-bottom font-vietnam flex justify-between border-t border-white/10 pt-[3vh] text-xs tracking-[0.1em] uppercase">
-        <p>&copy; 2026 LUXE MESH. Bản quyền đã được bảo hộ.</p>
+        <p>&copy; 2026 Rèm Vina. Bản quyền đã được bảo hộ.</p>
         <div className="footer-socials flex gap-10">
           <a
             href="https://instagram.com"

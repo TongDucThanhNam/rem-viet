@@ -12,13 +12,13 @@ export const Route = createFileRoute("/bai-viet/$slug")({
     if (!loaderData) {
       return {
         meta: [
-          { title: "Post not found - Rèm Việt" },
+          { title: "Post not found - Rèm Vina" },
           { name: "description", content: "Post not found" },
         ],
       };
     }
 
-    const title = `${loaderData.title} - Rèm Việt`;
+    const title = `${loaderData.title} - Rèm Vina`;
     const description =
       loaderData.description || `This is a blog post about ${loaderData.slug}`;
     const image = loaderData.coverImage
@@ -40,7 +40,7 @@ export const Route = createFileRoute("/bai-viet/$slug")({
               },
             ]
           : []),
-        { property: "article:author", content: "Rem Viet" },
+        { property: "article:author", content: "Rem Vina" },
         ...(image
           ? [
               { property: "og:image", content: image },

@@ -64,7 +64,7 @@ Known state (as of 2026-06-12, hero track):
   (`useGSAP({ dependencies: [isLoaded], revertOnUpdate: true })`). The title lines
   (`.hero-title-line` = `overflow: hidden` masks) are split into chars via `SplitText`
   and revealed with a staggered `yPercent` + blur-to-sharp. The original stagger
-  positions are preserved: kicker 0.10 → LUXE 0.18 → MESH 0.30 → desc 0.58 → CTA 0.76
+  positions are preserved: kicker 0.10 → Rèm 0.18 → Vina 0.30 → desc 0.58 → CTA 0.76
   → feature bar 0.90.
   Do NOT remove `isLoaded` from the signature — Loader contract depends on it.
 - Native CSS scroll parallax on `.hero-new-bg img` uses

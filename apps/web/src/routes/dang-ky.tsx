@@ -13,7 +13,7 @@ export const Route = createFileRoute("/dang-ky")({
 
 function DangKyRoute() {
   return (
-    <AuthLayout quote="Cổng quản trị Rèm Việt chỉ dành cho tài khoản đã được cấp quyền">
+    <AuthLayout quote="Cổng quản trị Rèm Vina chỉ dành cho tài khoản đã được cấp quyền">
       <div className="mb-5">
         <p className="text-xl font-semibold">Đăng ký</p>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">

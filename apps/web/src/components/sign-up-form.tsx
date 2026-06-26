@@ -74,11 +74,11 @@ export default function SignUpForm({
   });
 
   return (
-    <AuthLayout quote="Cổng đăng ký tài khoản quản trị Rèm Việt">
+    <AuthLayout quote="Cổng đăng ký tài khoản quản trị Rèm Vina">
       <div className="mb-6">
         <p className="text-xl font-semibold">Đăng ký</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Tạo tài khoản quản trị Rèm Việt.
+          Tạo tài khoản quản trị Rèm Vina.
         </p>
       </div>
 

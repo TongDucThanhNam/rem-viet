@@ -90,7 +90,7 @@ export default function Header() {
             className="flex items-center gap-2 text-sm font-semibold"
           >
             <RemVietLogo />
-            <span className="whitespace-nowrap">Rèm Việt</span>
+            <span className="whitespace-nowrap">Rèm Vina</span>
           </Link>
 
           <nav className="hidden gap-5 text-sm text-muted-foreground md:flex">

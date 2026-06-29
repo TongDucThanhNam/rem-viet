@@ -2,21 +2,22 @@ import { Button } from "@rem-viet/ui/components/button";
 import { ExternalLink, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { siteConfig } from "@/lib/site-config";
+import { useSiteChrome } from "@/hooks/use-site-chrome";
 
 const addressCard = {
   title: "Cửa hàng lưới chống muỗi",
   description: "ĐC: 831 Đ. Âu Cơ, Tân Thành, Tân Phú",
   image: "/src/luoichongmuoi.avif",
-  href: siteConfig.links.facebook,
   content:
     "831 Đ. Âu Cơ, Tân Thành, Tân Phú, Hồ Chí Minh 70000. Cửa hàng chuyên cung cấp các loại rèm, lưới chống côn trùng, chất lượng tốt nhất thị trường.",
 };
 
 export default function AddressExpandableCard() {
+  const { settings } = useSiteChrome();
   const [isOpen, setIsOpen] = useState(false);
   const dialogId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
+  const facebookHref = settings.socials.facebook;
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -112,7 +113,7 @@ export default function AddressExpandableCard() {
                 </div>
                 <a
                   className="inline-flex shrink-0 items-center gap-2 rounded-full bg-green-500 px-4 py-3 text-sm font-bold text-white hover:bg-green-600"
-                  href={addressCard.href}
+                  href={facebookHref}
                   rel="noreferrer"
                   target="_blank"
                 >

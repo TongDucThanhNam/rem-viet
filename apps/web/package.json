@@ -15,6 +15,7 @@
     "@react-three/fiber": "^9.6.1",
     "@rem-viet/api": "workspace:*",
     "@rem-viet/auth": "workspace:*",
+    "@rem-viet/cms": "workspace:*",
     "@rem-viet/env": "workspace:*",
     "@rem-viet/ui": "workspace:*",
     "@studio-freight/react-lenis": "^0.0.47",

@@ -27,6 +27,8 @@ export const posts = sqliteTable(
       unknown | null
     >(),
     publishDate: text("publish_date").default("").notNull(),
+    seoTitle: text("seo_title").default("").notNull(),
+    seoDescription: text("seo_description").default("").notNull(),
     ...timestamps,
   },
   (table) => [
@@ -34,3 +36,68 @@ export const posts = sqliteTable(
     index("posts_status_idx").on(table.status),
   ],
 );
+
+export const pages = sqliteTable(
+  "pages",
+  {
+    id: text("id").primaryKey(),
+    slug: text("slug").notNull().unique(),
+    title: text("title").notNull(),
+    blocks: text("blocks", { mode: "json" }).$type<unknown[]>().default([]).notNull(),
+    status: text("status", { enum: ["draft", "published"] }).default("draft").notNull(),
+    seoTitle: text("seo_title").default("").notNull(),
+    seoDescription: text("seo_description").default("").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    index("pages_slug_idx").on(table.slug),
+    index("pages_status_idx").on(table.status),
+  ],
+);
+
+export const media = sqliteTable(
+  "media",
+  {
+    id: text("id").primaryKey(),
+    key: text("key").notNull().unique(),
+    url: text("url").notNull(),
+    altText: text("alt_text").default("").notNull(),
+    size: integer("size").default(0).notNull(),
+    mimeType: text("mime_type").default("").notNull(),
+    width: integer("width"),
+    height: integer("height"),
+    ...timestamps,
+  },
+  (table) => [
+    index("media_key_idx").on(table.key),
+    index("media_mime_type_idx").on(table.mimeType),
+  ],
+);
+
+export const menus = sqliteTable(
+  "menus",
+  {
+    id: text("id").primaryKey(),
+    location: text("location", { enum: ["header", "footer"] }).notNull().unique(),
+    title: text("title").default("").notNull(),
+    items: text("items", { mode: "json" }).$type<unknown[]>().default([]).notNull(),
+    ...timestamps,
+  },
+  (table) => [index("menus_location_idx").on(table.location)],
+);
+
+export const siteSettings = sqliteTable("site_settings", {
+  id: text("id").primaryKey(),
+  logo: text("logo").default("").notNull(),
+  phone: text("phone").default("").notNull(),
+  address: text("address").default("").notNull(),
+  socials: text("socials", { mode: "json" })
+    .$type<Record<string, string>>()
+    .default({})
+    .notNull(),
+  homepageSections: text("homepage_sections", { mode: "json" })
+    .$type<unknown[]>()
+    .default([])
+    .notNull(),
+  ...timestamps,
+});

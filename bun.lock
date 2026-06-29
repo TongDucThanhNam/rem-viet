@@ -27,6 +27,7 @@
         "@react-three/fiber": "^9.6.1",
         "@rem-viet/api": "workspace:*",
         "@rem-viet/auth": "workspace:*",
+        "@rem-viet/cms": "workspace:*",
         "@rem-viet/env": "workspace:*",
         "@rem-viet/ui": "workspace:*",
         "@studio-freight/react-lenis": "^0.0.47",
@@ -77,6 +78,7 @@
       "name": "@rem-viet/api",
       "dependencies": {
         "@rem-viet/auth": "workspace:*",
+        "@rem-viet/cms": "workspace:*",
         "@rem-viet/db": "workspace:*",
         "@rem-viet/env": "workspace:*",
         "@trpc/client": "catalog:",
@@ -97,6 +99,16 @@
         "@rem-viet/env": "workspace:*",
         "better-auth": "catalog:",
         "dotenv": "catalog:",
+        "zod": "catalog:",
+      },
+      "devDependencies": {
+        "@rem-viet/config": "workspace:*",
+        "typescript": "catalog:",
+      },
+    },
+    "packages/cms": {
+      "name": "@rem-viet/cms",
+      "dependencies": {
         "zod": "catalog:",
       },
       "devDependencies": {
@@ -689,6 +701,8 @@
     "@rem-viet/api": ["@rem-viet/api@workspace:packages/api"],
 
     "@rem-viet/auth": ["@rem-viet/auth@workspace:packages/auth"],
+
+    "@rem-viet/cms": ["@rem-viet/cms@workspace:packages/cms"],
 
     "@rem-viet/config": ["@rem-viet/config@workspace:packages/config"],
 

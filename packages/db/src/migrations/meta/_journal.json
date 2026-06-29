@@ -36,6 +36,13 @@
       "when": 1779366433890,
       "tag": "0004_flawless_ghost_rider",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1782504324127,
+      "tag": "0005_harsh_argent",
+      "breakpoints": true
     }
   ]
 }

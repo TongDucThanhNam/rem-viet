@@ -1,5 +1,6 @@
 import { protectedProcedure, publicProcedure, router } from "../index";
 import { categoriesRouter } from "./categories";
+import { contentRouter } from "./content";
 import { logsRouter } from "./logs";
 import { ordersRouter } from "./orders";
 import { postsRouter } from "./posts";
@@ -10,6 +11,7 @@ export const appRouter = router({
     return "OK";
   }),
   orders: ordersRouter,
+  content: contentRouter,
   posts: postsRouter,
   products: productsRouter,
   categories: categoriesRouter,

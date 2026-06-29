@@ -1,22 +1,78 @@
-import { Link } from "@tanstack/react-router";
+import { Mail, Phone } from "lucide-react";
 
+import AddressExpandableCard from "@/components/address-expandable-card";
+import { useSiteChrome } from "@/hooks/use-site-chrome";
+import { formatPhoneHref, type SiteChromeData } from "@/lib/site-chrome";
 import { siteConfig } from "@/lib/site-config";
-import AddressExpandableCard from "./address-expandable-card";
 
-export default function SiteFooter() {
+function isExternalHref(href: string) {
+  return /^(https?:)?\/\//.test(href) || href.startsWith("mailto:") || href.startsWith("tel:");
+}
+
+const socialLabels: Record<string, string> = {
+  facebook: "Facebook",
+  instagram: "Instagram",
+  shopee: "Shopee",
+  tiktok: "TikTok",
+  youtube: "YouTube",
+  zalo: "Zalo",
+};
+
+const socialOrder = ["facebook", "shopee", "zalo", "instagram", "youtube", "tiktok"];
+
+function visibleSocials(socials: Record<string, string>) {
+  const ordered = socialOrder
+    .map((key) => [key, socials[key]] as const)
+    .filter(([, href]) => href?.trim());
+  const extras = Object.entries(socials).filter(
+    ([key, href]) => !socialOrder.includes(key) && href?.trim(),
+  );
+
+  return [...ordered, ...extras];
+}
+
+type SiteFooterProps = {
+  initialChrome?: SiteChromeData;
+};
+
+export default function SiteFooter({ initialChrome }: SiteFooterProps) {
+  const { footerMenu, settings } = useSiteChrome(initialChrome);
+  const socials = visibleSocials(settings.socials);
+
   return (
-    <footer className="justify-end" id="footer">
+    <footer className="justify-end border-t bg-muted/20" id="footer">
       <div className="mx-auto grid w-full max-w-7xl gap-8 px-4 py-8 md:grid-cols-2 md:py-12">
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold tracking-normal text-primary">
-            Địa chỉ của chúng tôi
-          </h2>
-          <div className="space-x-4">
-            <AddressExpandableCard />
+          <div>
+            <h2 className="text-2xl font-bold tracking-normal text-primary">
+              Địa chỉ của chúng tôi
+            </h2>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+              {settings.address}
+            </p>
           </div>
+
+          <div className="flex flex-wrap gap-3">
+            <a
+              className="inline-flex min-h-9 items-center gap-2 rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted"
+              href={formatPhoneHref(settings.phone)}
+            >
+              <Phone aria-hidden className="size-4" />
+              {settings.phone}
+            </a>
+            <a
+              className="inline-flex min-h-9 items-center gap-2 rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted"
+              href="mailto:hello@luoichongmuoi.shop"
+            >
+              <Mail aria-hidden className="size-4" />
+              Email
+            </a>
+          </div>
+
+          <AddressExpandableCard />
         </section>
 
-        <div className="min-h-[250px] overflow-hidden md:h-full">
+        <div className="min-h-[250px] overflow-hidden rounded-md border bg-background md:h-full">
           <iframe
             allowFullScreen={false}
             aria-hidden="true"
@@ -30,27 +86,40 @@ export default function SiteFooter() {
 
         <div className="border-t border-muted-foreground/20 pt-8 text-sm md:col-span-2">
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-            <nav className="flex flex-wrap gap-4">
-              {siteConfig.footer.navItems.map((item) =>
-                "to" in item && item.to ? (
-                  <Link
-                    className="hover:underline"
-                    key={item.label}
-                    to={item.to}
-                  >
-                    {item.label}
-                  </Link>
-                ) : (
-                  <a
-                    className="hover:underline"
-                    href={item.href}
-                    key={item.label}
-                  >
-                    {item.label}
-                  </a>
-                ),
-              )}
-            </nav>
+            <div className="grid gap-3">
+              <nav className="flex flex-wrap gap-4">
+                {footerMenu.map((item) => {
+                  const external = isExternalHref(item.href);
+
+                  return (
+                    <a
+                      className="hover:underline"
+                      href={item.href}
+                      key={`${item.href}-${item.label}`}
+                      rel={external ? "noreferrer" : undefined}
+                      target={external ? "_blank" : undefined}
+                    >
+                      {item.label}
+                    </a>
+                  );
+                })}
+              </nav>
+              {socials.length ? (
+                <nav className="flex flex-wrap gap-3 text-xs uppercase tracking-wide text-muted-foreground">
+                  {socials.map(([label, href]) => (
+                    <a
+                      className="hover:text-foreground"
+                      href={href}
+                      key={label}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {socialLabels[label] ?? label}
+                    </a>
+                  ))}
+                </nav>
+              ) : null}
+            </div>
             <p className="text-muted-foreground">
               &copy; {new Date().getFullYear()} {siteConfig.footer.brand}.
             </p>

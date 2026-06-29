@@ -18,9 +18,11 @@ export const Route = createFileRoute("/bai-viet/$slug")({
       };
     }
 
-    const title = `${loaderData.title} - Rèm Vina`;
+    const title = `${loaderData.seoTitle || loaderData.title} - Rèm Vina`;
     const description =
-      loaderData.description || `This is a blog post about ${loaderData.slug}`;
+      loaderData.seoDescription ||
+      loaderData.description ||
+      `This is a blog post about ${loaderData.slug}`;
     const image = loaderData.coverImage
       ? cloudflareImageUrl(loaderData.coverImage)
       : undefined;

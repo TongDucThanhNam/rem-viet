@@ -1,6 +1,8 @@
 import type { AppRouter } from "@rem-viet/api/routers/index";
+import { getSiteSettings, listMenus } from "@rem-viet/api/services/content";
 import { Toaster } from "@rem-viet/ui/components/sonner";
 import type { QueryClient } from "@tanstack/react-query";
+import { createServerFn } from "@tanstack/react-start";
 import {
   HeadContent,
   Link,
@@ -15,6 +17,7 @@ import FloatingContact from "../components/floating-contact";
 import Header from "../components/header";
 import { ErrorState } from "../components/app-state";
 import SiteFooter from "../components/site-footer";
+import { getSiteChromeData } from "../lib/site-chrome";
 import { siteConfig } from "../lib/site-config";
 
 import appCss from "../index.css?url";
@@ -24,6 +27,7 @@ export interface RouterAppContext {
 }
 
 export const Route = createRootRouteWithContext<RouterAppContext>()({
+  loader: () => getRootChromeData(),
   head: () => ({
     meta: [
       {
@@ -128,7 +132,14 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
   notFoundComponent: NotFound,
 });
 
+const getRootChromeData = createServerFn({ method: "GET" }).handler(async () => {
+  const [settings, menus] = await Promise.all([getSiteSettings(), listMenus()]);
+
+  return getSiteChromeData(settings, menus);
+});
+
 function RootDocument() {
+  const chromeData = Route.useLoaderData();
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
@@ -160,7 +171,7 @@ function RootDocument() {
     isLegacyAdminRoute ||
     isStandaloneRoute ||
     isLandingRoute;
-  const showSiteFooter = !hideSiteChrome && pathname === "/gioi-thieu";
+  const showSiteFooter = !hideSiteChrome;
 
   return (
     <html lang="vi">
@@ -177,11 +188,11 @@ function RootDocument() {
                 : "grid min-h-svh grid-rows-[auto_1fr]"
           }
         >
-          {hideSiteChrome ? null : <Header />}
+          {hideSiteChrome ? null : <Header initialChrome={chromeData} />}
           <Outlet />
-          {showSiteFooter ? <SiteFooter /> : null}
+          {showSiteFooter ? <SiteFooter initialChrome={chromeData} /> : null}
         </div>
-        {hideSiteChrome ? null : <FloatingContact />}
+        {hideSiteChrome ? null : <FloatingContact initialChrome={chromeData} />}
         <Toaster richColors />
         <Scripts />
       </body>

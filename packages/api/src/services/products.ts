@@ -45,6 +45,7 @@ export const listProductsInputSchema = z
     ),
     isActive: z.preprocess(booleanStringToBoolean, z.boolean().optional()),
     isDeleted: z.preprocess(booleanStringToBoolean, z.boolean().optional()),
+    categoryId: z.preprocess(blankToUndefined, z.string().optional()),
   })
   .optional();
 
@@ -163,6 +164,10 @@ export async function listProducts(input: ListProductsInput = {}) {
 
   if (input?.search) {
     conditions.push(like(products.name, `%${input.search}%`));
+  }
+
+  if (input?.categoryId) {
+    conditions.push(eq(products.categoryId, input.categoryId));
   }
   if (input?.includeInactive) {
     if (input.isActive !== undefined) {

@@ -1,5 +1,6 @@
 import { useRef } from "react";
 
+import { useSiteChrome } from "@/hooks/use-site-chrome";
 import { gsap, SplitText, useGSAP, prefersReducedMotion } from "@/lib/gsap";
 
 /**
@@ -14,6 +15,7 @@ import { gsap, SplitText, useGSAP, prefersReducedMotion } from "@/lib/gsap";
  * settled.
  */
 export function CurtainFooter() {
+  const { settings } = useSiteChrome();
   const footerRef = useRef<HTMLElement>(null);
 
   useGSAP(
@@ -73,18 +75,22 @@ export function CurtainFooter() {
         <p>&copy; 2026 Rèm Vina. Bản quyền đã được bảo hộ.</p>
         <div className="footer-socials flex gap-10">
           <a
-            href="https://instagram.com"
+            href={settings.socials.facebook}
             className="hover-target text-[var(--bg-color)] no-underline"
-            data-cursor="Mở"
-          >
-            Instagram
-          </a>
-          <a
-            href="https://facebook.com"
-            className="hover-target text-[var(--bg-color)] no-underline"
+            rel="noreferrer"
+            target="_blank"
             data-cursor="Mở"
           >
             Facebook
+          </a>
+          <a
+            href={settings.socials.shopee}
+            className="hover-target text-[var(--bg-color)] no-underline"
+            rel="noreferrer"
+            target="_blank"
+            data-cursor="Mở"
+          >
+            Shopee
           </a>
         </div>
       </div>

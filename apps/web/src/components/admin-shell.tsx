@@ -10,6 +10,7 @@ import {
   FolderTree,
   HelpCircle,
   Home,
+  Image,
   LayoutDashboard,
   ListFilter,
   LogOut,
@@ -18,6 +19,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
+  Settings,
   UserRound,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
@@ -71,11 +73,22 @@ const sections = [
     ],
   },
   {
+    key: "content",
+    label: "Nội dung",
+    icon: FileText,
+    items: [
+      { label: "Bài viết", to: "/admin/posts", icon: FileText },
+      { label: "Thêm bài viết", to: "/admin/posts/new", icon: Plus },
+      { label: "Pages", to: "/admin/pages", icon: FileText },
+      { label: "Media", to: "/admin/media", icon: Image },
+      { label: "Site settings", to: "/admin/settings", icon: Settings },
+    ],
+  },
+  {
     key: "system",
     label: "Hệ thống",
     icon: ListFilter,
     items: [
-      { label: "Bài viết", to: "/bai-viet", icon: FileText },
       { label: "Logs", to: "/admin/logs", icon: ListFilter },
     ],
   },

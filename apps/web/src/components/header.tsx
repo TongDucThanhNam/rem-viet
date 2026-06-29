@@ -7,50 +7,98 @@ import {
   DropdownMenuTrigger,
 } from "@rem-viet/ui/components/dropdown-menu";
 import { Input } from "@rem-viet/ui/components/input";
-import { Link } from "@tanstack/react-router";
-import { Menu, Search, ShoppingCart, Trash2 } from "lucide-react";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { Menu, MessageCircle, Search, ShoppingCart, Store, Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
+import { useSiteChrome } from "@/hooks/use-site-chrome";
 import { formatCurrency, useCart } from "@/lib/cart";
+import type { PublicMenuItem, SiteChromeData } from "@/lib/site-chrome";
 import { productImageUrl, siteConfig } from "@/lib/site-config";
 import RemVietLogo from "./rem-viet-logo";
 import ThemeSwitch from "./theme-switch";
 
-type HeaderNavRoute =
-  | "/"
-  | "/gioi-thieu"
-  | "/bai-viet"
-  | "/danh-sach-san-pham"
-  | "/san-pham";
-type HeaderNavItem = {
-  href?: string;
-  label: string;
-  to?: HeaderNavRoute;
-};
-
-function getExternalHref(item: HeaderNavItem) {
-  return "href" in item && typeof item.href === "string" ? item.href : null;
+function isExternalHref(href: string) {
+  return (
+    /^(https?:)?\/\//.test(href) ||
+    href.startsWith("mailto:") ||
+    href.startsWith("tel:")
+  );
 }
 
-function getInternalTo(item: HeaderNavItem): HeaderNavRoute {
-  if (
-    "to" in item &&
-    (item.to === "/" ||
-      item.to === "/gioi-thieu" ||
-      item.to === "/bai-viet" ||
-      item.to === "/danh-sach-san-pham" ||
-      item.to === "/san-pham")
-  ) {
-    return item.to;
+function hrefPath(href: string) {
+  if (!href.startsWith("/")) {
+    return "";
   }
 
-  return "/";
+  return href.split("#")[0] || "/";
 }
 
-export default function Header() {
+function isActiveHref(pathname: string, href: string) {
+  const path = hrefPath(href);
+
+  if (!path) {
+    return false;
+  }
+
+  return path === "/"
+    ? pathname === "/"
+    : pathname === path || pathname.startsWith(`${path}/`);
+}
+
+function HeaderNavLink({
+  className = "",
+  currentPath,
+  item,
+  onNavigate,
+}: {
+  className?: string;
+  currentPath: string;
+  item: PublicMenuItem;
+  onNavigate?: () => void;
+}) {
+  const external = isExternalHref(item.href);
+  const active = isActiveHref(currentPath, item.href);
+
+  return (
+    <a
+      className={`${className} ${
+        active ? "text-foreground" : "text-muted-foreground"
+      }`}
+      href={item.href}
+      rel={external ? "noreferrer" : undefined}
+      target={external ? "_blank" : undefined}
+      onClick={onNavigate}
+    >
+      {item.label}
+    </a>
+  );
+}
+
+type HeaderProps = {
+  initialChrome?: SiteChromeData;
+};
+
+export default function Header({ initialChrome }: HeaderProps) {
   const cart = useCart();
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+  const { headerMenu, settings } = useSiteChrome(initialChrome);
   const [searchValue, setSearchValue] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const socialActions = [
+    {
+      href: settings.socials.facebook,
+      icon: MessageCircle,
+      label: "Facebook",
+    },
+    {
+      href: settings.socials.shopee,
+      icon: Store,
+      label: "Shopee",
+    },
+  ].filter((action) => action.href?.trim());
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -86,42 +134,22 @@ export default function Header() {
           </Button>
 
           <Link
-            to="/"
             className="flex items-center gap-2 text-sm font-semibold"
+            to="/"
           >
-            <RemVietLogo />
-            <span className="whitespace-nowrap">Rèm Vina</span>
+            <RemVietLogo alt={siteConfig.name} src={settings.logo} />
+            <span className="whitespace-nowrap">{siteConfig.name}</span>
           </Link>
 
-          <nav className="hidden gap-5 text-sm text-muted-foreground md:flex">
-            {siteConfig.navItems.map((item) => {
-              const href = getExternalHref(item);
-
-              if (href) {
-                return (
-                  <a
-                    className="transition-colors hover:text-foreground"
-                    href={href}
-                    key={href}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    {item.label}
-                  </a>
-                );
-              }
-
-              return (
-                <Link
-                  activeProps={{ className: "text-foreground" }}
-                  className="transition-colors hover:text-foreground"
-                  key={getInternalTo(item)}
-                  to={getInternalTo(item)}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
+          <nav className="hidden gap-5 text-sm md:flex">
+            {headerMenu.map((item) => (
+              <HeaderNavLink
+                className="transition-colors hover:text-foreground"
+                currentPath={pathname}
+                item={item}
+                key={`${item.href}-${item.label}`}
+              />
+            ))}
           </nav>
         </div>
 
@@ -228,15 +256,23 @@ export default function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <a
-            aria-label="Github"
-            className="hidden size-9 items-center justify-center rounded-lg bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground md:inline-flex"
-            href={siteConfig.links.github}
-            rel="noreferrer"
-            target="_blank"
-          >
-            <GithubIcon aria-hidden className="size-4" />
-          </a>
+          {socialActions.map((action) => {
+            const Icon = action.icon;
+
+            return (
+              <a
+                aria-label={action.label}
+                className="hidden size-9 items-center justify-center rounded-lg bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground md:inline-flex"
+                href={action.href}
+                key={action.label}
+                rel="noreferrer"
+                target="_blank"
+                title={action.label}
+              >
+                <Icon aria-hidden className="size-4" />
+              </a>
+            );
+          })}
         </div>
       </div>
 
@@ -261,48 +297,39 @@ export default function Header() {
             </Button>
           </form>
           <nav className="grid gap-2 text-sm">
-            {siteConfig.navItems.map((item) => {
-              const href = getExternalHref(item);
-
-              return href ? (
-                <a
-                  className="rounded-lg px-3 py-2 text-muted-foreground"
-                  href={href}
-                  key={href}
-                  rel="noreferrer"
-                  target="_blank"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {item.label}
-                </a>
-              ) : (
-                <Link
-                  activeProps={{ className: "bg-muted text-foreground" }}
-                  className="rounded-lg px-3 py-2 text-muted-foreground"
-                  key={getInternalTo(item)}
-                  to={getInternalTo(item)}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
+            {headerMenu.map((item) => (
+              <HeaderNavLink
+                className="rounded-lg px-3 py-2"
+                currentPath={pathname}
+                item={item}
+                key={`${item.href}-${item.label}`}
+                onNavigate={() => setMenuOpen(false)}
+              />
+            ))}
           </nav>
+          {socialActions.length ? (
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              {socialActions.map((action) => {
+                const Icon = action.icon;
+
+                return (
+                  <a
+                    className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border bg-background px-3 text-sm font-medium"
+                    href={action.href}
+                    key={action.label}
+                    rel="noreferrer"
+                    target="_blank"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <Icon aria-hidden className="size-4" />
+                    {action.label}
+                  </a>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
       ) : null}
     </header>
-  );
-}
-
-function GithubIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.09.68-.22.68-.49 0-.24-.01-.88-.01-1.73-2.78.62-3.37-1.37-3.37-1.37-.45-1.18-1.11-1.5-1.11-1.5-.91-.64.07-.63.07-.63 1 .07 1.53 1.06 1.53 1.06.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.71 0 0 .84-.28 2.75 1.05A9.35 9.35 0 0 1 12 6.98c.85 0 1.71.12 2.51.35 1.9-1.33 2.74-1.05 2.74-1.05.55 1.41.2 2.45.1 2.71.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.8-4.57 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .27.18.59.69.49A10.13 10.13 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z" />
-    </svg>
   );
 }

@@ -30,6 +30,7 @@ import { Route as ApiDocsRouteImport } from './routes/api-docs'
 import { Route as AddProductRouteImport } from './routes/add-product'
 import { Route as AddOrderRouteImport } from './routes/add-order'
 import { Route as AddInventoryRouteImport } from './routes/add-inventory'
+import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ViewProductProductIdRouteImport } from './routes/view-product/$productId'
@@ -48,31 +49,39 @@ import { Route as ApiLogsRouteImport } from './routes/api/logs'
 import { Route as ApiGetBookmarkRouteImport } from './routes/api/get-bookmark'
 import { Route as ApiCategoriesRouteImport } from './routes/api/categories'
 import { Route as ApiAddProductRouteImport } from './routes/api/add-product'
+import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
+import { Route as AdminPostsRouteImport } from './routes/admin/posts'
+import { Route as AdminPagesRouteImport } from './routes/admin/pages'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
+import { Route as AdminMediaRouteImport } from './routes/admin/media'
 import { Route as AdminLogsRouteImport } from './routes/admin/logs'
 import { Route as AdminInventoryRouteImport } from './routes/admin/inventory'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AdminAddProductRouteImport } from './routes/admin/add-product'
 import { Route as ApiUploadsProductImagesRouteImport } from './routes/api/uploads/product-images'
+import { Route as ApiUploadsMediaRouteImport } from './routes/api/uploads/media'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc/$'
 import { Route as ApiProductsProductIdRouteImport } from './routes/api/products/$productId'
 import { Route as ApiProductProductIdRouteImport } from './routes/api/product/$productId'
 import { Route as ApiProductImagesKeyRouteImport } from './routes/api/product-images/$key'
 import { Route as ApiPostsSlugRouteImport } from './routes/api/posts/$slug'
 import { Route as ApiOrdersOrderIdRouteImport } from './routes/api/orders/$orderId'
+import { Route as ApiMediaKeyRouteImport } from './routes/api/media/$key'
 import { Route as ApiEditProductProductIdRouteImport } from './routes/api/edit-product/$productId'
 import { Route as ApiCategoriesCategoryIdRouteImport } from './routes/api/categories/$categoryId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AdminViewProductProductIdRouteImport } from './routes/admin/view-product/$productId'
 import { Route as AdminProductsNewRouteImport } from './routes/admin/products/new'
 import { Route as AdminProductsProductIdRouteImport } from './routes/admin/products/$productId'
+import { Route as AdminPostsNewRouteImport } from './routes/admin/posts/new'
 import { Route as AdminOrdersNewRouteImport } from './routes/admin/orders/new'
 import { Route as AdminInventoryNewRouteImport } from './routes/admin/inventory/new'
 import { Route as AdminEditProductProductIdRouteImport } from './routes/admin/edit-product/$productId'
 import { Route as ApiProductProductIdVariantRouteImport } from './routes/api/product/$productId/variant'
 import { Route as AdminProductsProductIdEditRouteImport } from './routes/admin/products/$productId/edit'
+import { Route as AdminPostsPostIdEditRouteImport } from './routes/admin/posts/$postId/edit'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -179,6 +188,11 @@ const AddInventoryRoute = AddInventoryRouteImport.update({
   path: '/add-inventory',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SlugRoute = SlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -269,14 +283,34 @@ const ApiAddProductRoute = ApiAddProductRouteImport.update({
   path: '/api/add-product',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/admin/settings',
+  path: '/admin/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminProductsRoute = AdminProductsRouteImport.update({
   id: '/admin/products',
   path: '/admin/products',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminPostsRoute = AdminPostsRouteImport.update({
+  id: '/admin/posts',
+  path: '/admin/posts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPagesRoute = AdminPagesRouteImport.update({
+  id: '/admin/pages',
+  path: '/admin/pages',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminOrdersRoute = AdminOrdersRouteImport.update({
   id: '/admin/orders',
   path: '/admin/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminMediaRoute = AdminMediaRouteImport.update({
+  id: '/admin/media',
+  path: '/admin/media',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminLogsRoute = AdminLogsRouteImport.update({
@@ -309,6 +343,11 @@ const ApiUploadsProductImagesRoute = ApiUploadsProductImagesRouteImport.update({
   path: '/api/uploads/product-images',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiUploadsMediaRoute = ApiUploadsMediaRouteImport.update({
+  id: '/api/uploads/media',
+  path: '/api/uploads/media',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   id: '/api/trpc/$',
   path: '/api/trpc/$',
@@ -338,6 +377,11 @@ const ApiOrdersOrderIdRoute = ApiOrdersOrderIdRouteImport.update({
   id: '/$orderId',
   path: '/$orderId',
   getParentRoute: () => ApiOrdersRoute,
+} as any)
+const ApiMediaKeyRoute = ApiMediaKeyRouteImport.update({
+  id: '/api/media/$key',
+  path: '/api/media/$key',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiEditProductProductIdRoute = ApiEditProductProductIdRouteImport.update({
   id: '/api/edit-product/$productId',
@@ -370,6 +414,11 @@ const AdminProductsProductIdRoute = AdminProductsProductIdRouteImport.update({
   path: '/$productId',
   getParentRoute: () => AdminProductsRoute,
 } as any)
+const AdminPostsNewRoute = AdminPostsNewRouteImport.update({
+  id: '/new',
+  path: '/new',
+  getParentRoute: () => AdminPostsRoute,
+} as any)
 const AdminOrdersNewRoute = AdminOrdersNewRouteImport.update({
   id: '/new',
   path: '/new',
@@ -398,9 +447,15 @@ const AdminProductsProductIdEditRoute =
     path: '/edit',
     getParentRoute: () => AdminProductsProductIdRoute,
   } as any)
+const AdminPostsPostIdEditRoute = AdminPostsPostIdEditRouteImport.update({
+  id: '/$postId/edit',
+  path: '/$postId/edit',
+  getParentRoute: () => AdminPostsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/add-inventory': typeof AddInventoryRoute
   '/add-order': typeof AddOrderRoute
   '/add-product': typeof AddProductRoute
@@ -427,8 +482,12 @@ export interface FileRoutesByFullPath {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/inventory': typeof AdminInventoryRouteWithChildren
   '/admin/logs': typeof AdminLogsRoute
+  '/admin/media': typeof AdminMediaRoute
   '/admin/orders': typeof AdminOrdersRouteWithChildren
+  '/admin/pages': typeof AdminPagesRoute
+  '/admin/posts': typeof AdminPostsRouteWithChildren
   '/admin/products': typeof AdminProductsRouteWithChildren
+  '/admin/settings': typeof AdminSettingsRoute
   '/api/add-product': typeof ApiAddProductRoute
   '/api/categories': typeof ApiCategoriesRouteWithChildren
   '/api/get-bookmark': typeof ApiGetBookmarkRoute
@@ -449,24 +508,29 @@ export interface FileRoutesByFullPath {
   '/admin/edit-product/$productId': typeof AdminEditProductProductIdRoute
   '/admin/inventory/new': typeof AdminInventoryNewRoute
   '/admin/orders/new': typeof AdminOrdersNewRoute
+  '/admin/posts/new': typeof AdminPostsNewRoute
   '/admin/products/$productId': typeof AdminProductsProductIdRouteWithChildren
   '/admin/products/new': typeof AdminProductsNewRoute
   '/admin/view-product/$productId': typeof AdminViewProductProductIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/categories/$categoryId': typeof ApiCategoriesCategoryIdRoute
   '/api/edit-product/$productId': typeof ApiEditProductProductIdRoute
+  '/api/media/$key': typeof ApiMediaKeyRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRoute
   '/api/posts/$slug': typeof ApiPostsSlugRoute
   '/api/product-images/$key': typeof ApiProductImagesKeyRoute
   '/api/product/$productId': typeof ApiProductProductIdRouteWithChildren
   '/api/products/$productId': typeof ApiProductsProductIdRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
+  '/api/uploads/media': typeof ApiUploadsMediaRoute
   '/api/uploads/product-images': typeof ApiUploadsProductImagesRoute
+  '/admin/posts/$postId/edit': typeof AdminPostsPostIdEditRoute
   '/admin/products/$productId/edit': typeof AdminProductsProductIdEditRoute
   '/api/product/$productId/variant': typeof ApiProductProductIdVariantRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/add-inventory': typeof AddInventoryRoute
   '/add-order': typeof AddOrderRoute
   '/add-product': typeof AddProductRoute
@@ -493,8 +557,12 @@ export interface FileRoutesByTo {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/inventory': typeof AdminInventoryRouteWithChildren
   '/admin/logs': typeof AdminLogsRoute
+  '/admin/media': typeof AdminMediaRoute
   '/admin/orders': typeof AdminOrdersRouteWithChildren
+  '/admin/pages': typeof AdminPagesRoute
+  '/admin/posts': typeof AdminPostsRouteWithChildren
   '/admin/products': typeof AdminProductsRouteWithChildren
+  '/admin/settings': typeof AdminSettingsRoute
   '/api/add-product': typeof ApiAddProductRoute
   '/api/categories': typeof ApiCategoriesRouteWithChildren
   '/api/get-bookmark': typeof ApiGetBookmarkRoute
@@ -515,25 +583,30 @@ export interface FileRoutesByTo {
   '/admin/edit-product/$productId': typeof AdminEditProductProductIdRoute
   '/admin/inventory/new': typeof AdminInventoryNewRoute
   '/admin/orders/new': typeof AdminOrdersNewRoute
+  '/admin/posts/new': typeof AdminPostsNewRoute
   '/admin/products/$productId': typeof AdminProductsProductIdRouteWithChildren
   '/admin/products/new': typeof AdminProductsNewRoute
   '/admin/view-product/$productId': typeof AdminViewProductProductIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/categories/$categoryId': typeof ApiCategoriesCategoryIdRoute
   '/api/edit-product/$productId': typeof ApiEditProductProductIdRoute
+  '/api/media/$key': typeof ApiMediaKeyRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRoute
   '/api/posts/$slug': typeof ApiPostsSlugRoute
   '/api/product-images/$key': typeof ApiProductImagesKeyRoute
   '/api/product/$productId': typeof ApiProductProductIdRouteWithChildren
   '/api/products/$productId': typeof ApiProductsProductIdRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
+  '/api/uploads/media': typeof ApiUploadsMediaRoute
   '/api/uploads/product-images': typeof ApiUploadsProductImagesRoute
+  '/admin/posts/$postId/edit': typeof AdminPostsPostIdEditRoute
   '/admin/products/$productId/edit': typeof AdminProductsProductIdEditRoute
   '/api/product/$productId/variant': typeof ApiProductProductIdVariantRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$slug': typeof SlugRoute
   '/add-inventory': typeof AddInventoryRoute
   '/add-order': typeof AddOrderRoute
   '/add-product': typeof AddProductRoute
@@ -560,8 +633,12 @@ export interface FileRoutesById {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/inventory': typeof AdminInventoryRouteWithChildren
   '/admin/logs': typeof AdminLogsRoute
+  '/admin/media': typeof AdminMediaRoute
   '/admin/orders': typeof AdminOrdersRouteWithChildren
+  '/admin/pages': typeof AdminPagesRoute
+  '/admin/posts': typeof AdminPostsRouteWithChildren
   '/admin/products': typeof AdminProductsRouteWithChildren
+  '/admin/settings': typeof AdminSettingsRoute
   '/api/add-product': typeof ApiAddProductRoute
   '/api/categories': typeof ApiCategoriesRouteWithChildren
   '/api/get-bookmark': typeof ApiGetBookmarkRoute
@@ -582,19 +659,23 @@ export interface FileRoutesById {
   '/admin/edit-product/$productId': typeof AdminEditProductProductIdRoute
   '/admin/inventory/new': typeof AdminInventoryNewRoute
   '/admin/orders/new': typeof AdminOrdersNewRoute
+  '/admin/posts/new': typeof AdminPostsNewRoute
   '/admin/products/$productId': typeof AdminProductsProductIdRouteWithChildren
   '/admin/products/new': typeof AdminProductsNewRoute
   '/admin/view-product/$productId': typeof AdminViewProductProductIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/categories/$categoryId': typeof ApiCategoriesCategoryIdRoute
   '/api/edit-product/$productId': typeof ApiEditProductProductIdRoute
+  '/api/media/$key': typeof ApiMediaKeyRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRoute
   '/api/posts/$slug': typeof ApiPostsSlugRoute
   '/api/product-images/$key': typeof ApiProductImagesKeyRoute
   '/api/product/$productId': typeof ApiProductProductIdRouteWithChildren
   '/api/products/$productId': typeof ApiProductsProductIdRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
+  '/api/uploads/media': typeof ApiUploadsMediaRoute
   '/api/uploads/product-images': typeof ApiUploadsProductImagesRoute
+  '/admin/posts/$postId/edit': typeof AdminPostsPostIdEditRoute
   '/admin/products/$productId/edit': typeof AdminProductsProductIdEditRoute
   '/api/product/$productId/variant': typeof ApiProductProductIdVariantRoute
 }
@@ -602,6 +683,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$slug'
     | '/add-inventory'
     | '/add-order'
     | '/add-product'
@@ -628,8 +710,12 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/inventory'
     | '/admin/logs'
+    | '/admin/media'
     | '/admin/orders'
+    | '/admin/pages'
+    | '/admin/posts'
     | '/admin/products'
+    | '/admin/settings'
     | '/api/add-product'
     | '/api/categories'
     | '/api/get-bookmark'
@@ -650,24 +736,29 @@ export interface FileRouteTypes {
     | '/admin/edit-product/$productId'
     | '/admin/inventory/new'
     | '/admin/orders/new'
+    | '/admin/posts/new'
     | '/admin/products/$productId'
     | '/admin/products/new'
     | '/admin/view-product/$productId'
     | '/api/auth/$'
     | '/api/categories/$categoryId'
     | '/api/edit-product/$productId'
+    | '/api/media/$key'
     | '/api/orders/$orderId'
     | '/api/posts/$slug'
     | '/api/product-images/$key'
     | '/api/product/$productId'
     | '/api/products/$productId'
     | '/api/trpc/$'
+    | '/api/uploads/media'
     | '/api/uploads/product-images'
+    | '/admin/posts/$postId/edit'
     | '/admin/products/$productId/edit'
     | '/api/product/$productId/variant'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$slug'
     | '/add-inventory'
     | '/add-order'
     | '/add-product'
@@ -694,8 +785,12 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/inventory'
     | '/admin/logs'
+    | '/admin/media'
     | '/admin/orders'
+    | '/admin/pages'
+    | '/admin/posts'
     | '/admin/products'
+    | '/admin/settings'
     | '/api/add-product'
     | '/api/categories'
     | '/api/get-bookmark'
@@ -716,24 +811,29 @@ export interface FileRouteTypes {
     | '/admin/edit-product/$productId'
     | '/admin/inventory/new'
     | '/admin/orders/new'
+    | '/admin/posts/new'
     | '/admin/products/$productId'
     | '/admin/products/new'
     | '/admin/view-product/$productId'
     | '/api/auth/$'
     | '/api/categories/$categoryId'
     | '/api/edit-product/$productId'
+    | '/api/media/$key'
     | '/api/orders/$orderId'
     | '/api/posts/$slug'
     | '/api/product-images/$key'
     | '/api/product/$productId'
     | '/api/products/$productId'
     | '/api/trpc/$'
+    | '/api/uploads/media'
     | '/api/uploads/product-images'
+    | '/admin/posts/$postId/edit'
     | '/admin/products/$productId/edit'
     | '/api/product/$productId/variant'
   id:
     | '__root__'
     | '/'
+    | '/$slug'
     | '/add-inventory'
     | '/add-order'
     | '/add-product'
@@ -760,8 +860,12 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/inventory'
     | '/admin/logs'
+    | '/admin/media'
     | '/admin/orders'
+    | '/admin/pages'
+    | '/admin/posts'
     | '/admin/products'
+    | '/admin/settings'
     | '/api/add-product'
     | '/api/categories'
     | '/api/get-bookmark'
@@ -782,25 +886,30 @@ export interface FileRouteTypes {
     | '/admin/edit-product/$productId'
     | '/admin/inventory/new'
     | '/admin/orders/new'
+    | '/admin/posts/new'
     | '/admin/products/$productId'
     | '/admin/products/new'
     | '/admin/view-product/$productId'
     | '/api/auth/$'
     | '/api/categories/$categoryId'
     | '/api/edit-product/$productId'
+    | '/api/media/$key'
     | '/api/orders/$orderId'
     | '/api/posts/$slug'
     | '/api/product-images/$key'
     | '/api/product/$productId'
     | '/api/products/$productId'
     | '/api/trpc/$'
+    | '/api/uploads/media'
     | '/api/uploads/product-images'
+    | '/admin/posts/$postId/edit'
     | '/admin/products/$productId/edit'
     | '/api/product/$productId/variant'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SlugRoute: typeof SlugRoute
   AddInventoryRoute: typeof AddInventoryRoute
   AddOrderRoute: typeof AddOrderRoute
   AddProductRoute: typeof AddProductRoute
@@ -827,8 +936,12 @@ export interface RootRouteChildren {
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminInventoryRoute: typeof AdminInventoryRouteWithChildren
   AdminLogsRoute: typeof AdminLogsRoute
+  AdminMediaRoute: typeof AdminMediaRoute
   AdminOrdersRoute: typeof AdminOrdersRouteWithChildren
+  AdminPagesRoute: typeof AdminPagesRoute
+  AdminPostsRoute: typeof AdminPostsRouteWithChildren
   AdminProductsRoute: typeof AdminProductsRouteWithChildren
+  AdminSettingsRoute: typeof AdminSettingsRoute
   ApiAddProductRoute: typeof ApiAddProductRoute
   ApiCategoriesRoute: typeof ApiCategoriesRouteWithChildren
   ApiGetBookmarkRoute: typeof ApiGetBookmarkRoute
@@ -848,8 +961,10 @@ export interface RootRouteChildren {
   AdminViewProductProductIdRoute: typeof AdminViewProductProductIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiEditProductProductIdRoute: typeof ApiEditProductProductIdRoute
+  ApiMediaKeyRoute: typeof ApiMediaKeyRoute
   ApiProductImagesKeyRoute: typeof ApiProductImagesKeyRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
+  ApiUploadsMediaRoute: typeof ApiUploadsMediaRoute
   ApiUploadsProductImagesRoute: typeof ApiUploadsProductImagesRoute
 }
 
@@ -1002,6 +1117,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AddInventoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$slug': {
+      id: '/$slug'
+      path: '/$slug'
+      fullPath: '/$slug'
+      preLoaderRoute: typeof SlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -1128,6 +1250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAddProductRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/admin/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/products': {
       id: '/admin/products'
       path: '/admin/products'
@@ -1135,11 +1264,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProductsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/posts': {
+      id: '/admin/posts'
+      path: '/admin/posts'
+      fullPath: '/admin/posts'
+      preLoaderRoute: typeof AdminPostsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/pages': {
+      id: '/admin/pages'
+      path: '/admin/pages'
+      fullPath: '/admin/pages'
+      preLoaderRoute: typeof AdminPagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/orders': {
       id: '/admin/orders'
       path: '/admin/orders'
       fullPath: '/admin/orders'
       preLoaderRoute: typeof AdminOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/media': {
+      id: '/admin/media'
+      path: '/admin/media'
+      fullPath: '/admin/media'
+      preLoaderRoute: typeof AdminMediaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/logs': {
@@ -1184,6 +1334,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiUploadsProductImagesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/uploads/media': {
+      id: '/api/uploads/media'
+      path: '/api/uploads/media'
+      fullPath: '/api/uploads/media'
+      preLoaderRoute: typeof ApiUploadsMediaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/trpc/$': {
       id: '/api/trpc/$'
       path: '/api/trpc/$'
@@ -1225,6 +1382,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/orders/$orderId'
       preLoaderRoute: typeof ApiOrdersOrderIdRouteImport
       parentRoute: typeof ApiOrdersRoute
+    }
+    '/api/media/$key': {
+      id: '/api/media/$key'
+      path: '/api/media/$key'
+      fullPath: '/api/media/$key'
+      preLoaderRoute: typeof ApiMediaKeyRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/edit-product/$productId': {
       id: '/api/edit-product/$productId'
@@ -1268,6 +1432,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProductsProductIdRouteImport
       parentRoute: typeof AdminProductsRoute
     }
+    '/admin/posts/new': {
+      id: '/admin/posts/new'
+      path: '/new'
+      fullPath: '/admin/posts/new'
+      preLoaderRoute: typeof AdminPostsNewRouteImport
+      parentRoute: typeof AdminPostsRoute
+    }
     '/admin/orders/new': {
       id: '/admin/orders/new'
       path: '/new'
@@ -1302,6 +1473,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/products/$productId/edit'
       preLoaderRoute: typeof AdminProductsProductIdEditRouteImport
       parentRoute: typeof AdminProductsProductIdRoute
+    }
+    '/admin/posts/$postId/edit': {
+      id: '/admin/posts/$postId/edit'
+      path: '/$postId/edit'
+      fullPath: '/admin/posts/$postId/edit'
+      preLoaderRoute: typeof AdminPostsPostIdEditRouteImport
+      parentRoute: typeof AdminPostsRoute
     }
   }
 }
@@ -1350,6 +1528,20 @@ const AdminOrdersRouteChildren: AdminOrdersRouteChildren = {
 
 const AdminOrdersRouteWithChildren = AdminOrdersRoute._addFileChildren(
   AdminOrdersRouteChildren,
+)
+
+interface AdminPostsRouteChildren {
+  AdminPostsNewRoute: typeof AdminPostsNewRoute
+  AdminPostsPostIdEditRoute: typeof AdminPostsPostIdEditRoute
+}
+
+const AdminPostsRouteChildren: AdminPostsRouteChildren = {
+  AdminPostsNewRoute: AdminPostsNewRoute,
+  AdminPostsPostIdEditRoute: AdminPostsPostIdEditRoute,
+}
+
+const AdminPostsRouteWithChildren = AdminPostsRoute._addFileChildren(
+  AdminPostsRouteChildren,
 )
 
 interface AdminProductsProductIdRouteChildren {
@@ -1453,6 +1645,7 @@ const ApiProductsRouteWithChildren = ApiProductsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SlugRoute: SlugRoute,
   AddInventoryRoute: AddInventoryRoute,
   AddOrderRoute: AddOrderRoute,
   AddProductRoute: AddProductRoute,
@@ -1479,8 +1672,12 @@ const rootRouteChildren: RootRouteChildren = {
   AdminDashboardRoute: AdminDashboardRoute,
   AdminInventoryRoute: AdminInventoryRouteWithChildren,
   AdminLogsRoute: AdminLogsRoute,
+  AdminMediaRoute: AdminMediaRoute,
   AdminOrdersRoute: AdminOrdersRouteWithChildren,
+  AdminPagesRoute: AdminPagesRoute,
+  AdminPostsRoute: AdminPostsRouteWithChildren,
   AdminProductsRoute: AdminProductsRouteWithChildren,
+  AdminSettingsRoute: AdminSettingsRoute,
   ApiAddProductRoute: ApiAddProductRoute,
   ApiCategoriesRoute: ApiCategoriesRouteWithChildren,
   ApiGetBookmarkRoute: ApiGetBookmarkRoute,
@@ -1500,8 +1697,10 @@ const rootRouteChildren: RootRouteChildren = {
   AdminViewProductProductIdRoute: AdminViewProductProductIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiEditProductProductIdRoute: ApiEditProductProductIdRoute,
+  ApiMediaKeyRoute: ApiMediaKeyRoute,
   ApiProductImagesKeyRoute: ApiProductImagesKeyRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
+  ApiUploadsMediaRoute: ApiUploadsMediaRoute,
   ApiUploadsProductImagesRoute: ApiUploadsProductImagesRoute,
 }
 export const routeTree = rootRouteImport

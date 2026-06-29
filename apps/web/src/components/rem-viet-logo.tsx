@@ -1,14 +1,20 @@
 type RemVietLogoProps = {
+  alt?: string;
   size?: number;
+  src?: string;
 };
 
-export default function RemVietLogo({ size = 32 }: RemVietLogoProps) {
+export default function RemVietLogo({
+  alt = "Rèm Vina",
+  size = 32,
+  src = "/src/remviet2.webp",
+}: RemVietLogoProps) {
   return (
     <img
-      alt="Rèm Vina"
+      alt={alt}
       className="shrink-0 rounded-full object-cover"
       height={size}
-      src="/src/remviet2.webp"
+      src={src}
       width={size}
     />
   );

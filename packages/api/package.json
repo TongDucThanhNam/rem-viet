@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@rem-viet/auth": "workspace:*",
+    "@rem-viet/cms": "workspace:*",
     "@rem-viet/db": "workspace:*",
     "@rem-viet/env": "workspace:*",
     "@trpc/client": "catalog:",

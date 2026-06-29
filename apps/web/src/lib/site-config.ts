@@ -28,7 +28,8 @@ export const siteConfig = {
   links: {
     github: "https://github.com/tongducthanhnam",
     zalo: "https://zalo.me/84949491964",
-    facebook: "https://www.facebook.com/profile.php?id=100076172431695",
+    facebook: "https://facebook.com/remvina",
+    shopee: "https://shopee.vn/remvina",
     phone: "0399649743",
   },
   footer: {

@@ -256,6 +256,13 @@ body.is-loading {
     overflow: hidden;
 }
 
+.hero-title-line-single {
+    display: flex;
+    align-items: baseline;
+    gap: 0.12em;
+    white-space: nowrap;
+}
+
 .hero-title-line > span,
 .hero-title-char {
     display: inline-block;
@@ -271,8 +278,9 @@ body.is-loading {
 .hero-features-bar {
     position: absolute;
     left: 4vw;
-    right: 4vw;
+    right: auto;
     bottom: 5vh;
+    width: min(70vw, calc(100vw - 8vw));
     z-index: 2;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -283,7 +291,7 @@ body.is-loading {
     background-color: rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(18px);
     transform: translateY(0) scale(1);
-    transform-origin: center bottom;
+    transform-origin: left bottom;
 }
 
 /* Scroll cue — a small "scroll" label + bouncing line at the hero's
@@ -835,7 +843,7 @@ body.is-loading {
 
     .hero-new-link {
         min-height: 44px;
-        width: fit-content;
+        width: 100%;
         max-width: 100%;
         padding-inline: 16px;
         font-size: 11px;
@@ -846,6 +854,7 @@ body.is-loading {
         left: auto;
         right: auto;
         bottom: auto;
+        width: auto;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         margin-top: 22px;
         overflow: hidden;

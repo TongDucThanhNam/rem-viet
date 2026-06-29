@@ -284,7 +284,7 @@ export default function ProductForm({
 
     setIsUploading(true);
     try {
-      const response = await fetch("/api/uploads/product-images", {
+      const response = await fetch("/api/uploads/media", {
         method: "POST",
         body: formData,
       });

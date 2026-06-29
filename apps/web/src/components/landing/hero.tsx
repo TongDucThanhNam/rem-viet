@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { ArrowDownRight, Ruler, ShieldCheck, Sparkles, Wind } from "lucide-react";
+import { ArrowDownRight, Ruler, ShieldCheck, ShoppingBag, Sparkles, Wind } from "lucide-react";
 
 import {
   gsap,
@@ -227,13 +227,11 @@ export function Hero({ isLoaded }: { isLoaded: boolean }) {
         </p>
 
         <h1 className="hero-new-title m-0 font-playfair text-display font-normal leading-[0.82] tracking-[-0.01em] xl:text-[clamp(54px,10vw,112px)] lg:text-[clamp(42px,9vw,78px)] sm:text-[54px] sm:leading-[0.88]">
-          <span className="hero-title-line block overflow-hidden">
-            <span className="inline-block" ref={title1Ref}>
+          <span className="hero-title-line hero-title-line-single">
+            <span className="hero-title-word" ref={title1Ref}>
               Rèm
             </span>
-          </span>
-          <span className="hero-title-line block overflow-hidden">
-            <span className="inline-block text-brand italic" ref={title2Ref}>
+            <span className="hero-title-word text-brand italic" ref={title2Ref}>
               Vina
             </span>
           </span>
@@ -247,10 +245,21 @@ export function Hero({ isLoaded }: { isLoaded: boolean }) {
           từng khung, giữ không gian thoáng sáng mà vẫn bảo vệ gia đình mỗi ngày.
         </p>
 
-        <div className="hero-new-actions mt-8.5" ref={actionsRef}>
+        {/* Hero Actions */}
+        <div className="hero-new-actions mt-8.5 grid w-full max-w-[540px] grid-cols-2 gap-3" ref={actionsRef}>
+          <a
+            href="https://shopee.vn/remvina.vn"
+            className="hero-new-link hover-target inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-lg border border-brand bg-brand px-5 text-[12px] font-semibold tracking-[0.12em] text-black uppercase no-underline shadow-[0_12px_32px_rgba(0,0,0,0.24)] will-change-transform transition-[background-color,border-color] duration-300 hoverable:hover:border-brand-soft hoverable:hover:bg-brand-soft"
+            data-cursor="Mua"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <ShoppingBag aria-hidden="true" size={18} strokeWidth={1.7} className="text-black/70" />
+            <span>Mua hàng</span>
+          </a>
           <a
             href="#order"
-            className="hero-new-link hover-target inline-flex min-h-12 w-auto items-center justify-start gap-3 rounded-lg border border-white/28 bg-white/12 px-4.5 text-[12px] font-medium tracking-[0.12em] text-white uppercase no-underline backdrop-blur-[14px] will-change-transform sm:w-full sm:justify-center"
+            className="hero-new-link hover-target inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-lg border border-white/28 bg-white/12 px-4.5 text-[12px] font-medium tracking-[0.12em] text-white uppercase no-underline backdrop-blur-[14px] will-change-transform"
             data-cursor="Đặt may"
           >
             <ArrowDownRight aria-hidden="true" size={18} strokeWidth={1.7} className="text-brand" />

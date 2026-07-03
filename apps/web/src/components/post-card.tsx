@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { useState, type MouseEvent, type ReactNode } from "react";
 
 import { cloudflareImageUrl } from "@/lib/site-config";
 
@@ -13,7 +12,7 @@ type PostCardProps = {
     coverImage?: string;
     tags?: string[];
     created_time?: string;
-    last_edited_time?: string;
+    publishDate?: string;
   };
 };
 
@@ -38,10 +37,13 @@ function coverUrl(post: PostCardProps["post"]) {
   const cover = post.coverImage || post.cover;
 
   if (!cover) {
-    return "/src/heroimage.webp";
+    return "/assets/7c9323bc-888a-4cba-b876-f0aa79b35158.png";
   }
 
-  return cloudflareImageUrl(cover) || "/src/heroimage.webp";
+  return (
+    cloudflareImageUrl(cover) ||
+    "/assets/7c9323bc-888a-4cba-b876-f0aa79b35158.png"
+  );
 }
 
 function postSlug(slug: string) {
@@ -50,133 +52,56 @@ function postSlug(slug: string) {
 
 export default function PostCard({ post }: PostCardProps) {
   const tags = post.tags ?? [];
+  const date = post.publishDate || post.created_time;
 
   return (
-    <WobbleFrame>
+    <article className="group h-full">
       <Link
-        className="group relative block min-h-full overflow-hidden rounded-xl bg-zinc-950 outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+        className="hover-target block h-full overflow-hidden rounded-[8px] border border-white/12 bg-white/[0.045] text-[var(--text-color)] no-underline outline-none backdrop-blur-[10px] transition-[border-color,background-color,transform] duration-500 hoverable:hover:-translate-y-1 hoverable:hover:border-[color:var(--accent)] hoverable:hover:bg-white/[0.07] focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[#111]"
+        data-cursor="Đọc"
         params={{ slug: postSlug(post.slug) }}
         to="/bai-viet/$slug"
       >
-        <div className="relative h-48 w-full overflow-hidden">
+        <div className="relative aspect-[4/3] overflow-hidden bg-white/5">
           <img
             alt={`Cover image for ${post.title}`}
-            className="size-full rounded-t-xl object-cover transition-transform duration-500 group-hover:scale-105"
+            className="size-full object-cover opacity-[0.82] transition duration-700 group-hover:scale-[1.04] group-hover:opacity-100"
             loading="lazy"
             src={coverUrl(post)}
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-[#111]/26 to-transparent" />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent opacity-70" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent" />
 
-        <div className="absolute inset-x-0 top-0 p-4 text-center">
-          <h2 className="text-2xl font-bold tracking-normal text-white drop-shadow-md">
-            <span>{post.title}</span>
+        <div className="flex min-h-[330px] flex-col p-6 max-[640px]:min-h-0">
+          <time
+            className="font-vietnam text-[11px] tracking-[0.16em] text-[color:color-mix(in_srgb,var(--text-color)_55%,transparent)] uppercase"
+            dateTime={date}
+          >
+            {formatDate(date)}
+          </time>
+
+          <h2 className="mt-4 font-playfair text-[clamp(28px,2.8vw,44px)] font-normal leading-[0.98] tracking-normal">
+            {post.title}
           </h2>
-        </div>
 
-        <div className="relative p-4 text-white">
           {post.description ? (
-            <p className="mb-4 font-bold drop-shadow-md">
+            <p className="mt-5 line-clamp-4 font-vietnam text-[14px] leading-7 text-[color:color-mix(in_srgb,var(--text-color)_68%,transparent)]">
               {post.description}
             </p>
           ) : null}
 
-          <div className="mb-2 flex items-center text-sm">
-            <time dateTime={post.created_time}>
-              {formatDate(post.created_time)}
-            </time>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {tags.map((tag, index) => {
-              const tone =
-                index === 0
-                  ? "bg-primary text-primary-foreground"
-                  : index === 1
-                    ? "bg-emerald-500 text-white"
-                    : index === 2
-                      ? "bg-yellow-400 text-yellow-950"
-                      : "bg-red-500 text-white";
-
-              return (
-                <span
-                  className={`rounded-full px-2.5 py-1 text-xs font-medium ${tone}`}
-                  key={`${tag}-${index}`}
-                >
-                  {tag}
-                </span>
-              );
-            })}
+          <div className="mt-auto flex flex-wrap gap-2 pt-8">
+            {tags.slice(0, 4).map((tag, index) => (
+              <span
+                className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 font-vietnam text-[10px] tracking-[0.08em] text-[color:color-mix(in_srgb,var(--text-color)_72%,transparent)] uppercase"
+                key={`${tag}-${index}`}
+              >
+                {tag}
+              </span>
+            ))}
           </div>
         </div>
-
-        {post.last_edited_time ? (
-          <div className="relative p-4 pt-0 text-right text-sm text-white">
-            <span>Cập nhật lúc : {formatDate(post.last_edited_time)}</span>
-          </div>
-        ) : null}
       </Link>
-    </WobbleFrame>
-  );
-}
-
-function WobbleFrame({ children }: { children: ReactNode }) {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [isHovering, setIsHovering] = useState(false);
-
-  function handleMouseMove(event: MouseEvent<HTMLElement>) {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = (event.clientX - (rect.left + rect.width / 2)) / 20;
-    const y = (event.clientY - (rect.top + rect.height / 2)) / 20;
-
-    setMousePosition({ x, y });
-  }
-
-  function resetMousePosition() {
-    setIsHovering(false);
-    setMousePosition({ x: 0, y: 0 });
-  }
-
-  return (
-    <section
-      className="relative mx-auto h-full w-full overflow-hidden rounded-2xl bg-muted/70 motion-reduce:transform-none"
-      style={{
-        transform: isHovering
-          ? `translate3d(${mousePosition.x}px, ${mousePosition.y}px, 0)`
-          : "translate3d(0, 0, 0)",
-        transition: "transform 100ms ease-out",
-      }}
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={resetMousePosition}
-      onMouseMove={handleMouseMove}
-    >
-      <div
-        className="relative h-full overflow-hidden rounded-2xl [background-image:radial-gradient(88%_100%_at_top,rgba(255,255,255,0.5),rgba(255,255,255,0))]"
-        style={{
-          boxShadow:
-            "0 10px 32px rgba(34, 42, 53, 0.12), 0 1px 1px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(34, 42, 53, 0.05), 0 4px 6px rgba(34, 42, 53, 0.08), 0 24px 108px rgba(47, 48, 55, 0.10)",
-        }}
-      >
-        <div
-          className="relative h-full p-0"
-          style={{
-            transform: isHovering
-              ? `translate3d(${-mousePosition.x}px, ${-mousePosition.y}px, 0) scale3d(1.03, 1.03, 1)`
-              : "translate3d(0, 0, 0) scale3d(1, 1, 1)",
-            transition: "transform 100ms ease-out",
-          }}
-        >
-          <div
-            className="pointer-events-none absolute inset-0 z-10 scale-[1.2] opacity-10 [mask-image:radial-gradient(#fff,transparent,75%)]"
-            style={{
-              backgroundImage: "url(/src/noise.webp)",
-              backgroundSize: "30%",
-            }}
-          />
-          {children}
-        </div>
-      </div>
-    </section>
+    </article>
   );
 }

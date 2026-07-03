@@ -1,8 +1,10 @@
 import { getPostBySlug } from "@rem-viet/api/services/posts";
 import { createServerFn } from "@tanstack/react-start";
-import { createFileRoute } from "@tanstack/react-router";
-import { Anchor, FileText } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowLeft, FileText } from "lucide-react";
+import type { CSSProperties } from "react";
 
+import { Navigation } from "@/components/landing/navigation";
 import PostContent from "@/components/post-content";
 import { cloudflareImageUrl } from "@/lib/site-config";
 
@@ -63,6 +65,13 @@ const getPostPageData = createServerFn({ method: "GET" })
     return getPostBySlug({ slug: data.slug, status: "published" });
   });
 
+const blogThemeStyle = {
+  "--bg-color": "#111111",
+  "--text-color": "#F8F5EF",
+  "--accent": "#D6BB82",
+  "--accent-soft": "#E2C896",
+} as CSSProperties;
+
 function formatDate(value?: string) {
   if (!value) {
     return "";
@@ -82,87 +91,93 @@ function formatDate(value?: string) {
 
 function PostDetailRoute() {
   const post = Route.useLoaderData();
+  const publishedAt = post?.publishDate || post?.created_time;
+  const coverImage = post?.coverImage ? cloudflareImageUrl(post.coverImage) : "";
 
   return (
-    <main>
-      <section className="container mx-auto px-4 py-8">
+    <main
+      className="relative min-h-svh overflow-hidden bg-[#111] text-[#F8F5EF]"
+      style={blogThemeStyle}
+    >
+      <Navigation sectionHrefPrefix="/" />
+      <div className="noise-overlay" />
+      <div className="vignette-overlay" />
+
+      <article className="relative z-10 mx-auto max-w-[1180px] px-[4vw] pb-28 pt-[18vh]">
+        <Link
+          className="hover-target inline-flex items-center gap-3 font-vietnam text-[11px] tracking-[0.18em] text-[var(--accent)] uppercase no-underline transition-opacity hoverable:hover:opacity-70"
+          data-cursor="Trở lại"
+          to="/bai-viet"
+        >
+          <ArrowLeft aria-hidden className="size-4" />
+          Bài viết
+        </Link>
+
         {post ? (
-          <article className="mx-auto max-w-3xl">
-            {post.coverImage ? (
-              <div className="relative h-96 overflow-hidden bg-muted">
-                <img
-                  alt={`Cover image for ${post.title}`}
-                  className="size-full object-cover"
-                  src={cloudflareImageUrl(post.coverImage)}
-                />
+          <>
+            <header className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,0.62fr)_minmax(320px,0.38fr)] lg:items-end">
+              <div>
+                <p className="font-vietnam text-[11px] tracking-[0.22em] text-[color:color-mix(in_srgb,var(--text-color)_60%,transparent)] uppercase">
+                  {publishedAt ? formatDate(publishedAt) : "Rèm Vina"}
+                </p>
+                <div className="mt-5 h-px w-14 bg-[var(--accent)]" />
+                <h1 className="mt-9 font-playfair text-[clamp(48px,7vw,104px)] font-normal leading-[0.9] tracking-normal text-[var(--text-color)]">
+                  {post.title}
+                </h1>
+                {post.description ? (
+                  <p className="mt-8 max-w-[720px] font-vietnam text-[17px] leading-8 text-[color:color-mix(in_srgb,var(--text-color)_70%,transparent)]">
+                    {post.description}
+                  </p>
+                ) : null}
               </div>
-            ) : null}
 
-            <h1 className="mt-6 text-4xl font-bold tracking-normal md:text-5xl">
-              {post.title}
-            </h1>
+              {coverImage ? (
+                <div className="aspect-[4/5] overflow-hidden rounded-[8px] border border-white/12 bg-white/[0.04]">
+                  <img
+                    alt={`Cover image for ${post.title}`}
+                    className="size-full object-cover opacity-90"
+                    src={coverImage}
+                  />
+                </div>
+              ) : null}
+            </header>
 
-            <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              <time
-                className="inline-flex items-center gap-2"
-                dateTime={post.publishDate || post.created_time}
-              >
-                <Anchor aria-hidden className="size-4" />
-                Xuất bản lúc:{" "}
-                {formatDate(post.publishDate || post.created_time)}
-              </time>
+            <div className="mt-10 flex flex-wrap items-center gap-3 border-y border-white/12 py-5">
+              {post.tags?.map((tag, index) => (
+                <span
+                  className="rounded-full border border-white/10 bg-white/[0.06] px-3 py-1 font-vietnam text-[10px] tracking-[0.08em] text-[color:color-mix(in_srgb,var(--text-color)_72%,transparent)] uppercase"
+                  key={`${tag}-${index}`}
+                >
+                  {tag}
+                </span>
+              ))}
               {post.lastEditedTime ? (
-                <span className="inline-flex items-center gap-2">
-                  <Anchor aria-hidden className="size-4" />
-                  Cập nhật lúc: {formatDate(post.lastEditedTime)}
+                <span className="ml-auto font-vietnam text-[11px] tracking-[0.08em] text-[color:color-mix(in_srgb,var(--text-color)_50%,transparent)] uppercase max-[640px]:ml-0">
+                  Cập nhật: {formatDate(post.lastEditedTime)}
                 </span>
               ) : null}
             </div>
 
-            {post.description ? (
-              <p className="mb-8 mt-6 text-xl leading-8">{post.description}</p>
-            ) : null}
-
-            {post.tags?.length ? (
-              <div className="mb-8 flex flex-wrap gap-2">
-                {post.tags.map((tag, index) => {
-                  const tone =
-                    index % 4 === 0
-                      ? "bg-primary text-primary-foreground"
-                      : index % 4 === 1
-                        ? "bg-emerald-500 text-white"
-                        : index % 4 === 2
-                          ? "bg-yellow-400 text-yellow-950"
-                          : "bg-red-500 text-white";
-
-                  return (
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-medium ${tone}`}
-                      key={`${tag}-${index}`}
-                    >
-                      {tag}
-                    </span>
-                  );
-                })}
+            <section className="mt-14">
+              <div className="mx-auto max-w-[760px]">
+                <PostContent content={post.content} />
               </div>
-            ) : null}
-
-            <section className="prose max-w-none">
-              <PostContent content={post.content} />
             </section>
-          </article>
+          </>
         ) : (
-          <div className="mt-6 flex min-h-80 flex-col items-center justify-center gap-3 border text-center">
-            <FileText aria-hidden className="size-8 text-muted-foreground" />
+          <div className="mt-14 flex min-h-80 flex-col items-center justify-center gap-4 rounded-[8px] border border-white/12 bg-white/[0.035] text-center backdrop-blur-[10px]">
+            <FileText aria-hidden className="size-8 text-[var(--accent)]" />
             <div>
-              <h1 className="text-sm font-medium">Không tìm thấy bài viết</h1>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <h1 className="font-vietnam text-sm font-medium tracking-[0.08em] uppercase">
+                Không tìm thấy bài viết
+              </h1>
+              <p className="mt-2 font-vietnam text-xs text-[color:color-mix(in_srgb,var(--text-color)_58%,transparent)]">
                 Bài viết này chưa được xuất bản.
               </p>
             </div>
           </div>
         )}
-      </section>
+      </article>
     </main>
   );
 }

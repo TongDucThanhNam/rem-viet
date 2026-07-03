@@ -38,42 +38,56 @@ function MagneticLink({
   );
 }
 
-export function Navigation() {
+type NavigationProps = {
+  sectionHrefPrefix?: "" | "/";
+};
+
+export function Navigation({ sectionHrefPrefix = "" }: NavigationProps) {
+  const sectionHref = (id: string) => `${sectionHrefPrefix}#${id}`;
+  const homeHref = sectionHrefPrefix ? "/" : "#home";
+
   return (
     <nav className="nav fixed top-0 left-0 z-[100] flex w-full items-center justify-between p-[2vw_4vw] text-white [mix-blend-mode:difference] max-[640px]:p-[22px]">
       <a
-        href="#home"
+        href={homeHref}
         className="font-vietnam hover-target inline-block shrink-0 whitespace-nowrap text-sm font-medium tracking-[0.2em] text-white uppercase no-underline will-change-transform max-[640px]:text-[11px]"
         data-cursor="Lên đầu"
-        onClick={(event) => handleAnchorClick(event, "#home")}
+        onClick={(event) => handleAnchorClick(event, homeHref)}
       >
         Rèm Vina
       </a>
       <div className="font-vietnam flex shrink-0 gap-[3vw] max-[1024px]:hidden">
         <MagneticLink
-          href="#threat"
+          href={sectionHref("threat")}
           className="hover-target inline-block shrink-0 whitespace-nowrap text-xs tracking-[0.1em] text-white uppercase no-underline will-change-transform max-[640px]:text-[11px]"
           data-cursor="Xem"
         >
           Tầm Nhìn
         </MagneticLink>
         <MagneticLink
-          href="#details"
+          href={sectionHref("details")}
           className="hover-target inline-block shrink-0 whitespace-nowrap text-xs tracking-[0.1em] text-white uppercase no-underline will-change-transform max-[640px]:text-[11px]"
           data-cursor="Xem"
         >
           Chi Tiết
         </MagneticLink>
         <MagneticLink
-          href="#measure"
+          href={sectionHref("measure")}
           className="hover-target inline-block shrink-0 whitespace-nowrap text-xs tracking-[0.1em] text-white uppercase no-underline will-change-transform max-[640px]:text-[11px]"
           data-cursor="Xem"
         >
           Cách Đo
         </MagneticLink>
+        <MagneticLink
+          href="/bai-viet"
+          className="hover-target inline-block shrink-0 whitespace-nowrap text-xs tracking-[0.1em] text-white uppercase no-underline will-change-transform max-[640px]:text-[11px]"
+          data-cursor="Đọc"
+        >
+          Bài Viết
+        </MagneticLink>
       </div>
       <MagneticLink
-        href="#order"
+        href={sectionHref("order")}
         className="nav-cta hover-target font-vietnam inline-block shrink-0 whitespace-nowrap text-xs tracking-[0.1em] text-white uppercase no-underline will-change-transform max-[640px]:text-[11px]"
         data-cursor="Liên hệ"
       >

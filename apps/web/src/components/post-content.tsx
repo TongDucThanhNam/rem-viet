@@ -45,6 +45,11 @@ type BookmarkMetadata = {
   url?: string;
 };
 
+const bodyTextClass =
+  "font-vietnam text-[15px] leading-8 text-[color:color-mix(in_srgb,var(--text-color)_76%,transparent)]";
+const mutedTextClass =
+  "text-[color:color-mix(in_srgb,var(--text-color)_56%,transparent)]";
+
 function richTextFrom(value: unknown) {
   return (value as RichTextContainer | undefined)?.rich_text ?? [];
 }
@@ -56,23 +61,21 @@ function textContent(text: RichText) {
 function notionColorClass(color?: string) {
   switch (color) {
     case "gray":
-      return "text-gray-500";
+      return "text-[color:color-mix(in_srgb,var(--text-color)_52%,transparent)]";
     case "brown":
-      return "text-amber-900";
     case "orange":
-      return "text-orange-500";
     case "yellow":
-      return "text-yellow-500";
+      return "text-[var(--accent)]";
     case "green":
-      return "text-green-600";
+      return "text-emerald-300";
     case "blue":
-      return "text-blue-600";
+      return "text-sky-300";
     case "purple":
-      return "text-purple-600";
+      return "text-violet-300";
     case "pink":
-      return "text-pink-600";
+      return "text-pink-300";
     case "red":
-      return "text-red-600";
+      return "text-red-300";
     default:
       return "";
   }
@@ -80,13 +83,13 @@ function notionColorClass(color?: string) {
 
 function renderRichText(text: RichText, index: number) {
   const className = [
-    text.annotations?.bold ? "font-semibold" : "",
+    text.annotations?.bold ? "font-semibold text-[var(--text-color)]" : "",
     text.annotations?.italic ? "italic" : "",
     text.annotations?.strikethrough ? "line-through" : "",
-    text.annotations?.underline ? "underline" : "",
+    text.annotations?.underline ? "underline underline-offset-4" : "",
     notionColorClass(text.annotations?.color),
     text.annotations?.code
-      ? "rounded bg-yellow-200 px-1 dark:bg-yellow-800"
+      ? "rounded border border-white/12 bg-white/[0.08] px-1.5 py-0.5 font-mono text-[0.9em] text-[var(--accent)]"
       : "",
   ]
     .filter(Boolean)
@@ -99,7 +102,7 @@ function renderRichText(text: RichText, index: number) {
 
   return (
     <a
-      className="font-medium text-primary underline-offset-4 hover:underline"
+      className="font-medium text-[var(--accent)] underline-offset-4 transition-opacity hover:underline hoverable:hover:opacity-75"
       href={text.href}
       key={index}
       rel="noreferrer"
@@ -219,16 +222,16 @@ function BookmarkCard({ url }: { url: string }) {
   const description = metadata?.description || metadata?.domain || url;
 
   return (
-    <div className="my-6 overflow-hidden rounded-lg border bg-background shadow-sm">
+    <div className="my-8 overflow-hidden rounded-[8px] border border-white/12 bg-white/[0.04]">
       <a
-        className="grid transition-colors hover:bg-muted/40 sm:grid-cols-[12rem_1fr]"
+        className="grid text-[var(--text-color)] no-underline transition-colors hoverable:hover:bg-white/[0.04] sm:grid-cols-[12rem_1fr]"
         href={url}
         rel="noreferrer"
         target="_blank"
       >
-        <div className="h-48 bg-muted sm:h-full">
+        <div className="h-48 bg-white/[0.04] sm:h-full">
           {isLoading ? (
-            <div className="size-full animate-pulse bg-muted" />
+            <div className="size-full animate-pulse bg-white/[0.08]" />
           ) : imageUrl ? (
             <img
               alt={title}
@@ -237,20 +240,20 @@ function BookmarkCard({ url }: { url: string }) {
               src={imageUrl}
             />
           ) : (
-            <div className="flex size-full items-center justify-center text-muted-foreground">
+            <div className={`flex size-full items-center justify-center ${mutedTextClass}`}>
               <ExternalLink aria-hidden className="size-8" />
             </div>
           )}
         </div>
-        <div className="min-w-0 p-4">
+        <div className="min-w-0 p-5">
           {isLoading ? (
             <div className="grid gap-2">
-              <div className="h-5 w-3/4 animate-pulse rounded bg-muted" />
-              <div className="h-4 w-1/2 animate-pulse rounded bg-muted" />
+              <div className="h-5 w-3/4 animate-pulse rounded bg-white/[0.08]" />
+              <div className="h-4 w-1/2 animate-pulse rounded bg-white/[0.08]" />
             </div>
           ) : (
             <>
-              <div className="flex min-w-0 items-start gap-2">
+              <div className="flex min-w-0 items-start gap-3">
                 {metadata?.favicon ? (
                   <img
                     alt=""
@@ -261,14 +264,14 @@ function BookmarkCard({ url }: { url: string }) {
                 ) : (
                   <ExternalLink
                     aria-hidden
-                    className="mt-1 size-4 shrink-0 text-muted-foreground"
+                    className={`mt-1 size-4 shrink-0 ${mutedTextClass}`}
                   />
                 )}
-                <h3 className="line-clamp-2 text-xl font-bold tracking-normal">
+                <h3 className="line-clamp-2 font-playfair text-2xl font-normal leading-tight tracking-normal">
                   {title}
                 </h3>
               </div>
-              <p className="mt-2 line-clamp-2 text-sm leading-6 text-muted-foreground">
+              <p className={`mt-3 line-clamp-2 font-vietnam text-sm leading-6 ${mutedTextClass}`}>
                 {description}
               </p>
             </>
@@ -293,7 +296,7 @@ function renderBlock(block: NotionBlock, index: number) {
 
       return (
         <p
-          className={["leading-relaxed", notionColorClass(paragraph?.color)]
+          className={[bodyTextClass, notionColorClass(paragraph?.color)]
             .filter(Boolean)
             .join(" ")}
           key={key}
@@ -312,7 +315,7 @@ function renderBlock(block: NotionBlock, index: number) {
       if (level === "1") {
         return (
           <h1
-            className="mb-6 mt-12 text-4xl font-bold tracking-normal text-primary md:text-5xl"
+            className="mb-6 mt-14 font-playfair text-[clamp(36px,5vw,64px)] font-normal leading-[1] tracking-normal text-[var(--text-color)]"
             key={key}
           >
             {content}
@@ -323,7 +326,7 @@ function renderBlock(block: NotionBlock, index: number) {
       if (level === "2") {
         return (
           <h2
-            className="mb-5 mt-10 text-3xl font-semibold tracking-normal text-primary md:text-4xl"
+            className="mb-5 mt-12 font-playfair text-[clamp(30px,3.8vw,48px)] font-normal leading-[1.05] tracking-normal text-[var(--accent)]"
             key={key}
           >
             {content}
@@ -333,7 +336,7 @@ function renderBlock(block: NotionBlock, index: number) {
 
       return (
         <h3
-          className="mb-4 mt-8 text-2xl font-medium tracking-normal text-primary md:text-3xl"
+          className="mb-4 mt-10 font-playfair text-[clamp(24px,2.8vw,34px)] font-normal leading-[1.08] tracking-normal text-[var(--text-color)]"
           key={key}
         >
           {content}
@@ -349,17 +352,17 @@ function renderBlock(block: NotionBlock, index: number) {
       }
 
       return (
-        <figure className="my-8" key={key}>
-          <div className="relative h-96 overflow-hidden bg-muted">
+        <figure className="my-10" key={key}>
+          <div className="relative aspect-[4/3] overflow-hidden rounded-[8px] border border-white/12 bg-white/[0.04]">
             <img
               alt={caption || "Blog post image"}
-              className="size-full rounded-lg object-cover shadow-md"
+              className="size-full object-cover"
               loading="lazy"
               src={imageUrl}
             />
           </div>
           {caption ? (
-            <figcaption className="mt-2 text-center text-sm text-gray-500">
+            <figcaption className={`mt-3 text-center font-vietnam text-xs ${mutedTextClass}`}>
               {caption}
             </figcaption>
           ) : null}
@@ -370,10 +373,11 @@ function renderBlock(block: NotionBlock, index: number) {
     case "bulleted_list_item": {
       const listType = block.type === "numbered_list_item" ? "ol" : "ul";
       const richText = richTextFrom(block[block.type]);
-      const className =
-        listType === "ol"
-          ? "mb-6 list-inside list-decimal space-y-2 pl-4"
-          : "mb-6 list-inside list-disc space-y-2 pl-4";
+      const className = [
+        "mb-6 space-y-2 pl-5",
+        bodyTextClass,
+        listType === "ol" ? "list-decimal" : "list-disc",
+      ].join(" ");
 
       if (listType === "ol") {
         return (
@@ -394,7 +398,7 @@ function renderBlock(block: NotionBlock, index: number) {
 
       return (
         <blockquote
-          className="my-6 rounded-r-lg border-l-4 border-primary py-2 pl-4"
+          className={`my-8 border-l border-[var(--accent)] bg-white/[0.035] py-4 pl-5 ${bodyTextClass}`}
           key={key}
         >
           {richText.map(renderRichText)}
@@ -402,13 +406,13 @@ function renderBlock(block: NotionBlock, index: number) {
       );
     }
     case "divider":
-      return <hr className="my-10 border-t-2 border-gray-200" key={key} />;
+      return <hr className="my-12 border-t border-white/12" key={key} />;
     case "code": {
       const code = richTextFrom(block.code).map(textContent).join("");
 
       return (
         <pre
-          className="my-6 w-full overflow-x-auto rounded-lg border bg-muted p-4 text-sm leading-6 md:w-auto md:text-base"
+          className="my-8 w-full overflow-x-auto rounded-[8px] border border-white/12 bg-black/35 p-5 font-mono text-sm leading-6 text-[var(--text-color)]"
           key={key}
         >
           <code>{code}</code>
@@ -420,7 +424,7 @@ function renderBlock(block: NotionBlock, index: number) {
 
       return (
         <div
-          className="my-6 rounded-lg bg-primary p-6 leading-relaxed text-primary-foreground shadow-md"
+          className={`my-8 rounded-[8px] border border-[color:var(--accent)] bg-[color:color-mix(in_srgb,var(--accent)_14%,transparent)] p-6 ${bodyTextClass}`}
           key={key}
         >
           {richText.map(renderRichText)}
@@ -440,7 +444,7 @@ function renderBlock(block: NotionBlock, index: number) {
 
       return (
         <div
-          className="my-8 aspect-video overflow-hidden border bg-muted"
+          className="my-10 aspect-video overflow-hidden rounded-[8px] border border-white/12 bg-white/[0.04]"
           key={key}
         >
           <iframe
@@ -472,13 +476,13 @@ function renderBlock(block: NotionBlock, index: number) {
 
       return (
         <a
-          className="my-6 flex items-center gap-2 border p-4 text-sm font-medium hover:bg-muted"
+          className="my-8 flex items-center gap-3 rounded-[8px] border border-white/12 bg-white/[0.04] p-5 font-vietnam text-sm font-medium text-[var(--text-color)] no-underline transition-colors hoverable:hover:bg-white/[0.07]"
           href={url}
           key={key}
           rel="noreferrer"
           target="_blank"
         >
-          <ExternalLink aria-hidden className="size-4" />
+          <ExternalLink aria-hidden className="size-4 text-[var(--accent)]" />
           {url}
         </a>
       );
@@ -488,27 +492,63 @@ function renderBlock(block: NotionBlock, index: number) {
   }
 }
 
+function isPlainTextHeading(paragraph: string, index: number) {
+  const words = paragraph.trim().split(/\s+/).filter(Boolean);
+
+  if (index === 0 || words.length > 10) {
+    return false;
+  }
+
+  return !/[.!?…]$/.test(paragraph.trim());
+}
+
+function renderPlainTextContent(text: string) {
+  const paragraphs = text
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+
+  return (
+    <div className="grid gap-6">
+      {paragraphs.map((paragraph, index) =>
+        isPlainTextHeading(paragraph, index) ? (
+          <h2
+            className="mt-8 font-playfair text-[clamp(30px,3.8vw,48px)] font-normal leading-[1.05] tracking-normal text-[var(--accent)]"
+            key={`${paragraph}-${index}`}
+          >
+            {paragraph}
+          </h2>
+        ) : (
+          <p className={bodyTextClass} key={`${paragraph}-${index}`}>
+            {paragraph}
+          </p>
+        ),
+      )}
+    </div>
+  );
+}
+
 export default function PostContent({ content }: PostContentProps) {
   const parsed = parseBlocks(content);
 
   if (parsed.blocks) {
     return (
-      <div className="grid gap-5 text-sm leading-7">
+      <div className="grid gap-6 font-vietnam">
         {parsed.blocks.map(renderBlock)}
       </div>
     );
   }
 
   if (parsed.text) {
-    return (
-      <div className="whitespace-pre-line text-sm leading-8">{parsed.text}</div>
-    );
+    return renderPlainTextContent(parsed.text);
   }
 
   return (
-    <div className="flex min-h-40 flex-col items-center justify-center gap-2 border bg-muted/30 text-center text-muted-foreground">
-      <PlayCircle aria-hidden className="size-7" />
-      <p className="text-sm">Nội dung bài viết đang được cập nhật.</p>
+    <div className="flex min-h-40 flex-col items-center justify-center gap-3 rounded-[8px] border border-white/12 bg-white/[0.035] text-center">
+      <PlayCircle aria-hidden className="size-7 text-[var(--accent)]" />
+      <p className={`font-vietnam text-sm ${mutedTextClass}`}>
+        Nội dung bài viết đang được cập nhật.
+      </p>
     </div>
   );
 }

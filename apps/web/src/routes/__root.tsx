@@ -165,12 +165,14 @@ function RootDocument() {
   // sees the regular header overlay and only the parts of the hero
   // that bleed through. So `/` joins the chrome-hidden set.
   const isLandingRoute = pathname === "/";
+  const isBlogRoute = pathname === "/bai-viet" || pathname.startsWith("/bai-viet/");
   const hideSiteChrome =
     isAuthRoute ||
     isAdminRoute ||
     isLegacyAdminRoute ||
     isStandaloneRoute ||
-    isLandingRoute;
+    isLandingRoute ||
+    isBlogRoute;
   const showSiteFooter = !hideSiteChrome;
 
   return (

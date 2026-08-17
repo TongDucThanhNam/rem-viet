@@ -1783,6 +1783,44 @@ This is local product evidence, not an external receipt.
 The requirement-by-requirement acceptance matrix is maintained in
 `docs/cms/v1-completion-audit.md`.
 
+## 2026-08-17 clean flagship staging activation
+
+The published candidate at
+`f71d096b65b67bf09ee587ed4abadf72f6ae1f7f` passed the exact root
+`bun run quality` gate, including secure build, package/consumer/upgrade and
+rollback suites, performance budgets, isolated desktop/mobile production-Worker
+journeys, and the `acme-demo` second-site proof. Local and remote `main` matched
+that SHA with a clean checkout.
+
+The staging deployment followed the guarded sequence: manifest dry-run, real
+preflight, provider-backed plan, pre-migration export, apply, and post-apply
+plan. The live D1 ledger contained migrations `0000` through `0008`; the plan's
+database update was confirmed to be the three additive `0009`–`0011` tables and
+indexes. The pre-migration export
+`rem-viet-staging-20260817T030216Z.sql` was 214,547 bytes with SHA-256
+`e74cf35bc03fd9fb6417740b1784fa90fff2bc475a5670c00f56f77dfd3f57ca`.
+Its isolated restore passed `integrity_check=ok`, found 26 tables, and matched
+the recorded page, revision, post, media, lead, and Web Vitals counts.
+
+Alchemy then updated D1 and the Worker while leaving R2 unchanged. The next
+provider-backed plan reported exactly three `noop` resources. Live health
+reports site `rem-viet`, stage `staging`, clean source commit
+`f71d096b65b67bf09ee587ed4abadf72f6ae1f7f`, and deploy-input SHA-256
+`96dd0b92bfc1c4ccfc6788a7c2da5c68c0fc868c1db9de7fc0c90e740f2ce47c`.
+D1 now records all 12 migrations. Public home, sitemap, and web manifest return
+HTTP 200; database health is `ok`. Overall health remains intentionally HTTP 503
+only because required email delivery is not configured.
+
+The GitHub scheduled-backup workflow remains byte-exact on default branch.
+`CMS_BACKUP_SITE=rem-viet`, `CMS_BACKUP_STAGE=production`, and the account ID
+variable are now configured and audit as shape-valid. The existing deployment
+token was not reused because its Worker/D1/R2 deployment authority is broader
+than a dedicated backup token. `CMS_BACKUP_CLOUDFLARE_API_TOKEN`, the first
+manual receipt, and the following weekly receipt remain open. A production
+export was attempted fail-closed and confirmed that no
+`rem-viet-db-production` resource exists yet; no resource was created or
+modified.
+
 ## External release gates — required before v1.0 tag
 
 These cannot be truthfully completed in the local repository alone:

@@ -1,5 +1,24 @@
 # Agency CMS Platform Kit — Master Plan
 
+> **Latest verified release checkpoint — 2026-08-17 03:06 UTC.** Published
+> `main`, `origin/main`, and the locally verified checkout all resolved to
+> `f71d096b65b67bf09ee587ed4abadf72f6ae1f7f`; the exact root `bun run quality`
+> gate passed on that SHA. The same clean commit was deployed to flagship
+> staging with deploy-input SHA-256
+> `96dd0b92bfc1c4ccfc6788a7c2da5c68c0fc868c1db9de7fc0c90e740f2ce47c`.
+> Live `/api/health` now matches site, stage, commit, input hash, and clean source
+> state; D1 contains all 12 canonical migrations and the post-apply Alchemy plan
+> is exactly Worker/D1/R2 `noop`. A pre-migration staging export restored in an
+> isolated local database with `integrity_check=ok`, 26 tables, exact critical
+> row counts, and artifact SHA-256
+> `e74cf35bc03fd9fb6417740b1784fa90fff2bc475a5670c00f56f77dfd3f57ca`.
+> The client-ready workflow is exact, registered, and active; the scheduled
+> backup workflow is exact, and its site/stage/account variables are configured.
+> The dedicated least-privilege backup token, manual/weekly receipts, Resend and
+> Cloudflare alert recipient/delivery, representative RUM, clean independent
+> Acme receipt, non-developer pilot, private-registry publication, paid-site
+> adoption, and final schema-v3 record remain mandatory external evidence.
+
 > Trạng thái có hai track độc lập:
 >
 > - **Track A — Rèm Việt reference implementation:** technical release candidate;

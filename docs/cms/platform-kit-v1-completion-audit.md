@@ -421,6 +421,17 @@ authoring evidence, not hosted or human evidence.
 
 ## Current live Track A readiness snapshot
 
+The following checkpoint supersedes the earlier pre-publication snapshots in
+this section. At `2026-08-17T03:06Z`, published/local `main` and the exact root
+quality run all matched
+`f71d096b65b67bf09ee587ed4abadf72f6ae1f7f`. That clean candidate is live on
+flagship staging with matching deploy-input identity, all 12 D1 migrations, and
+an exact Worker/D1/R2 `noop` post-apply plan. The staging-provenance and
+client-ready-workflow gates now pass. The scheduled-backup workflow is exact and
+three non-secret variables are configured; only the dedicated token plus manual
+and weekly receipts remain for that workflow. The aggregate remains `NOT READY`
+for the honest external gaps listed below.
+
 The fail-closed command was run against the documented Rèm Việt staging origin:
 
 ```bash
@@ -437,11 +448,11 @@ bun run release:readiness --site=rem-viet --stage=staging \
 - Operational alert policy exists, but a real dispatch receipt is missing.
 - `CLOUDFLARE_ALERT_EMAIL` is missing from the private environment.
 - Field data is below the 75-sample gate: CLS 0, LCP 1, INP 0.
-- Staging reports dirty/non-matching deployment provenance.
+- Staging reports clean, exact matching deployment provenance.
 - Deployed email notifications lack `RESEND_API_KEY`,
   `LEAD_NOTIFICATION_EMAIL`, and `EMAIL_FROM`.
 - `docs/releases/v1.0.0-client-ready.json` does not exist.
-- The release checkout is dirty.
+- The release checkout is clean and matches remote `main`.
 
 The aggregate now validates this live scope before repository inspection or any
 provider/GitHub child audit is started. It accepts only a safe manifest slug,
@@ -471,7 +482,8 @@ Publication was subsequently owner-authorized. Remote `main` reached
 `41fbd7eb4493342eef3b8946d255f9845e043b03`, and the read-only audit at
 `2026-08-17T02:06:10Z` proves the exact client-ready workflow registered and
 active. The backup workflow is exact on default branch but remains not ready
-because its four settings and both required receipts are absent. Pre-push object
+because its dedicated token and both required receipts are absent. Its three
+non-secret repository variables are now configured. Pre-push object
 inspection excluded an accidental 203 MB installer and generated local-provider
 databases from the unpublished range, retained the original tip on local branch
 `codex/pre-publication-cms-c8f9224`, and limited the published tree's largest
@@ -482,24 +494,21 @@ step, not the private-registry, provider, staging or human-evidence gates.
 
 ## Exact remaining completion sequence
 
-1. Rerun the exact root quality gate from the current clean published commit and
-   retain its matching provenance; the pre-publication candidate gate passed,
-   but is not substituted for clean-checkout evidence.
-2. Configure an agency-controlled private registry in the release environment,
+1. Configure an agency-controlled private registry in the release environment,
    run the exact-confirmation guarded publisher for eligible provenance, retain
    its verified eight-package registry receipt, and reinstall the released
    versions into Rèm Việt and an independent repo.
-3. Deploy that exact clean commit to independent staging; run
+2. Deploy that exact clean commit to independent staging; run
    `site:smoke:staging`, whose exact matrix includes the neutral provider suite
    through the authenticated deployed API in desktop Chrome plus separate mobile
    Chrome navigation and authoring checks; then run receipt-bound
    migration/rollback, backup, immutable archive, isolated restore,
    notification, and alert-dispatch drills.
-4. Collect at least 75 qualifying samples for CLS, LCP, and INP and meet the p75
+3. Collect at least 75 qualifying samples for CLS, LCP, and INP and meet the p75
    budgets.
-5. Run and attest the unassisted non-developer pilot; complete the schema-v3
+4. Run and attest the unassisted non-developer pilot; complete the schema-v3
    release record only with real receipts.
-6. Deliver two independent paid sites on the same released core and ship one
+5. Deliver two independent paid sites on the same released core and ship one
    core fix to both through the documented upgrade path.
 
 Until every step has authoritative evidence, the active goal and stable-1.0

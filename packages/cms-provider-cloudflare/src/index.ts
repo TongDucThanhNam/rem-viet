@@ -167,6 +167,43 @@ CREATE INDEX IF NOT EXISTS cms_review_events_document_idx
 CREATE UNIQUE INDEX IF NOT EXISTS cms_review_events_action_unique
   ON cms_review_events(document_type, document_id, version, action);`,
   },
+  {
+    id: "0006_generic_collections",
+    sql: `
+CREATE TABLE IF NOT EXISTS cms_collection_documents (
+  collection_slug TEXT NOT NULL,
+  id TEXT NOT NULL,
+  schema_version INTEGER NOT NULL,
+  version INTEGER NOT NULL DEFAULT 1,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+  data TEXT NOT NULL,
+  published_revision_id TEXT,
+  scheduled_at INTEGER,
+  updated_by TEXT NOT NULL DEFAULT '',
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  PRIMARY KEY (collection_slug, id)
+);
+CREATE INDEX IF NOT EXISTS cms_collection_documents_status_idx
+  ON cms_collection_documents(collection_slug, status, updated_at DESC);
+CREATE TABLE IF NOT EXISTS cms_collection_revisions (
+  id TEXT PRIMARY KEY,
+  collection_slug TEXT NOT NULL,
+  document_id TEXT NOT NULL,
+  schema_version INTEGER NOT NULL,
+  version INTEGER NOT NULL,
+  snapshot TEXT NOT NULL,
+  note TEXT NOT NULL DEFAULT '',
+  created_by TEXT NOT NULL DEFAULT '',
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY (collection_slug, document_id)
+    REFERENCES cms_collection_documents(collection_slug, id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS cms_collection_revisions_document_idx
+  ON cms_collection_revisions(collection_slug, document_id, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS cms_collection_revisions_version_unique
+  ON cms_collection_revisions(collection_slug, document_id, version);`,
+  },
 ] as const;
 
 async function ensureColumn(
@@ -1270,6 +1307,8 @@ export function createCloudflareCmsPageProvider<
 >(options: CloudflareCmsProviderOptions<TContent>) {
   return new CloudflareCmsPageProvider(options);
 }
+
+export * from "./collection.js";
 
 type GlobalRow = {
   key: string;

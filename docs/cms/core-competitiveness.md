@@ -75,3 +75,36 @@ Targeted verification:
 bun --cwd packages/cms-core test        # 16 pass, 0 fail
 bun --cwd packages/cms-core check-types # pass
 ```
+
+## CMP-004 — generic runtime and Cloudflare lifecycle
+
+Status: **Complete (2026-08-17).**
+
+- `@agency/cms-runtime` exposes registry-based collection CRUD, separate draft
+  and published reads, schedule/unschedule, publish/unpublish, immutable
+  revisions, restore, delete, and filtered/sorted/paginated list contracts.
+- The runtime includes capability-based access enforcement and a portable
+  lifecycle conformance scenario without application roles, D1, or React.
+- Cloudflare migration `0006_generic_collections` adds generic document and
+  revision envelopes. `CloudflareCmsCollectionProvider` uses the registry and
+  shared parser for every collection; there is no slug-specific provider switch.
+- Stored schema-v1 fixture data migrates through a registered schema-v2 chain on
+  read. Creates, saves, restores, and publishes validate fields and relationship
+  targets; stale writes return portable conflicts.
+- D1 conformance proves draft isolation, filters, pagination, scheduling,
+  publication, revisions, restore, dangling-reference rejection,
+  restrict/nullify deletion, and an authorization callback. Existing page,
+  global, media, review, Miniflare, and migration tests continue to pass.
+
+Decision record: `docs/adr/0031-generic-collection-storage-and-lifecycle.md`.
+
+Targeted verification:
+
+```text
+bun --cwd packages/cms-runtime test                    # 3 pass, 0 fail
+bun --cwd packages/cms-runtime check-types             # pass
+bun --cwd packages/cms-provider-cloudflare test        # 13 pass, 0 fail
+bun --cwd packages/cms-provider-cloudflare check-types # pass
+bun run cms:migrations:verify                          # pass (12 migrations)
+bun test scripts/cms-kit-boundaries.test.ts            # 20 pass, 0 fail
+```

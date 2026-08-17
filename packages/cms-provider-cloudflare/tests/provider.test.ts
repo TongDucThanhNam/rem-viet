@@ -1,6 +1,16 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { type CmsBlock, CmsError } from "@agency/cms-core";
 import {
+  type CmsBlock,
+  CmsError,
+  booleanField,
+  createCollectionRegistry,
+  defineCollection,
+  relationshipField,
+  textField,
+} from "@agency/cms-core";
+import {
+  assertCmsCollectionAccess,
+  runCollectionProviderConformance,
   runEditorialReviewProviderConformance,
   runGlobalContentProviderConformance,
   runPageProviderConformance,
@@ -10,6 +20,7 @@ import { convertV4MiniflareOptions, Miniflare } from "miniflare";
 
 import {
   applyCloudflareCmsMigrations,
+  createCloudflareCmsCollectionProvider,
   createCloudflareCmsGlobalContentProvider,
   createCloudflareCmsPageProvider,
   type CloudflareD1Database,
@@ -137,7 +148,7 @@ describe("Cloudflare D1 page provider", () => {
     const migrationCount = await empty
       .prepare("SELECT COUNT(*) AS count FROM cms_provider_migrations")
       .first<{ count: number }>();
-    expect(Number(migrationCount?.count)).toBe(5);
+    expect(Number(migrationCount?.count)).toBe(6);
 
     const upgraded = database();
     await upgraded.exec(`
@@ -170,6 +181,9 @@ describe("Cloudflare D1 page provider", () => {
     await expect(
       upgraded.prepare("SELECT id FROM cms_review_events").all(),
     ).resolves.toEqual({ results: [] });
+    await expect(
+      upgraded.prepare("SELECT id FROM cms_collection_documents").all(),
+    ).resolves.toEqual({ results: [] });
     const upgradedColumns = await upgraded
       .prepare("PRAGMA table_info(pages)")
       .all<{ name: string }>();
@@ -181,6 +195,237 @@ describe("Cloudflare D1 page provider", () => {
         "schedule_note",
       ]),
     );
+  });
+
+  test("passes generic collection lifecycle, query, relationship, and permission conformance", async () => {
+    const db = database();
+    await applyCloudflareCmsMigrations(db);
+    const lifecycle = {
+      drafts: true,
+      revisions: true,
+      scheduling: true,
+    } as const;
+    const access = {
+      read: [] as const,
+      create: ["content.write"] as const,
+      update: ["content.write"] as const,
+      delete: ["content.delete"] as const,
+      publish: ["content.publish"] as const,
+    };
+    const authors = defineCollection({
+      slug: "provider-authors",
+      labels: { singular: "Author", plural: "Authors" },
+      schemaVersion: 1,
+      lifecycle,
+      access,
+      fields: [textField({ name: "name", label: "Name", required: true })],
+    });
+    const articles = defineCollection({
+      slug: "provider-articles",
+      labels: { singular: "Article", plural: "Articles" },
+      schemaVersion: 1,
+      lifecycle,
+      access,
+      fields: [
+        textField({ name: "title", label: "Title", required: true }),
+        booleanField({
+          name: "featured",
+          label: "Featured",
+          defaultValue: false,
+        }),
+        relationshipField({
+          name: "author",
+          label: "Author",
+          relationTo: "provider-authors",
+          hasMany: false,
+          required: true,
+          onDelete: "restrict",
+        }),
+        relationshipField({
+          name: "contributors",
+          label: "Contributors",
+          relationTo: "provider-authors",
+          hasMany: true,
+          defaultValue: [],
+          onDelete: "nullify",
+        }),
+      ],
+    });
+    const registry = createCollectionRegistry([authors, articles] as const);
+    let sequence = 0;
+    const provider = createCloudflareCmsCollectionProvider({
+      database: db,
+      registry,
+      createId: () => `collection-id-${++sequence}`,
+      now: () => new Date("2026-08-17T00:00:00.000Z"),
+    });
+    await provider.createDraft({
+      collection: authors.slug,
+      id: "author-1",
+      data: { name: "First Author" },
+      actorId: "editor",
+    });
+
+    const conformance = await runCollectionProviderConformance({
+      provider,
+      collection: articles.slug,
+      initial: {
+        title: "Initial collection article",
+        featured: true,
+        author: "author-1",
+      },
+      changed: {
+        title: "Changed collection article",
+        featured: false,
+        author: "author-1",
+      },
+      filter: { field: "featured", operator: "equals", value: true },
+    });
+    expect(conformance).toEqual({
+      draftIsolation: true,
+      filteredPagination: true,
+      optimisticConflict: true,
+      publish: true,
+      revisionRestore: true,
+      scheduling: true,
+    });
+
+    await expect(
+      provider.createDraft({
+        collection: articles.slug,
+        id: "dangling",
+        data: { title: "Dangling", author: "missing" },
+        actorId: "editor",
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
+
+    const author2 = await provider.createDraft({
+      collection: authors.slug,
+      id: "author-2",
+      data: { name: "Second Author" },
+      actorId: "editor",
+    });
+    await provider.createDraft({
+      collection: authors.slug,
+      id: "author-3",
+      data: { name: "Third Author" },
+      actorId: "editor",
+    });
+    const reference = await provider.createDraft({
+      collection: articles.slug,
+      id: "reference-policy",
+      data: {
+        title: "Reference policies",
+        author: "author-2",
+        contributors: ["author-3"],
+      },
+      actorId: "editor",
+    });
+    await expect(
+      provider.delete({
+        collection: authors.slug,
+        id: "author-2",
+        expectedVersion: author2.version,
+        actorId: "editor",
+      }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+    await provider.saveDraft({
+      collection: articles.slug,
+      id: reference.id,
+      expectedVersion: reference.version,
+      data: {
+        title: "Reference policies",
+        author: "author-3",
+        contributors: ["author-2"],
+      },
+      actorId: "editor",
+    });
+    await provider.delete({
+      collection: authors.slug,
+      id: "author-2",
+      expectedVersion: author2.version,
+      actorId: "editor",
+    });
+    await expect(
+      provider.getDraft({ collection: articles.slug, id: reference.id }),
+    ).resolves.toMatchObject({ data: { contributors: [] } });
+    expect(author2.data).toEqual({ name: "Second Author" });
+
+    const authorized = createCloudflareCmsCollectionProvider({
+      database: db,
+      registry,
+      authorize: ({ action, collection, actorId }) =>
+        assertCmsCollectionAccess(
+          collection,
+          action,
+          actorId === "editor" ? ["content.write"] : [],
+        ),
+    });
+    await expect(
+      authorized.createDraft({
+        collection: authors.slug,
+        id: "forbidden-author",
+        data: { name: "Forbidden" },
+        actorId: "viewer",
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    await expect(
+      authorized.createDraft({
+        collection: authors.slug,
+        id: "permitted-author",
+        data: { name: "Permitted" },
+        actorId: "editor",
+      }),
+    ).resolves.toMatchObject({ data: { name: "Permitted" } });
+  });
+
+  test("migrates stored collection snapshots through the registered schema", async () => {
+    const db = database();
+    await applyCloudflareCmsMigrations(db);
+    const legacy = defineCollection({
+      slug: "legacy-records",
+      labels: { singular: "Legacy record", plural: "Legacy records" },
+      schemaVersion: 2,
+      lifecycle: { drafts: true, revisions: true, scheduling: false },
+      access: {
+        read: [],
+        create: ["content.write"],
+        update: ["content.write"],
+        delete: ["content.delete"],
+        publish: ["content.publish"],
+      },
+      fields: [
+        textField({ name: "title", label: "Title", required: true }),
+        textField({ name: "summary", label: "Summary", required: true }),
+      ],
+      migrations: [
+        {
+          from: 1,
+          to: 2,
+          migrate: (data) => ({ ...(data as object), summary: "Migrated" }),
+        },
+      ],
+    });
+    const provider = createCloudflareCmsCollectionProvider({
+      database: db,
+      registry: createCollectionRegistry([legacy]),
+    });
+    await db
+      .prepare(
+        `INSERT INTO cms_collection_documents (
+          collection_slug, id, schema_version, version, status, data,
+          updated_by, created_at, updated_at
+        ) VALUES (?, ?, 1, 1, 'draft', ?, '', 0, 0)`,
+      )
+      .bind(legacy.slug, "legacy-1", JSON.stringify({ title: "Before" }))
+      .run();
+
+    await expect(
+      provider.getDraft({ collection: legacy.slug, id: "legacy-1" }),
+    ).resolves.toMatchObject({
+      schemaVersion: 2,
+      data: { title: "Before", summary: "Migrated" },
+    });
   });
 
   test("passes versioned global settings and navigation conformance", async () => {

@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { type CmsBlock } from "@agency/cms-core";
 
 import {
+  assertCmsCollectionAccess,
   createCmsPageRuntime,
   deriveCmsEditorialReviewState,
   type CmsPageContent,
@@ -68,5 +69,30 @@ describe("CMS page runtime", () => {
         ],
       ),
     ).toMatchObject({ status: "approved", stale: false, published: true });
+  });
+});
+
+describe("CMS collection runtime contracts", () => {
+  test("enforces collection capability metadata without role coupling", () => {
+    const collection = {
+      slug: "articles",
+      access: {
+        read: [],
+        create: ["content.write"],
+        update: ["content.write"],
+        delete: ["content.delete"],
+        publish: ["content.publish"],
+      },
+    } as Parameters<typeof assertCmsCollectionAccess>[0];
+
+    expect(() =>
+      assertCmsCollectionAccess(collection, "read", []),
+    ).not.toThrow();
+    expect(() =>
+      assertCmsCollectionAccess(collection, "publish", ["content.write"]),
+    ).toThrowError(/Missing capabilities/);
+    expect(() =>
+      assertCmsCollectionAccess(collection, "publish", ["content.publish"]),
+    ).not.toThrow();
   });
 });

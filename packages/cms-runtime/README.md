@@ -5,6 +5,13 @@ published revisions. The package exposes small reader, writer, and publishing
 interfaces plus a conformance scenario. It does not expose persistence tables,
 provider SDKs, application routes, or UI components.
 
+The generic collection runtime composes a consumer registry with CRUD,
+draft/published reads, scheduling, immutable revisions, restore, delete, and
+filtered/paginated list ports. `assertCmsCollectionAccess()` evaluates the
+capability metadata declared by the collection without owning application roles,
+and `runCollectionProviderConformance()` exercises the shared lifecycle against
+any provider.
+
 The runtime also exposes media/global-content ports and a version-bound
 editorial review workflow. Review state is derived from newest-first immutable
 events: intervening saves make a request stale, reviewer decisions never

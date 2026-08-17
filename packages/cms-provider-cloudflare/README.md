@@ -22,3 +22,12 @@ Optional block/revision encoders preserve an application's existing storage
 shape during additive migration. Applications may also contribute prepared D1
 mutation statements, allowing compatibility metadata or audit writes to share
 the provider batch without coupling this package to a specific audit schema.
+
+Migration `0006_generic_collections` adds provider-owned document and immutable
+revision tables keyed by registered collection slug. The generic collection
+provider has no collection-specific switch: it migrates stored snapshots through
+the registry, applies shared field validation/defaults, verifies relationship
+targets, keeps drafts isolated behind published revision pointers, supports
+filtered/paginated reads, and enforces restrict/nullify reference behavior on
+delete. An optional authorization callback binds neutral collection actions to a
+consumer's permission system.

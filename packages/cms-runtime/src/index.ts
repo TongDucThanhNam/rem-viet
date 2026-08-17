@@ -9,6 +9,8 @@ import {
   type RequestCmsEditorialReviewInput,
 } from "@agency/cms-core";
 
+export * from "./collections.js";
+
 export type CmsPageTemplate = "landing" | "standard";
 
 export type CmsSeoFields = {

@@ -1642,6 +1642,20 @@ authenticated E2E selectors surfaced by its first run. This is local candidate
 evidence only; no commit, push, repository setting, dispatch or receipt was
 created.
 
+Explicit publication authorization then advanced remote `main` to
+`41fbd7eb4493342eef3b8946d255f9845e043b03`. A pre-push object audit stopped
+the first transfer before remote mutation when the older unpublished range was
+found to contain a 203 MB installer and generated Alchemy/Miniflare databases.
+The exact original state remains recoverable on local branch
+`codex/pre-publication-cms-c8f9224`; the published fast-forward excludes and
+ignores those artifacts. The final read-only workflow audit at
+`2026-08-17T02:06:10Z` proves the client-ready contract exact, registered and
+active. The backup workflow is exact on default branch, while its four settings
+and manual/weekly receipts remain absent. GitHub's 22 dependency alerts all
+mapped to an unused source-less legacy manifest; deleting it reduced the open
+alert count to zero, with frozen install unchanged and high-severity/client
+secret audits still green.
+
 The performance command center now adds real diagnostic context: an equal prior
 period, route discovery, device coverage, sample runway and metric-specific next
 checks. No chart or trend is synthesized when history is absent. A signed-in

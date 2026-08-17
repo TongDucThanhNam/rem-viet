@@ -29,6 +29,14 @@
 - Secondary-site deployment loads only `sites/<site>/.env` (plus root
   Cloudflare credentials) and fails before provisioning when its private env or
   required auth bindings are absent; it cannot inherit the flagship app env.
+- The 2026-08-17 default-branch publication surfaced 22 GitHub Dependabot alerts
+  (9 high, 11 moderate, 2 low), all attached to the unused, source-less
+  `packages/shared-config` manifest and its legacy Next 14/Sharp dependencies.
+  No workspace source, script or documentation referenced that package. The
+  manifest was removed instead of carrying upgraded dead dependencies; GitHub
+  then reported zero open alerts. `bun install --frozen-lockfile` made no
+  lockfile change, `bun audit --audit-level high` passed, and the client-secret
+  audit remained clean.
 
 ## Accepted non-P0/P1 findings
 

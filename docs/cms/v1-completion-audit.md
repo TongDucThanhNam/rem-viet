@@ -737,6 +737,19 @@ no manual/weekly receipt exists. No commit, push, external configuration or
 dispatch was performed, so this is local release-candidate evidence rather than
 client-ready activation.
 
+Owner-authorized publication has now closed the workflow-registration portion
+of that gap. Remote `main` reached
+`41fbd7eb4493342eef3b8946d255f9845e043b03`; the read-only audit at
+`2026-08-17T02:06:10Z` proves the exact client-ready workflow present,
+registered and active. The exact scheduled-backup workflow is also on default
+branch, but its four settings plus manual and weekly receipts are still absent.
+Pre-push inspection excluded an accidental 203 MB installer and generated local
+provider databases from the unpublished history while preserving the original
+tip on `codex/pre-publication-cms-c8f9224`. The push also exposed 22 alerts from
+one unused legacy manifest; removing it reduced GitHub's open alert count to
+zero, with frozen install unchanged and both high-severity and client-secret
+audits passing. The remaining evidence below is still mandatory.
+
 ## Evidence still required for client-ready
 
 1. Configure Resend and prove exactly-once lead notification plus operational
@@ -775,9 +788,9 @@ client-ready activation.
    export with `site:backup:archive`; the staging archive proves the transport,
    not the production timing requirement. Configure the scheduled-backup
    repository variables/dedicated secret, pass `site:backup:github:audit`, and
-   retain both a green manual dispatch and the next weekly receipt. Publish the
-   client-ready workflow to default branch, require `release:github:audit` to
-   prove its exact bytes and active Actions registration, then rotate production
-   secrets, rerun the dependency/security review, complete
+   retain both a green manual dispatch and the next weekly receipt. Keep the
+   published client-ready workflow byte-exact and require
+   `release:github:audit` to keep proving active Actions registration, then
+   rotate production secrets, rerun the dependency/security review, complete
    `docs/releases/v1.0.0-client-ready.json`, and only tag after
    `bun run release:verify` passes from the exact clean release commit.

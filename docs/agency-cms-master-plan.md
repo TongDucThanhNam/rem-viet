@@ -1175,6 +1175,25 @@ lịch sử của công việc đã tạo ra capability hiện có; status/evide
 > proves a locally verified release candidate, not remote activation: no commit,
 > push, secret/configuration write, workflow dispatch or receipt was created.
 >
+> **M7 publication activation evidence, 2026-08-17:**
+> With explicit owner authorization, the candidate was committed and published
+> to remote `main`. Pre-push object inspection found a 203 MB local VS Code
+> installer and generated Alchemy/Miniflare backup databases in the older,
+> unpublished local range; the transfer was stopped before any remote mutation,
+> the exact state was preserved on local branch
+> `codex/pre-publication-cms-c8f9224`, and `main` was rebuilt as a safe
+> fast-forward with those artifacts ignored and untracked. Remote `main` then
+> reached `41fbd7eb4493342eef3b8946d255f9845e043b03`. At
+> `2026-08-17T02:06:10Z`, `release:github:audit` reports the exact client-ready
+> workflow present, registered and active. The scheduled-backup workflow is also
+> exact on the default branch, but its four repository settings and both
+> manual/weekly receipts remain absent, so that gate correctly exits `2`. The
+> first push also surfaced 22 GitHub alerts, all from one unused source-less
+> legacy `packages/shared-config` manifest; removing it closed all 22 alerts.
+> Frozen install made no lockfile change, Bun's high-severity audit and the
+> client-secret audit pass. Publication closes workflow registration, not the
+> provider configuration, staging, RUM, pilot or receipt gates.
+>
 > **M3 stable visual identity evidence, 2026-08-17:**
 > Standard-page blocks now persist bounded stable IDs through the flattened app
 > schema, provider draft codec and immutable revisions. Legacy rows without an

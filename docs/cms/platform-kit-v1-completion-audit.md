@@ -463,14 +463,28 @@ registered, the four scheduled-backup settings are absent,
 and no manual/weekly receipt exists. The exact root `bun run quality` then
 passed end to end locally after fixing the dashboard contrast and
 authenticated-E2E selector defects its first run exposed. No commit, push,
-external configuration or dispatch was performed. The candidate is locally
-verified, while Track A activation remains blocked on publication and provider
-receipts.
+external configuration or dispatch was performed. At that checkpoint, the
+candidate was locally verified while Track A activation remained blocked on
+publication and provider receipts.
+
+Publication was subsequently owner-authorized. Remote `main` reached
+`41fbd7eb4493342eef3b8946d255f9845e043b03`, and the read-only audit at
+`2026-08-17T02:06:10Z` proves the exact client-ready workflow registered and
+active. The backup workflow is exact on default branch but remains not ready
+because its four settings and both required receipts are absent. Pre-push object
+inspection excluded an accidental 203 MB installer and generated local-provider
+databases from the unpublished range, retained the original tip on local branch
+`codex/pre-publication-cms-c8f9224`, and limited the published tree's largest
+blob to 7 MB. Removing one unused legacy manifest also reduced the 22 GitHub
+dependency alerts exposed by the push to zero; frozen install and both security
+audits remain green. Publication therefore closes the repository-activation
+step, not the private-registry, provider, staging or human-evidence gates.
 
 ## Exact remaining completion sequence
 
-1. Review and commit the complete candidate without discarding unrelated user
-   work; rerun all gates from a clean checkout.
+1. Rerun the exact root quality gate from the current clean published commit and
+   retain its matching provenance; the pre-publication candidate gate passed,
+   but is not substituted for clean-checkout evidence.
 2. Configure an agency-controlled private registry in the release environment,
    run the exact-confirmation guarded publisher for eligible provenance, retain
    its verified eight-package registry receipt, and reinstall the released

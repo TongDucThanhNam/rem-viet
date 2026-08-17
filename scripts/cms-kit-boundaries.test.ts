@@ -607,6 +607,10 @@ describe("Platform Kit package boundaries", () => {
       join(root, "packages", "cms-core", "src", "index.ts"),
       "utf8",
     );
+    const corePrimitives = readFileSync(
+      join(root, "packages", "cms-core", "src", "primitives.ts"),
+      "utf8",
+    );
     const runtime = readFileSync(
       join(root, "packages", "cms-runtime", "src", "index.ts"),
       "utf8",
@@ -642,7 +646,7 @@ describe("Platform Kit package boundaries", () => {
     );
 
     expect(core).toContain("cmsEditorialReviewTargetSchema");
-    expect(core).toContain('"content.review.request"');
+    expect(corePrimitives).toContain('"content.review.request"');
     expect(runtime).toContain("CmsEditorialReviewWorkflow");
     expect(runtime).toContain("runEditorialReviewProviderConformance");
     expect(provider).toContain('id: "0005_editorial_reviews"');

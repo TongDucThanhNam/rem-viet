@@ -1,8 +1,31 @@
 # Agency CMS Platform Kit — Master Plan
 
-> **Latest verified release checkpoint — 2026-08-17 03:06 UTC.** Published
+> **Core-first scope decision — 2026-08-17.** The active build goal is now the
+> CMS product itself: a competitive, code-owned alternative for the agency use
+> cases currently served by WordPress and Payload CMS. Product capability is
+> evaluated independently from production operations and commercial evidence.
+> Backup activation, email delivery, alert receipts, representative RUM,
+> registry publication, human-pilot receipts and paid-site adoption remain
+> useful release/operations evidence, but they do **not** block the core CMS
+> build. When an older status note in this document mixes those concerns, this
+> scope decision takes precedence.
+>
+> The active priority order is:
+>
+> 1. code-first collections and typed field contracts;
+> 2. relationships and reusable globals;
+> 3. generated authoring UI on the existing premium workflow shell;
+> 4. safe extension hooks/modules;
+> 5. localization and portable content APIs/import-export.
+>
+> Existing visual composition, live preview, click-to-edit, draft/publish,
+> scheduling, immutable revisions, restore, media, roles, SEO, audit and
+> optimistic conflict protection are the baseline to preserve, not backlog to
+> rebuild.
+
+> **Latest verified release checkpoint — 2026-08-17 03:23 UTC.** Published
 > `main`, `origin/main`, and the locally verified checkout all resolved to
-> `f71d096b65b67bf09ee587ed4abadf72f6ae1f7f`; the exact root `bun run quality`
+> `875f941af070af2a41cb2361ad39c10445f90408`; the exact root `bun run quality`
 > gate passed on that SHA. The same clean commit was deployed to flagship
 > staging with deploy-input SHA-256
 > `96dd0b92bfc1c4ccfc6788a7c2da5c68c0fc868c1db9de7fc0c90e740f2ce47c`.
@@ -17,7 +40,8 @@
 > The dedicated least-privilege backup token, manual/weekly receipts, Resend and
 > Cloudflare alert recipient/delivery, representative RUM, clean independent
 > Acme receipt, non-developer pilot, private-registry publication, paid-site
-> adoption, and final schema-v3 record remain mandatory external evidence.
+> adoption, and final schema-v3 record remain external release-readiness
+> evidence; they are not blockers for core CMS capability work.
 
 > Trạng thái có hai track độc lập:
 >
@@ -522,6 +546,29 @@ brand guideline và nội dung rồi đưa một website riêng biệt lên prod
 tối đa hai ngày. Sau bàn giao, khách tự sửa được ít nhất 90% nội dung thường
 xuyên mà không cần developer; agency có thể nâng cấp core mà không phải merge
 lại một fork Rèm Việt hoặc viết lại CMS cho từng khách.
+
+### Core-first competitive target
+
+The goal is not feature-count parity with every WordPress plugin or every
+Payload deployment option. The goal is to combine WordPress's practical content
+model extensibility with Payload's code-first type safety while keeping the
+visual, design-constrained authoring experience already proven by Rèm Việt.
+
+| Competitive surface                               | Core target for Platform Kit                                                                                          | Status                                  |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
+| WordPress custom post types / Payload collections | A code-first collection registry with stable slugs, labels, access rules and versioned schemas                        | **Active next milestone**               |
+| Custom fields / Payload fields                    | Typed text, rich text, number, boolean, date, select, media, blocks and relationship contracts with shared validation | **Active next milestone**               |
+| Relationships and reusable data                   | Typed to-one/to-many references plus globals, integrity checks and authoring pickers                                  | **Active next milestone**               |
+| Gutenberg / Payload Live Preview                  | Bounded visual composition, responsive draft canvas, click-to-edit and exact inspector focus                          | Implemented                             |
+| Drafts, versions and publishing                   | Draft isolation, autosave, schedule, publish, immutable revisions, restore and conflict protection                    | Implemented                             |
+| Media and permissions                             | R2 media lifecycle, reference-safe delete, alt policy, owner/admin/editor enforcement and audit                       | Implemented                             |
+| WordPress plugins / Payload hooks                 | Safe, typed feature modules and lifecycle hooks; no arbitrary runtime code installed by editors                       | Planned after collection vertical slice |
+| Localization                                      | Locale-aware fields/documents, preview and independent publication state                                              | Planned                                 |
+| REST/Local API and portability                    | Typed server SDK, bounded REST resources and schema-aware import/export                                               | Planned                                 |
+
+Explicit non-goals remain a public plugin marketplace, arbitrary PHP/JS/CSS,
+free-form Elementor-style layout editing, multi-tenant SaaS and automatic
+GraphQL generation before a real consumer requires it.
 
 ### Mô hình triển khai được chốt
 
@@ -1123,11 +1170,31 @@ không chờ external receipt của Rèm Việt mới bắt đầu extraction an
 7. Core release dùng semantic version, compatibility matrix và migration notes;
    client theme có upgrade window riêng nhưng không được fork core vô thời hạn.
 
-## 11. Roadmap phát hành — hai track
+## 11. Roadmap — core product and release evidence
 
-Không dùng cùng một version hoặc Definition of Done cho reference site và
-Platform Kit. `v1.0.0-client-ready` chứng minh một site có thể bàn giao an toàn;
-nó không tự động biến monorepo thành `Agency CMS Platform Kit v1.0`.
+Không dùng cùng một version hoặc Definition of Done cho core CMS capability,
+reference-site release readiness và commercial validation.
+`v1.0.0-client-ready` chứng minh một site có thể bàn giao an toàn; nó không tự
+động biến monorepo thành `Agency CMS Platform Kit v1.0`. Ngược lại, thiếu một
+receipt vận hành không biến capability core đã implement/test thành chưa xây.
+
+### Track C — Core CMS competitiveness (active)
+
+Track này là critical path hiện tại. Track A/B bên dưới tiếp tục giữ lịch sử và
+release evidence nhưng không được chen các receipt bên ngoài vào backlog build
+core.
+
+| Milestone                       | Kết quả                                                                                       | Trạng thái      |
+| ------------------------------- | --------------------------------------------------------------------------------------------- | --------------- |
+| C0 — Premium authoring baseline | Visual canvas, composition, preview, workflow, revisions, media, roles and audit              | Implemented     |
+| C1 — Content model registry     | Code-first collections, fields, relationships and schema versions                             | **In progress** |
+| C2 — Generated collection admin | List/create/edit/filter forms generated from the registry and extensible by template field UX | Next            |
+| C3 — Extension surface          | Typed hooks and feature modules without modifying core switches                               | Planned         |
+| C4 — Locale and portability     | Locale-aware lifecycle, typed content API and schema-aware import/export                      | Planned         |
+
+Track C exits when a new collection with a relationship can be registered in a
+consumer, persisted by the reference provider, edited in generated admin UI,
+queried through the public SDK and migrated without editing a core switch.
 
 ### Track A — Reference implementation/client-ready
 
@@ -1622,6 +1689,28 @@ Thêm formatter/lint/test command vào root khi test harness được chốt ở
 - E2E: lead submission và status update.
 - E2E: sitemap không chứa draft/preview.
 
+### Core competitive gates
+
+- Collection/field/relationship contracts are React-, database- and
+  provider-neutral in `cms-core`.
+- A consumer adds a collection without modifying a core route, renderer or
+  provider type switch.
+- The same definition drives validation, generated admin controls, provider
+  persistence tests and typed SDK output.
+- Relationship targets are explicit; invalid or dangling required references
+  fail closed.
+- Generated authoring UI remains keyboard accessible and permits a template to
+  replace individual field controls without forking the workflow shell.
+- Extension hooks are ordered, typed, bounded and covered by failure-isolation
+  tests; editors cannot install or execute arbitrary code.
+- Locale-aware drafts and published snapshots cannot leak across locales.
+- Import/export validates kit/schema versions and produces a reviewable plan
+  before writes.
+
+These gates define whether the core CMS is competitive. The release gates below
+define whether a particular deployment is ready to hand over or operate; they
+do not block Track C implementation status.
+
 ### Release gates
 
 - Typecheck/build/tests pass từ clean checkout.
@@ -1718,6 +1807,31 @@ phải rollback được và không phụ thuộc external Track A receipts đ�
 
 ## 16. Definition of Done
 
+### Core CMS competitive baseline
+
+The core product is competitive for the agency's WordPress/Payload use case
+when all of the following are true:
+
+- A developer defines a versioned collection and its fields through public,
+  code-first package APIs.
+- Text, rich text, media, select, date, blocks and relationship fields share
+  validation between writes, migrations and authoring UI.
+- To-one and to-many relationships have typed targets, usable pickers and
+  provider-enforced integrity behavior.
+- The admin shell generates collection list/create/edit/filter experiences and
+  still allows template-owned field components for premium UX.
+- Draft, preview, schedule, publish, revision, restore, permissions and audit
+  behavior apply to registered collections through capability negotiation.
+- A typed extension module can register fields, collection behavior and
+  lifecycle hooks without patching the core package.
+- Locale-aware content and schema-aware import/export are proven on at least one
+  non-Rèm Việt consumer fixture.
+- Adding the feature requires no application-brand import and no duplicated
+  provider/admin switch.
+
+Operations receipts and paid-site adoption are not part of this core baseline;
+they belong to the deployment and commercial definitions below.
+
 ### Track A — một client site sẵn sàng bàn giao
 
 Không gọi một site là `client-ready` nếu thiếu bất kỳ điều kiện nào sau đây:
@@ -1754,7 +1868,45 @@ Không gọi Platform Kit là stable/reusable chỉ vì Rèm Việt hoặc `acme
 - Agency có installation, template authoring, upgrade, incident và client
   handover documentation; support boundary gắn với commercial offering.
 
-## 17. Backlog hiện tại — 14 ngày productization đầu tiên
+## 17. Backlog hiện tại — core competitiveness
+
+Only this first list is active product work. Operational receipts, notification
+providers, production monitoring and paid-site evidence stay in their audits
+and release tracks; they are not allowed to displace these items.
+
+1. `CMP-001` — Define provider-neutral collection, field and schema-version
+   contracts in `@agency/cms-core`.
+2. `CMP-002` — Add typed scalar, rich-text, media, blocks and select fields with
+   defaults, validation metadata and conditional visibility.
+3. `CMP-003` — Add explicit to-one/to-many relationship contracts, target
+   validation and reference-integrity conformance fixtures.
+4. `CMP-004` — Extend runtime/provider ports for generic collection CRUD,
+   draft/publish/version lifecycle and filtered/paginated queries.
+5. `CMP-005` — Generate accessible list/create/edit/filter admin surfaces from
+   the collection registry with per-field component overrides.
+6. `CMP-006` — Move one real Rèm Việt content type through the complete generic
+   path without changing its public behavior; prove the same path in Acme.
+7. `CMP-007` — Add ordered, typed lifecycle hooks and installable feature-module
+   registration with isolation and permission tests.
+8. `CMP-008` — Add locale-aware field/document lifecycle and independent
+   preview/publish state.
+9. `CMP-009` — Add typed server SDK, bounded REST resources and schema-aware,
+   dry-run-first import/export.
+
+Priority is strict: `CMP-001` through `CMP-006` are P0 and must produce one
+working vertical slice before hooks, localization or additional APIs expand the
+surface.
+
+| Milestone | Status                    | Execution evidence                                               |
+| --------- | ------------------------- | ---------------------------------------------------------------- |
+| `CMP-001` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-001--collection-contracts` |
+| `CMP-002` | In progress               | Typed field contracts and shared validation                      |
+| `CMP-003` | Pending                   | Relationships and integrity conformance                          |
+| `CMP-004` | Pending                   | Generic provider lifecycle                                       |
+| `CMP-005` | Pending                   | Registry-generated admin                                         |
+| `CMP-006` | Pending                   | Rèm Việt plus independent Acme proof                             |
+
+### Historical 14-day productization backlog
 
 Technical status on 2026-08-16: `KIT-001` through `KIT-014` pass for the
 Hero/FAQ vertical slice. Evidence and the conditional go/no-go decision are in

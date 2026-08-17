@@ -5,6 +5,7 @@ import {
   assertSafeE2eStateDirectory,
   e2eStateDirectoryPrefix,
   localE2eResourceNames,
+  localE2ePlaywrightRuns,
   localE2eWranglerConfig,
   parseLocalE2eInvocation,
 } from "./e2e-local-lib";
@@ -64,6 +65,19 @@ describe("isolated local E2E persistence", () => {
     expect(() => parseLocalE2eInvocation(["--site=../unsafe"])).toThrow(
       /safe client slug/,
     );
+  });
+
+  test("isolates browser projects behind separate local Worker runs", () => {
+    expect(localE2ePlaywrightRuns(["--grep", "visual authoring"])).toEqual([
+      ["--grep", "visual authoring", "--project=desktop-chrome"],
+      ["--grep", "visual authoring", "--project=mobile-chrome"],
+    ]);
+    expect(
+      localE2ePlaywrightRuns(["--project=desktop-chrome", "--grep", "media"]),
+    ).toEqual([["--project=desktop-chrome", "--grep", "media"]]);
+    expect(
+      localE2ePlaywrightRuns(["--project", "mobile-chrome", "--grep", "media"]),
+    ).toEqual([["--project", "mobile-chrome", "--grep", "media"]]);
   });
 
   test("derives an isolated Worker, D1 and R2 configuration from the manifest", () => {

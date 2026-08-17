@@ -6,6 +6,7 @@ import { pageRevisionSnapshotSchema } from "../packages/cms/src";
 import {
   assertSafeE2eStateDirectory,
   e2eStateDirectoryPrefix,
+  localE2ePlaywrightRuns,
   localE2eResourceNames,
   localE2eWranglerConfig,
   parseLocalE2eInvocation,
@@ -227,6 +228,37 @@ const persistenceDirectory = assertSafeE2eStateDirectory(
 );
 const wranglerConfigPath = join(persistenceDirectory, "wrangler.e2e.json");
 
+async function startServer() {
+  server = Bun.spawn(
+    [
+      "node",
+      wranglerBin,
+      "dev",
+      "--config",
+      wranglerConfigPath,
+      "--port",
+      "3020",
+      "--persist-to",
+      persistenceDirectory,
+      "--var",
+      "CORS_ORIGIN:http://127.0.0.1:3020",
+      "--var",
+      "BETTER_AUTH_URL:http://127.0.0.1:3020",
+      "--var",
+      "BETTER_AUTH_SECRET:e2e-only-secret-never-use-in-production",
+    ],
+    { cwd: repoRoot, env: Bun.env, stderr: "inherit", stdout: "inherit" },
+  );
+  await waitForServer(server);
+}
+
+async function stopServer() {
+  if (!server) return;
+  if (server.exitCode === null) server.kill();
+  await server.exited;
+  server = undefined;
+}
+
 try {
   await run(["bun", "run", "--cwd", "apps/web", "build:e2e"], {
     env: { SITE_ID: source === "root" ? "" : manifest.id },
@@ -288,53 +320,37 @@ INSERT INTO staff_roles (user_id,role,assigned_by,created_at,updated_at) VALUES 
     wranglerConfigPath,
   );
 
-  server = Bun.spawn(
-    [
-      "node",
-      wranglerBin,
-      "dev",
-      "--config",
-      wranglerConfigPath,
-      "--port",
-      "3020",
-      "--persist-to",
-      persistenceDirectory,
-      "--var",
-      "CORS_ORIGIN:http://127.0.0.1:3020",
-      "--var",
-      "BETTER_AUTH_URL:http://127.0.0.1:3020",
-      "--var",
-      "BETTER_AUTH_SECRET:e2e-only-secret-never-use-in-production",
-    ],
-    { cwd: repoRoot, env: Bun.env, stderr: "inherit", stdout: "inherit" },
-  );
-  await waitForServer(server);
+  await startServer();
   await run(["bun", "run", "smoke:migration"], {
     cwd: repoRoot,
     env: {
       SMOKE_BASE_URL: "http://127.0.0.1:3020",
     },
   });
-  await run(["bun", "run", "test:e2e", ...invocation.playwrightArguments], {
-    cwd: webRoot,
-    env: {
-      CMS_E2E_EMAIL: adminEmail,
-      CMS_E2E_PASSWORD: adminPassword,
-      CMS_E2E_EDITOR_EMAIL: editorEmail,
-      CMS_E2E_EDITOR_PASSWORD: editorPassword,
-      CMS_E2E_OWNER_EMAIL: ownerEmail,
-      CMS_E2E_OWNER_PASSWORD: ownerPassword,
-      CMS_E2E_MANAGED_EMAIL: managedEmail,
-      CMS_E2E_BASE_URL: "http://127.0.0.1:3020",
-      CMS_E2E_EXPECTED_SITE_ID: manifest.id,
-      CMS_E2E_EXPECTED_SITE_NAME: manifest.name,
-    },
-  });
-} finally {
-  if (server) {
-    server.kill();
-    await server.exited;
+  const playwrightRuns = localE2ePlaywrightRuns(invocation.playwrightArguments);
+  for (const [index, playwrightArguments] of playwrightRuns.entries()) {
+    if (index > 0) {
+      await stopServer();
+      await startServer();
+    }
+    await run(["bun", "run", "test:e2e", ...playwrightArguments], {
+      cwd: webRoot,
+      env: {
+        CMS_E2E_EMAIL: adminEmail,
+        CMS_E2E_PASSWORD: adminPassword,
+        CMS_E2E_EDITOR_EMAIL: editorEmail,
+        CMS_E2E_EDITOR_PASSWORD: editorPassword,
+        CMS_E2E_OWNER_EMAIL: ownerEmail,
+        CMS_E2E_OWNER_PASSWORD: ownerPassword,
+        CMS_E2E_MANAGED_EMAIL: managedEmail,
+        CMS_E2E_BASE_URL: "http://127.0.0.1:3020",
+        CMS_E2E_EXPECTED_SITE_ID: manifest.id,
+        CMS_E2E_EXPECTED_SITE_NAME: manifest.name,
+      },
+    });
   }
+} finally {
+  await stopServer();
   await rm(
     assertSafeE2eStateDirectory(persistenceDirectory, temporaryDirectory),
     {

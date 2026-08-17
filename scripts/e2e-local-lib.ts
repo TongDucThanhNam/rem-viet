@@ -23,6 +23,17 @@ export function parseLocalE2eInvocation(args: string[]) {
   };
 }
 
+export function localE2ePlaywrightRuns(playwrightArguments: string[]) {
+  const hasExplicitProject = playwrightArguments.some(
+    (value) => value === "--project" || value.startsWith("--project="),
+  );
+  if (hasExplicitProject) return [[...playwrightArguments]];
+  return ["desktop-chrome", "mobile-chrome"].map((project) => [
+    ...playwrightArguments,
+    `--project=${project}`,
+  ]);
+}
+
 export function localE2eResourceNames(manifest: SiteManifest) {
   const names = {
     bucket: `${manifest.infrastructure.r2BucketName}-e2e`,

@@ -1,5 +1,7 @@
 /// <reference lib="dom" />
 
+export * from "./collections.js";
+
 import {
   Fragment,
   createElement,

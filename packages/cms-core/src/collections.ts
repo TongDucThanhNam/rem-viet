@@ -160,6 +160,10 @@ export type CmsCollectionDefinition<
   readonly fields: TFields;
   readonly lifecycle: CmsCollectionLifecycle;
   readonly access: CmsCollectionAccess;
+  readonly admin?: {
+    readonly useAsTitle: string;
+    readonly defaultColumns: readonly string[];
+  };
   readonly migrations?: readonly CmsCollectionMigration[];
 };
 
@@ -190,6 +194,13 @@ const collectionShapeSchema = z
     ),
     lifecycle: cmsCollectionLifecycleSchema,
     access: cmsCollectionAccessSchema,
+    admin: z
+      .object({
+        useAsTitle: cmsFieldNameSchema,
+        defaultColumns: z.array(cmsFieldNameSchema).min(1).max(8).readonly(),
+      })
+      .strict()
+      .optional(),
     migrations: z
       .array(
         z.object({
@@ -271,6 +282,17 @@ export function defineCollection<
     "field name",
   );
   const fieldNames = new Set(definition.fields.map((field) => field.name));
+  if (
+    definition.admin &&
+    (!fieldNames.has(definition.admin.useAsTitle) ||
+      definition.admin.defaultColumns.some((name) => !fieldNames.has(name)))
+  ) {
+    throw new CmsError({
+      code: "VALIDATION_FAILED",
+      message: `Collection \"${definition.slug}\" admin metadata references an unknown field.`,
+      retryable: false,
+    });
+  }
   for (const field of definition.fields) {
     if (
       field.visibleWhen &&

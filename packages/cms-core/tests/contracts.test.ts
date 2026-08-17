@@ -214,6 +214,7 @@ describe("code-first collection contracts", () => {
       delete: ["content.delete"],
       publish: ["content.publish"],
     },
+    admin: { useAsTitle: "title", defaultColumns: ["title", "featured"] },
     migrations: [
       {
         from: 1,
@@ -271,5 +272,11 @@ describe("code-first collection contracts", () => {
     expect(() => createCollectionRegistry([articles, articles])).toThrow(
       "Duplicate collection slug",
     );
+    expect(() =>
+      defineCollection({
+        ...articles,
+        admin: { useAsTitle: "missing", defaultColumns: ["title"] },
+      }),
+    ).toThrow("admin metadata references an unknown field");
   });
 });

@@ -1187,8 +1187,8 @@ core.
 | Milestone                       | Kết quả                                                                                       | Trạng thái      |
 | ------------------------------- | --------------------------------------------------------------------------------------------- | --------------- |
 | C0 — Premium authoring baseline | Visual canvas, composition, preview, workflow, revisions, media, roles and audit              | Implemented     |
-| C1 — Content model registry     | Code-first collections, fields, relationships and schema versions                             | **In progress** |
-| C2 — Generated collection admin | List/create/edit/filter forms generated from the registry and extensible by template field UX | Next            |
+| C1 — Content model registry     | Code-first collections, fields, relationships and schema versions                             | Implemented     |
+| C2 — Generated collection admin | List/create/edit/filter forms generated from the registry and extensible by template field UX | **In progress** |
 | C3 — Extension surface          | Typed hooks and feature modules without modifying core switches                               | Planned         |
 | C4 — Locale and portability     | Locale-aware lifecycle, typed content API and schema-aware import/export                      | Planned         |
 
@@ -1903,8 +1903,8 @@ surface.
 | `CMP-002` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-002--typed-fields-and-shared-validation`       |
 | `CMP-003` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-003--relationships-and-integrity-contracts`    |
 | `CMP-004` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-004--generic-runtime-and-cloudflare-lifecycle` |
-| `CMP-005` | In progress               | Registry-generated admin                                                             |
-| `CMP-006` | Pending                   | Rèm Việt plus independent Acme proof                                                 |
+| `CMP-005` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-005--registry-generated-admin-ui`              |
+| `CMP-006` | In progress               | Rèm Việt plus independent Acme proof                                                 |
 
 ### Historical 14-day productization backlog
 

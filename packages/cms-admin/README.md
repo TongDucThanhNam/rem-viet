@@ -30,3 +30,11 @@ control; metadata with no distinct visual surface stays beside its primary field
 in the inspector.
 Applications still adapt their router, localized control presentation, transport,
 provider, concrete field editors, conflict UI, and outer page-shell layout.
+
+`CmsCollectionAdminShell` generates semantic collection navigation,
+filter/search controls, list tables, and create/edit forms from a core registry.
+Built-in controls cover every core field kind, relationship options are supplied
+by the application, conditional visibility is shared with validation, and field-
+or kind-level control registries allow template-owned premium UX without forking
+the workflow shell. Transport, URLs, state, localization, and mutations remain
+consumer callbacks.

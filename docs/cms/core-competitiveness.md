@@ -108,3 +108,33 @@ bun --cwd packages/cms-provider-cloudflare check-types # pass
 bun run cms:migrations:verify                          # pass (12 migrations)
 bun test scripts/cms-kit-boundaries.test.ts            # 20 pass, 0 fail
 ```
+
+## CMP-005 — registry-generated admin UI
+
+Status: **Complete (2026-08-17).**
+
+- Collection definitions may declare a validated title field and default list
+  columns; references to unknown fields fail at registry definition time.
+- `CmsCollectionAdminShell` generates semantic collection navigation,
+  filter/search controls, captioned list tables, create links, edit links, and
+  create/edit forms directly from the registry.
+- Built-in accessible controls cover text, number, boolean, date/datetime,
+  select, media, structured rich text, blocks, and to-one/to-many relationships.
+  The application supplies relationship options without coupling the package to
+  a provider or transport.
+- Form submit runs the same core parser used by migrations and provider writes;
+  field errors map to an alert summary and labelled controls. Declarative
+  visibility is shared with the core contract.
+- `createCollectionFieldControlRegistry()` supports field-specific and kind-wide
+  React overrides, so templates can retain premium rich-text/media/block UX
+  without forking navigation, list, filter, or workflow surfaces.
+
+Targeted verification:
+
+```text
+bun --cwd packages/cms-core test            # 16 pass, 0 fail
+bun --cwd packages/cms-core check-types     # pass
+bun --cwd packages/cms-admin test           # 24 pass, 0 fail
+bun --cwd packages/cms-admin check-types    # pass
+bun test scripts/cms-kit-boundaries.test.ts # 20 pass, 0 fail
+```

@@ -1,55 +1,42 @@
-import { Button } from "@rem-viet/ui/components/button";
-import { Input } from "@rem-viet/ui/components/input";
-import { Label } from "@rem-viet/ui/components/label";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Mail } from "lucide-react";
-import { type FormEvent } from "react";
-import { toast } from "sonner";
+import { ShieldCheck } from "lucide-react";
 
 import AuthLayout from "@/components/auth-layout";
+import { siteConfig } from "@/lib/site-config";
 
 export const Route = createFileRoute("/quen-mat-khau")({
   component: ForgotPasswordRoute,
 });
 
 function ForgotPasswordRoute() {
-  function submitReset(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    toast.info("Chức năng đặt lại mật khẩu chưa được cấu hình.");
-  }
-
   return (
-    <AuthLayout quote="Khôi phục quyền truy cập vào hệ thống Rèm Vina">
+    <AuthLayout
+      quote={`Khôi phục quyền truy cập vào hệ thống ${siteConfig.name}`}
+    >
       <div className="mb-6">
         <p className="text-xl font-semibold">Quên mật khẩu?</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Nhập email quản trị để nhận hướng dẫn khôi phục khi tính năng này được
-          cấu hình.
+          Hệ thống không gửi email đặt lại mật khẩu tự động.
         </p>
       </div>
 
-      <form className="space-y-4" onSubmit={submitReset}>
-        <div className="space-y-2">
-          <Label htmlFor="resetEmail">Email đăng nhập</Label>
-          <div className="relative">
-            <Mail
-              aria-hidden
-              className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
-              className="h-10 rounded-lg pl-8 text-sm"
-              id="resetEmail"
-              name="email"
-              placeholder="Nhập email đăng nhập"
-              type="email"
-            />
+      <div className="rounded-lg border bg-muted/40 p-4 text-sm leading-6 text-muted-foreground">
+        <div className="flex gap-3">
+          <ShieldCheck
+            aria-hidden
+            className="mt-0.5 size-5 shrink-0 text-foreground"
+          />
+          <div>
+            <p className="font-medium text-foreground">
+              Liên hệ Owner hoặc đơn vị triển khai
+            </p>
+            <p>
+              Họ sẽ xác minh danh tính và thực hiện quy trình khôi phục quyền
+              truy cập phù hợp.
+            </p>
           </div>
         </div>
-
-        <Button className="h-10 w-full rounded-lg text-sm" type="submit">
-          Gửi hướng dẫn
-        </Button>
-      </form>
+      </div>
 
       <p className="mt-5 text-center text-sm text-muted-foreground">
         Nhớ mật khẩu?{" "}

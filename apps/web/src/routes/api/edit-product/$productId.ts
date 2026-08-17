@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/edit-product/$productId")({
     handlers: {
       PUT: async ({ request, params }) => {
         try {
-          const unauthorized = await requireApiSession();
+          const unauthorized = await requireApiSession(request);
 
           if (unauthorized) {
             return unauthorized;

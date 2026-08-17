@@ -1,0 +1,50 @@
+{
+  "name": "@agency/cms-template-rem-viet",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./bootstrap": {
+      "types": "./src/bootstrap.ts",
+      "default": "./src/bootstrap.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test tests"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  },
+  "peerDependencies": {
+    "@agency/cms-admin": "0.1.0",
+    "@agency/cms-core": "0.1.0",
+    "@agency/cms-react": "0.1.0",
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "@agency/cms-admin": {
+      "optional": true
+    },
+    "@agency/cms-core": {
+      "optional": true
+    },
+    "@agency/cms-react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@rem-viet/config": "workspace:*",
+    "@types/react": "^19.2.14",
+    "react": "^19.2.3",
+    "typescript": "catalog:"
+  }
+}

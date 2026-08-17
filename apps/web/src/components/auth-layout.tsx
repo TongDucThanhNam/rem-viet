@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import RemVietLogo from "@/components/rem-viet-logo";
+import { siteConfig } from "@/lib/site-config";
 
 type AuthLayoutProps = {
   children: ReactNode;
@@ -24,7 +25,7 @@ export default function AuthLayout({ children, quote }: AuthLayoutProps) {
         href="/"
       >
         <RemVietLogo size={40} />
-        <span>Rèm Vina</span>
+        <span>{siteConfig.name}</span>
       </a>
 
       <p className="absolute bottom-10 left-10 z-10 hidden max-w-xl text-sm leading-7 text-white/60 md:block">

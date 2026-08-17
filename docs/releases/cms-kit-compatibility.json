@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "current": "0.1.0",
+  "schemas": {
+    "remVietBlock": 1,
+    "cloudflareProvider": 1,
+    "cloudflareMigrationsThrough": "0003_media_metadata"
+  },
+  "validatedWith": {
+    "bun": "1.3.14",
+    "typescript": "6.0.3",
+    "react": "19.2.6",
+    "vite": "8.2.1",
+    "tanstackReactRouter": "1.170.6",
+    "tanstackReactStart": "1.168.9",
+    "alchemy": "2.0.0-beta.72"
+  },
+  "rehearsals": [
+    {
+      "from": "0.1.0",
+      "to": "0.2.0-rehearsal.1",
+      "contentSchema": {
+        "from": 1,
+        "to": 2
+      },
+      "packages": [
+        "@agency/cms-core",
+        "@agency/cms-runtime",
+        "@agency/cms-provider-cloudflare",
+        "@agency/cms-react",
+        "@agency/cms-admin",
+        "@agency/cms-alchemy",
+        "@agency/cms-cli",
+        "@agency/cms-template-rem-viet"
+      ],
+      "consumer": "independent-upgrade-fixture",
+      "preserves": [
+        "draft",
+        "published-revision-pointer",
+        "immutable-revisions",
+        "media-metadata",
+        "media-object"
+      ],
+      "migrationOrchestration": "backup-before-apply-exact-confirmation-and-version-verification",
+      "rollback": "receipt-bound-restore-v1-backup-and-reinstall-0.1.0",
+      "command": "bun run cms:kit:upgrade",
+      "rehearsalOnly": true
+    }
+  ]
+}

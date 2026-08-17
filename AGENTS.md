@@ -33,7 +33,10 @@ The landing page animation stack is **GSAP + Lenis**. `framer-motion` was remove
 - **`useSplitReveal()`** (`apps/web/src/hooks/use-split-reveal.ts`) is the shared masked
   word/char/line heading reveal — used by every section `<h2>`. It creates a `SplitText`
   inside `useGSAP` (auto-reverted), respects `prefers-reduced-motion`, and returns a ref.
-- **Reduced motion**: all heavy animations short-circuit via `prefersReducedMotion()`.
+- **Static/mobile motion path**: landing animation hooks short-circuit through
+  `shouldUseStaticLanding()` for reduced-motion, coarse-pointer, and <=768px
+  viewports. Mobile layouts retain all content without page-wide SplitText or
+  ScrollTrigger measurement; do not revert them to the desktop animation path.
 - **Shared `<RevealImage>`** (`components/landing/reveal-image.tsx`) consolidates the
   cinematic clip-path + scale + parallax image reveal used by Threat, Craft (was duplicated).
 
@@ -46,7 +49,7 @@ Known state (as of 2026-06-12, bento-details + horizontal-gallery + FAQ tracks):
 - FAQ accordion uses `.faq-item / .faq-head / .faq-icon / .faq-body / .faq-body-inner` and rotates the `+` icon to 45° via `.faq-item.active .faq-icon`.
 - `#smooth-wrapper` keeps a `margin-bottom: 100vh` (70vh on mobile) to make room for the fixed `<CurtainFooter />` which lives **outside** `<main>` in `routes/index.tsx`.
 - `.curtain-footer` is `position: fixed; bottom: 0; left: 0; width: 100%; height: 100vh; z-index: 1;` (full-screen, behind `#smooth-wrapper` whose `z-index: 2` keeps page content above the footer during scroll). `.curtain-footer .footer-cta { margin: 0; text-align: center; }` centers the "Bắt đầu / dự án của bạn." + `mailto:` block.
-- AWWWARDS loader (`apps/web/src/components/loading-screen-raw.tsx`): markup must be `.loader > .loader-counter + .loader-overlay.loader-overlay-top + .loader-overlay.loader-overlay-bottom` (matches `draft/index.html` line 22-26). The CSS in `landing.css` line 86-118 already styles every piece. While the loader is up, the effect is two full-width black panels covering the top and bottom halves; the counter sits at `z-index: 9001` between them. On reveal: a single **GSAP timeline** counts `0% → 100%` in 2s with the `loader-load` CustomEase (`[0.76, 0, 0.24, 1]`), fade+lifts the counter (`loader-reveal` = `[0.19, 1, 0.22, 1]`), then `scaleY: 0` both panels (1s, `loader-load` ease) with `transform-origin: top` / `transform-origin: bottom` so the top slides up and the bottom slides down. On the bottom panel's `onComplete`: remove `body.is-loading` (CSS line 33-35 is `overflow: hidden`), set `display: none` on the loader, call the parent `onComplete` so `routes/index.tsx` flips `isLoaded = true` and `Hero` starts animating.
+- AWWWARDS loader (`apps/web/src/components/loading-screen-raw.tsx`): markup must be `.loader > .loader-counter + .loader-overlay.loader-overlay-top + .loader-overlay.loader-overlay-bottom` (matches `draft/index.html` line 22-26). The CSS in `landing.css` line 86-118 already styles every piece. While the loader is up, the effect is two full-width black panels covering the top and bottom halves; the counter sits at `z-index: 9001` between them. On reveal: a single **GSAP timeline** counts `0% → 100%` in 0.65s with the `loader-load` CustomEase (`[0.76, 0, 0.24, 1]`), fade+lifts the counter in 0.18s (`loader-reveal` = `[0.19, 1, 0.22, 1]`), then `scaleY: 0` both panels over 0.45s (`loader-load` ease) with `transform-origin: top` / `transform-origin: bottom` so the top slides up and the bottom slides down. Reduced-motion visitors skip the blocking timeline. On the bottom panel's `onComplete`: remove `body.is-loading` (CSS line 33-35 is `overflow: hidden`), set `display: none` on the loader, call the parent `onComplete` so `routes/index.tsx` flips `isLoaded = true` and `Hero` starts animating. These shorter timings are the Lighthouse/LCP budget contract; do not restore the old multi-second blocking loader.
 
 Known state (as of 2026-06-12, hero track):
 - Hero uses **`.hero-new`** (full-bleed bg, overlay content left) — NOT the old `.hero` 6/4 grid.
@@ -141,9 +144,11 @@ A visual-quality pass layered on top of the GSAP migration. Foundations in
   title, `.massive-text`, measure/craft/threat titles all reference these.
 - **Spacing**: `--space-section` (`clamp(96px,16vh,200px)`), `--space-block`,
   `--space-gutter` (4vw). Section padding uses these instead of raw `vh`.
-- **Accent per theme**: new `--accent` / `--accent-soft` tokens; light keeps
-  brass `#B58A43`, dark brightens to champagne `#D6BB82`. The old
-  `--accent-color` still exists (legacy alias) but selectors now use `--accent`.
+- **Accent per theme**: `--accent` / `--accent-soft` keep the decorative brass
+  palette, while `--accent-text` is the WCAG-safe text variant (`#806022` on
+  cream, champagne on dark). Tailwind `text-brand` resolves to
+  `--accent-text`; backgrounds/pseudo-elements may continue using `--accent`.
+  The old `--accent-color` still exists as a legacy alias.
 - **Theme-aware muted text + hairlines**: `--text-muted`, `--text-faint`,
   `--hairline`, `--hairline-strong` — all `color-mix` on `--text-color` so they
   work on cream AND black. **All** old hardcoded `#999/#777/#666/#555` and

@@ -1,6 +1,6 @@
 import { useRef } from "react";
 
-import { gsap, useGSAP, prefersReducedMotion } from "@/lib/gsap";
+import { gsap, useGSAP, shouldUseStaticLanding } from "@/lib/gsap";
 
 type RevealDirection = "center" | "left" | "right" | "top";
 
@@ -63,7 +63,7 @@ export function RevealImage({
       const img = imgRef.current;
       if (!container || !mask || !img) return;
 
-      if (prefersReducedMotion()) {
+      if (shouldUseStaticLanding()) {
         gsap.set(mask, { clipPath: "inset(0% 0% 0% 0%)" });
         return;
       }
@@ -114,12 +114,18 @@ export function RevealImage({
       className="reveal-container js-reveal mx-auto w-full"
       data-aspect={aspect}
     >
-      <div ref={maskRef} className="reveal-mask w-full overflow-hidden will-change-[clip-path]">
+      <div
+        ref={maskRef}
+        className="reveal-mask w-full overflow-hidden will-change-[clip-path]"
+      >
         <img
           ref={imgRef}
           src={src}
           alt={alt}
           className="reveal-img h-full w-full object-cover will-change-transform"
+          loading="lazy"
+          decoding="async"
+          fetchPriority="low"
         />
       </div>
     </div>

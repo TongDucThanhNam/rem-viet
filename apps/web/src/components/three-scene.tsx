@@ -1,7 +1,7 @@
-import { OrbitControls, PerspectiveCamera, Text } from '@react-three/drei';
-import { Canvas } from '@react-three/fiber';
-import { useMemo } from 'react';
-import * as THREE from 'three';
+import { OrbitControls, PerspectiveCamera, Text } from "@react-three/drei";
+import { Canvas } from "@react-three/fiber";
+import { useMemo } from "react";
+import * as THREE from "three";
 
 export default function ThreeScene({
   width,
@@ -24,9 +24,9 @@ export default function ThreeScene({
 }
 
 function WindowFrame({ width, height }: { width: number; height: number }) {
-  const frameColor = '#8b4513'; // Brown color for the frame
+  const frameColor = "#8b4513"; // Brown color for the frame
   const frameThickness = 0.05;
-  const measurementColor = '#573186'; // Purple color for measurement lines
+  const measurementColor = "#573186"; // Purple color for measurement lines
   const lineThickness = 0.02;
   const textOffset = 0.2;
 

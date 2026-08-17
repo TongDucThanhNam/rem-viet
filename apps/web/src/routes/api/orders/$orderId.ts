@@ -32,7 +32,7 @@ export const Route = createFileRoute("/api/orders/$orderId")({
         });
       },
       PATCH: async ({ request, params }) => {
-        const unauthorized = await requireApiSession();
+        const unauthorized = await requireApiSession(request);
 
         if (unauthorized) {
           return unauthorized;
@@ -54,7 +54,7 @@ export const Route = createFileRoute("/api/orders/$orderId")({
         });
       },
       PUT: async ({ request, params }) => {
-        const unauthorized = await requireApiSession();
+        const unauthorized = await requireApiSession(request);
 
         if (unauthorized) {
           return unauthorized;

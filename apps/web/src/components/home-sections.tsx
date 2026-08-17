@@ -21,6 +21,7 @@ import {
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
+import { siteConfig } from "@/lib/site-config";
 import { useTRPC } from "@/utils/trpc";
 import ThreeScene from "./three-scene";
 
@@ -90,8 +91,7 @@ const guideSteps = [
   },
   {
     title: "Điền thông tin",
-    description:
-      "Gửi thông tin liên hệ để Rèm Vina xác nhận lại đơn và lịch tư vấn.",
+    description: `Gửi thông tin liên hệ để ${siteConfig.name} xác nhận lại đơn và lịch tư vấn.`,
     image: "/src/dienthongtin.avif",
   },
   {
@@ -106,16 +106,14 @@ const faqs = [
   {
     question:
       "Tôi muốn một kích thước không có trong danh sách, tôi phải làm sao?",
-    answer:
-      "Bạn hãy liên hệ Rèm Vina và cung cấp kích thước mong muốn. Đội ngũ sẽ tư vấn cấu hình, báo giá và sản xuất theo yêu cầu.",
+    answer: `Bạn hãy liên hệ ${siteConfig.name} và cung cấp kích thước mong muốn. Đội ngũ sẽ tư vấn cấu hình, báo giá và sản xuất theo yêu cầu.`,
   },
   {
     question: "Làm thế nào để đặt hàng?",
-    answer:
-      "Bạn có thể đặt trực tiếp trên website hoặc để lại số điện thoại. Rèm Vina sẽ xác nhận sản phẩm, kích thước và lịch giao lắp.",
+    answer: `Bạn có thể đặt trực tiếp trên website hoặc để lại số điện thoại. ${siteConfig.name} sẽ xác nhận sản phẩm, kích thước và lịch giao lắp.`,
   },
   {
-    question: "Ưu điểm của Rèm Vina so với sản phẩm khác trên thị trường?",
+    question: `Ưu điểm của ${siteConfig.name} so với sản phẩm khác trên thị trường?`,
     answer:
       "Sản phẩm được sản xuất tại Việt Nam, dễ tùy chỉnh kích thước, vật liệu bền và có đội ngũ hỗ trợ sau bán hàng.",
   },
@@ -123,8 +121,7 @@ const faqs = [
 
 const testimonials = [
   {
-    quote:
-      "Sử dụng sản phẩm của Rèm Vina, tôi rất hài lòng với chất lượng và dịch vụ của họ.",
+    quote: `Sử dụng sản phẩm của ${siteConfig.name}, tôi rất hài lòng với chất lượng và dịch vụ.`,
     name: "Lê Phương Hoàn Mỹ",
     title: "Rất tốt",
   },
@@ -134,7 +131,7 @@ const testimonials = [
     title: "Tuyệt vời",
   },
   {
-    quote: "Rèm Vina tư vấn nhanh, đo kích thước kỹ và giao đúng mẫu đã chọn.",
+    quote: `${siteConfig.name} tư vấn nhanh, đo kích thước kỹ và giao đúng mẫu đã chọn.`,
     name: "Giang Văn Cốt",
     title: "Rất hài lòng",
   },
@@ -168,8 +165,7 @@ const strengthItems = [
   },
   {
     title: "Tư vấn miễn phí",
-    description:
-      "Đội ngũ Rèm Vina hỗ trợ chọn mẫu, đo kích thước và cấu hình sản phẩm theo từng không gian.",
+    description: `Đội ngũ ${siteConfig.name} hỗ trợ chọn mẫu, đo kích thước và cấu hình sản phẩm theo từng không gian.`,
     icon: CircleDollarSign,
   },
 ];
@@ -191,9 +187,9 @@ export function FeatureSection() {
           Mang đến không gian sống an toàn, tiện nghi
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-sm font-normal leading-6 text-muted-foreground lg:text-base">
-          Chúng tôi cung cấp các sản phẩm chất lượng, giá cả phải chăng, đảm
-          bảo an toàn, tiện nghi cho gia đình bạn. Hãy đến với chúng tôi để
-          trải nghiệm ngay hôm nay!
+          Chúng tôi cung cấp các sản phẩm chất lượng, giá cả phải chăng, đảm bảo
+          an toàn, tiện nghi cho gia đình bạn. Hãy đến với chúng tôi để trải
+          nghiệm ngay hôm nay!
         </p>
       </div>
 
@@ -590,8 +586,8 @@ export function SizeEstimatorSection() {
               </span>
             </p>
             <p className="mt-2 text-xs text-muted-foreground">
-              Nếu kích thước thực tế khác danh sách có sẵn, Rèm Vina sẽ tư vấn
-              mẫu phù hợp theo yêu cầu.
+              Nếu kích thước thực tế khác danh sách có sẵn, {siteConfig.name} sẽ
+              tư vấn mẫu phù hợp theo yêu cầu.
             </p>
           </div>
         </div>
@@ -613,8 +609,8 @@ export function MaterialSection() {
             Vật liệu bền, quy trình sản xuất linh hoạt
           </h2>
           <p className="mt-4 text-sm leading-7 text-muted-foreground">
-            Rèm Vina tập trung vào độ bền, khả năng tùy chỉnh và sự tiện dụng
-            khi dùng hằng ngày.
+            {siteConfig.name} tập trung vào độ bền, khả năng tùy chỉnh và sự
+            tiện dụng khi dùng hằng ngày.
           </p>
         </div>
 
@@ -660,7 +656,7 @@ export function VideoSection() {
               allowFullScreen
               className="size-full"
               src="https://www.youtube.com/embed/iuYum3L2cEg"
-              title="Rèm Vina video"
+              title={`${siteConfig.name} video`}
             />
           </div>
         </div>
@@ -717,7 +713,7 @@ export function OurStrengthSection() {
               allowFullScreen
               className="size-full"
               src="https://www.youtube.com/embed/iuYum3L2cEg?controls=1"
-              title="Ưu thế Rèm Vina"
+              title={`Ưu thế ${siteConfig.name}`}
             />
           </div>
         </div>

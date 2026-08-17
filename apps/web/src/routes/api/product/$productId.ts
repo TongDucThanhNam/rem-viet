@@ -22,7 +22,7 @@ export const Route = createFileRoute("/api/product/$productId")({
       },
       PUT: async ({ request, params }) => {
         try {
-          const unauthorized = await requireApiSession();
+          const unauthorized = await requireApiSession(request);
 
           if (unauthorized) {
             return unauthorized;

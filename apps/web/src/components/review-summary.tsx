@@ -106,17 +106,21 @@ export default function ReviewSummary({
                 />
                 <div>
                   <p className="text-sm font-medium">Minh Nguyễn</p>
-                  <p className="text-sm text-muted-foreground">Tháng 10, 2024</p>
+                  <p className="text-sm text-muted-foreground">
+                    Tháng 10, 2024
+                  </p>
                 </div>
               </div>
               <div className="mt-3 flex items-center gap-1 text-yellow-500">
-                {Array.from({ length: Math.round(displayRating) }).map((_, index) => (
-                  <Star
-                    aria-hidden
-                    className="size-4 fill-current"
-                    key={index}
-                  />
-                ))}
+                {Array.from({ length: Math.round(displayRating) }).map(
+                  (_, index) => (
+                    <Star
+                      aria-hidden
+                      className="size-4 fill-current"
+                      key={index}
+                    />
+                  ),
+                )}
               </div>
               <h3 className="mt-4 font-medium">Sản phẩm tuyệt vời</h3>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">

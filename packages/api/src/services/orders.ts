@@ -393,7 +393,9 @@ export async function createProductOrder(
     throw new Error("Product order item was not created");
   }
 
-  await notifyTelegram(productOrderMessage(input, pricedItem, result.data.total));
+  await notifyTelegram(
+    productOrderMessage(input, pricedItem, result.data.total),
+  );
 
   return result;
 }

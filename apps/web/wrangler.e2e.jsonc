@@ -1,0 +1,59 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "rem-viet-web-e2e",
+  "main": "dist/server/index.js",
+  "no_bundle": true,
+  "compatibility_date": "2026-03-10",
+  "compatibility_flags": [
+    "nodejs_compat",
+    "nodejs_compat_populate_process_env",
+  ],
+  "assets": {
+    "directory": "./dist/client",
+    "binding": "ASSETS",
+    "not_found_handling": "none",
+    "html_handling": "auto-trailing-slash",
+    "run_worker_first": false,
+  },
+  "rules": [
+    {
+      "type": "ESModule",
+      "globs": ["**/*.js", "**/*.mjs"],
+    },
+  ],
+  "vars": {
+    "CORS_ORIGIN": "http://127.0.0.1:3020",
+    "BETTER_AUTH_SECRET": "e2e-only-secret-never-use-in-production",
+    "BETTER_AUTH_URL": "http://127.0.0.1:3020",
+    "ADMIN_EMAILS": "",
+    "TELEGRAM_BOT_TOKEN": "",
+    "TELEGRAM_CHAT_ID": "",
+    "RESEND_API_KEY": "",
+    "LEAD_NOTIFICATION_EMAIL": "",
+    "EMAIL_FROM": "",
+    "JSONLINK_API_KEY": "",
+    "RUM_SAMPLE_RATE": "1",
+    "NOTIFICATIONS_REQUIRED": "0",
+    "RELEASE_SITE_ID": "rem-viet",
+    "RELEASE_STAGE": "e2e",
+    "RELEASE_GIT_SHA": "1111111111111111111111111111111111111111",
+    "RELEASE_INPUT_SHA256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "RELEASE_SOURCE_STATE": "clean",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_id": "rem-viet-local",
+      "database_name": "rem-viet-local",
+      "migrations_dir": "../../packages/db/src/migrations",
+      "preview_database_id": "rem-viet-local",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "PRODUCT_IMAGES",
+      "bucket_name": "rem-viet-product-images-e2e",
+      "preview_bucket_name": "rem-viet-product-images-e2e",
+    },
+  ],
+}

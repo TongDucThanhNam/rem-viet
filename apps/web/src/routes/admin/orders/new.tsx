@@ -1,9 +1,14 @@
-import { Button } from "@rem-viet/ui/components/button";
+import { Button, buttonVariants } from "@rem-viet/ui/components/button";
 import { Card, CardContent } from "@rem-viet/ui/components/card";
 import { Input } from "@rem-viet/ui/components/input";
 import { Label } from "@rem-viet/ui/components/label";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import {
+  Link,
+  createFileRoute,
+  redirect,
+  useNavigate,
+} from "@tanstack/react-router";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
@@ -195,7 +200,12 @@ function NewOrderRoute() {
       toast.error("Vui lòng chọn ít nhất một sản phẩm.");
       return;
     }
-    if (items.some((item) => item.productId && item.requiresVariant && !item.isVariantValid)) {
+    if (
+      items.some(
+        (item) =>
+          item.productId && item.requiresVariant && !item.isVariantValid,
+      )
+    ) {
       toast.error("Vui lòng chọn đúng biến thể cho từng sản phẩm.");
       return;
     }
@@ -208,30 +218,21 @@ function NewOrderRoute() {
   }
 
   return (
-    <AdminShell hideHeading legacyContentFrame title="Thêm đơn hàng">
+    <AdminShell
+      actions={
+        <Link
+          className={buttonVariants({ size: "sm", variant: "outline" })}
+          to="/admin/orders"
+        >
+          <ArrowLeft aria-hidden className="size-4" />
+          Danh sách đơn
+        </Link>
+      }
+    >
       <form
-        className="mx-auto my-14 grid w-full max-w-5xl gap-4 lg:px-6"
+        className="mx-auto grid w-full max-w-5xl gap-4"
         onSubmit={submitOrder}
       >
-        <div className="mb-[18px] flex flex-col justify-between gap-3 md:flex-row md:items-center">
-          <div>
-            <h1 className="text-2xl font-bold leading-8 tracking-normal">
-              Thêm đơn hàng
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Tạo đơn hàng thủ công từ dữ liệu sản phẩm đã migrate sang D1.
-              Giá được tính lại trên server từ sản phẩm và biến thể đang active.
-            </p>
-          </div>
-          <Link
-            className="inline-flex h-8 items-center justify-center rounded-md border px-2.5 text-xs font-medium transition-colors hover:bg-muted"
-            to="/admin/orders"
-          >
-            <ArrowLeft aria-hidden className="mr-2 size-4" />
-            Danh sách đơn
-          </Link>
-        </div>
-
         <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
           <Card className="rounded-md border bg-background shadow-sm">
             <CardContent className="grid gap-4 p-5">
@@ -340,7 +341,7 @@ function NewOrderRoute() {
 
               <div className="flex justify-end gap-2">
                 <Link
-                  className="inline-flex h-9 items-center justify-center rounded-md border px-3 text-sm font-medium transition-colors hover:bg-muted"
+                  className={buttonVariants({ variant: "outline" })}
                   to="/admin/orders"
                 >
                   Hủy
@@ -382,7 +383,8 @@ function ManualOrderLine({
     enabled: Boolean(item.productId),
     retry: false,
   });
-  const variants = (variantQuery.data?.data?.variants ?? []) as ProductVariant[];
+  const variants = (variantQuery.data?.data?.variants ??
+    []) as ProductVariant[];
   const variantOptions = useMemo(
     () => variantOptionsFromRows(variants),
     [variants],
@@ -391,7 +393,8 @@ function ManualOrderLine({
   const selectedVariant = findSelectedVariant(variants, item.variants);
   const hasVariants = variants.length > 0;
   const isVariantValid = hasVariants ? Boolean(selectedVariant) : true;
-  const unitPrice = selectedVariant?.variantPrice ?? parseProductPrice(product?.price);
+  const unitPrice =
+    selectedVariant?.variantPrice ?? parseProductPrice(product?.price);
 
   useEffect(() => {
     if (!product) {
@@ -534,7 +537,7 @@ function ManualOrderLine({
         <span>
           {hasVariants && selectedVariant
             ? formatCurrency(selectedVariant.variantPrice)
-            : product?.price ?? "Chưa chọn giá"}
+            : (product?.price ?? "Chưa chọn giá")}
         </span>
         <span>{formatCurrency(unitPrice * item.quantity)}</span>
       </div>

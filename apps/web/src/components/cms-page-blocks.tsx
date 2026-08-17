@@ -1,4 +1,13 @@
 import type { PageBlock } from "@rem-viet/cms";
+import { CmsBlockRenderer, type BlockRendererProps } from "@agency/cms-react";
+import {
+  createRemVietStandardBlockRegistry,
+  toRemVietStandardBlock,
+  type ProductGridBlock,
+  type RemVietStandardBlock,
+  type RichTextBlock,
+  type StandardCtaBlock,
+} from "@agency/cms-template-rem-viet";
 import { buttonVariants } from "@rem-viet/ui/components/button";
 import { cn } from "@rem-viet/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -6,27 +15,70 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, PackageSearch } from "lucide-react";
 
 import ProductCard from "@/components/product-card";
+import PostContent from "@/components/post-content";
 import { cloudflareImageUrl } from "@/lib/site-config";
 import { useTRPC } from "@/utils/trpc";
 
 type CmsPageBlocksProps = {
-  blocks: PageBlock[];
+  blocks: Array<PageBlock | RemVietStandardBlock>;
+  authoring?: CmsPageBlocksAuthoring;
 };
 
-type ProductGridBlockProps = Extract<PageBlock, { type: "productGrid" }>;
+type CmsPageBlocksAuthoring = {
+  onSelect: (blockId: string, fieldPath?: string) => void;
+  selectedBlockId: string | null;
+  selectedFieldPath: string | null;
+};
+
+type StandardRenderContext = {
+  authoring?: CmsPageBlocksAuthoring;
+};
+
+function StandardAuthoringTarget({
+  authoring,
+  blockId,
+  className,
+  fieldPath,
+  label,
+}: {
+  authoring: CmsPageBlocksAuthoring | undefined;
+  blockId: string;
+  className?: string;
+  fieldPath?: string;
+  label: string;
+}) {
+  if (!authoring) return null;
+  const selected =
+    authoring.selectedBlockId === blockId &&
+    (fieldPath === undefined || authoring.selectedFieldPath === fieldPath);
+  return (
+    <button
+      aria-label={label}
+      aria-pressed={selected}
+      className={cn(
+        "absolute z-10 cursor-pointer bg-transparent outline-none focus-visible:ring-4 focus-visible:ring-amber-400",
+        selected && "ring-4 ring-inset ring-amber-400",
+        className,
+      )}
+      type="button"
+      onClick={() => authoring.onSelect(blockId, fieldPath)}
+    />
+  );
+}
 
 function CmsHeroBlock({
-  image,
-  subtitle,
+  background,
+  description,
+  kicker,
   title,
 }: Extract<PageBlock, { type: "hero" }>) {
-  const imageUrl = cloudflareImageUrl(image);
+  const imageUrl = cloudflareImageUrl(background.src);
 
   return (
     <section className="relative isolate min-h-[62svh] overflow-hidden bg-zinc-950 text-white">
       {imageUrl ? (
         <img
-          alt=""
+          alt={background.alt}
           className="absolute inset-0 -z-20 size-full object-cover"
           src={imageUrl}
         />
@@ -35,14 +87,14 @@ function CmsHeroBlock({
       <div className="mx-auto flex min-h-[62svh] w-full max-w-7xl items-center px-4 py-20">
         <div className="max-w-3xl">
           <p className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">
-            Rèm Vina
+            {kicker}
           </p>
           <h1 className="text-5xl font-bold tracking-normal md:text-7xl">
-            {title}
+            {title.prefix} {title.accent}
           </h1>
-          {subtitle ? (
+          {description ? (
             <p className="mt-6 max-w-2xl text-base leading-8 text-white/80 md:text-lg">
-              {subtitle}
+              {description}
             </p>
           ) : null}
         </div>
@@ -51,17 +103,29 @@ function CmsHeroBlock({
   );
 }
 
-function CmsRichTextBlock({ content }: Extract<PageBlock, { type: "richText" }>) {
+function CmsRichTextBlock({
+  block,
+  context,
+}: BlockRendererProps<RichTextBlock, StandardRenderContext>) {
   return (
-    <section className="mx-auto w-full max-w-3xl px-4 py-12">
-      <div className="whitespace-pre-line text-base leading-8 text-foreground">
-        {content}
-      </div>
+    <section className="relative mx-auto w-full max-w-3xl px-4 py-12">
+      <PostContent content={block.data.content} />
+      <StandardAuthoringTarget
+        authoring={context.authoring}
+        blockId={block.id}
+        className="inset-0"
+        fieldPath="data.content"
+        label="Chỉnh sửa nội dung văn bản"
+      />
     </section>
   );
 }
 
-function CmsProductGridBlock({ categoryId, limit = 8 }: ProductGridBlockProps) {
+function CmsProductGridBlock({
+  block,
+  context,
+}: BlockRendererProps<ProductGridBlock, StandardRenderContext>) {
+  const { categoryId, limit = 8 } = block.data;
   const trpc = useTRPC();
   const productsQuery = useQuery(
     trpc.products.list.queryOptions({
@@ -74,7 +138,7 @@ function CmsProductGridBlock({ categoryId, limit = 8 }: ProductGridBlockProps) {
   const products = productsQuery.data?.data ?? [];
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-4 py-12">
+    <section className="relative mx-auto w-full max-w-7xl px-4 py-12">
       <div className="mb-5 flex items-end justify-between gap-4">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
@@ -109,49 +173,94 @@ function CmsProductGridBlock({ categoryId, limit = 8 }: ProductGridBlockProps) {
           </div>
         </div>
       )}
+      <StandardAuthoringTarget
+        authoring={context.authoring}
+        blockId={block.id}
+        className="inset-0"
+        label="Chỉnh sửa lưới sản phẩm"
+      />
     </section>
   );
 }
 
-function CmsCtaBlock({ href, title }: Extract<PageBlock, { type: "cta" }>) {
-  const isExternal = /^(https?:)?\/\//.test(href) || href.startsWith("mailto:") || href.startsWith("tel:");
+function CmsCtaBlock({
+  block,
+  context,
+}: BlockRendererProps<StandardCtaBlock, StandardRenderContext>) {
+  const { href, title } = block.data;
+  const isExternal =
+    /^(https?:)?\/\//.test(href) ||
+    href.startsWith("mailto:") ||
+    href.startsWith("tel:");
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-12">
       <div className="flex flex-col items-start justify-between gap-5 rounded-md border bg-primary p-6 text-primary-foreground md:flex-row md:items-center">
-        <h2 className="max-w-3xl text-2xl font-bold tracking-normal">
-          {title}
-        </h2>
-        <a
-          className={cn(buttonVariants({ variant: "secondary" }), "gap-2")}
-          href={href}
-          rel={isExternal ? "noreferrer" : undefined}
-          target={isExternal ? "_blank" : undefined}
-        >
-          Tiếp tục
-          <ArrowRight aria-hidden />
-        </a>
+        <div className="relative max-w-3xl flex-1">
+          <h2 className="text-2xl font-bold tracking-normal">{title}</h2>
+          <StandardAuthoringTarget
+            authoring={context.authoring}
+            blockId={block.id}
+            className="-inset-2"
+            fieldPath="data.title"
+            label="Chỉnh sửa tiêu đề CTA"
+          />
+        </div>
+        <div className="relative shrink-0">
+          <a
+            className={cn(buttonVariants({ variant: "secondary" }), "gap-2")}
+            href={href}
+            rel={isExternal ? "noreferrer" : undefined}
+            target={isExternal ? "_blank" : undefined}
+          >
+            Tiếp tục
+            <ArrowRight aria-hidden />
+          </a>
+          <StandardAuthoringTarget
+            authoring={context.authoring}
+            blockId={block.id}
+            className="-inset-2"
+            fieldPath="data.href"
+            label="Chỉnh sửa liên kết CTA"
+          />
+        </div>
       </div>
     </section>
   );
 }
 
-function renderBlock(block: PageBlock, index: number) {
-  switch (block.type) {
-    case "hero":
-      return <CmsHeroBlock key={`hero-${index}`} {...block} />;
-    case "richText":
-      return <CmsRichTextBlock key={`richText-${index}`} {...block} />;
-    case "productGrid":
-      return <CmsProductGridBlock key={`productGrid-${index}`} {...block} />;
-    case "cta":
-      return <CmsCtaBlock key={`cta-${index}`} {...block} />;
-    default:
-      return null;
+const standardBlockRegistry =
+  createRemVietStandardBlockRegistry<StandardRenderContext>({
+    richText: CmsRichTextBlock,
+    productGrid: CmsProductGridBlock,
+    cta: CmsCtaBlock,
+  });
+
+function renderBlock(
+  block: PageBlock | RemVietStandardBlock,
+  index: number,
+  authoring?: CmsPageBlocksAuthoring,
+) {
+  const standard = toRemVietStandardBlock(block, index);
+  if (standard.success) {
+    return (
+      <CmsBlockRenderer
+        block={standard.data}
+        context={{ authoring }}
+        key={standard.data.id}
+        registry={standardBlockRegistry}
+      />
+    );
   }
+  return block.type === "hero" ? (
+    <CmsHeroBlock key={`hero-${index}`} {...block} />
+  ) : null;
 }
 
-export default function CmsPageBlocks({ blocks }: CmsPageBlocksProps) {
+export default function CmsPageBlocks({
+  authoring,
+  blocks,
+}: CmsPageBlocksProps) {
   if (!blocks.length) {
     return (
       <section className="mx-auto grid min-h-[50svh] w-full max-w-3xl place-items-center px-4 text-center">
@@ -167,5 +276,7 @@ export default function CmsPageBlocks({ blocks }: CmsPageBlocksProps) {
     );
   }
 
-  return <>{blocks.map(renderBlock)}</>;
+  return (
+    <>{blocks.map((block, index) => renderBlock(block, index, authoring))}</>
+  );
 }

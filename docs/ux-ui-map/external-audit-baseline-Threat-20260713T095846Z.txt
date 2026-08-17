@@ -1,0 +1,24 @@
+[Threat] apps/web/src/components/landing/threat.tsx (full route surface)
+  [source] apps/web/src/components/landing/threat.tsx
+    [component inventory]
+      [Threat] apps/web/src/components/landing/threat.tsx:55
+    [semantic hierarchy]
+      [section] (attrs=.threat) @ apps/web/src/components/landing/threat.tsx:47
+      [section] (id=threat | attrs=className="threat pinned relative flex h-dvh items-center justify-center overflow-hidden bg-black font-sans text-white" id="threa…) @ apps/web/src/components/landing/threat.tsx:191
+      [img] (attrs=className="threat-backdrop-img h-full w-full object-cover will-change-transform" src={step.image.src} alt="" decoding="async" loa…) @ apps/web/src/components/landing/threat.tsx:203
+      [p] (attrs=className="font-vietnam text-[12px] tracking-[0.22em] text-[var(--accent-soft)] uppercase") @ apps/web/src/components/landing/threat.tsx:225
+      [h2] (attrs=className="max-w-[16ch] font-playfair text-h1 font-normal leading-[1.08] tracking-[-0.01em]") @ apps/web/src/components/landing/threat.tsx:228
+      [p] (attrs=className="max-w-[52ch] font-vietnam text-lead leading-[1.6] text-white/78") @ apps/web/src/components/landing/threat.tsx:231
+    [visible copy and content literals]
+      "Mối đe dọa" @ apps/web/src/components/landing/threat.tsx:7
+      "Muỗi len vào từ những khe nhỏ nhất." @ apps/web/src/components/landing/threat.tsx:8
+      "Giải pháp" @ apps/web/src/components/landing/threat.tsx:17
+      "Một lớp chắn gần như vô hình." @ apps/web/src/components/landing/threat.tsx:18
+      "Kết quả" @ apps/web/src/components/landing/threat.tsx:27
+      "Nhà thoáng, sạch và yên tĩnh." @ apps/web/src/components/landing/threat.tsx:28
+      "← the pinned element *" @ apps/web/src/components/landing/threat.tsx:47
+      "← backdrop stack (absolute) *" @ apps/web/src/components/landing/threat.tsx:48
+      "← centered text stage *" @ apps/web/src/components/landing/threat.tsx:49
+      "(null); const stageRef = useRef" @ apps/web/src/components/landing/threat.tsx:56
+      "(\".threat-step\"); const backdrops = section.querySelectorAll" @ apps/web/src/components/landing/threat.tsx:78
+      "(\".threat-backdrop-item\"); const images = section.querySelectorAll" @ apps/web/src/components/landing/threat.tsx:80

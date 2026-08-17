@@ -1,9 +1,12 @@
 import { useRef, useState } from "react";
+import { defaultMarqueeBlock, type MarqueeBlock } from "@rem-viet/cms";
 
-import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/gsap";
-
-const MARQUEE_TEXT =
-  "SỢI THỦY TINH CAO CẤP • MAY ĐO VỪA KHÍT • BẢO VỆ VÔ HÌNH • SẠCH BÓNG CÔN TRÙNG • ";
+import {
+  gsap,
+  ScrollTrigger,
+  useGSAP,
+  shouldUseStaticLanding,
+} from "@/lib/gsap";
 
 /**
  * Infinite marquee that reacts to scroll — the signature AWWWARDS marquee.
@@ -19,7 +22,11 @@ const MARQUEE_TEXT =
  *
  * Hover pauses the loop via React state → `animation-play-state`.
  */
-export function Marquee() {
+export function Marquee({
+  content = defaultMarqueeBlock,
+}: {
+  content?: MarqueeBlock;
+}) {
   const innerRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -39,7 +46,7 @@ export function Marquee() {
         inner.style.animationDuration = `${30 - progress * 18}s`;
       };
 
-      if (prefersReducedMotion()) {
+      if (shouldUseStaticLanding()) {
         // Speed mapping only; skip the velocity skew.
         const st = ScrollTrigger.create({
           start: 0,
@@ -70,6 +77,7 @@ export function Marquee() {
   return (
     <div
       className="marquee font-sans"
+      aria-label={content.ariaLabel}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
@@ -78,9 +86,13 @@ export function Marquee() {
         className="marquee-inner"
         style={{ animationPlayState: isPaused ? "paused" : "running" }}
       >
-        <span className="font-playfair italic">{MARQUEE_TEXT}</span>
-        <span className="font-playfair italic">{MARQUEE_TEXT}</span>
-        <span className="font-playfair italic">{MARQUEE_TEXT}</span>
+        <span className="font-playfair italic">{content.text}</span>
+        <span className="font-playfair italic" aria-hidden="true">
+          {content.text}
+        </span>
+        <span className="font-playfair italic" aria-hidden="true">
+          {content.text}
+        </span>
       </div>
     </div>
   );

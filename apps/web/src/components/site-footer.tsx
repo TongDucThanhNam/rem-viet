@@ -6,7 +6,11 @@ import { formatPhoneHref, type SiteChromeData } from "@/lib/site-chrome";
 import { siteConfig } from "@/lib/site-config";
 
 function isExternalHref(href: string) {
-  return /^(https?:)?\/\//.test(href) || href.startsWith("mailto:") || href.startsWith("tel:");
+  return (
+    /^(https?:)?\/\//.test(href) ||
+    href.startsWith("mailto:") ||
+    href.startsWith("tel:")
+  );
 }
 
 const socialLabels: Record<string, string> = {
@@ -18,7 +22,14 @@ const socialLabels: Record<string, string> = {
   zalo: "Zalo",
 };
 
-const socialOrder = ["facebook", "shopee", "zalo", "instagram", "youtube", "tiktok"];
+const socialOrder = [
+  "facebook",
+  "shopee",
+  "zalo",
+  "instagram",
+  "youtube",
+  "tiktok",
+];
 
 function visibleSocials(socials: Record<string, string>) {
   const ordered = socialOrder
@@ -33,10 +44,16 @@ function visibleSocials(socials: Record<string, string>) {
 
 type SiteFooterProps = {
   initialChrome?: SiteChromeData;
+  preferInitialChrome?: boolean;
 };
 
-export default function SiteFooter({ initialChrome }: SiteFooterProps) {
-  const { footerMenu, settings } = useSiteChrome(initialChrome);
+export default function SiteFooter({
+  initialChrome,
+  preferInitialChrome = false,
+}: SiteFooterProps) {
+  const { footerMenu, settings } = useSiteChrome(initialChrome, {
+    preferInitial: preferInitialChrome,
+  });
   const socials = visibleSocials(settings.socials);
 
   return (
@@ -80,14 +97,17 @@ export default function SiteFooter({ initialChrome }: SiteFooterProps) {
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
             src={siteConfig.footer.map}
-            title="Rèm Vina Google Map"
+            title={`${siteConfig.name} Google Map`}
           />
         </div>
 
         <div className="border-t border-muted-foreground/20 pt-8 text-sm md:col-span-2">
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
             <div className="grid gap-3">
-              <nav className="flex flex-wrap gap-4">
+              <nav
+                aria-label="Điều hướng chân trang"
+                className="flex flex-wrap gap-4"
+              >
                 {footerMenu.map((item) => {
                   const external = isExternalHref(item.href);
 
@@ -105,7 +125,10 @@ export default function SiteFooter({ initialChrome }: SiteFooterProps) {
                 })}
               </nav>
               {socials.length ? (
-                <nav className="flex flex-wrap gap-3 text-xs uppercase tracking-wide text-muted-foreground">
+                <nav
+                  aria-label="Mạng xã hội"
+                  className="flex flex-wrap gap-3 text-xs uppercase tracking-wide text-muted-foreground"
+                >
                   {socials.map(([label, href]) => (
                     <a
                       className="hover:text-foreground"

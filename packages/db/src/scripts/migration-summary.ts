@@ -37,7 +37,8 @@ async function canRead(path: string) {
 
 function countInserts(sql: string) {
   const counts = new Map<string, number>();
-  const insertPattern = /INSERT\s+OR\s+REPLACE\s+INTO\s+([A-Za-z_][A-Za-z0-9_]*)/gi;
+  const insertPattern =
+    /INSERT\s+OR\s+REPLACE\s+INTO\s+([A-Za-z_][A-Za-z0-9_]*)/gi;
   let match: RegExpExecArray | null;
 
   while ((match = insertPattern.exec(sql))) {
@@ -89,7 +90,9 @@ async function main() {
   }
 
   if (readableFiles === 0) {
-    throw new Error("No migration SQL files found. Generate Mongo/Notion SQL first.");
+    throw new Error(
+      "No migration SQL files found. Generate Mongo/Notion SQL first.",
+    );
   }
 
   console.log("Combined:");

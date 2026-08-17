@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import {
-  ProductListPage,
-  getProductListPageData,
-} from "./danh-sach-san-pham";
+import { ProductListPage, getProductListPageData } from "./danh-sach-san-pham";
 
 export const Route = createFileRoute("/san-pham")({
   loader: () => getProductListPageData(),

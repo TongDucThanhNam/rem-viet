@@ -1,33 +1,44 @@
 import { getPostBySlug } from "@rem-viet/api/services/posts";
+import { resolveRedirect } from "@rem-viet/api/services/operations";
 import { createServerFn } from "@tanstack/react-start";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { ArrowLeft, FileText } from "lucide-react";
 import type { CSSProperties } from "react";
 
 import { Navigation } from "@/components/landing/navigation";
 import PostContent from "@/components/post-content";
-import { cloudflareImageUrl } from "@/lib/site-config";
+import { cloudflareImageUrl, siteConfig } from "@/lib/site-config";
 
 export const Route = createFileRoute("/bai-viet/$slug")({
-  loader: ({ params }) => getPostPageData({ data: { slug: params.slug } }),
+  loader: async ({ params }) => {
+    const result = await getPostPageData({ data: { slug: params.slug } });
+    if (result.redirect) {
+      throw redirect({
+        href: result.redirect.newPath,
+        statusCode: result.redirect.statusCode,
+      });
+    }
+    return result.post;
+  },
   head: ({ loaderData }) => {
     if (!loaderData) {
       return {
         meta: [
-          { title: "Post not found - Rèm Vina" },
+          { title: `Post not found - ${siteConfig.name}` },
           { name: "description", content: "Post not found" },
         ],
       };
     }
 
-    const title = `${loaderData.seoTitle || loaderData.title} - Rèm Vina`;
+    const title = `${loaderData.seoTitle || loaderData.title} - ${siteConfig.name}`;
     const description =
       loaderData.seoDescription ||
       loaderData.description ||
       `This is a blog post about ${loaderData.slug}`;
-    const image = loaderData.coverImage
-      ? cloudflareImageUrl(loaderData.coverImage)
-      : undefined;
+    const image =
+      loaderData.ogImage || loaderData.coverImage
+        ? cloudflareImageUrl(loaderData.ogImage || loaderData.coverImage)
+        : undefined;
 
     return {
       meta: [
@@ -36,6 +47,10 @@ export const Route = createFileRoute("/bai-viet/$slug")({
         { property: "og:title", content: loaderData.title },
         { property: "og:description", content: description },
         { property: "og:type", content: "article" },
+        {
+          name: "robots",
+          content: `${loaderData.robotsIndex ? "index" : "noindex"}, ${loaderData.robotsFollow ? "follow" : "nofollow"}`,
+        },
         ...(loaderData.publishDate
           ? [
               {
@@ -44,7 +59,7 @@ export const Route = createFileRoute("/bai-viet/$slug")({
               },
             ]
           : []),
-        { property: "article:author", content: "Rem Vina" },
+        { property: "article:author", content: siteConfig.name },
         ...(image
           ? [
               { property: "og:image", content: image },
@@ -54,6 +69,14 @@ export const Route = createFileRoute("/bai-viet/$slug")({
             ]
           : []),
       ],
+      links: [
+        {
+          rel: "canonical",
+          href:
+            loaderData.canonicalUrl ||
+            `${siteConfig.url}/bai-viet/${loaderData.slug}`,
+        },
+      ],
     };
   },
   component: PostDetailRoute,
@@ -62,7 +85,20 @@ export const Route = createFileRoute("/bai-viet/$slug")({
 const getPostPageData = createServerFn({ method: "GET" })
   .inputValidator((data: { slug: string }) => data)
   .handler(async ({ data }) => {
-    return getPostBySlug({ slug: data.slug, status: "published" });
+    const post = await getPostBySlug({ slug: data.slug, status: "published" });
+    if (post) return { post, redirect: null };
+    const requestedPath = `/bai-viet/${data.slug}`;
+    const exactRedirect = await resolveRedirect(requestedPath);
+    const canonicalRedirect = data.slug.endsWith(".html")
+      ? await resolveRedirect(
+          `/bai-viet/${data.slug.slice(0, -".html".length)}`,
+        )
+      : null;
+
+    return {
+      post: null,
+      redirect: exactRedirect ?? canonicalRedirect,
+    };
   });
 
 const blogThemeStyle = {
@@ -92,7 +128,9 @@ function formatDate(value?: string) {
 function PostDetailRoute() {
   const post = Route.useLoaderData();
   const publishedAt = post?.publishDate || post?.created_time;
-  const coverImage = post?.coverImage ? cloudflareImageUrl(post.coverImage) : "";
+  const coverImage = post?.coverImage
+    ? cloudflareImageUrl(post.coverImage)
+    : "";
 
   return (
     <main
@@ -118,7 +156,7 @@ function PostDetailRoute() {
             <header className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,0.62fr)_minmax(320px,0.38fr)] lg:items-end">
               <div>
                 <p className="font-vietnam text-[11px] tracking-[0.22em] text-[color:color-mix(in_srgb,var(--text-color)_60%,transparent)] uppercase">
-                  {publishedAt ? formatDate(publishedAt) : "Rèm Vina"}
+                  {publishedAt ? formatDate(publishedAt) : siteConfig.name}
                 </p>
                 <div className="mt-5 h-px w-14 bg-[var(--accent)]" />
                 <h1 className="mt-9 font-playfair text-[clamp(48px,7vw,104px)] font-normal leading-[0.9] tracking-normal text-[var(--text-color)]">

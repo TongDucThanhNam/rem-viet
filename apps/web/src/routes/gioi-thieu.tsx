@@ -3,6 +3,8 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { ShoppingBag } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { siteConfig } from "@/lib/site-config";
+
 import {
   FaqSection,
   FeatureSection,
@@ -19,11 +21,10 @@ import {
 export const Route = createFileRoute("/gioi-thieu")({
   head: () => ({
     meta: [
-      { title: "Giới thiệu Rèm Vina" },
+      { title: `Giới thiệu ${siteConfig.name}` },
       {
         name: "description",
-        content:
-          "Rèm Vina cung cấp rèm cửa và lưới chống muỗi sản xuất tại Việt Nam, hỗ trợ tư vấn kích thước và đặt hàng theo yêu cầu.",
+        content: `${siteConfig.name} cung cấp giải pháp được thiết kế theo nhu cầu thực tế của khách hàng.`,
       },
     ],
   }),
@@ -43,7 +44,7 @@ function AboutRoute() {
               <h1 className="text-4xl font-bold tracking-normal sm:text-5xl md:text-6xl">
                 Chào mừng đến với
                 <br />
-                <span className="text-primary">Rèm Vina</span>
+                <span className="text-primary">{siteConfig.name}</span>
               </h1>
               <p className="mt-5 max-w-xl text-base leading-8 text-muted-foreground md:text-xl">
                 Mang đến sự bảo vệ toàn diện cho gia đình bạn khỏi những tác

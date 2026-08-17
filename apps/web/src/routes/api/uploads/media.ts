@@ -1,8 +1,14 @@
-import { createMediaRecord } from "@rem-viet/api/services/content";
+import {
+  rollbackUploadedMediaRecord,
+  uploadMediaRecord,
+} from "@rem-viet/api/services/content";
+import { reportOperationalIncident } from "@rem-viet/api/services/incidents";
+import { allowedMediaTypeSchema, roleHasCapability } from "@rem-viet/cms";
 import { env } from "@rem-viet/env/server";
 import { createFileRoute } from "@tanstack/react-router";
 
-import { requireApiSession } from "@/lib/api-auth";
+import { getAdminUser } from "@/functions/get-admin-user";
+import { discardRequestBody } from "@/lib/api-auth";
 import {
   mediaObjectKey,
   mediaPublicPath,
@@ -13,13 +19,25 @@ export const Route = createFileRoute("/api/uploads/media")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const unauthorized = await requireApiSession();
-
-        if (unauthorized) {
-          return unauthorized;
+        const session = await getAdminUser();
+        if (!session?.user) {
+          await discardRequestBody(request);
+          return Response.json(
+            { message: "Admin authentication required", statusCode: 401 },
+            { status: 401 },
+          );
+        }
+        if (!roleHasCapability(session.staffRole, "media.manage")) {
+          await discardRequestBody(request);
+          return Response.json(
+            { message: "Missing capability: media.manage", statusCode: 403 },
+            { status: 403 },
+          );
         }
 
         const formData = await request.formData();
+        const requestId =
+          request.headers.get("x-request-id") ?? crypto.randomUUID();
         const files = formData
           .getAll("files")
           .filter((value): value is File => value instanceof File);
@@ -35,6 +53,15 @@ export const Route = createFileRoute("/api/uploads/media")({
           .PRODUCT_IMAGES;
 
         if (!bucket) {
+          reportOperationalIncident({
+            category: "upload",
+            operation: "media.upload.configuration",
+            source: "request",
+            error: new Error("Media storage binding is not configured"),
+            requestId,
+            recoverable: false,
+            detail: { fileCount: files.length },
+          });
           return Response.json(
             { message: "Media storage is not configured", statusCode: 500 },
             { status: 500 },
@@ -42,7 +69,7 @@ export const Route = createFileRoute("/api/uploads/media")({
         }
 
         try {
-          validateMediaFiles(files);
+          await validateMediaFiles(files);
         } catch (error) {
           return Response.json(
             {
@@ -55,37 +82,57 @@ export const Route = createFileRoute("/api/uploads/media")({
         }
 
         const uploaded = [];
-        const uploadedKeys: string[] = [];
+        const uploadedIds: string[] = [];
+        const actor = {
+          userId: session.user.id,
+          email: session.user.email,
+          role: session.staffRole,
+          requestId,
+        };
 
         try {
           for (const file of files) {
             const key = mediaObjectKey(file);
             const url = mediaPublicPath(key);
 
-            await bucket.put(key, file, {
-              httpMetadata: {
-                contentType: file.type,
+            const mediaRecord = await uploadMediaRecord(
+              {
+                key,
+                url,
+                altText: "",
+                size: file.size,
+                mimeType: allowedMediaTypeSchema.parse(file.type),
+                body: file,
               },
-            });
-            uploadedKeys.push(key);
-
-            const mediaRecord = await createMediaRecord({
-              key,
-              url,
-              altText: "",
-              size: file.size,
-              mimeType: file.type,
-            });
+              actor,
+            );
 
             uploaded.push(mediaRecord.data);
+            if (mediaRecord.data) uploadedIds.push(mediaRecord.data.id);
           }
         } catch (error) {
-          await Promise.allSettled(uploadedKeys.map((key) => bucket.delete(key)));
+          await Promise.allSettled(
+            uploadedIds.map((id) => rollbackUploadedMediaRecord(id, actor)),
+          );
+          reportOperationalIncident({
+            category: "upload",
+            operation: "media.upload.persistence",
+            source: "request",
+            error,
+            requestId,
+            recoverable: true,
+            detail: {
+              fileCount: files.length,
+              rolledBackObjects: uploadedIds.length,
+            },
+          });
 
           return Response.json(
             {
               message:
-                error instanceof Error ? error.message : "Failed to upload media",
+                error instanceof Error
+                  ? error.message
+                  : "Failed to upload media",
               statusCode: 500,
             },
             { status: 500 },

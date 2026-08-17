@@ -18,6 +18,7 @@ import z from "zod";
 
 import AuthLayout from "@/components/auth-layout";
 import { authClient } from "@/lib/auth-client";
+import { siteConfig } from "@/lib/site-config";
 
 export default function SignUpForm({
   onSwitchToSignIn,
@@ -74,11 +75,11 @@ export default function SignUpForm({
   });
 
   return (
-    <AuthLayout quote="Cổng đăng ký tài khoản quản trị Rèm Vina">
+    <AuthLayout quote={`Cổng đăng ký tài khoản quản trị ${siteConfig.name}`}>
       <div className="mb-6">
         <p className="text-xl font-semibold">Đăng ký</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Tạo tài khoản quản trị Rèm Vina.
+          Tạo tài khoản quản trị {siteConfig.name}.
         </p>
       </div>
 

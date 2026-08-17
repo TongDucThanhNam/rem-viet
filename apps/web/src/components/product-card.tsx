@@ -49,10 +49,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             {formatProductPrice(product.price)}
           </span>
           <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-            <SolarStarLinear
-              aria-hidden
-              className="size-4 text-yellow-500"
-            />
+            <SolarStarLinear aria-hidden className="size-4 text-yellow-500" />
             {formatRating(product.rating)}
           </span>
         </div>

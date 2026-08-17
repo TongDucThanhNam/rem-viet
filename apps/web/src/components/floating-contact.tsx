@@ -11,7 +11,9 @@ type FloatingContactProps = {
   initialChrome?: SiteChromeData;
 };
 
-export default function FloatingContact({ initialChrome }: FloatingContactProps) {
+export default function FloatingContact({
+  initialChrome,
+}: FloatingContactProps) {
   const { settings } = useSiteChrome(initialChrome);
   const zaloHref = settings.socials.zalo
     ? `${settings.socials.zalo}?text=${encodeURIComponent("Hello Zalo")}`
@@ -34,8 +36,7 @@ export default function FloatingContact({ initialChrome }: FloatingContactProps)
       label: "Facebook",
       href: settings.socials.facebook,
       icon: MessageCircle,
-      className:
-        "border-blue-600/20 bg-blue-600 text-white hover:bg-blue-700",
+      className: "border-blue-600/20 bg-blue-600 text-white hover:bg-blue-700",
     },
     {
       label: "Shopee",

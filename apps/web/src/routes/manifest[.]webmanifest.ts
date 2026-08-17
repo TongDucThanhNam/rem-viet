@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { siteConfig } from "@/lib/site-config";
+
 export const Route = createFileRoute("/manifest.webmanifest")({
   server: {
     handlers: {
       GET: async () =>
         Response.json({
-          name: "Rèm Vina",
-          short_name: "Rèm Vina",
-          description:
-            "Rèm Vina chuyên cung cấp rèm cửa, lưới chống muỗi và lưới chống côn trùng cho cửa sổ, cửa ra vào.",
+          name: siteConfig.name,
+          short_name: siteConfig.name,
+          description: siteConfig.description,
           start_url: "/",
           display: "standalone",
           background_color: "#ffffff",

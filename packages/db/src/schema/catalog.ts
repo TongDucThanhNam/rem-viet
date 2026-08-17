@@ -1,5 +1,11 @@
 import { relations, sql } from "drizzle-orm";
-import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+  index,
+  integer,
+  real,
+  sqliteTable,
+  text,
+} from "drizzle-orm/sqlite-core";
 
 const timestamps = {
   createdAt: integer("created_at", { mode: "timestamp_ms" })
@@ -12,7 +18,9 @@ const timestamps = {
 };
 
 const softDelete = {
-  isDeleted: integer("is_deleted", { mode: "boolean" }).default(false).notNull(),
+  isDeleted: integer("is_deleted", { mode: "boolean" })
+    .default(false)
+    .notNull(),
   isActive: integer("is_active", { mode: "boolean" }).default(true).notNull(),
 };
 
@@ -31,7 +39,9 @@ export const products = sqliteTable(
   {
     id: text("id").primaryKey(),
     slug: text("slug"),
-    imageUrls: text("image_urls", { mode: "json" }).$type<string[]>().default([]),
+    imageUrls: text("image_urls", { mode: "json" })
+      .$type<string[]>()
+      .default([]),
     name: text("name").notNull(),
     description: text("description"),
     size: text("size", { mode: "json" }).$type<string[]>().default([]),
@@ -59,7 +69,9 @@ export const variants = sqliteTable(
       .references(() => products.id, { onDelete: "cascade" }),
     key: integer("key").notNull(),
     variantPrice: real("variant_price").notNull(),
-    values: text("values", { mode: "json" }).$type<Record<string, string>>().notNull(),
+    values: text("values", { mode: "json" })
+      .$type<Record<string, string>>()
+      .notNull(),
     ...softDelete,
     ...timestamps,
   },
@@ -77,7 +89,10 @@ export const promotions = sqliteTable(
     discountValue: real("discount_value").notNull(),
     startDate: integer("start_date", { mode: "timestamp_ms" }).notNull(),
     endDate: integer("end_date", { mode: "timestamp_ms" }).notNull(),
-    productIds: text("product_ids", { mode: "json" }).$type<string[]>().default([]).notNull(),
+    productIds: text("product_ids", { mode: "json" })
+      .$type<string[]>()
+      .default([])
+      .notNull(),
     ...softDelete,
     ...timestamps,
   },

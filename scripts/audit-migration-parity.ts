@@ -32,19 +32,16 @@ function record(status: CheckStatus, name: string, detail?: string) {
 
 function assertFile({ legacy, name, web }: FileCheck) {
   const webExists = exists(web);
-  const legacyExists = legacy ? exists(legacy) : true;
 
-  if (webExists && legacyExists) {
-    record("PASS", name, legacy ? `${legacy} -> ${web}` : web);
+  if (webExists) {
+    const legacyDetail = legacy
+      ? `${legacy}${exists(legacy) ? "" : " (retired)"} -> ${web}`
+      : web;
+    record("PASS", name, legacyDetail);
     return;
   }
 
-  const missing = [
-    !legacyExists && legacy ? `missing legacy reference ${legacy}` : undefined,
-    !webExists ? `missing web route ${web}` : undefined,
-  ].filter(Boolean);
-
-  record("FAIL", name, missing.join("; "));
+  record("FAIL", name, `missing web route ${web}`);
 }
 
 function assertFileIncludes(path: string, text: string, name: string) {
@@ -115,7 +112,11 @@ function assertNoOldAppImports() {
   });
 
   if (offenders.length === 0) {
-    record("PASS", "apps/web does not import legacy apps", `${sourceFiles.length} files scanned`);
+    record(
+      "PASS",
+      "apps/web does not import legacy apps",
+      `${sourceFiles.length} files scanned`,
+    );
     return;
   }
 
@@ -142,11 +143,19 @@ function assertNoMongoRuntimeReferences() {
   );
 
   if (offenders.length === 0) {
-    record("PASS", "active runtime has no Mongo/Mongoose references", `${files.length} files scanned`);
+    record(
+      "PASS",
+      "active runtime has no Mongo/Mongoose references",
+      `${files.length} files scanned`,
+    );
     return;
   }
 
-  record("FAIL", "active runtime has no Mongo/Mongoose references", offenders.join(", "));
+  record(
+    "FAIL",
+    "active runtime has no Mongo/Mongoose references",
+    offenders.join(", "),
+  );
 }
 
 function assertAdminApiAuthGuards() {
@@ -168,7 +177,9 @@ function assertAdminApiAuthGuards() {
     if (!exists(file)) {
       return true;
     }
-    return !readFileSync(pathFromRoot(file), "utf8").includes("requireApiSession");
+    return !readFileSync(pathFromRoot(file), "utf8").includes(
+      "requireApiSession",
+    );
   });
 
   if (missingGuard.length === 0) {
@@ -180,23 +191,42 @@ function assertAdminApiAuthGuards() {
     return;
   }
 
-  record("FAIL", "admin REST API surfaces include auth guard", missingGuard.join(", "));
+  record(
+    "FAIL",
+    "admin REST API surfaces include auth guard",
+    missingGuard.join(", "),
+  );
 }
 
 function assertActiveWorkspaceOnly() {
-  const packageJson = JSON.parse(readFileSync(pathFromRoot("package.json"), "utf8"));
+  const packageJson = JSON.parse(
+    readFileSync(pathFromRoot("package.json"), "utf8"),
+  );
   const workspaces = packageJson.workspaces?.packages ?? [];
-  const inactiveApps = ["apps/admin", "apps/backend", "apps/frontend", "apps/home"];
+  const inactiveApps = [
+    "apps/admin",
+    "apps/backend",
+    "apps/frontend",
+    "apps/home",
+  ];
   const activeAppOnly =
     workspaces.includes("apps/web") &&
     inactiveApps.every((workspace) => !workspaces.includes(workspace));
 
   if (activeAppOnly) {
-    record("PASS", "root workspaces target migrated app only", workspaces.join(", "));
+    record(
+      "PASS",
+      "root workspaces target migrated app only",
+      workspaces.join(", "),
+    );
     return;
   }
 
-  record("FAIL", "root workspaces target migrated app only", workspaces.join(", "));
+  record(
+    "FAIL",
+    "root workspaces target migrated app only",
+    workspaces.join(", "),
+  );
 }
 
 const publicRoutes: FileCheck[] = [
@@ -324,12 +354,27 @@ const adminRoutes: FileCheck[] = [
 ];
 
 const legacyRedirects: FileCheck[] = [
-  { name: "legacy /dashboard redirect", web: "apps/web/src/routes/dashboard.tsx" },
-  { name: "legacy /products redirect", web: "apps/web/src/routes/products.tsx" },
+  {
+    name: "legacy /dashboard redirect",
+    web: "apps/web/src/routes/dashboard.tsx",
+  },
+  {
+    name: "legacy /products redirect",
+    web: "apps/web/src/routes/products.tsx",
+  },
   { name: "legacy /orders redirect", web: "apps/web/src/routes/orders.tsx" },
-  { name: "legacy /add-order redirect", web: "apps/web/src/routes/add-order.tsx" },
-  { name: "legacy /inventory redirect", web: "apps/web/src/routes/inventory.tsx" },
-  { name: "legacy /add-inventory redirect", web: "apps/web/src/routes/add-inventory.tsx" },
+  {
+    name: "legacy /add-order redirect",
+    web: "apps/web/src/routes/add-order.tsx",
+  },
+  {
+    name: "legacy /inventory redirect",
+    web: "apps/web/src/routes/inventory.tsx",
+  },
+  {
+    name: "legacy /add-inventory redirect",
+    web: "apps/web/src/routes/add-inventory.tsx",
+  },
   {
     legacy: "apps/admin/src/app/(admin)/add-product/page.tsx",
     name: "legacy /add-product redirect",
@@ -467,7 +512,12 @@ const apiRoutes: FileCheck[] = [
   },
 ];
 
-for (const route of [...publicRoutes, ...adminRoutes, ...legacyRedirects, ...apiRoutes]) {
+for (const route of [
+  ...publicRoutes,
+  ...adminRoutes,
+  ...legacyRedirects,
+  ...apiRoutes,
+]) {
   assertFile(route);
 }
 
@@ -492,7 +542,7 @@ assertFileIncludes(
   "Mongo to D1 exporter remains offline tooling",
 );
 assertFileIncludes(
-  "apps/web/src/functions/get-admin-user.ts",
+  "packages/api/src/services/staff.ts",
   "ADMIN_EMAILS",
   "admin allowlist auth is configured",
 );
@@ -503,7 +553,15 @@ assertFileIncludesAll(
 );
 assertFileIncludesAll(
   "packages/db/src/schema/commerce.ts",
-  ["orders", "carts", "newsletter_subscriptions", "products", "shipping", "payment", "items"],
+  [
+    "orders",
+    "carts",
+    "newsletter_subscriptions",
+    "products",
+    "shipping",
+    "payment",
+    "items",
+  ],
   "commerce Mongo/Telegram surfaces have Drizzle/D1 tables",
 );
 assertFileIncludesAll(
@@ -569,11 +627,11 @@ assertFileIncludesAll(
     "includeInactive",
     "isActive",
     "isDeleted",
-    "Object.hasOwn(input, \"variants\")",
-    "db.transaction",
+    'Object.hasOwn(input, "variants")',
+    "db.batch",
     "Category not found",
   ],
-  "product service preserves public/admin split and safe D1 writes",
+  "product service preserves public/admin split and atomic D1 writes",
 );
 assertFileIncludesAll(
   "packages/api/src/services/orders.ts",
@@ -621,61 +679,73 @@ assertFileIncludesAll(
 );
 assertFileIncludesAll(
   "packages/ui/src/styles/globals.css",
-  ["--color-content2", "--color-default-100", "--radius-medium", "--radius-large"],
+  [
+    "--color-content2",
+    "--color-default-100",
+    "--radius-medium",
+    "--radius-large",
+  ],
   "UI globals expose legacy NextUI token aliases used by migrated screens",
 );
 assertFileIncludesAll(
-  "apps/web/src/routes/admin/products/$productId.tsx",
+  "apps/web/src/routes/admin/products/$productId/index.tsx",
   [
-    "rounded-large border bg-default-100",
-    "rounded-full bg-primary/10",
-    "Mô tả sản phẩm: ...",
-    "Values",
-    "Price",
+    "Sửa sản phẩm",
+    "Thông tin sản phẩm",
+    'label="Mô tả"',
+    "Danh sách biến thể",
+    "normalizeVariantValues",
+    "formatCurrency",
   ],
-  "admin product detail keeps legacy snippet and variant table treatment",
+  "admin product detail preserves structured product and variant inspection",
 );
 assertFileIncludesAll(
   "apps/web/src/routes/admin/dashboard.tsx",
   [
     "Phân tích sản phẩm",
     "Loại phân tích",
-    "border-dashed",
-    "hoveredItemName",
-    "valueFormatter(hoveredItem[analysisType])",
+    'role="img"',
+    "Biểu đồ ${labels[analysisType].toLowerCase()} sản phẩm",
+    "format(value)",
+    "bg-chart-2",
   ],
-  "admin dashboard chart keeps migrated data plus legacy chart affordances",
+  "admin dashboard chart keeps selectable, labelled migrated analysis data",
 );
 assertFileIncludesAll(
   "apps/web/src/components/admin-shell.tsx",
   [
-    "open={isOpen}",
+    "open={mobileOpen}",
+    "sidebarExpanded",
     "group/sidebar",
-    "h-11",
-    "bg-default-100",
-    "-ml-72 -translate-x-72",
-    "Nội dung",
+    "h-dvh",
+    "bg-sidebar",
+    "adminNavigationSections",
   ],
-  "admin shell keeps legacy sidebar chrome and nested navigation affordances",
+  "admin shell keeps responsive sidebar and nested navigation affordances",
 );
 assertFileIncludesAll(
   "apps/web/src/components/product-form.tsx",
   [
-    "group/file",
-    "[mask-image:radial-gradient(ellipse_at_center,white,transparent)]",
-    "group-hover/file:-translate-y-5",
-    "/api/uploads/product-images",
+    'aria-label="Nguồn ảnh"',
+    'aria-label="Chọn tệp ảnh"',
+    "border-dashed",
+    'aria-live="polite"',
+    "/api/uploads/media",
   ],
-  "admin product form keeps legacy upload visual treatment with D1/R2 upload path",
+  "admin product form keeps accessible file selection with D1/R2 upload path",
 );
 assertFileIncludesAll(
   "apps/web/src/lib/site-config.ts",
-  ['{ label: "Trang chủ", to: "/" }', '{ label: "Giới thiệu", to: "/gioi-thieu" }', '{ label: "Bài viết", to: "/bai-viet" }'],
+  [
+    '{ label: "Trang chủ", to: "/" }',
+    '{ label: "Giới thiệu", to: "/gioi-thieu" }',
+    '{ label: "Bài viết", to: "/bai-viet" }',
+  ],
   "storefront header keeps legacy nav item set inside TanStack Start",
 );
 assertFileIncludesAll(
   "apps/web/src/routes/san-pham.tsx",
-  ["createFileRoute(\"/san-pham\")", "ProductListPage", "getProductListPageData"],
+  ['createFileRoute("/san-pham")', "ProductListPage", "getProductListPageData"],
   "legacy /san-pham renders the migrated product list",
 );
 assertFileIncludesAll(
@@ -705,7 +775,9 @@ for (const check of checks) {
 }
 
 if (failed.length > 0) {
-  console.error(`\nMigration parity audit failed: ${failed.length} failed check(s).`);
+  console.error(
+    `\nMigration parity audit failed: ${failed.length} failed check(s).`,
+  );
   process.exit(1);
 }
 

@@ -18,6 +18,7 @@ import { Route as OrdersRouteImport } from './routes/orders'
 import { Route as NotFoundRouteImport } from './routes/not-found'
 import { Route as ManifestDotwebmanifestRouteImport } from './routes/manifest[.]webmanifest'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LienHeRouteImport } from './routes/lien-he'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as GioiThieuRouteImport } from './routes/gioi-thieu'
 import { Route as GioHangRouteImport } from './routes/gio-hang'
@@ -32,11 +33,14 @@ import { Route as AddOrderRouteImport } from './routes/add-order'
 import { Route as AddInventoryRouteImport } from './routes/add-inventory'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BaiVietIndexRouteImport } from './routes/bai-viet/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ViewProductProductIdRouteImport } from './routes/view-product/$productId'
+import { Route as SanityPreviewIdRouteImport } from './routes/sanity-preview/$id'
 import { Route as SanPhamProductIdRouteImport } from './routes/san-pham/$productId'
 import { Route as EditProductProductIdRouteImport } from './routes/edit-product/$productId'
 import { Route as BaiVietSlugRouteImport } from './routes/bai-viet/$slug'
+import { Route as ApiVitalsRouteImport } from './routes/api/vitals'
 import { Route as ApiSendProductOrderRouteImport } from './routes/api/send-product-order'
 import { Route as ApiSendNewsletterRouteImport } from './routes/api/send-newsletter'
 import { Route as ApiSendNewletterRouteImport } from './routes/api/send-newletter'
@@ -46,30 +50,51 @@ import { Route as ApiProductRouteImport } from './routes/api/product'
 import { Route as ApiPostsRouteImport } from './routes/api/posts'
 import { Route as ApiOrdersRouteImport } from './routes/api/orders'
 import { Route as ApiLogsRouteImport } from './routes/api/logs'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiGetBookmarkRouteImport } from './routes/api/get-bookmark'
 import { Route as ApiCategoriesRouteImport } from './routes/api/categories'
 import { Route as ApiAddProductRouteImport } from './routes/api/add-product'
+import { Route as AdminStaffRouteImport } from './routes/admin/staff'
+import { Route as AdminSettingsPreviewRouteImport } from './routes/admin/settings-preview'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminRedirectsRouteImport } from './routes/admin/redirects'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminPostsRouteImport } from './routes/admin/posts'
+import { Route as AdminPerformanceRouteImport } from './routes/admin/performance'
 import { Route as AdminPagesRouteImport } from './routes/admin/pages'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminMediaRouteImport } from './routes/admin/media'
 import { Route as AdminLogsRouteImport } from './routes/admin/logs'
+import { Route as AdminLeadsRouteImport } from './routes/admin/leads'
 import { Route as AdminInventoryRouteImport } from './routes/admin/inventory'
+import { Route as AdminHomePreviewRouteImport } from './routes/admin/home-preview'
+import { Route as AdminHomeRouteImport } from './routes/admin/home'
+import { Route as AdminHandoverRouteImport } from './routes/admin/handover'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
+import { Route as AdminAuditRouteImport } from './routes/admin/audit'
 import { Route as AdminAddProductRouteImport } from './routes/admin/add-product'
+import { Route as AdminProductsIndexRouteImport } from './routes/admin/products/index'
+import { Route as AdminPostsIndexRouteImport } from './routes/admin/posts/index'
+import { Route as AdminOrdersIndexRouteImport } from './routes/admin/orders/index'
+import { Route as AdminInventoryIndexRouteImport } from './routes/admin/inventory/index'
 import { Route as ApiUploadsProductImagesRouteImport } from './routes/api/uploads/product-images'
 import { Route as ApiUploadsMediaRouteImport } from './routes/api/uploads/media'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api/trpc/$'
+import { Route as ApiSanityWebhookRouteImport } from './routes/api/sanity/webhook'
 import { Route as ApiProductsProductIdRouteImport } from './routes/api/products/$productId'
 import { Route as ApiProductProductIdRouteImport } from './routes/api/product/$productId'
 import { Route as ApiProductImagesKeyRouteImport } from './routes/api/product-images/$key'
 import { Route as ApiPostsSlugRouteImport } from './routes/api/posts/$slug'
 import { Route as ApiOrdersOrderIdRouteImport } from './routes/api/orders/$orderId'
 import { Route as ApiMediaKeyRouteImport } from './routes/api/media/$key'
+import { Route as ApiLogsLogIdRouteImport } from './routes/api/logs/$logId'
+import { Route as ApiLeadsExportDotcsvRouteImport } from './routes/api/leads/export[.]csv'
+import { Route as ApiFormsSubmitRouteImport } from './routes/api/forms/submit'
 import { Route as ApiEditProductProductIdRouteImport } from './routes/api/edit-product/$productId'
+import { Route as ApiDraftModePerspectiveRouteImport } from './routes/api/draft-mode/perspective'
+import { Route as ApiDraftModeEnableRouteImport } from './routes/api/draft-mode/enable'
+import { Route as ApiDraftModeDisableRouteImport } from './routes/api/draft-mode/disable'
 import { Route as ApiCategoriesCategoryIdRouteImport } from './routes/api/categories/$categoryId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AdminViewProductProductIdRouteImport } from './routes/admin/view-product/$productId'
@@ -79,9 +104,13 @@ import { Route as AdminPostsNewRouteImport } from './routes/admin/posts/new'
 import { Route as AdminOrdersNewRouteImport } from './routes/admin/orders/new'
 import { Route as AdminInventoryNewRouteImport } from './routes/admin/inventory/new'
 import { Route as AdminEditProductProductIdRouteImport } from './routes/admin/edit-product/$productId'
+import { Route as AdminProductsProductIdIndexRouteImport } from './routes/admin/products/$productId/index'
 import { Route as ApiProductProductIdVariantRouteImport } from './routes/api/product/$productId/variant'
+import { Route as ApiDraftModePageIdRouteImport } from './routes/api/draft-mode/page/$id'
 import { Route as AdminProductsProductIdEditRouteImport } from './routes/admin/products/$productId/edit'
+import { Route as AdminPostsPostIdPreviewRouteImport } from './routes/admin/posts/$postId/preview'
 import { Route as AdminPostsPostIdEditRouteImport } from './routes/admin/posts/$postId/edit'
+import { Route as AdminPagesPageIdPreviewRouteImport } from './routes/admin/pages_/$pageId/preview'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -126,6 +155,11 @@ const ManifestDotwebmanifestRoute = ManifestDotwebmanifestRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LienHeRoute = LienHeRouteImport.update({
+  id: '/lien-he',
+  path: '/lien-he',
   getParentRoute: () => rootRouteImport,
 } as any)
 const InventoryRoute = InventoryRouteImport.update({
@@ -198,6 +232,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BaiVietIndexRoute = BaiVietIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BaiVietRoute,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -206,6 +245,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const ViewProductProductIdRoute = ViewProductProductIdRouteImport.update({
   id: '/view-product/$productId',
   path: '/view-product/$productId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SanityPreviewIdRoute = SanityPreviewIdRouteImport.update({
+  id: '/sanity-preview/$id',
+  path: '/sanity-preview/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SanPhamProductIdRoute = SanPhamProductIdRouteImport.update({
@@ -222,6 +266,11 @@ const BaiVietSlugRoute = BaiVietSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => BaiVietRoute,
+} as any)
+const ApiVitalsRoute = ApiVitalsRouteImport.update({
+  id: '/api/vitals',
+  path: '/api/vitals',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSendProductOrderRoute = ApiSendProductOrderRouteImport.update({
   id: '/api/send-product-order',
@@ -268,6 +317,11 @@ const ApiLogsRoute = ApiLogsRouteImport.update({
   path: '/api/logs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGetBookmarkRoute = ApiGetBookmarkRouteImport.update({
   id: '/api/get-bookmark',
   path: '/api/get-bookmark',
@@ -283,9 +337,24 @@ const ApiAddProductRoute = ApiAddProductRouteImport.update({
   path: '/api/add-product',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminStaffRoute = AdminStaffRouteImport.update({
+  id: '/admin/staff',
+  path: '/admin/staff',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsPreviewRoute = AdminSettingsPreviewRouteImport.update({
+  id: '/admin/settings-preview',
+  path: '/admin/settings-preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminSettingsRoute = AdminSettingsRouteImport.update({
   id: '/admin/settings',
   path: '/admin/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRedirectsRoute = AdminRedirectsRouteImport.update({
+  id: '/admin/redirects',
+  path: '/admin/redirects',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminProductsRoute = AdminProductsRouteImport.update({
@@ -296,6 +365,11 @@ const AdminProductsRoute = AdminProductsRouteImport.update({
 const AdminPostsRoute = AdminPostsRouteImport.update({
   id: '/admin/posts',
   path: '/admin/posts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPerformanceRoute = AdminPerformanceRouteImport.update({
+  id: '/admin/performance',
+  path: '/admin/performance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminPagesRoute = AdminPagesRouteImport.update({
@@ -318,9 +392,29 @@ const AdminLogsRoute = AdminLogsRouteImport.update({
   path: '/admin/logs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminLeadsRoute = AdminLeadsRouteImport.update({
+  id: '/admin/leads',
+  path: '/admin/leads',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminInventoryRoute = AdminInventoryRouteImport.update({
   id: '/admin/inventory',
   path: '/admin/inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminHomePreviewRoute = AdminHomePreviewRouteImport.update({
+  id: '/admin/home-preview',
+  path: '/admin/home-preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminHomeRoute = AdminHomeRouteImport.update({
+  id: '/admin/home',
+  path: '/admin/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminHandoverRoute = AdminHandoverRouteImport.update({
+  id: '/admin/handover',
+  path: '/admin/handover',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
@@ -333,10 +427,35 @@ const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   path: '/admin/categories',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/admin/audit',
+  path: '/admin/audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminAddProductRoute = AdminAddProductRouteImport.update({
   id: '/admin/add-product',
   path: '/admin/add-product',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminProductsIndexRoute = AdminProductsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminProductsRoute,
+} as any)
+const AdminPostsIndexRoute = AdminPostsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminPostsRoute,
+} as any)
+const AdminOrdersIndexRoute = AdminOrdersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminOrdersRoute,
+} as any)
+const AdminInventoryIndexRoute = AdminInventoryIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminInventoryRoute,
 } as any)
 const ApiUploadsProductImagesRoute = ApiUploadsProductImagesRouteImport.update({
   id: '/api/uploads/product-images',
@@ -351,6 +470,11 @@ const ApiUploadsMediaRoute = ApiUploadsMediaRouteImport.update({
 const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   id: '/api/trpc/$',
   path: '/api/trpc/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSanityWebhookRoute = ApiSanityWebhookRouteImport.update({
+  id: '/api/sanity/webhook',
+  path: '/api/sanity/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiProductsProductIdRoute = ApiProductsProductIdRouteImport.update({
@@ -383,9 +507,39 @@ const ApiMediaKeyRoute = ApiMediaKeyRouteImport.update({
   path: '/api/media/$key',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiLogsLogIdRoute = ApiLogsLogIdRouteImport.update({
+  id: '/$logId',
+  path: '/$logId',
+  getParentRoute: () => ApiLogsRoute,
+} as any)
+const ApiLeadsExportDotcsvRoute = ApiLeadsExportDotcsvRouteImport.update({
+  id: '/api/leads/export.csv',
+  path: '/api/leads/export.csv',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiFormsSubmitRoute = ApiFormsSubmitRouteImport.update({
+  id: '/api/forms/submit',
+  path: '/api/forms/submit',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiEditProductProductIdRoute = ApiEditProductProductIdRouteImport.update({
   id: '/api/edit-product/$productId',
   path: '/api/edit-product/$productId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDraftModePerspectiveRoute = ApiDraftModePerspectiveRouteImport.update({
+  id: '/api/draft-mode/perspective',
+  path: '/api/draft-mode/perspective',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDraftModeEnableRoute = ApiDraftModeEnableRouteImport.update({
+  id: '/api/draft-mode/enable',
+  path: '/api/draft-mode/enable',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDraftModeDisableRoute = ApiDraftModeDisableRouteImport.update({
+  id: '/api/draft-mode/disable',
+  path: '/api/draft-mode/disable',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiCategoriesCategoryIdRoute = ApiCategoriesCategoryIdRouteImport.update({
@@ -435,22 +589,43 @@ const AdminEditProductProductIdRoute =
     path: '/admin/edit-product/$productId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AdminProductsProductIdIndexRoute =
+  AdminProductsProductIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AdminProductsProductIdRoute,
+  } as any)
 const ApiProductProductIdVariantRoute =
   ApiProductProductIdVariantRouteImport.update({
     id: '/variant',
     path: '/variant',
     getParentRoute: () => ApiProductProductIdRoute,
   } as any)
+const ApiDraftModePageIdRoute = ApiDraftModePageIdRouteImport.update({
+  id: '/api/draft-mode/page/$id',
+  path: '/api/draft-mode/page/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminProductsProductIdEditRoute =
   AdminProductsProductIdEditRouteImport.update({
     id: '/edit',
     path: '/edit',
     getParentRoute: () => AdminProductsProductIdRoute,
   } as any)
+const AdminPostsPostIdPreviewRoute = AdminPostsPostIdPreviewRouteImport.update({
+  id: '/$postId/preview',
+  path: '/$postId/preview',
+  getParentRoute: () => AdminPostsRoute,
+} as any)
 const AdminPostsPostIdEditRoute = AdminPostsPostIdEditRouteImport.update({
   id: '/$postId/edit',
   path: '/$postId/edit',
   getParentRoute: () => AdminPostsRoute,
+} as any)
+const AdminPagesPageIdPreviewRoute = AdminPagesPageIdPreviewRouteImport.update({
+  id: '/admin/pages_/$pageId/preview',
+  path: '/admin/pages/$pageId/preview',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -468,6 +643,7 @@ export interface FileRoutesByFullPath {
   '/gio-hang': typeof GioHangRoute
   '/gioi-thieu': typeof GioiThieuRoute
   '/inventory': typeof InventoryRoute
+  '/lien-he': typeof LienHeRoute
   '/login': typeof LoginRoute
   '/manifest.webmanifest': typeof ManifestDotwebmanifestRoute
   '/not-found': typeof NotFoundRoute
@@ -478,20 +654,30 @@ export interface FileRoutesByFullPath {
   '/san-pham': typeof SanPhamRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/add-product': typeof AdminAddProductRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/handover': typeof AdminHandoverRoute
+  '/admin/home': typeof AdminHomeRoute
+  '/admin/home-preview': typeof AdminHomePreviewRoute
   '/admin/inventory': typeof AdminInventoryRouteWithChildren
+  '/admin/leads': typeof AdminLeadsRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/orders': typeof AdminOrdersRouteWithChildren
   '/admin/pages': typeof AdminPagesRoute
+  '/admin/performance': typeof AdminPerformanceRoute
   '/admin/posts': typeof AdminPostsRouteWithChildren
   '/admin/products': typeof AdminProductsRouteWithChildren
+  '/admin/redirects': typeof AdminRedirectsRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/settings-preview': typeof AdminSettingsPreviewRoute
+  '/admin/staff': typeof AdminStaffRoute
   '/api/add-product': typeof ApiAddProductRoute
   '/api/categories': typeof ApiCategoriesRouteWithChildren
   '/api/get-bookmark': typeof ApiGetBookmarkRoute
-  '/api/logs': typeof ApiLogsRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/logs': typeof ApiLogsRouteWithChildren
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/api/product': typeof ApiProductRouteWithChildren
@@ -500,11 +686,14 @@ export interface FileRoutesByFullPath {
   '/api/send-newletter': typeof ApiSendNewletterRoute
   '/api/send-newsletter': typeof ApiSendNewsletterRoute
   '/api/send-product-order': typeof ApiSendProductOrderRoute
+  '/api/vitals': typeof ApiVitalsRoute
   '/bai-viet/$slug': typeof BaiVietSlugRoute
   '/edit-product/$productId': typeof EditProductProductIdRoute
   '/san-pham/$productId': typeof SanPhamProductIdRoute
+  '/sanity-preview/$id': typeof SanityPreviewIdRoute
   '/view-product/$productId': typeof ViewProductProductIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/bai-viet/': typeof BaiVietIndexRoute
   '/admin/edit-product/$productId': typeof AdminEditProductProductIdRoute
   '/admin/inventory/new': typeof AdminInventoryNewRoute
   '/admin/orders/new': typeof AdminOrdersNewRoute
@@ -514,19 +703,34 @@ export interface FileRoutesByFullPath {
   '/admin/view-product/$productId': typeof AdminViewProductProductIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/categories/$categoryId': typeof ApiCategoriesCategoryIdRoute
+  '/api/draft-mode/disable': typeof ApiDraftModeDisableRoute
+  '/api/draft-mode/enable': typeof ApiDraftModeEnableRoute
+  '/api/draft-mode/perspective': typeof ApiDraftModePerspectiveRoute
   '/api/edit-product/$productId': typeof ApiEditProductProductIdRoute
+  '/api/forms/submit': typeof ApiFormsSubmitRoute
+  '/api/leads/export.csv': typeof ApiLeadsExportDotcsvRoute
+  '/api/logs/$logId': typeof ApiLogsLogIdRoute
   '/api/media/$key': typeof ApiMediaKeyRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRoute
   '/api/posts/$slug': typeof ApiPostsSlugRoute
   '/api/product-images/$key': typeof ApiProductImagesKeyRoute
   '/api/product/$productId': typeof ApiProductProductIdRouteWithChildren
   '/api/products/$productId': typeof ApiProductsProductIdRoute
+  '/api/sanity/webhook': typeof ApiSanityWebhookRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploads/media': typeof ApiUploadsMediaRoute
   '/api/uploads/product-images': typeof ApiUploadsProductImagesRoute
+  '/admin/inventory/': typeof AdminInventoryIndexRoute
+  '/admin/orders/': typeof AdminOrdersIndexRoute
+  '/admin/posts/': typeof AdminPostsIndexRoute
+  '/admin/products/': typeof AdminProductsIndexRoute
+  '/admin/pages/$pageId/preview': typeof AdminPagesPageIdPreviewRoute
   '/admin/posts/$postId/edit': typeof AdminPostsPostIdEditRoute
+  '/admin/posts/$postId/preview': typeof AdminPostsPostIdPreviewRoute
   '/admin/products/$productId/edit': typeof AdminProductsProductIdEditRoute
+  '/api/draft-mode/page/$id': typeof ApiDraftModePageIdRoute
   '/api/product/$productId/variant': typeof ApiProductProductIdVariantRoute
+  '/admin/products/$productId/': typeof AdminProductsProductIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -535,7 +739,6 @@ export interface FileRoutesByTo {
   '/add-order': typeof AddOrderRoute
   '/add-product': typeof AddProductRoute
   '/api-docs': typeof ApiDocsRoute
-  '/bai-viet': typeof BaiVietRouteWithChildren
   '/dang-ky': typeof DangKyRoute
   '/dang-nhap': typeof DangNhapRoute
   '/danh-sach-san-pham': typeof DanhSachSanPhamRoute
@@ -543,6 +746,7 @@ export interface FileRoutesByTo {
   '/gio-hang': typeof GioHangRoute
   '/gioi-thieu': typeof GioiThieuRoute
   '/inventory': typeof InventoryRoute
+  '/lien-he': typeof LienHeRoute
   '/login': typeof LoginRoute
   '/manifest.webmanifest': typeof ManifestDotwebmanifestRoute
   '/not-found': typeof NotFoundRoute
@@ -553,20 +757,26 @@ export interface FileRoutesByTo {
   '/san-pham': typeof SanPhamRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/add-product': typeof AdminAddProductRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
-  '/admin/inventory': typeof AdminInventoryRouteWithChildren
+  '/admin/handover': typeof AdminHandoverRoute
+  '/admin/home': typeof AdminHomeRoute
+  '/admin/home-preview': typeof AdminHomePreviewRoute
+  '/admin/leads': typeof AdminLeadsRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/media': typeof AdminMediaRoute
-  '/admin/orders': typeof AdminOrdersRouteWithChildren
   '/admin/pages': typeof AdminPagesRoute
-  '/admin/posts': typeof AdminPostsRouteWithChildren
-  '/admin/products': typeof AdminProductsRouteWithChildren
+  '/admin/performance': typeof AdminPerformanceRoute
+  '/admin/redirects': typeof AdminRedirectsRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/settings-preview': typeof AdminSettingsPreviewRoute
+  '/admin/staff': typeof AdminStaffRoute
   '/api/add-product': typeof ApiAddProductRoute
   '/api/categories': typeof ApiCategoriesRouteWithChildren
   '/api/get-bookmark': typeof ApiGetBookmarkRoute
-  '/api/logs': typeof ApiLogsRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/logs': typeof ApiLogsRouteWithChildren
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/api/product': typeof ApiProductRouteWithChildren
@@ -575,33 +785,50 @@ export interface FileRoutesByTo {
   '/api/send-newletter': typeof ApiSendNewletterRoute
   '/api/send-newsletter': typeof ApiSendNewsletterRoute
   '/api/send-product-order': typeof ApiSendProductOrderRoute
+  '/api/vitals': typeof ApiVitalsRoute
   '/bai-viet/$slug': typeof BaiVietSlugRoute
   '/edit-product/$productId': typeof EditProductProductIdRoute
   '/san-pham/$productId': typeof SanPhamProductIdRoute
+  '/sanity-preview/$id': typeof SanityPreviewIdRoute
   '/view-product/$productId': typeof ViewProductProductIdRoute
   '/admin': typeof AdminIndexRoute
+  '/bai-viet': typeof BaiVietIndexRoute
   '/admin/edit-product/$productId': typeof AdminEditProductProductIdRoute
   '/admin/inventory/new': typeof AdminInventoryNewRoute
   '/admin/orders/new': typeof AdminOrdersNewRoute
   '/admin/posts/new': typeof AdminPostsNewRoute
-  '/admin/products/$productId': typeof AdminProductsProductIdRouteWithChildren
   '/admin/products/new': typeof AdminProductsNewRoute
   '/admin/view-product/$productId': typeof AdminViewProductProductIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/categories/$categoryId': typeof ApiCategoriesCategoryIdRoute
+  '/api/draft-mode/disable': typeof ApiDraftModeDisableRoute
+  '/api/draft-mode/enable': typeof ApiDraftModeEnableRoute
+  '/api/draft-mode/perspective': typeof ApiDraftModePerspectiveRoute
   '/api/edit-product/$productId': typeof ApiEditProductProductIdRoute
+  '/api/forms/submit': typeof ApiFormsSubmitRoute
+  '/api/leads/export.csv': typeof ApiLeadsExportDotcsvRoute
+  '/api/logs/$logId': typeof ApiLogsLogIdRoute
   '/api/media/$key': typeof ApiMediaKeyRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRoute
   '/api/posts/$slug': typeof ApiPostsSlugRoute
   '/api/product-images/$key': typeof ApiProductImagesKeyRoute
   '/api/product/$productId': typeof ApiProductProductIdRouteWithChildren
   '/api/products/$productId': typeof ApiProductsProductIdRoute
+  '/api/sanity/webhook': typeof ApiSanityWebhookRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploads/media': typeof ApiUploadsMediaRoute
   '/api/uploads/product-images': typeof ApiUploadsProductImagesRoute
+  '/admin/inventory': typeof AdminInventoryIndexRoute
+  '/admin/orders': typeof AdminOrdersIndexRoute
+  '/admin/posts': typeof AdminPostsIndexRoute
+  '/admin/products': typeof AdminProductsIndexRoute
+  '/admin/pages/$pageId/preview': typeof AdminPagesPageIdPreviewRoute
   '/admin/posts/$postId/edit': typeof AdminPostsPostIdEditRoute
+  '/admin/posts/$postId/preview': typeof AdminPostsPostIdPreviewRoute
   '/admin/products/$productId/edit': typeof AdminProductsProductIdEditRoute
+  '/api/draft-mode/page/$id': typeof ApiDraftModePageIdRoute
   '/api/product/$productId/variant': typeof ApiProductProductIdVariantRoute
+  '/admin/products/$productId': typeof AdminProductsProductIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -619,6 +846,7 @@ export interface FileRoutesById {
   '/gio-hang': typeof GioHangRoute
   '/gioi-thieu': typeof GioiThieuRoute
   '/inventory': typeof InventoryRoute
+  '/lien-he': typeof LienHeRoute
   '/login': typeof LoginRoute
   '/manifest.webmanifest': typeof ManifestDotwebmanifestRoute
   '/not-found': typeof NotFoundRoute
@@ -629,20 +857,30 @@ export interface FileRoutesById {
   '/san-pham': typeof SanPhamRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin/add-product': typeof AdminAddProductRoute
+  '/admin/audit': typeof AdminAuditRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/handover': typeof AdminHandoverRoute
+  '/admin/home': typeof AdminHomeRoute
+  '/admin/home-preview': typeof AdminHomePreviewRoute
   '/admin/inventory': typeof AdminInventoryRouteWithChildren
+  '/admin/leads': typeof AdminLeadsRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/orders': typeof AdminOrdersRouteWithChildren
   '/admin/pages': typeof AdminPagesRoute
+  '/admin/performance': typeof AdminPerformanceRoute
   '/admin/posts': typeof AdminPostsRouteWithChildren
   '/admin/products': typeof AdminProductsRouteWithChildren
+  '/admin/redirects': typeof AdminRedirectsRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/settings-preview': typeof AdminSettingsPreviewRoute
+  '/admin/staff': typeof AdminStaffRoute
   '/api/add-product': typeof ApiAddProductRoute
   '/api/categories': typeof ApiCategoriesRouteWithChildren
   '/api/get-bookmark': typeof ApiGetBookmarkRoute
-  '/api/logs': typeof ApiLogsRoute
+  '/api/health': typeof ApiHealthRoute
+  '/api/logs': typeof ApiLogsRouteWithChildren
   '/api/orders': typeof ApiOrdersRouteWithChildren
   '/api/posts': typeof ApiPostsRouteWithChildren
   '/api/product': typeof ApiProductRouteWithChildren
@@ -651,11 +889,14 @@ export interface FileRoutesById {
   '/api/send-newletter': typeof ApiSendNewletterRoute
   '/api/send-newsletter': typeof ApiSendNewsletterRoute
   '/api/send-product-order': typeof ApiSendProductOrderRoute
+  '/api/vitals': typeof ApiVitalsRoute
   '/bai-viet/$slug': typeof BaiVietSlugRoute
   '/edit-product/$productId': typeof EditProductProductIdRoute
   '/san-pham/$productId': typeof SanPhamProductIdRoute
+  '/sanity-preview/$id': typeof SanityPreviewIdRoute
   '/view-product/$productId': typeof ViewProductProductIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/bai-viet/': typeof BaiVietIndexRoute
   '/admin/edit-product/$productId': typeof AdminEditProductProductIdRoute
   '/admin/inventory/new': typeof AdminInventoryNewRoute
   '/admin/orders/new': typeof AdminOrdersNewRoute
@@ -665,19 +906,34 @@ export interface FileRoutesById {
   '/admin/view-product/$productId': typeof AdminViewProductProductIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/categories/$categoryId': typeof ApiCategoriesCategoryIdRoute
+  '/api/draft-mode/disable': typeof ApiDraftModeDisableRoute
+  '/api/draft-mode/enable': typeof ApiDraftModeEnableRoute
+  '/api/draft-mode/perspective': typeof ApiDraftModePerspectiveRoute
   '/api/edit-product/$productId': typeof ApiEditProductProductIdRoute
+  '/api/forms/submit': typeof ApiFormsSubmitRoute
+  '/api/leads/export.csv': typeof ApiLeadsExportDotcsvRoute
+  '/api/logs/$logId': typeof ApiLogsLogIdRoute
   '/api/media/$key': typeof ApiMediaKeyRoute
   '/api/orders/$orderId': typeof ApiOrdersOrderIdRoute
   '/api/posts/$slug': typeof ApiPostsSlugRoute
   '/api/product-images/$key': typeof ApiProductImagesKeyRoute
   '/api/product/$productId': typeof ApiProductProductIdRouteWithChildren
   '/api/products/$productId': typeof ApiProductsProductIdRoute
+  '/api/sanity/webhook': typeof ApiSanityWebhookRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
   '/api/uploads/media': typeof ApiUploadsMediaRoute
   '/api/uploads/product-images': typeof ApiUploadsProductImagesRoute
+  '/admin/inventory/': typeof AdminInventoryIndexRoute
+  '/admin/orders/': typeof AdminOrdersIndexRoute
+  '/admin/posts/': typeof AdminPostsIndexRoute
+  '/admin/products/': typeof AdminProductsIndexRoute
+  '/admin/pages_/$pageId/preview': typeof AdminPagesPageIdPreviewRoute
   '/admin/posts/$postId/edit': typeof AdminPostsPostIdEditRoute
+  '/admin/posts/$postId/preview': typeof AdminPostsPostIdPreviewRoute
   '/admin/products/$productId/edit': typeof AdminProductsProductIdEditRoute
+  '/api/draft-mode/page/$id': typeof ApiDraftModePageIdRoute
   '/api/product/$productId/variant': typeof ApiProductProductIdVariantRoute
+  '/admin/products/$productId/': typeof AdminProductsProductIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -696,6 +952,7 @@ export interface FileRouteTypes {
     | '/gio-hang'
     | '/gioi-thieu'
     | '/inventory'
+    | '/lien-he'
     | '/login'
     | '/manifest.webmanifest'
     | '/not-found'
@@ -706,19 +963,29 @@ export interface FileRouteTypes {
     | '/san-pham'
     | '/sitemap.xml'
     | '/admin/add-product'
+    | '/admin/audit'
     | '/admin/categories'
     | '/admin/dashboard'
+    | '/admin/handover'
+    | '/admin/home'
+    | '/admin/home-preview'
     | '/admin/inventory'
+    | '/admin/leads'
     | '/admin/logs'
     | '/admin/media'
     | '/admin/orders'
     | '/admin/pages'
+    | '/admin/performance'
     | '/admin/posts'
     | '/admin/products'
+    | '/admin/redirects'
     | '/admin/settings'
+    | '/admin/settings-preview'
+    | '/admin/staff'
     | '/api/add-product'
     | '/api/categories'
     | '/api/get-bookmark'
+    | '/api/health'
     | '/api/logs'
     | '/api/orders'
     | '/api/posts'
@@ -728,11 +995,14 @@ export interface FileRouteTypes {
     | '/api/send-newletter'
     | '/api/send-newsletter'
     | '/api/send-product-order'
+    | '/api/vitals'
     | '/bai-viet/$slug'
     | '/edit-product/$productId'
     | '/san-pham/$productId'
+    | '/sanity-preview/$id'
     | '/view-product/$productId'
     | '/admin/'
+    | '/bai-viet/'
     | '/admin/edit-product/$productId'
     | '/admin/inventory/new'
     | '/admin/orders/new'
@@ -742,19 +1012,34 @@ export interface FileRouteTypes {
     | '/admin/view-product/$productId'
     | '/api/auth/$'
     | '/api/categories/$categoryId'
+    | '/api/draft-mode/disable'
+    | '/api/draft-mode/enable'
+    | '/api/draft-mode/perspective'
     | '/api/edit-product/$productId'
+    | '/api/forms/submit'
+    | '/api/leads/export.csv'
+    | '/api/logs/$logId'
     | '/api/media/$key'
     | '/api/orders/$orderId'
     | '/api/posts/$slug'
     | '/api/product-images/$key'
     | '/api/product/$productId'
     | '/api/products/$productId'
+    | '/api/sanity/webhook'
     | '/api/trpc/$'
     | '/api/uploads/media'
     | '/api/uploads/product-images'
+    | '/admin/inventory/'
+    | '/admin/orders/'
+    | '/admin/posts/'
+    | '/admin/products/'
+    | '/admin/pages/$pageId/preview'
     | '/admin/posts/$postId/edit'
+    | '/admin/posts/$postId/preview'
     | '/admin/products/$productId/edit'
+    | '/api/draft-mode/page/$id'
     | '/api/product/$productId/variant'
+    | '/admin/products/$productId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -763,7 +1048,6 @@ export interface FileRouteTypes {
     | '/add-order'
     | '/add-product'
     | '/api-docs'
-    | '/bai-viet'
     | '/dang-ky'
     | '/dang-nhap'
     | '/danh-sach-san-pham'
@@ -771,6 +1055,7 @@ export interface FileRouteTypes {
     | '/gio-hang'
     | '/gioi-thieu'
     | '/inventory'
+    | '/lien-he'
     | '/login'
     | '/manifest.webmanifest'
     | '/not-found'
@@ -781,19 +1066,25 @@ export interface FileRouteTypes {
     | '/san-pham'
     | '/sitemap.xml'
     | '/admin/add-product'
+    | '/admin/audit'
     | '/admin/categories'
     | '/admin/dashboard'
-    | '/admin/inventory'
+    | '/admin/handover'
+    | '/admin/home'
+    | '/admin/home-preview'
+    | '/admin/leads'
     | '/admin/logs'
     | '/admin/media'
-    | '/admin/orders'
     | '/admin/pages'
-    | '/admin/posts'
-    | '/admin/products'
+    | '/admin/performance'
+    | '/admin/redirects'
     | '/admin/settings'
+    | '/admin/settings-preview'
+    | '/admin/staff'
     | '/api/add-product'
     | '/api/categories'
     | '/api/get-bookmark'
+    | '/api/health'
     | '/api/logs'
     | '/api/orders'
     | '/api/posts'
@@ -803,33 +1094,50 @@ export interface FileRouteTypes {
     | '/api/send-newletter'
     | '/api/send-newsletter'
     | '/api/send-product-order'
+    | '/api/vitals'
     | '/bai-viet/$slug'
     | '/edit-product/$productId'
     | '/san-pham/$productId'
+    | '/sanity-preview/$id'
     | '/view-product/$productId'
     | '/admin'
+    | '/bai-viet'
     | '/admin/edit-product/$productId'
     | '/admin/inventory/new'
     | '/admin/orders/new'
     | '/admin/posts/new'
-    | '/admin/products/$productId'
     | '/admin/products/new'
     | '/admin/view-product/$productId'
     | '/api/auth/$'
     | '/api/categories/$categoryId'
+    | '/api/draft-mode/disable'
+    | '/api/draft-mode/enable'
+    | '/api/draft-mode/perspective'
     | '/api/edit-product/$productId'
+    | '/api/forms/submit'
+    | '/api/leads/export.csv'
+    | '/api/logs/$logId'
     | '/api/media/$key'
     | '/api/orders/$orderId'
     | '/api/posts/$slug'
     | '/api/product-images/$key'
     | '/api/product/$productId'
     | '/api/products/$productId'
+    | '/api/sanity/webhook'
     | '/api/trpc/$'
     | '/api/uploads/media'
     | '/api/uploads/product-images'
+    | '/admin/inventory'
+    | '/admin/orders'
+    | '/admin/posts'
+    | '/admin/products'
+    | '/admin/pages/$pageId/preview'
     | '/admin/posts/$postId/edit'
+    | '/admin/posts/$postId/preview'
     | '/admin/products/$productId/edit'
+    | '/api/draft-mode/page/$id'
     | '/api/product/$productId/variant'
+    | '/admin/products/$productId'
   id:
     | '__root__'
     | '/'
@@ -846,6 +1154,7 @@ export interface FileRouteTypes {
     | '/gio-hang'
     | '/gioi-thieu'
     | '/inventory'
+    | '/lien-he'
     | '/login'
     | '/manifest.webmanifest'
     | '/not-found'
@@ -856,19 +1165,29 @@ export interface FileRouteTypes {
     | '/san-pham'
     | '/sitemap.xml'
     | '/admin/add-product'
+    | '/admin/audit'
     | '/admin/categories'
     | '/admin/dashboard'
+    | '/admin/handover'
+    | '/admin/home'
+    | '/admin/home-preview'
     | '/admin/inventory'
+    | '/admin/leads'
     | '/admin/logs'
     | '/admin/media'
     | '/admin/orders'
     | '/admin/pages'
+    | '/admin/performance'
     | '/admin/posts'
     | '/admin/products'
+    | '/admin/redirects'
     | '/admin/settings'
+    | '/admin/settings-preview'
+    | '/admin/staff'
     | '/api/add-product'
     | '/api/categories'
     | '/api/get-bookmark'
+    | '/api/health'
     | '/api/logs'
     | '/api/orders'
     | '/api/posts'
@@ -878,11 +1197,14 @@ export interface FileRouteTypes {
     | '/api/send-newletter'
     | '/api/send-newsletter'
     | '/api/send-product-order'
+    | '/api/vitals'
     | '/bai-viet/$slug'
     | '/edit-product/$productId'
     | '/san-pham/$productId'
+    | '/sanity-preview/$id'
     | '/view-product/$productId'
     | '/admin/'
+    | '/bai-viet/'
     | '/admin/edit-product/$productId'
     | '/admin/inventory/new'
     | '/admin/orders/new'
@@ -892,19 +1214,34 @@ export interface FileRouteTypes {
     | '/admin/view-product/$productId'
     | '/api/auth/$'
     | '/api/categories/$categoryId'
+    | '/api/draft-mode/disable'
+    | '/api/draft-mode/enable'
+    | '/api/draft-mode/perspective'
     | '/api/edit-product/$productId'
+    | '/api/forms/submit'
+    | '/api/leads/export.csv'
+    | '/api/logs/$logId'
     | '/api/media/$key'
     | '/api/orders/$orderId'
     | '/api/posts/$slug'
     | '/api/product-images/$key'
     | '/api/product/$productId'
     | '/api/products/$productId'
+    | '/api/sanity/webhook'
     | '/api/trpc/$'
     | '/api/uploads/media'
     | '/api/uploads/product-images'
+    | '/admin/inventory/'
+    | '/admin/orders/'
+    | '/admin/posts/'
+    | '/admin/products/'
+    | '/admin/pages_/$pageId/preview'
     | '/admin/posts/$postId/edit'
+    | '/admin/posts/$postId/preview'
     | '/admin/products/$productId/edit'
+    | '/api/draft-mode/page/$id'
     | '/api/product/$productId/variant'
+    | '/admin/products/$productId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -922,6 +1259,7 @@ export interface RootRouteChildren {
   GioHangRoute: typeof GioHangRoute
   GioiThieuRoute: typeof GioiThieuRoute
   InventoryRoute: typeof InventoryRoute
+  LienHeRoute: typeof LienHeRoute
   LoginRoute: typeof LoginRoute
   ManifestDotwebmanifestRoute: typeof ManifestDotwebmanifestRoute
   NotFoundRoute: typeof NotFoundRoute
@@ -932,20 +1270,30 @@ export interface RootRouteChildren {
   SanPhamRoute: typeof SanPhamRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   AdminAddProductRoute: typeof AdminAddProductRoute
+  AdminAuditRoute: typeof AdminAuditRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminHandoverRoute: typeof AdminHandoverRoute
+  AdminHomeRoute: typeof AdminHomeRoute
+  AdminHomePreviewRoute: typeof AdminHomePreviewRoute
   AdminInventoryRoute: typeof AdminInventoryRouteWithChildren
+  AdminLeadsRoute: typeof AdminLeadsRoute
   AdminLogsRoute: typeof AdminLogsRoute
   AdminMediaRoute: typeof AdminMediaRoute
   AdminOrdersRoute: typeof AdminOrdersRouteWithChildren
   AdminPagesRoute: typeof AdminPagesRoute
+  AdminPerformanceRoute: typeof AdminPerformanceRoute
   AdminPostsRoute: typeof AdminPostsRouteWithChildren
   AdminProductsRoute: typeof AdminProductsRouteWithChildren
+  AdminRedirectsRoute: typeof AdminRedirectsRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminSettingsPreviewRoute: typeof AdminSettingsPreviewRoute
+  AdminStaffRoute: typeof AdminStaffRoute
   ApiAddProductRoute: typeof ApiAddProductRoute
   ApiCategoriesRoute: typeof ApiCategoriesRouteWithChildren
   ApiGetBookmarkRoute: typeof ApiGetBookmarkRoute
-  ApiLogsRoute: typeof ApiLogsRoute
+  ApiHealthRoute: typeof ApiHealthRoute
+  ApiLogsRoute: typeof ApiLogsRouteWithChildren
   ApiOrdersRoute: typeof ApiOrdersRouteWithChildren
   ApiPostsRoute: typeof ApiPostsRouteWithChildren
   ApiProductRoute: typeof ApiProductRouteWithChildren
@@ -954,18 +1302,28 @@ export interface RootRouteChildren {
   ApiSendNewletterRoute: typeof ApiSendNewletterRoute
   ApiSendNewsletterRoute: typeof ApiSendNewsletterRoute
   ApiSendProductOrderRoute: typeof ApiSendProductOrderRoute
+  ApiVitalsRoute: typeof ApiVitalsRoute
   EditProductProductIdRoute: typeof EditProductProductIdRoute
+  SanityPreviewIdRoute: typeof SanityPreviewIdRoute
   ViewProductProductIdRoute: typeof ViewProductProductIdRoute
   AdminIndexRoute: typeof AdminIndexRoute
   AdminEditProductProductIdRoute: typeof AdminEditProductProductIdRoute
   AdminViewProductProductIdRoute: typeof AdminViewProductProductIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiDraftModeDisableRoute: typeof ApiDraftModeDisableRoute
+  ApiDraftModeEnableRoute: typeof ApiDraftModeEnableRoute
+  ApiDraftModePerspectiveRoute: typeof ApiDraftModePerspectiveRoute
   ApiEditProductProductIdRoute: typeof ApiEditProductProductIdRoute
+  ApiFormsSubmitRoute: typeof ApiFormsSubmitRoute
+  ApiLeadsExportDotcsvRoute: typeof ApiLeadsExportDotcsvRoute
   ApiMediaKeyRoute: typeof ApiMediaKeyRoute
   ApiProductImagesKeyRoute: typeof ApiProductImagesKeyRoute
+  ApiSanityWebhookRoute: typeof ApiSanityWebhookRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
   ApiUploadsMediaRoute: typeof ApiUploadsMediaRoute
   ApiUploadsProductImagesRoute: typeof ApiUploadsProductImagesRoute
+  AdminPagesPageIdPreviewRoute: typeof AdminPagesPageIdPreviewRoute
+  ApiDraftModePageIdRoute: typeof ApiDraftModePageIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1031,6 +1389,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lien-he': {
+      id: '/lien-he'
+      path: '/lien-he'
+      fullPath: '/lien-he'
+      preLoaderRoute: typeof LienHeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/inventory': {
@@ -1131,6 +1496,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bai-viet/': {
+      id: '/bai-viet/'
+      path: '/'
+      fullPath: '/bai-viet/'
+      preLoaderRoute: typeof BaiVietIndexRouteImport
+      parentRoute: typeof BaiVietRoute
+    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
@@ -1143,6 +1515,13 @@ declare module '@tanstack/react-router' {
       path: '/view-product/$productId'
       fullPath: '/view-product/$productId'
       preLoaderRoute: typeof ViewProductProductIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sanity-preview/$id': {
+      id: '/sanity-preview/$id'
+      path: '/sanity-preview/$id'
+      fullPath: '/sanity-preview/$id'
+      preLoaderRoute: typeof SanityPreviewIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/san-pham/$productId': {
@@ -1165,6 +1544,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/bai-viet/$slug'
       preLoaderRoute: typeof BaiVietSlugRouteImport
       parentRoute: typeof BaiVietRoute
+    }
+    '/api/vitals': {
+      id: '/api/vitals'
+      path: '/api/vitals'
+      fullPath: '/api/vitals'
+      preLoaderRoute: typeof ApiVitalsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/send-product-order': {
       id: '/api/send-product-order'
@@ -1229,6 +1615,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiLogsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/get-bookmark': {
       id: '/api/get-bookmark'
       path: '/api/get-bookmark'
@@ -1250,11 +1643,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAddProductRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/staff': {
+      id: '/admin/staff'
+      path: '/admin/staff'
+      fullPath: '/admin/staff'
+      preLoaderRoute: typeof AdminStaffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings-preview': {
+      id: '/admin/settings-preview'
+      path: '/admin/settings-preview'
+      fullPath: '/admin/settings-preview'
+      preLoaderRoute: typeof AdminSettingsPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/settings': {
       id: '/admin/settings'
       path: '/admin/settings'
       fullPath: '/admin/settings'
       preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/redirects': {
+      id: '/admin/redirects'
+      path: '/admin/redirects'
+      fullPath: '/admin/redirects'
+      preLoaderRoute: typeof AdminRedirectsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/products': {
@@ -1269,6 +1683,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/posts'
       fullPath: '/admin/posts'
       preLoaderRoute: typeof AdminPostsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/performance': {
+      id: '/admin/performance'
+      path: '/admin/performance'
+      fullPath: '/admin/performance'
+      preLoaderRoute: typeof AdminPerformanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/pages': {
@@ -1299,11 +1720,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLogsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/leads': {
+      id: '/admin/leads'
+      path: '/admin/leads'
+      fullPath: '/admin/leads'
+      preLoaderRoute: typeof AdminLeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/inventory': {
       id: '/admin/inventory'
       path: '/admin/inventory'
       fullPath: '/admin/inventory'
       preLoaderRoute: typeof AdminInventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/home-preview': {
+      id: '/admin/home-preview'
+      path: '/admin/home-preview'
+      fullPath: '/admin/home-preview'
+      preLoaderRoute: typeof AdminHomePreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/home': {
+      id: '/admin/home'
+      path: '/admin/home'
+      fullPath: '/admin/home'
+      preLoaderRoute: typeof AdminHomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/handover': {
+      id: '/admin/handover'
+      path: '/admin/handover'
+      fullPath: '/admin/handover'
+      preLoaderRoute: typeof AdminHandoverRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/dashboard': {
@@ -1320,12 +1769,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/admin/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/add-product': {
       id: '/admin/add-product'
       path: '/admin/add-product'
       fullPath: '/admin/add-product'
       preLoaderRoute: typeof AdminAddProductRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/products/': {
+      id: '/admin/products/'
+      path: '/'
+      fullPath: '/admin/products/'
+      preLoaderRoute: typeof AdminProductsIndexRouteImport
+      parentRoute: typeof AdminProductsRoute
+    }
+    '/admin/posts/': {
+      id: '/admin/posts/'
+      path: '/'
+      fullPath: '/admin/posts/'
+      preLoaderRoute: typeof AdminPostsIndexRouteImport
+      parentRoute: typeof AdminPostsRoute
+    }
+    '/admin/orders/': {
+      id: '/admin/orders/'
+      path: '/'
+      fullPath: '/admin/orders/'
+      preLoaderRoute: typeof AdminOrdersIndexRouteImport
+      parentRoute: typeof AdminOrdersRoute
+    }
+    '/admin/inventory/': {
+      id: '/admin/inventory/'
+      path: '/'
+      fullPath: '/admin/inventory/'
+      preLoaderRoute: typeof AdminInventoryIndexRouteImport
+      parentRoute: typeof AdminInventoryRoute
     }
     '/api/uploads/product-images': {
       id: '/api/uploads/product-images'
@@ -1346,6 +1830,13 @@ declare module '@tanstack/react-router' {
       path: '/api/trpc/$'
       fullPath: '/api/trpc/$'
       preLoaderRoute: typeof ApiTrpcSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sanity/webhook': {
+      id: '/api/sanity/webhook'
+      path: '/api/sanity/webhook'
+      fullPath: '/api/sanity/webhook'
+      preLoaderRoute: typeof ApiSanityWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/products/$productId': {
@@ -1390,11 +1881,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMediaKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/logs/$logId': {
+      id: '/api/logs/$logId'
+      path: '/$logId'
+      fullPath: '/api/logs/$logId'
+      preLoaderRoute: typeof ApiLogsLogIdRouteImport
+      parentRoute: typeof ApiLogsRoute
+    }
+    '/api/leads/export.csv': {
+      id: '/api/leads/export.csv'
+      path: '/api/leads/export.csv'
+      fullPath: '/api/leads/export.csv'
+      preLoaderRoute: typeof ApiLeadsExportDotcsvRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/forms/submit': {
+      id: '/api/forms/submit'
+      path: '/api/forms/submit'
+      fullPath: '/api/forms/submit'
+      preLoaderRoute: typeof ApiFormsSubmitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/edit-product/$productId': {
       id: '/api/edit-product/$productId'
       path: '/api/edit-product/$productId'
       fullPath: '/api/edit-product/$productId'
       preLoaderRoute: typeof ApiEditProductProductIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/draft-mode/perspective': {
+      id: '/api/draft-mode/perspective'
+      path: '/api/draft-mode/perspective'
+      fullPath: '/api/draft-mode/perspective'
+      preLoaderRoute: typeof ApiDraftModePerspectiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/draft-mode/enable': {
+      id: '/api/draft-mode/enable'
+      path: '/api/draft-mode/enable'
+      fullPath: '/api/draft-mode/enable'
+      preLoaderRoute: typeof ApiDraftModeEnableRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/draft-mode/disable': {
+      id: '/api/draft-mode/disable'
+      path: '/api/draft-mode/disable'
+      fullPath: '/api/draft-mode/disable'
+      preLoaderRoute: typeof ApiDraftModeDisableRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/categories/$categoryId': {
@@ -1460,12 +1993,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEditProductProductIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/products/$productId/': {
+      id: '/admin/products/$productId/'
+      path: '/'
+      fullPath: '/admin/products/$productId/'
+      preLoaderRoute: typeof AdminProductsProductIdIndexRouteImport
+      parentRoute: typeof AdminProductsProductIdRoute
+    }
     '/api/product/$productId/variant': {
       id: '/api/product/$productId/variant'
       path: '/variant'
       fullPath: '/api/product/$productId/variant'
       preLoaderRoute: typeof ApiProductProductIdVariantRouteImport
       parentRoute: typeof ApiProductProductIdRoute
+    }
+    '/api/draft-mode/page/$id': {
+      id: '/api/draft-mode/page/$id'
+      path: '/api/draft-mode/page/$id'
+      fullPath: '/api/draft-mode/page/$id'
+      preLoaderRoute: typeof ApiDraftModePageIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/products/$productId/edit': {
       id: '/admin/products/$productId/edit'
@@ -1474,6 +2021,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProductsProductIdEditRouteImport
       parentRoute: typeof AdminProductsProductIdRoute
     }
+    '/admin/posts/$postId/preview': {
+      id: '/admin/posts/$postId/preview'
+      path: '/$postId/preview'
+      fullPath: '/admin/posts/$postId/preview'
+      preLoaderRoute: typeof AdminPostsPostIdPreviewRouteImport
+      parentRoute: typeof AdminPostsRoute
+    }
     '/admin/posts/$postId/edit': {
       id: '/admin/posts/$postId/edit'
       path: '/$postId/edit'
@@ -1481,15 +2035,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPostsPostIdEditRouteImport
       parentRoute: typeof AdminPostsRoute
     }
+    '/admin/pages_/$pageId/preview': {
+      id: '/admin/pages_/$pageId/preview'
+      path: '/admin/pages/$pageId/preview'
+      fullPath: '/admin/pages/$pageId/preview'
+      preLoaderRoute: typeof AdminPagesPageIdPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface BaiVietRouteChildren {
   BaiVietSlugRoute: typeof BaiVietSlugRoute
+  BaiVietIndexRoute: typeof BaiVietIndexRoute
 }
 
 const BaiVietRouteChildren: BaiVietRouteChildren = {
   BaiVietSlugRoute: BaiVietSlugRoute,
+  BaiVietIndexRoute: BaiVietIndexRoute,
 }
 
 const BaiVietRouteWithChildren =
@@ -1508,10 +2071,12 @@ const SanPhamRouteWithChildren =
 
 interface AdminInventoryRouteChildren {
   AdminInventoryNewRoute: typeof AdminInventoryNewRoute
+  AdminInventoryIndexRoute: typeof AdminInventoryIndexRoute
 }
 
 const AdminInventoryRouteChildren: AdminInventoryRouteChildren = {
   AdminInventoryNewRoute: AdminInventoryNewRoute,
+  AdminInventoryIndexRoute: AdminInventoryIndexRoute,
 }
 
 const AdminInventoryRouteWithChildren = AdminInventoryRoute._addFileChildren(
@@ -1520,10 +2085,12 @@ const AdminInventoryRouteWithChildren = AdminInventoryRoute._addFileChildren(
 
 interface AdminOrdersRouteChildren {
   AdminOrdersNewRoute: typeof AdminOrdersNewRoute
+  AdminOrdersIndexRoute: typeof AdminOrdersIndexRoute
 }
 
 const AdminOrdersRouteChildren: AdminOrdersRouteChildren = {
   AdminOrdersNewRoute: AdminOrdersNewRoute,
+  AdminOrdersIndexRoute: AdminOrdersIndexRoute,
 }
 
 const AdminOrdersRouteWithChildren = AdminOrdersRoute._addFileChildren(
@@ -1532,12 +2099,16 @@ const AdminOrdersRouteWithChildren = AdminOrdersRoute._addFileChildren(
 
 interface AdminPostsRouteChildren {
   AdminPostsNewRoute: typeof AdminPostsNewRoute
+  AdminPostsIndexRoute: typeof AdminPostsIndexRoute
   AdminPostsPostIdEditRoute: typeof AdminPostsPostIdEditRoute
+  AdminPostsPostIdPreviewRoute: typeof AdminPostsPostIdPreviewRoute
 }
 
 const AdminPostsRouteChildren: AdminPostsRouteChildren = {
   AdminPostsNewRoute: AdminPostsNewRoute,
+  AdminPostsIndexRoute: AdminPostsIndexRoute,
   AdminPostsPostIdEditRoute: AdminPostsPostIdEditRoute,
+  AdminPostsPostIdPreviewRoute: AdminPostsPostIdPreviewRoute,
 }
 
 const AdminPostsRouteWithChildren = AdminPostsRoute._addFileChildren(
@@ -1546,11 +2117,13 @@ const AdminPostsRouteWithChildren = AdminPostsRoute._addFileChildren(
 
 interface AdminProductsProductIdRouteChildren {
   AdminProductsProductIdEditRoute: typeof AdminProductsProductIdEditRoute
+  AdminProductsProductIdIndexRoute: typeof AdminProductsProductIdIndexRoute
 }
 
 const AdminProductsProductIdRouteChildren: AdminProductsProductIdRouteChildren =
   {
     AdminProductsProductIdEditRoute: AdminProductsProductIdEditRoute,
+    AdminProductsProductIdIndexRoute: AdminProductsProductIdIndexRoute,
   }
 
 const AdminProductsProductIdRouteWithChildren =
@@ -1561,11 +2134,13 @@ const AdminProductsProductIdRouteWithChildren =
 interface AdminProductsRouteChildren {
   AdminProductsProductIdRoute: typeof AdminProductsProductIdRouteWithChildren
   AdminProductsNewRoute: typeof AdminProductsNewRoute
+  AdminProductsIndexRoute: typeof AdminProductsIndexRoute
 }
 
 const AdminProductsRouteChildren: AdminProductsRouteChildren = {
   AdminProductsProductIdRoute: AdminProductsProductIdRouteWithChildren,
   AdminProductsNewRoute: AdminProductsNewRoute,
+  AdminProductsIndexRoute: AdminProductsIndexRoute,
 }
 
 const AdminProductsRouteWithChildren = AdminProductsRoute._addFileChildren(
@@ -1583,6 +2158,17 @@ const ApiCategoriesRouteChildren: ApiCategoriesRouteChildren = {
 const ApiCategoriesRouteWithChildren = ApiCategoriesRoute._addFileChildren(
   ApiCategoriesRouteChildren,
 )
+
+interface ApiLogsRouteChildren {
+  ApiLogsLogIdRoute: typeof ApiLogsLogIdRoute
+}
+
+const ApiLogsRouteChildren: ApiLogsRouteChildren = {
+  ApiLogsLogIdRoute: ApiLogsLogIdRoute,
+}
+
+const ApiLogsRouteWithChildren =
+  ApiLogsRoute._addFileChildren(ApiLogsRouteChildren)
 
 interface ApiOrdersRouteChildren {
   ApiOrdersOrderIdRoute: typeof ApiOrdersOrderIdRoute
@@ -1658,6 +2244,7 @@ const rootRouteChildren: RootRouteChildren = {
   GioHangRoute: GioHangRoute,
   GioiThieuRoute: GioiThieuRoute,
   InventoryRoute: InventoryRoute,
+  LienHeRoute: LienHeRoute,
   LoginRoute: LoginRoute,
   ManifestDotwebmanifestRoute: ManifestDotwebmanifestRoute,
   NotFoundRoute: NotFoundRoute,
@@ -1668,20 +2255,30 @@ const rootRouteChildren: RootRouteChildren = {
   SanPhamRoute: SanPhamRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   AdminAddProductRoute: AdminAddProductRoute,
+  AdminAuditRoute: AdminAuditRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminDashboardRoute: AdminDashboardRoute,
+  AdminHandoverRoute: AdminHandoverRoute,
+  AdminHomeRoute: AdminHomeRoute,
+  AdminHomePreviewRoute: AdminHomePreviewRoute,
   AdminInventoryRoute: AdminInventoryRouteWithChildren,
+  AdminLeadsRoute: AdminLeadsRoute,
   AdminLogsRoute: AdminLogsRoute,
   AdminMediaRoute: AdminMediaRoute,
   AdminOrdersRoute: AdminOrdersRouteWithChildren,
   AdminPagesRoute: AdminPagesRoute,
+  AdminPerformanceRoute: AdminPerformanceRoute,
   AdminPostsRoute: AdminPostsRouteWithChildren,
   AdminProductsRoute: AdminProductsRouteWithChildren,
+  AdminRedirectsRoute: AdminRedirectsRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminSettingsPreviewRoute: AdminSettingsPreviewRoute,
+  AdminStaffRoute: AdminStaffRoute,
   ApiAddProductRoute: ApiAddProductRoute,
   ApiCategoriesRoute: ApiCategoriesRouteWithChildren,
   ApiGetBookmarkRoute: ApiGetBookmarkRoute,
-  ApiLogsRoute: ApiLogsRoute,
+  ApiHealthRoute: ApiHealthRoute,
+  ApiLogsRoute: ApiLogsRouteWithChildren,
   ApiOrdersRoute: ApiOrdersRouteWithChildren,
   ApiPostsRoute: ApiPostsRouteWithChildren,
   ApiProductRoute: ApiProductRouteWithChildren,
@@ -1690,18 +2287,28 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSendNewletterRoute: ApiSendNewletterRoute,
   ApiSendNewsletterRoute: ApiSendNewsletterRoute,
   ApiSendProductOrderRoute: ApiSendProductOrderRoute,
+  ApiVitalsRoute: ApiVitalsRoute,
   EditProductProductIdRoute: EditProductProductIdRoute,
+  SanityPreviewIdRoute: SanityPreviewIdRoute,
   ViewProductProductIdRoute: ViewProductProductIdRoute,
   AdminIndexRoute: AdminIndexRoute,
   AdminEditProductProductIdRoute: AdminEditProductProductIdRoute,
   AdminViewProductProductIdRoute: AdminViewProductProductIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiDraftModeDisableRoute: ApiDraftModeDisableRoute,
+  ApiDraftModeEnableRoute: ApiDraftModeEnableRoute,
+  ApiDraftModePerspectiveRoute: ApiDraftModePerspectiveRoute,
   ApiEditProductProductIdRoute: ApiEditProductProductIdRoute,
+  ApiFormsSubmitRoute: ApiFormsSubmitRoute,
+  ApiLeadsExportDotcsvRoute: ApiLeadsExportDotcsvRoute,
   ApiMediaKeyRoute: ApiMediaKeyRoute,
   ApiProductImagesKeyRoute: ApiProductImagesKeyRoute,
+  ApiSanityWebhookRoute: ApiSanityWebhookRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
   ApiUploadsMediaRoute: ApiUploadsMediaRoute,
   ApiUploadsProductImagesRoute: ApiUploadsProductImagesRoute,
+  AdminPagesPageIdPreviewRoute: AdminPagesPageIdPreviewRoute,
+  ApiDraftModePageIdRoute: ApiDraftModePageIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

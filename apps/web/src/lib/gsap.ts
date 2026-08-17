@@ -4,20 +4,24 @@ import { SplitText } from "gsap/SplitText";
 import { CustomEase } from "gsap/CustomEase";
 import { useGSAP } from "@gsap/react";
 
-// Register all plugins once, at module load. Importing this module anywhere
-// ensures the plugins are ready before any animation runs.
-gsap.registerPlugin(ScrollTrigger, SplitText, CustomEase, useGSAP);
+let initialized = false;
 
-// Shared defaults tuned for a cinematic, AWWWARDS-style feel.
-gsap.defaults({ ease: "power3.out", duration: 0.9 });
+/** Register GSAP only in the browser; Cloudflare forbids timers at module scope. */
+export function ensureGsapPlugins() {
+  if (initialized || typeof window === "undefined") return;
+  initialized = true;
 
-// Signature easing curves — created once at module load, shared across the
-// site so the motion language is consistent. Names map to intent, not easing
-// theory, so components read clearly at call sites.
-//   cinematic — gentle overshoot for hero/entrance reveals
-//   settle    — a quick build then slow settle for count-ups / snaps
-CustomEase.create("cinematic", "0.16, 1, 0.3, 1");
-CustomEase.create("settle", "0.34, 1.56, 0.64, 1");
+  gsap.registerPlugin(ScrollTrigger, SplitText, CustomEase, useGSAP);
+  gsap.defaults({ ease: "power3.out", duration: 0.9 });
+
+  // Shared names keep the motion language consistent across components.
+  CustomEase.create("cinematic", "0.16, 1, 0.3, 1");
+  CustomEase.create("settle", "0.34, 1.56, 0.64, 1");
+  CustomEase.create("loader-load", "0.76, 0, 0.24, 1");
+  CustomEase.create("loader-reveal", "0.19, 1, 0.22, 1");
+}
+
+ensureGsapPlugins();
 
 // Keep ScrollTrigger in lock-step with Lenis's smoothed scroll. The actual
 // wiring of `lenis.on("scroll", ScrollTrigger.update)` lives in
@@ -30,3 +34,15 @@ export { gsap, ScrollTrigger, SplitText, CustomEase, useGSAP };
 export const prefersReducedMotion = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/**
+ * Use the static landing presentation when motion is user-disabled or the
+ * device has a coarse/small viewport. Mobile sections already provide
+ * non-pinned equivalents, so skipping page-wide GSAP setup avoids expensive
+ * SplitText and ScrollTrigger measurement without removing any content.
+ */
+export const shouldUseStaticLanding = () =>
+  typeof window !== "undefined" &&
+  window.matchMedia(
+    "(prefers-reduced-motion: reduce), (pointer: coarse), (max-width: 768px)",
+  ).matches;

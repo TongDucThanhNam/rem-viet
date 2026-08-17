@@ -1,0 +1,39 @@
+{
+  "name": "@agency/cms-cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "agency-cms": "./src/cli.ts"
+  },
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./command": {
+      "types": "./src/command.ts",
+      "default": "./src/command.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test tests"
+  },
+  "peerDependencies": {
+    "@agency/cms-core": "0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@agency/cms-core": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

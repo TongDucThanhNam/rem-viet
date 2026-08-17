@@ -274,40 +274,38 @@ export async function createProduct(
   const imageUrls = input.imageurls ?? input.imageUrls ?? [];
   const price = getPriceRange(input);
 
-  const createdProduct = await db.transaction(async (tx) => {
-    if (input.categoryId) {
-      const category = await tx.query.categories.findFirst({
-        where: eq(categories.id, input.categoryId),
-      });
+  if (input.categoryId) {
+    const category = await db.query.categories.findFirst({
+      where: eq(categories.id, input.categoryId),
+    });
 
-      if (!category) {
-        throw new Error("Category not found");
-      }
+    if (!category) {
+      throw new Error("Category not found");
     }
+  }
 
-    const [product] = await tx
-      .insert(products)
-      .values({
-        id: productId,
-        slug: slugifyProductName(input.name),
-        imageUrls,
-        name: input.name,
-        description: input.description,
-        size: input.size,
-        price,
-        quantity: input.quantity,
-        categoryId: input.categoryId ?? null,
-        createdAt: now,
-        updatedAt: now,
-      })
-      .returning();
+  const insertProduct = db
+    .insert(products)
+    .values({
+      id: productId,
+      slug: slugifyProductName(input.name),
+      imageUrls,
+      name: input.name,
+      description: input.description,
+      size: input.size,
+      price,
+      quantity: input.quantity,
+      categoryId: input.categoryId ?? null,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .returning();
 
-    if (!product) {
-      throw new Error("Failed to create product");
-    }
-
-    if (input.variants.length) {
-      await tx.insert(variants).values(
+  let createdProduct: typeof products.$inferSelect | undefined;
+  if (input.variants.length) {
+    const [createdProducts] = await db.batch([
+      insertProduct,
+      db.insert(variants).values(
         input.variants.map((variant) => ({
           id: crypto.randomUUID(),
           productId,
@@ -317,11 +315,12 @@ export async function createProduct(
           createdAt: now,
           updatedAt: now,
         })),
-      );
-    }
-
-    return product;
-  });
+      ),
+    ]);
+    createdProduct = createdProducts[0];
+  } else {
+    [createdProduct] = await insertProduct;
+  }
 
   if (!createdProduct) {
     throw new Error("Failed to create product");
@@ -362,35 +361,35 @@ export async function updateProduct(
     ...(input.price !== undefined && { price: input.price }),
     ...(imageUrls !== undefined && { imageUrls }),
     ...(input.quantity !== undefined && { quantity: input.quantity }),
-    ...(input.categoryId !== undefined && { categoryId: input.categoryId ?? null }),
+    ...(input.categoryId !== undefined && {
+      categoryId: input.categoryId ?? null,
+    }),
     updatedAt: new Date(),
   };
 
-  const updatedProduct = await db.transaction(async (tx) => {
-    if (input.categoryId) {
-      const category = await tx.query.categories.findFirst({
-        where: eq(categories.id, input.categoryId),
-      });
+  if (input.categoryId) {
+    const category = await db.query.categories.findFirst({
+      where: eq(categories.id, input.categoryId),
+    });
 
-      if (!category) {
-        throw new Error("Category not found");
-      }
+    if (!category) {
+      throw new Error("Category not found");
     }
+  }
 
-    const [product] = await tx
-      .update(products)
-      .set(productUpdates)
-      .where(eq(products.id, input.productId))
-      .returning();
+  const updateExistingProduct = db
+    .update(products)
+    .set(productUpdates)
+    .where(eq(products.id, input.productId))
+    .returning();
 
-    if (!product) {
-      return null;
-    }
-
-    if (hasVariants && input.variants?.length) {
-      const now = new Date();
-      await tx.delete(variants).where(eq(variants.productId, input.productId));
-      await tx.insert(variants).values(
+  let updatedProduct: typeof products.$inferSelect | undefined;
+  if (hasVariants && input.variants?.length) {
+    const now = new Date();
+    const [updatedProducts] = await db.batch([
+      updateExistingProduct,
+      db.delete(variants).where(eq(variants.productId, input.productId)),
+      db.insert(variants).values(
         input.variants.map((variant) => ({
           id: variant.id ?? variant._id ?? crypto.randomUUID(),
           productId: input.productId,
@@ -400,13 +399,18 @@ export async function updateProduct(
           createdAt: now,
           updatedAt: now,
         })),
-      );
-    } else if (hasVariants && input.variants) {
-      await tx.delete(variants).where(eq(variants.productId, input.productId));
-    }
-
-    return product;
-  });
+      ),
+    ]);
+    updatedProduct = updatedProducts[0];
+  } else if (hasVariants && input.variants) {
+    const [updatedProducts] = await db.batch([
+      updateExistingProduct,
+      db.delete(variants).where(eq(variants.productId, input.productId)),
+    ]);
+    updatedProduct = updatedProducts[0];
+  } else {
+    [updatedProduct] = await updateExistingProduct;
+  }
 
   if (!updatedProduct) {
     return response("Product not found", 404, null);

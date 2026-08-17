@@ -1,6 +1,11 @@
 import { useRef } from "react";
 
-import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/gsap";
+import {
+  gsap,
+  ScrollTrigger,
+  useGSAP,
+  shouldUseStaticLanding,
+} from "@/lib/gsap";
 
 /**
  * Thin top-of-viewport progress bar that tracks page scroll position.
@@ -26,10 +31,30 @@ export function ScrollProgress() {
     () => {
       if (!barRef.current) return;
 
-      // Reduced motion: snap instead of trailing.
-      const duration = prefersReducedMotion() ? 0 : 0.4;
+      if (shouldUseStaticLanding()) {
+        const bar = barRef.current;
+        let frame = 0;
+        const update = () => {
+          frame = 0;
+          const max =
+            document.documentElement.scrollHeight - window.innerHeight;
+          const progress = max > 0 ? window.scrollY / max : 0;
+          bar.style.transform = `scaleX(${Math.min(1, Math.max(0, progress))})`;
+        };
+        const schedule = () => {
+          if (!frame) frame = window.requestAnimationFrame(update);
+        };
+
+        update();
+        window.addEventListener("scroll", schedule, { passive: true });
+        return () => {
+          window.removeEventListener("scroll", schedule);
+          if (frame) window.cancelAnimationFrame(frame);
+        };
+      }
+
       const setX = gsap.quickTo(barRef.current, "scaleX", {
-        duration,
+        duration: 0.4,
         ease: "power3",
       });
 

@@ -1,11 +1,13 @@
 import { Button } from "@rem-viet/ui/components/button";
 import { Link } from "@tanstack/react-router";
 
+import { siteConfig } from "@/lib/site-config";
+
 import { TextGenerateEffect } from "./text-generate-effect";
 
 const heroSectionConfig = {
   hello: "Chào mừng đến với",
-  title: "Rèm Vina",
+  title: siteConfig.name,
   description:
     "Mang đến sự bảo vệ toàn diện cho gia đình bạn khỏi những tác nhân như côn trùng, khói bụi, ...",
 };
@@ -31,7 +33,11 @@ export default function HeroSection() {
                 </Button>
               </Link>
               <Link to="/danh-sach-san-pham">
-                <Button className="w-full sm:w-auto" size="lg" variant="outline">
+                <Button
+                  className="w-full sm:w-auto"
+                  size="lg"
+                  variant="outline"
+                >
                   Xem danh sách sản phẩm
                 </Button>
               </Link>

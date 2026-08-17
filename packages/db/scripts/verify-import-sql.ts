@@ -108,7 +108,9 @@ async function readImportSql(sqlFiles: ImportSqlFile[]) {
   }
 
   if (!chunks.length) {
-    throw new Error("No migration SQL files found. Generate Mongo/Notion SQL first.");
+    throw new Error(
+      "No migration SQL files found. Generate Mongo/Notion SQL first.",
+    );
   }
 
   return chunks.join("\n");
@@ -134,7 +136,11 @@ function parseStringArray(value: string | null) {
   }
 }
 
-function parseJsonArray(owner: string, column: string, value: string | null | undefined) {
+function parseJsonArray(
+  owner: string,
+  column: string,
+  value: string | null | undefined,
+) {
   if (!value) {
     return { failures: [], value: [] };
   }
@@ -142,18 +148,27 @@ function parseJsonArray(owner: string, column: string, value: string | null | un
   try {
     const parsed = JSON.parse(value) as unknown;
     if (!Array.isArray(parsed)) {
-      return { failures: [`${owner}.${column} must be a JSON array`], value: [] };
+      return {
+        failures: [`${owner}.${column} must be a JSON array`],
+        value: [],
+      };
     }
 
     return { failures: [], value: parsed };
   } catch {
-    return { failures: [`${owner}.${column} contains invalid JSON`], value: [] };
+    return {
+      failures: [`${owner}.${column} contains invalid JSON`],
+      value: [],
+    };
   }
 }
 
 function productIdsFromValue(owner: string, column: string, value: unknown) {
   if (!Array.isArray(value)) {
-    return { failures: [`${owner}.${column} must be a JSON array`], productIds: [] };
+    return {
+      failures: [`${owner}.${column} must be a JSON array`],
+      productIds: [],
+    };
   }
 
   const failures: string[] = [];
@@ -164,7 +179,9 @@ function productIdsFromValue(owner: string, column: string, value: unknown) {
       }
 
       if (!item || typeof item !== "object") {
-        failures.push(`${owner}.${column}[${index}] has unsupported product reference`);
+        failures.push(
+          `${owner}.${column}[${index}] has unsupported product reference`,
+        );
         return null;
       }
 
@@ -186,7 +203,9 @@ function productIdsFromValue(owner: string, column: string, value: unknown) {
         productScalar;
 
       if (productId == null) {
-        failures.push(`${owner}.${column}[${index}] has unsupported product reference`);
+        failures.push(
+          `${owner}.${column}[${index}] has unsupported product reference`,
+        );
         return null;
       }
 
@@ -230,7 +249,9 @@ function assertNoFailures(label: string, failures: string[]) {
 
 export async function verifyImportSql(options: VerifyImportSqlOptions = {}) {
   const migrationsDir =
-    options.migrationsDir ?? process.env.D1_MIGRATIONS_DIR ?? join(process.cwd(), "src/migrations");
+    options.migrationsDir ??
+    process.env.D1_MIGRATIONS_DIR ??
+    join(process.cwd(), "src/migrations");
   const importSqlFiles = options.importSqlFiles ?? defaultSqlFiles;
   const db = new Database(":memory:");
 
@@ -262,7 +283,8 @@ export async function verifyImportSql(options: VerifyImportSqlOptions = {}) {
     assertNoFailures(
       "product category references",
       categoryOrphans.map(
-        (row) => `product ${row.id} references missing category ${row.category_id}`,
+        (row) =>
+          `product ${row.id} references missing category ${row.category_id}`,
       ),
     );
 
@@ -271,7 +293,9 @@ export async function verifyImportSql(options: VerifyImportSqlOptions = {}) {
       .all() as PromotionRow[];
     const promotionFailures: string[] = [];
     for (const promotion of promotionRows) {
-      const { failures, values: productIds } = parseStringArray(promotion.product_ids);
+      const { failures, values: productIds } = parseStringArray(
+        promotion.product_ids,
+      );
       promotionFailures.push(
         ...failures.map((failure) => `promotion ${promotion.id}: ${failure}`),
       );
@@ -283,7 +307,9 @@ export async function verifyImportSql(options: VerifyImportSqlOptions = {}) {
         .query(`SELECT id FROM products WHERE id IN (${quoteList(productIds)})`)
         .all() as Array<{ id: string }>;
       const existingIds = new Set(existing.map((row) => row.id));
-      const missingIds = productIds.filter((productId) => !existingIds.has(productId));
+      const missingIds = productIds.filter(
+        (productId) => !existingIds.has(productId),
+      );
 
       if (missingIds.length) {
         promotionFailures.push(
@@ -325,7 +351,8 @@ export async function verifyImportSql(options: VerifyImportSqlOptions = {}) {
         ...itemReferences.failures,
         ...productReferences.failures,
         ...missingIds.map(
-          (productId) => `order ${row.id} references missing product ${productId}`,
+          (productId) =>
+            `order ${row.id} references missing product ${productId}`,
         ),
       ];
     });
@@ -345,16 +372,14 @@ export async function verifyImportSql(options: VerifyImportSqlOptions = {}) {
         "products",
         parsedProducts.value,
       );
-      const missingIds = missingProductIds(
-        db,
-        productReferences.productIds,
-      );
+      const missingIds = missingProductIds(db, productReferences.productIds);
 
       return [
         ...parsedProducts.failures,
         ...productReferences.failures,
         ...missingIds.map(
-          (productId) => `cart ${row.id} references missing product ${productId}`,
+          (productId) =>
+            `cart ${row.id} references missing product ${productId}`,
         ),
       ];
     });

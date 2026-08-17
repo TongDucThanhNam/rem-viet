@@ -37,7 +37,7 @@ export const Route = createFileRoute("/api/logs")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const unauthorized = await requireApiSession();
+        const unauthorized = await requireApiSession(request);
 
         if (unauthorized) {
           return unauthorized;
@@ -48,7 +48,7 @@ export const Route = createFileRoute("/api/logs")({
         return Response.json(result);
       },
       POST: async ({ request }) => {
-        const unauthorized = await requireApiSession();
+        const unauthorized = await requireApiSession(request);
 
         if (unauthorized) {
           return unauthorized;

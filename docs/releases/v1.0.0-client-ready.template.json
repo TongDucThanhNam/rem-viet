@@ -1,0 +1,206 @@
+{
+  "schemaVersion": 3,
+  "releaseTag": "v1.0.0-client-ready",
+  "assembledAt": "",
+  "flagship": {
+    "siteId": "rem-viet",
+    "origin": "https://rem-viet.example.com",
+    "resources": {
+      "worker": "rem-viet-web-production",
+      "d1": "rem-viet-db-production",
+      "r2": "rem-viet-product-images-production"
+    }
+  },
+  "quality": {
+    "commit": "",
+    "command": "bun run quality",
+    "passed": false,
+    "passedAt": ""
+  },
+  "staging": {
+    "origin": "https://rem-viet-web-staging.example.workers.dev",
+    "deployedAt": "",
+    "deployment": {
+      "commit": "",
+      "inputSha256": "",
+      "sourceState": "clean"
+    },
+    "publishVisibilitySeconds": 0,
+    "desktopSmoke": false,
+    "mobileSmoke": false,
+    "draftLeakChecks": false,
+    "keyboardCriticalPath": false,
+    "noUnexpectedHorizontalOverflow": false,
+    "openP0": 0,
+    "openP1": 0
+  },
+  "pilot": {
+    "deployment": { "commit": "", "inputSha256": "" },
+    "testerName": "",
+    "testerRelationship": "non-developer",
+    "browserAndDevice": "",
+    "startedAt": "",
+    "completedAt": "",
+    "durationMinutes": 0,
+    "trainingDurationMinutes": 0,
+    "revisionRestoreMinutes": 0,
+    "editableRecurringContentPercent": 0,
+    "clientManualUsedWithoutExtraGuidance": false,
+    "developerInterventions": 0,
+    "openP0": 0,
+    "openP1": 0,
+    "issueIds": [],
+    "tasks": {
+      "loginAndRole": false,
+      "editHeroImageFaqAndGallery": false,
+      "privateResponsivePreview": false,
+      "publishRestoreAndRepublish": false,
+      "pageSlugAndRedirect": false,
+      "sanitizedRichTextPost": false,
+      "leadInboxNoteAndCsv": false,
+      "referencedMediaDeleteBlocked": false,
+      "noJsonOrCode": false
+    }
+  },
+  "performance": {
+    "origin": "https://rem-viet-web-staging.example.workers.dev",
+    "windowDays": 28,
+    "automatedTrafficExcluded": true,
+    "exportedAt": "",
+    "metrics": {
+      "CLS": { "samples": 0, "p75": 0, "unit": "score" },
+      "LCP": { "samples": 0, "p75": 0, "unit": "ms" },
+      "INP": { "samples": 0, "p75": 0, "unit": "ms" }
+    }
+  },
+  "notification": {
+    "provider": "resend",
+    "submissionId": "",
+    "adminInboxCreated": false,
+    "deliveredCount": 0,
+    "providerMessageId": "",
+    "verifiedAt": "",
+    "operationalAlert": {
+      "provider": "cloudflare",
+      "stage": "staging",
+      "trigger": "notification-failure",
+      "alertType": "workers_observability_alert",
+      "deliveryMechanism": "email",
+      "policyEnabled": false,
+      "delivered": false,
+      "dispatchReceiptId": "",
+      "verifiedAt": ""
+    }
+  },
+  "stagingRestore": {
+    "siteId": "rem-viet",
+    "stage": "staging",
+    "sourceDatabase": "rem-viet-db-staging",
+    "backup": {
+      "createdAt": "",
+      "artifactLocator": "",
+      "sha256": "",
+      "sizeBytes": 0,
+      "immutable": false,
+      "protectedUntil": ""
+    },
+    "restore": {
+      "targetDatabase": "rem-viet-restore-drill-YYYYMMDD",
+      "startedAt": "",
+      "completedAt": "",
+      "integrityCheck": "ok",
+      "exactTableParity": false,
+      "exactRowParity": false,
+      "targetDeleted": false,
+      "recoveryMinutes": 0
+    }
+  },
+  "secondSite": {
+    "siteId": "acme-demo",
+    "origin": "https://acme-demo.example.com",
+    "resources": {
+      "worker": "acme-demo-web-staging",
+      "d1": "acme-demo-db-staging",
+      "r2": "acme-demo-media-staging"
+    },
+    "cleanCheckout": false,
+    "deployDurationMinutes": 0,
+    "brandAndDemoContentDurationMinutes": 0,
+    "smoke": {
+      "desktopChrome": false,
+      "mobileChrome": false,
+      "cloudflarePageProviderConformance": false,
+      "adminLogin": false,
+      "mediaUpload": false,
+      "draftPreview": false,
+      "publishWithoutDeploy": false,
+      "publicPublishedRead": false,
+      "leadSubmission": false,
+      "sitemap": false
+    },
+    "verifiedAt": ""
+  },
+  "security": {
+    "productionSecretsRotatedAt": "",
+    "publicSignupDisabled": false,
+    "productionHttpsAndTrustedOriginVerified": false,
+    "dependencyAudit": {
+      "command": "bun run audit:security",
+      "criticalFindings": 0,
+      "highFindings": 0,
+      "passedAt": ""
+    }
+  },
+  "production": {
+    "migrationStartedAt": "",
+    "backup": {
+      "createdAt": "",
+      "artifactLocator": "",
+      "sha256": "",
+      "sizeBytes": 0,
+      "immutable": false
+    },
+    "restoreDrill": {
+      "completedAt": "",
+      "isolatedTarget": "",
+      "integrityCheck": "ok",
+      "recoveryMinutes": 0
+    }
+  },
+  "scheduledBackup": {
+    "siteId": "rem-viet",
+    "stage": "production",
+    "bucket": "rem-viet-backups",
+    "workflow": ".github/workflows/scheduled-cms-backup.yml",
+    "configuredAt": "",
+    "retentionDays": 365,
+    "manualDispatch": {
+      "trigger": "workflow_dispatch",
+      "runId": "",
+      "runUrl": "",
+      "completedAt": "",
+      "conclusion": "success",
+      "artifactLocator": "",
+      "sha256": "",
+      "sizeBytes": 0,
+      "immutable": false,
+      "protectedUntil": ""
+    },
+    "scheduledRun": {
+      "trigger": "schedule",
+      "runId": "",
+      "runUrl": "",
+      "completedAt": "",
+      "conclusion": "success",
+      "artifactLocator": "",
+      "sha256": "",
+      "sizeBytes": 0,
+      "immutable": false,
+      "protectedUntil": ""
+    }
+  },
+  "approvals": {
+    "agencyOwner": { "name": "", "approvedAt": "" },
+    "pilotTester": { "name": "", "approvedAt": "" }
+  }
+}

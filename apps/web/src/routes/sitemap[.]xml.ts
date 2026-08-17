@@ -1,4 +1,5 @@
 import { listPosts } from "@rem-viet/api/services/posts";
+import { listPages } from "@rem-viet/api/services/content";
 import { listProducts } from "@rem-viet/api/services/products";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -45,12 +46,13 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const [productResult, posts] = await Promise.all([
+        const [productResult, posts, pages] = await Promise.all([
           listProducts({
             sort: "updatedAt",
             order: "desc",
           }),
           listPosts({ status: "published" }),
+          listPages({ status: "published" }),
         ]);
 
         const entries: SitemapEntry[] = [
@@ -85,11 +87,19 @@ export const Route = createFileRoute("/sitemap.xml")({
             priority: 0.5,
           })),
           ...posts.map((post) => ({
-            url: `${siteConfig.url}/bai-viet/${post.slug}.html`,
+            url: post.canonicalUrl || `${siteConfig.url}/bai-viet/${post.slug}`,
             lastModified: post.last_edited_time,
             changeFrequency: "daily" as const,
             priority: 0.8,
           })),
+          ...pages
+            .filter((page) => page.slug !== "home" && page.robotsIndex)
+            .map((page) => ({
+              url: page.canonicalUrl || `${siteConfig.url}/${page.slug}`,
+              lastModified: page.updatedAt,
+              changeFrequency: "weekly" as const,
+              priority: 0.7,
+            })),
         ];
 
         return new Response(sitemapXml(entries), {

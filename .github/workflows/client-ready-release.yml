@@ -1,0 +1,31 @@
+name: Client-ready release gate
+
+on:
+  push:
+    tags:
+      - "v*-client-ready"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: oven-sh/setup-bun@v2
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+      - name: Install Chromium
+        run: bunx playwright install --with-deps chromium
+      - name: Run repository quality gate
+        run: bun run quality
+      - name: Verify client-ready evidence
+        run: >-
+          bun run release:verify
+          --evidence=docs/releases/v1.0.0-client-ready.json
+          --commit=${{ github.sha }}

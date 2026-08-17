@@ -1,0 +1,27 @@
+[MeasureGuide] apps/web/src/components/landing/measure-guide.tsx (full route surface)
+  [source] apps/web/src/components/landing/measure-guide.tsx
+    [component inventory]
+      [ParallaxImage] apps/web/src/components/landing/measure-guide.tsx:10
+      [MeasureGuide] apps/web/src/components/landing/measure-guide.tsx:100
+    [semantic hierarchy]
+      [img] (attrs=ref={imgRef} src={src} alt={alt} className="parallax-img" /) @ apps/web/src/components/landing/measure-guide.tsx:77
+      [section] (id=measure | attrs=className="measure py-[10vh] font-sans" id="measure" ref={sectionRef}) @ apps/web/src/components/landing/measure-guide.tsx:149
+      [p] (attrs=className="section-eyebrow mb-[18px] font-vietnam text-[11px] font-medium leading-[1.4] tracking-[0.18em] opacity-72 uppercase") @ apps/web/src/components/landing/measure-guide.tsx:156
+      [h2] (attrs=className="font-playfair text-center text-display leading-[0.85] tracking-[-0.02em]" style={{ marginBottom: "10vh" }} ref={titleR…) @ apps/web/src/components/landing/measure-guide.tsx:159
+      [h3] (attrs=className="reveal-item mb-5 max-w-[20ch] font-playfair text-h3 font-normal leading-[1.12] tracking-[-0.01em]") @ apps/web/src/components/landing/measure-guide.tsx:177
+      [p] (attrs=className="reveal-item measure-desc mb-[60px] max-w-[52ch] font-vietnam text-body leading-[1.75] text-muted-ink") @ apps/web/src/components/landing/measure-guide.tsx:180
+      [button] (type=button | attrs=type="button" className="acc-head hover-target flex w-full items-center justify-between border-0 bg-transparent py-[30px] text-le…) @ apps/web/src/components/landing/measure-guide.tsx:193
+      [p] (attrs=className="pb-[30px] text-sm leading-[1.6]") @ apps/web/src/components/landing/measure-guide.tsx:209
+    [visible copy and content literals]
+      "(null); const imgRef = useRef" @ apps/web/src/components/landing/measure-guide.tsx:19
+      "01. Đo chiều rộng" @ apps/web/src/components/landing/measure-guide.tsx:84
+      "02. Đo chiều cao" @ apps/web/src/components/landing/measure-guide.tsx:89
+      "03. Gửi hình khung cửa" @ apps/web/src/components/landing/measure-guide.tsx:94
+      "(0); const sectionRef = useRef" @ apps/web/src/components/landing/measure-guide.tsx:101
+      "(null); const titleRef = useSplitReveal" @ apps/web/src/components/landing/measure-guide.tsx:102
+      "(06) Cách đo" @ apps/web/src/components/landing/measure-guide.tsx:156
+      "Chuẩn xác từ số đo đầu tiên." @ apps/web/src/components/landing/measure-guide.tsx:163
+      "Hướng dẫn đo kích thước khung cửa" @ apps/web/src/components/landing/measure-guide.tsx:172
+      "Hướng dẫn đo phủ bì" @ apps/web/src/components/landing/measure-guide.tsx:177
+      "Số đo đúng giúp lớp lưới ôm khít, không hở mép và giữ bề mặt phẳng đẹp sau khi dán lên khung." @ apps/web/src/components/landing/measure-guide.tsx:180
+      "setOpenIndex(isOpen ? null : index)} >" @ apps/web/src/components/landing/measure-guide.tsx:197

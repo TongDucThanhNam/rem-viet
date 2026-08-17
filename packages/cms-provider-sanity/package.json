@@ -1,0 +1,61 @@
+{
+  "name": "@agency/cms-provider-sanity",
+  "version": "0.1.0-experimental.1",
+  "private": true,
+  "type": "module",
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./hosted": {
+      "types": "./src/hosted-conformance.ts",
+      "default": "./src/hosted-conformance.ts"
+    },
+    "./presentation": {
+      "types": "./src/presentation-conformance.ts",
+      "default": "./src/presentation-conformance.ts"
+    },
+    "./promotion": {
+      "types": "./src/promotion-conformance.ts",
+      "default": "./src/promotion-conformance.ts"
+    },
+    "./webhook": {
+      "types": "./src/webhook.ts",
+      "default": "./src/webhook.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "hosted:verify": "bun scripts/verify-hosted.ts",
+    "presentation:login": "bun scripts/capture-presentation-auth.ts",
+    "presentation:verify": "bun scripts/verify-presentation.ts",
+    "promotion:verify": "bun scripts/verify-promotion.ts",
+    "test": "bun test tests"
+  },
+  "dependencies": {
+    "@sanity/webhook": "^4.0.4"
+  },
+  "peerDependencies": {
+    "@agency/cms-core": "0.1.0",
+    "@agency/cms-runtime": "0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@agency/cms-core": {
+      "optional": true
+    },
+    "@agency/cms-runtime": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@agency/cms-core": "workspace:*",
+    "@agency/cms-runtime": "workspace:*",
+    "@sanity/client": "^8.0.0",
+    "typescript": "catalog:"
+  }
+}

@@ -3,18 +3,34 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "alerts:audit": "bun scripts/cloudflare-alerts-audit.ts",
+    "alerts:policy": "bun scripts/cloudflare-alert-policy.ts",
+    "capacity:audit": "bun scripts/cloudflare-capacity-audit.ts",
+    "d1-references:audit": "bun scripts/cloudflare-d1-reference-audit.ts",
+    "d1:retire-empty-unbound": "bun scripts/cloudflare-d1-retire-empty-unbound.ts",
+    "notification:smoke": "bun scripts/cloudflare-notification-smoke.ts",
+    "r2-lock:audit": "bun scripts/cloudflare-r2-lock-audit.ts",
+    "vitals:audit": "bun scripts/cloudflare-vitals-audit.ts",
     "check-types": "tsc --noEmit",
     "dev": "alchemy dev",
+    "plan": "alchemy plan",
     "deploy": "alchemy deploy",
-    "destroy": "alchemy destroy"
+    "destroy": "alchemy destroy",
+    "test": "bun test src/cloudflare-auth.test.ts src/cloudflare-capacity.test.ts src/cloudflare-d1-references.test.ts src/cloudflare-alert-policy.test.ts src/cloudflare-alerts.test.ts src/cloudflare-notification-smoke.test.ts src/cloudflare-r2-lock.test.ts src/cloudflare-vitals.test.ts"
   },
   "dependencies": {
+    "@agency/cms-alchemy": "workspace:*",
+    "@distilled.cloud/cloudflare": "1.0.0-rc.4",
+    "@rem-viet/cms": "workspace:*",
     "dotenv": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@effect/platform-bun": "4.0.0-rc.108",
+    "@effect/platform-node": "4.0.0-rc.108",
     "@rem-viet/config": "workspace:*",
-    "alchemy": "catalog:",
+    "alchemy": "2.0.0-beta.72",
+    "effect": "4.0.0-rc.108",
     "typescript": "catalog:"
   }
 }

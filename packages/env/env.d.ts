@@ -1,9 +1,9 @@
-import { type web as server } from "@rem-viet/infra/alchemy.run";
+import type { WebEnv } from "@rem-viet/infra/alchemy.run";
 
 // This file infers types for the cloudflare:workers environment from your Alchemy Worker.
-// @see https://alchemy.run/concepts/bindings/#type-safe-bindings
+// @see https://alchemy.run/cloudflare/frontend/tanstack-start
 
-export type CloudflareEnv = typeof server.Env;
+export type CloudflareEnv = WebEnv;
 
 declare global {
   type Env = CloudflareEnv;

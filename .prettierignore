@@ -1,0 +1,13 @@
+.agents/
+.mavis/
+.opencode/
+.tmp/
+**/.alchemy-reset-backup-*/
+AGENTS.md
+GOAL.md
+MIGRATION.md
+apps/web/src/routeTree.gen.ts
+docker-compose.yml
+draft/
+docs/deep-research-report.md
+packages/db/src/migrations/meta/

@@ -9,8 +9,7 @@ services:
         - BACKEND_URL=${BACKEND_URL}
         - NEXT_PUBLIC_DOMAIN=${NEXT_PUBLIC_DOMAIN}
       target: release
-    image:
-      tongducthanhnam/nextui-ecommerce-fe:latest
+    image: tongducthanhnam/nextui-ecommerce-fe:latest
     volumes:
       - ./frontend:/app
     ports:
@@ -36,8 +35,7 @@ services:
         - NOTION_API_KEY=${NOTION_API_KEY}
         - NOTION_DATABASE_ID=${NOTION_DATABASE_ID}
       target: release
-    image:
-      tongducthanhnam/nextui-ecommerce-be:latest
+    image: tongducthanhnam/nextui-ecommerce-be:latest
     ports:
       - "3001:3001"
     environment:

@@ -105,7 +105,10 @@ function normalizeMenuItem(item: MenuItem): PublicMenuItem | null {
   };
 }
 
-function normalizeMenu(items?: MenuItem[] | null, fallback: PublicMenuItem[] = []) {
+function normalizeMenu(
+  items?: MenuItem[] | null,
+  fallback: PublicMenuItem[] = [],
+) {
   const normalized =
     items
       ?.map(normalizeMenuItem)
@@ -143,10 +146,9 @@ export function getSiteChromeData(
     headerMenu: normalizeMenu(headerMenu?.items, fallbackHeaderMenu),
     settings: {
       address: nonBlank(settings?.address) ?? fallbackSettings.address,
-      homepageSections:
-        settings?.homepageSections?.length
-          ? settings.homepageSections
-          : fallbackSettings.homepageSections,
+      homepageSections: settings?.homepageSections?.length
+        ? settings.homepageSections
+        : fallbackSettings.homepageSections,
       logo: nonBlank(settings?.logo) ?? fallbackSettings.logo,
       phone: nonBlank(settings?.phone) ?? fallbackSettings.phone,
       socials: normalizeSocials(settings?.socials),

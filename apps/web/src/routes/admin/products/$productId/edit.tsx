@@ -1,8 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@rem-viet/ui/components/button";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { PackageSearch } from "lucide-react";
+import { toast } from "sonner";
 
 import AdminShell from "@/components/admin-shell";
+import { AsyncState } from "@/components/admin-ui";
 import ProductForm, { type ProductFormValues } from "@/components/product-form";
 import { getAdminUser } from "@/functions/get-admin-user";
 import { normalizeVariantValues } from "@/lib/variants";
@@ -40,16 +43,38 @@ function EditProductRoute() {
         queryClient.invalidateQueries(
           trpc.products.adminWithVariants.queryFilter({ productId }),
         );
+        toast.success("Đã cập nhật sản phẩm.");
         navigate({ to: "/admin/products" });
       },
+      onError: (error) => toast.error(error.message),
     }),
   );
   const data = productQuery.data?.data;
 
   return (
-    <AdminShell hideHeading legacyContentFrame title="Sửa sản phẩm">
+    <AdminShell>
       {productQuery.isLoading ? (
-        <div className="mx-auto my-14 min-h-80 w-full max-w-2xl animate-pulse rounded-md border bg-muted/30" />
+        <div
+          aria-label="Đang tải sản phẩm"
+          className="mx-auto min-h-80 w-full max-w-4xl animate-pulse border bg-muted/30"
+          role="status"
+        />
+      ) : productQuery.isError ? (
+        <AsyncState
+          action={
+            <Button
+              size="sm"
+              type="button"
+              variant="outline"
+              onClick={() => productQuery.refetch()}
+            >
+              Thử lại
+            </Button>
+          }
+          description="Kết nối dữ liệu gặp sự cố. Chưa có thay đổi nào được ghi."
+          title="Không thể tải sản phẩm"
+          tone="error"
+        />
       ) : data?.product ? (
         <ProductForm
           key={data.product._id}

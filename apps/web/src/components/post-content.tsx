@@ -1,7 +1,12 @@
 "use client";
 
 import { ExternalLink, PlayCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState, type ReactNode } from "react";
+import {
+  parseRichTextDocument,
+  type RichTextDocument,
+  type RichTextSpan,
+} from "@rem-viet/cms";
 
 import { cloudflareImageUrl } from "@/lib/site-config";
 
@@ -34,6 +39,12 @@ type RichTextContainer = {
 
 type PostContentProps = {
   content?: string | NotionBlock[];
+  wrapStructuredBlock?: (options: {
+    block: RichTextDocument["blocks"][number];
+    count: number;
+    index: number;
+    rendered: ReactNode;
+  }) => ReactNode;
 };
 
 type BookmarkMetadata = {
@@ -140,24 +151,169 @@ function getCaption(block: NotionBlock) {
 
 function parseBlocks(content?: string | NotionBlock[]) {
   if (!content) {
-    return { blocks: null, text: "" };
+    return { blocks: null, structured: null, text: "" };
   }
 
   if (Array.isArray(content)) {
-    return { blocks: content, text: "" };
+    return { blocks: content, structured: null, text: "" };
   }
 
   try {
     const parsed = JSON.parse(content) as unknown;
 
+    const structured = parseRichTextDocument(content);
+    if (structured) {
+      return { blocks: null, structured, text: "" };
+    }
+
     if (Array.isArray(parsed)) {
-      return { blocks: parsed as NotionBlock[], text: "" };
+      return { blocks: parsed as NotionBlock[], structured: null, text: "" };
     }
   } catch {
-    return { blocks: null, text: content };
+    return { blocks: null, structured: null, text: content };
   }
 
-  return { blocks: null, text: content };
+  return { blocks: null, structured: null, text: content };
+}
+
+function renderStructuredSpan(span: RichTextSpan, index: number) {
+  const node = (
+    <span
+      className={[
+        span.marks?.bold ? "font-semibold" : "",
+        span.marks?.italic ? "italic" : "",
+        span.marks?.code ? "rounded bg-white/10 px-1 font-mono" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      {span.text}
+    </span>
+  );
+  return span.marks?.href ? (
+    <a
+      className="text-[var(--accent)] underline"
+      href={span.marks.href}
+      key={index}
+      rel="noreferrer"
+      target="_blank"
+    >
+      {node}
+    </a>
+  ) : (
+    <span key={index}>{node}</span>
+  );
+}
+
+function renderStructuredBlock(block: RichTextDocument["blocks"][number]) {
+  const key = block.id;
+  if (block.type === "paragraph")
+    return (
+      <p className={bodyTextClass} key={key}>
+        {block.children.map(renderStructuredSpan)}
+      </p>
+    );
+  if (block.type === "heading") {
+    const content = block.children.map(renderStructuredSpan);
+    if (block.level === 2)
+      return (
+        <h2
+          className="mb-5 mt-12 font-playfair text-[clamp(30px,3.8vw,48px)] font-normal text-[var(--accent)]"
+          key={key}
+        >
+          {content}
+        </h2>
+      );
+    if (block.level === 3)
+      return (
+        <h3
+          className="mb-4 mt-10 font-playfair text-[clamp(24px,2.8vw,34px)] font-normal"
+          key={key}
+        >
+          {content}
+        </h3>
+      );
+    return (
+      <h4 className="mb-3 mt-8 font-playfair text-2xl font-normal" key={key}>
+        {content}
+      </h4>
+    );
+  }
+  if (block.type === "quote")
+    return (
+      <blockquote
+        className={`my-8 border-l border-[var(--accent)] bg-white/[0.035] py-4 pl-5 ${bodyTextClass}`}
+        key={key}
+      >
+        {block.children.map(renderStructuredSpan)}
+      </blockquote>
+    );
+  if (block.type === "list") {
+    const items = block.items.map((item, itemIndex) => (
+      <li key={itemIndex}>{item.map(renderStructuredSpan)}</li>
+    ));
+    return block.ordered ? (
+      <ol
+        className={`${bodyTextClass} my-6 list-decimal space-y-2 pl-5`}
+        key={key}
+      >
+        {items}
+      </ol>
+    ) : (
+      <ul
+        className={`${bodyTextClass} my-6 list-disc space-y-2 pl-5`}
+        key={key}
+      >
+        {items}
+      </ul>
+    );
+  }
+  if (block.type === "code")
+    return (
+      <pre
+        className="my-8 overflow-x-auto rounded-[8px] border border-white/12 bg-black/35 p-5 font-mono text-sm"
+        key={key}
+      >
+        <code>{block.code}</code>
+      </pre>
+    );
+  if (block.type === "image")
+    return (
+      <figure className="my-10" key={key}>
+        <img
+          alt={block.alt}
+          className="w-full rounded-[8px]"
+          loading="lazy"
+          src={block.src}
+        />
+        {block.caption ? (
+          <figcaption className={`mt-3 text-center text-xs ${mutedTextClass}`}>
+            {block.caption}
+          </figcaption>
+        ) : null}
+      </figure>
+    );
+  const youtubeId = getYouTubeId(block.url);
+  return youtubeId ? (
+    <div className="my-10 aspect-video overflow-hidden rounded-[8px]" key={key}>
+      <iframe
+        allowFullScreen
+        className="size-full"
+        src={`https://www.youtube.com/embed/${youtubeId}`}
+        title={block.title}
+      />
+    </div>
+  ) : (
+    <a
+      className="text-[var(--accent)] underline"
+      href={block.url}
+      key={key}
+      rel="noreferrer"
+      target="_blank"
+    >
+      {block.title}
+    </a>
+  );
 }
 
 function getYouTubeId(url?: string) {
@@ -240,7 +396,9 @@ function BookmarkCard({ url }: { url: string }) {
               src={imageUrl}
             />
           ) : (
-            <div className={`flex size-full items-center justify-center ${mutedTextClass}`}>
+            <div
+              className={`flex size-full items-center justify-center ${mutedTextClass}`}
+            >
               <ExternalLink aria-hidden className="size-8" />
             </div>
           )}
@@ -271,7 +429,9 @@ function BookmarkCard({ url }: { url: string }) {
                   {title}
                 </h3>
               </div>
-              <p className={`mt-3 line-clamp-2 font-vietnam text-sm leading-6 ${mutedTextClass}`}>
+              <p
+                className={`mt-3 line-clamp-2 font-vietnam text-sm leading-6 ${mutedTextClass}`}
+              >
                 {description}
               </p>
             </>
@@ -362,7 +522,9 @@ function renderBlock(block: NotionBlock, index: number) {
             />
           </div>
           {caption ? (
-            <figcaption className={`mt-3 text-center font-vietnam text-xs ${mutedTextClass}`}>
+            <figcaption
+              className={`mt-3 text-center font-vietnam text-xs ${mutedTextClass}`}
+            >
               {caption}
             </figcaption>
           ) : null}
@@ -433,8 +595,7 @@ function renderBlock(block: NotionBlock, index: number) {
     }
     case "video": {
       const video = block.video as
-        | { external?: { url?: string }; file?: { url?: string } }
-        | undefined;
+        { external?: { url?: string }; file?: { url?: string } } | undefined;
       const url = video?.external?.url ?? video?.file?.url ?? "";
       const youtubeId = getYouTubeId(url);
 
@@ -528,8 +689,33 @@ function renderPlainTextContent(text: string) {
   );
 }
 
-export default function PostContent({ content }: PostContentProps) {
+export default function PostContent({
+  content,
+  wrapStructuredBlock,
+}: PostContentProps) {
   const parsed = parseBlocks(content);
+
+  if (parsed.structured) {
+    return (
+      <div className="grid gap-6 font-vietnam">
+        {parsed.structured.blocks.map((block, index) => {
+          const rendered = renderStructuredBlock(block);
+          return (
+            <Fragment key={block.id}>
+              {wrapStructuredBlock
+                ? wrapStructuredBlock({
+                    block,
+                    count: parsed.structured.blocks.length,
+                    index,
+                    rendered,
+                  })
+                : rendered}
+            </Fragment>
+          );
+        })}
+      </div>
+    );
+  }
 
   if (parsed.blocks) {
     return (

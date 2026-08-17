@@ -1,0 +1,41 @@
+{
+  "id": "rem-viet",
+  "name": "Rèm Vina",
+  "siteUrl": "https://luoichongmuoi.shop",
+  "description": "Cửa hàng Rèm Vina, chuyên cung cấp rèm cửa và lưới chống muỗi chất lượng cao.",
+  "locale": "vi-VN",
+  "preset": "catalog",
+  "brand": {
+    "logo": "https://rem-viet.s3.ap-southeast-2.amazonaws.com/remviet.webp",
+    "colors": {
+      "accent": "#B58A43",
+      "ink": "#111111",
+      "canvas": "#F8F5EF"
+    },
+    "fonts": ["Be Vietnam Pro", "Playfair Display"]
+  },
+  "contact": {
+    "phone": "0399649743",
+    "email": "",
+    "address": "Lưới chống muỗi Rèm Vina, TP.HCM",
+    "socials": {
+      "github": "https://github.com/tongducthanhnam",
+      "zalo": "https://zalo.me/84949491964",
+      "facebook": "https://facebook.com/remvina",
+      "shopee": "https://shopee.vn/remvina"
+    }
+  },
+  "features": {
+    "blog": true,
+    "catalog": true,
+    "orders": true,
+    "leads": true
+  },
+  "infrastructure": {
+    "alchemyApp": "rem-viet",
+    "workerName": "rem-viet-web",
+    "d1Name": "rem-viet-db",
+    "r2BucketName": "rem-viet-product-images",
+    "backupBucketName": "rem-viet-backups"
+  }
+}

@@ -1,28 +1,53 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
 @source "../../../apps/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
 
 @custom-variant dark (&:is(.dark *));
+/* Keep the small subset of shadcn's state variants used by our Base UI
+   components without shipping or installing the full shadcn CLI toolchain. */
+@custom-variant data-open {
+  &:where([data-state="open"]),
+  &:where([data-open]:not([data-open="false"])) {
+    @slot;
+  }
+}
+@custom-variant data-closed {
+  &:where([data-state="closed"]),
+  &:where([data-closed]:not([data-closed="false"])) {
+    @slot;
+  }
+}
+@custom-variant data-checked {
+  &:where([data-state="checked"]),
+  &:where([data-checked]:not([data-checked="false"])) {
+    @slot;
+  }
+}
+@custom-variant data-disabled {
+  &:where([data-disabled="true"]),
+  &:where([data-disabled]:not([data-disabled="false"])) {
+    @slot;
+  }
+}
 /* Landing-page variants: fine-pointer + hover-capable devices, plus JS-driven
    state classes (.active/.is-open toggled by accordion components). */
 @custom-variant hoverable (@media (hover: hover));
 @custom-variant coarse (@media (pointer: coarse));
 
 :root {
-  --background: #FDFCF9;
+  --background: #fdfcf9;
   --foreground: #242424;
-  --card: #F8F5EF;
+  --card: #f8f5ef;
   --card-foreground: #242424;
-  --popover: #FDFCF9;
+  --popover: #fdfcf9;
   --popover-foreground: #242424;
-  --primary: #B58A43;
-  --primary-foreground: #FFFFFF;
-  --secondary: #E8DFD1;
+  --primary: #806022;
+  --primary-foreground: #ffffff;
+  --secondary: #e8dfd1;
   --secondary-foreground: #242424;
-  --muted: #F8F5EF;
-  --muted-foreground: #6F6A61;
+  --muted: #f8f5ef;
+  --muted-foreground: #6f6a61;
   --content1: var(--background);
   --content2: var(--muted);
   --default-100: var(--muted);
@@ -35,6 +60,14 @@
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.58 0.22 27);
+  --destructive-soft: oklch(0.94 0.04 27);
+  --destructive-soft-foreground: oklch(0.42 0.17 27);
+  --success: oklch(0.93 0.05 150);
+  --success-foreground: oklch(0.31 0.09 150);
+  --warning: oklch(0.94 0.06 85);
+  --warning-foreground: oklch(0.35 0.08 75);
+  --info: oklch(0.93 0.04 245);
+  --info-foreground: oklch(0.32 0.08 245);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
@@ -56,17 +89,17 @@
 
 .dark {
   --background: #242424;
-  --foreground: #FDFCF9;
-  --card: #1A1A1A;
-  --card-foreground: #FDFCF9;
+  --foreground: #fdfcf9;
+  --card: #1a1a1a;
+  --card-foreground: #fdfcf9;
   --popover: #242424;
-  --popover-foreground: #FDFCF9;
-  --primary: #D6BB82;
+  --popover-foreground: #fdfcf9;
+  --primary: #d6bb82;
   --primary-foreground: #242424;
   --secondary: #333333;
-  --secondary-foreground: #FDFCF9;
+  --secondary-foreground: #fdfcf9;
   --muted: #333333;
-  --muted-foreground: #A19D94;
+  --muted-foreground: #a19d94;
   --content1: var(--background);
   --content2: var(--muted);
   --default-100: var(--muted);
@@ -79,6 +112,14 @@
   --accent: oklch(0.371 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --destructive-soft: oklch(0.32 0.08 27);
+  --destructive-soft-foreground: oklch(0.9 0.04 27);
+  --success: oklch(0.32 0.06 150);
+  --success-foreground: oklch(0.9 0.06 150);
+  --warning: oklch(0.34 0.07 75);
+  --warning-foreground: oklch(0.92 0.08 85);
+  --info: oklch(0.31 0.06 245);
+  --info-foreground: oklch(0.9 0.05 245);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
@@ -119,6 +160,14 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-soft-foreground: var(--destructive-soft-foreground);
+  --color-destructive-soft: var(--destructive-soft);
+  --color-success-foreground: var(--success-foreground);
+  --color-success: var(--success);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning: var(--warning);
+  --color-info-foreground: var(--info-foreground);
+  --color-info: var(--info);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -178,14 +227,19 @@
   /* Brand colors — resolve through the landing theme vars so they flip with
      data-theme. `--color-brand-*` (not `--color-accent`, which is taken by
      the shadcn palette) avoids a token collision. */
-  --color-brand: var(--accent);
+  --color-brand: var(--accent-text);
   --color-brand-soft: var(--accent-soft);
+  --color-brand-solid: var(--accent-solid);
   --color-ink: var(--text-color);
   --color-canvas: var(--bg-color);
   --color-muted-ink: color-mix(in srgb, var(--text-color) 60%, transparent);
-  --color-faint-ink: color-mix(in srgb, var(--text-color) 38%, transparent);
+  --color-faint-ink: color-mix(in srgb, var(--text-color) 64%, transparent);
   --color-hairline: color-mix(in srgb, var(--text-color) 12%, transparent);
-  --color-hairline-strong: color-mix(in srgb, var(--text-color) 24%, transparent);
+  --color-hairline-strong: color-mix(
+    in srgb,
+    var(--text-color) 24%,
+    transparent
+  );
 
   /* Animations — register the keyframes (defined in landing.css) as utilities
      so `animate-marquee` etc. work. */

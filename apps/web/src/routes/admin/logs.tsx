@@ -1,12 +1,28 @@
+import { roleHasCapability } from "@rem-viet/cms";
 import { Button } from "@rem-viet/ui/components/button";
 import { Card, CardContent } from "@rem-viet/ui/components/card";
 import { Input } from "@rem-viet/ui/components/input";
+import { Skeleton } from "@rem-viet/ui/components/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@rem-viet/ui/components/table";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { ListFilter, Search, Trash2 } from "lucide-react";
+import { Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import AdminShell from "@/components/admin-shell";
+import {
+  AsyncState,
+  ConfirmDestructiveAction,
+  StatusBadge,
+} from "@/components/admin-ui";
 import { getAdminUser } from "@/functions/get-admin-user";
 import { useTRPC } from "@/utils/trpc";
 
@@ -19,6 +35,9 @@ export const Route = createFileRoute("/admin/logs")({
   loader: async ({ context }) => {
     if (!context.session) {
       throw redirect({ to: "/dang-nhap" });
+    }
+    if (!roleHasCapability(context.session.staffRole, "audit.read")) {
+      throw redirect({ to: "/admin/dashboard" });
     }
   },
 });
@@ -39,18 +58,18 @@ function formatDate(value?: string | null) {
 
 function statusTone(statusCode?: number | null) {
   if (!statusCode) {
-    return "bg-muted text-muted-foreground";
+    return "neutral" as const;
   }
 
   if (statusCode >= 500) {
-    return "bg-red-500/10 text-red-700";
+    return "destructive" as const;
   }
 
   if (statusCode >= 400) {
-    return "bg-amber-500/10 text-amber-700";
+    return "warning" as const;
   }
 
-  return "bg-emerald-500/10 text-emerald-700";
+  return "success" as const;
 }
 
 function AdminLogsRoute() {
@@ -68,7 +87,9 @@ function AdminLogsRoute() {
     trpc.logs.delete.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.logs.list.queryFilter());
+        toast.success("Đã xóa bản ghi kỹ thuật.");
       },
+      onError: (error) => toast.error(error.message),
     }),
   );
   const logs = logsQuery.data?.data ?? [];
@@ -96,128 +117,132 @@ function AdminLogsRoute() {
   }, [logs, search]);
 
   return (
-    <AdminShell hideHeading legacyContentFrame title="Logs">
-      <div className="mx-auto my-14 flex w-full max-w-[95rem] flex-col gap-4 lg:px-6">
-        <div className="mb-[18px] flex flex-col justify-between gap-3 md:flex-row md:items-center">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold leading-8 tracking-normal">
-                Logs
-              </h1>
-              <span className="hidden items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground sm:flex">
-                {filteredLogs.length}/{logs.length}
-              </span>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Nhật ký hoạt động và yêu cầu hệ thống.
-            </p>
-          </div>
+    <AdminShell>
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4">
+        <section className="flex flex-col justify-between gap-3 border p-3 md:flex-row md:items-end">
+          <p className="text-xs text-muted-foreground" role="status">
+            {filteredLogs.length} trên {logs.length} bản ghi
+          </p>
           <div className="relative w-full max-w-sm">
             <Search
               aria-hidden
               className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
             />
             <Input
-              className="h-10 rounded-xl pl-9"
-              placeholder="Tìm method, URL, IP, device..."
+              aria-label="Tìm nhật ký kỹ thuật"
+              className="pl-9"
+              placeholder="Tìm phương thức, URL, IP hoặc thiết bị…"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
           </div>
-        </div>
+        </section>
 
-        <Card className="overflow-hidden rounded-md border bg-background shadow-sm">
+        <Card className="overflow-hidden rounded-md ring-border">
           <CardContent className="p-0">
             {logsQuery.isLoading ? (
-              <div className="p-4 text-sm text-muted-foreground">
-                Đang tải...
+              <div
+                aria-label="Đang tải nhật ký kỹ thuật"
+                className="grid gap-2 p-4"
+                role="status"
+              >
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <Skeleton className="h-12" key={index} />
+                ))}
               </div>
+            ) : logsQuery.isError ? (
+              <AsyncState
+                action={
+                  <Button
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                    onClick={() => void logsQuery.refetch()}
+                  >
+                    Thử lại
+                  </Button>
+                }
+                description="Không thể tải các bản ghi kỹ thuật hiện tại."
+                title="Không thể tải nhật ký kỹ thuật"
+                tone="error"
+              />
             ) : filteredLogs.length ? (
               <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-left text-xs">
-                  <thead className="border-b bg-muted/40 text-muted-foreground">
-                    <tr>
-                      <th className="min-w-24 px-4 py-3 font-semibold">
-                        Method
-                      </th>
-                      <th className="min-w-72 px-4 py-3 font-semibold">URL</th>
-                      <th className="min-w-28 px-4 py-3 font-semibold">
-                        Status
-                      </th>
-                      <th className="min-w-40 px-4 py-3 font-semibold">IP</th>
-                      <th className="min-w-44 px-4 py-3 font-semibold">
-                        Device
-                      </th>
-                      <th className="min-w-44 px-4 py-3 font-semibold">Time</th>
-                      <th className="px-4 py-3 text-right font-semibold">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table className="min-w-[980px] text-xs">
+                  <TableHeader className="bg-muted/40">
+                    <TableRow>
+                      <TableHead className="min-w-24">Phương thức</TableHead>
+                      <TableHead className="min-w-72">URL</TableHead>
+                      <TableHead className="min-w-28">Trạng thái</TableHead>
+                      <TableHead className="min-w-40">IP</TableHead>
+                      <TableHead className="min-w-44">Thiết bị</TableHead>
+                      <TableHead className="min-w-44">Thời gian</TableHead>
+                      <TableHead className="text-right">Thao tác</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {filteredLogs.map((log) => (
-                      <tr className="border-b last:border-b-0" key={log._id}>
-                        <td className="px-4 py-3 font-medium">
-                          {log.method ?? "N/A"}
-                        </td>
-                        <td className="max-w-xl px-4 py-3">
+                      <TableRow key={log._id}>
+                        <TableCell className="font-medium">
+                          {log.method ?? "—"}
+                        </TableCell>
+                        <TableCell className="max-w-xl">
                           <p className="truncate font-mono text-[11px]">
-                            {log.url ?? "N/A"}
+                            {log.url ?? "—"}
                           </p>
                           {log.userId ? (
                             <p className="mt-1 font-mono text-[11px] text-muted-foreground">
                               userId: {log.userId}
                             </p>
                           ) : null}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${statusTone(log.statusCode)}`}
-                          >
-                            {log.statusCode ?? "N/A"}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">{log.ipAddress ?? "N/A"}</td>
-                        <td className="px-4 py-3">{log.deviceId ?? "N/A"}</td>
-                        <td className="px-4 py-3">
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={statusTone(log.statusCode)}>
+                            {log.statusCode ?? "Chưa có"}
+                          </StatusBadge>
+                        </TableCell>
+                        <TableCell>{log.ipAddress ?? "—"}</TableCell>
+                        <TableCell>{log.deviceId ?? "—"}</TableCell>
+                        <TableCell>
                           {formatDate(log.timeStamp ?? log.createdAt)}
-                        </td>
-                        <td className="px-4 py-3">
+                        </TableCell>
+                        <TableCell>
                           <div className="flex justify-end">
-                            <Button
-                              className="h-auto w-auto bg-transparent p-0 text-pink-600 hover:bg-transparent"
-                              disabled={deleteLog.isPending}
-                              title="Xóa log"
-                              type="button"
-                              variant="ghost"
-                              onClick={() => {
-                                if (window.confirm("Xóa log này?")) {
-                                  deleteLog.mutate({ logId: log._id });
-                                }
+                            <ConfirmDestructiveAction
+                              description={`Bản ghi ${log.method ?? "không rõ phương thức"} ${log.url ?? "không rõ URL"} sẽ bị xóa vĩnh viễn và không thể khôi phục.`}
+                              pending={deleteLog.isPending}
+                              title={`Xóa bản ghi kỹ thuật ${log._id}?`}
+                              trigger={
+                                <Button
+                                  aria-label={`Xóa bản ghi ${log.method ?? ""} ${log.url ?? log._id}`}
+                                  disabled={deleteLog.isPending}
+                                  size="icon-sm"
+                                  type="button"
+                                  variant="ghost"
+                                >
+                                  <Trash2 aria-hidden className="size-4" />
+                                </Button>
+                              }
+                              onConfirm={() => {
+                                deleteLog.mutate({ logId: log._id });
                               }}
-                            >
-                              <Trash2 aria-hidden className="size-5" />
-                            </Button>
+                            />
                           </div>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             ) : (
-              <div className="flex min-h-60 flex-col items-center justify-center gap-3 p-6 text-center">
-                <ListFilter
-                  aria-hidden
-                  className="size-8 text-muted-foreground"
-                />
-                <div>
-                  <h2 className="text-sm font-medium">Chưa có log</h2>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Nhật ký mới sẽ hiển thị tại đây.
-                  </p>
-                </div>
-              </div>
+              <AsyncState
+                description={
+                  search
+                    ? "Không có bản ghi nào khớp từ khóa hiện tại."
+                    : "Nhật ký mới sẽ hiển thị tại đây."
+                }
+                title={search ? "Không có kết quả phù hợp" : "Chưa có nhật ký"}
+              />
             )}
           </CardContent>
         </Card>

@@ -1,0 +1,297 @@
+[HomeComponent] apps/web/src/routes/index.tsx (full route surface)
+  [source] apps/web/src/routes/index.tsx
+    [component inventory]
+      [HomeComponent] apps/web/src/routes/index.tsx:27
+    [semantic hierarchy]
+      [main] (id=smooth-wrapper | attrs=id="smooth-wrapper" className="font-sans") @ apps/web/src/routes/index.tsx:72
+    [visible copy and content literals]
+      "` based on the section currently // crossing the viewport's middle. Affects --bg-color / --text-color // for the custom cursor, navigation, and any descendant that consumes // the…" @ apps/web/src/routes/index.tsx:30
+  [source] apps/web/src/components/custom-cursor-raw.tsx
+    [component inventory]
+      [CustomCursorRaw] apps/web/src/components/custom-cursor-raw.tsx:10
+    [semantic hierarchy]
+    [visible copy and content literals]
+      "(null); const textRef = useRef" @ apps/web/src/components/custom-cursor-raw.tsx:11
+      "cleanup()); window.removeEventListener(\"mousemove\", onMouseMove); document.removeEventListener(\"mouseover\", onMouseOver); document.removeEventListener(\"mouseout\", onMouseOut); win…" @ apps/web/src/components/custom-cursor-raw.tsx:121
+  [source] apps/web/src/components/gsap-scroll-sync.tsx
+    [component inventory]
+      [GsapScrollSync] apps/web/src/components/gsap-scroll-sync.tsx:21
+    [semantic hierarchy]
+    [visible copy and content literals]
+  [source] apps/web/src/components/loading-screen-raw.tsx
+    [component inventory]
+      [LoadingScreenRaw] apps/web/src/components/loading-screen-raw.tsx:26
+    [semantic hierarchy]
+    [visible copy and content literals]
+      "(null); const counterRef = useRef" @ apps/web/src/components/loading-screen-raw.tsx:27
+      "(null); const topOverlayRef = useRef" @ apps/web/src/components/loading-screen-raw.tsx:28
+      "(null); const bottomOverlayRef = useRef" @ apps/web/src/components/loading-screen-raw.tsx:29
+      "0%" @ apps/web/src/components/loading-screen-raw.tsx:112
+  [source] apps/web/src/components/scroll-progress.tsx
+    [component inventory]
+      [ScrollProgress] apps/web/src/components/scroll-progress.tsx:22
+    [semantic hierarchy]
+    [visible copy and content literals]
+  [source] apps/web/src/components/landing/navigation.tsx
+    [component inventory]
+      [MagneticLink] apps/web/src/components/landing/navigation.tsx:15
+      [Navigation] apps/web/src/components/landing/navigation.tsx:45
+    [semantic hierarchy]
+      [a] (attrs=ref={ref as React.Ref<HTMLAnchorElement) @ apps/web/src/components/landing/navigation.tsx:29
+      [nav] (attrs=className="nav fixed top-0 left-0 z-[100] flex w-full items-center justify-between p-[2vw_4vw] text-white [mix-blend-mode:differe…) @ apps/web/src/components/landing/navigation.tsx:50
+      [a] (attrs=href={homeHref} className="font-vietnam hover-target inline-block shrink-0 whitespace-nowrap text-sm font-medium tracking-[0.2em]…) @ apps/web/src/components/landing/navigation.tsx:51
+    [visible copy and content literals]
+      "Lên đầu" @ apps/web/src/components/landing/navigation.tsx:54
+      "handleAnchorClick(event, homeHref)} > Rèm Vina" @ apps/web/src/components/landing/navigation.tsx:55
+      "Xem" @ apps/web/src/components/landing/navigation.tsx:63
+      "Tầm Nhìn" @ apps/web/src/components/landing/navigation.tsx:64
+      "Chi Tiết" @ apps/web/src/components/landing/navigation.tsx:71
+      "Cách Đo" @ apps/web/src/components/landing/navigation.tsx:78
+      "Đọc" @ apps/web/src/components/landing/navigation.tsx:84
+      "Bài Viết" @ apps/web/src/components/landing/navigation.tsx:85
+      "Liên hệ" @ apps/web/src/components/landing/navigation.tsx:92
+      "Tư Vấn" @ apps/web/src/components/landing/navigation.tsx:93
+  [source] apps/web/src/components/landing/hero.tsx
+    [component inventory]
+      [Hero] apps/web/src/components/landing/hero.tsx:54
+    [semantic hierarchy]
+      [section] (id=home | attrs=className="hero-new relative isolate flex h-dvh w-full min-w-0 items-end overflow-hidden bg-black px-[4vw] pt-[14vh] pb-[16vh] fo…) @ apps/web/src/components/landing/hero.tsx:206
+      [img] (attrs=className="h-[115%] w-full object-cover object-center will-change-transform" src="/assets/7c9323bc-888a-4cba-b876-f0aa79b35158.pn…) @ apps/web/src/components/landing/hero.tsx:212
+      [p] (attrs=className="hero-new-kicker relative mb-5 pb-3.5 font-vietnam text-[12px] font-medium leading-tight tracking-[0.18em] text-white/7…) @ apps/web/src/components/landing/hero.tsx:222
+      [h1] (attrs=className="hero-new-title m-0 font-playfair text-display font-normal leading-[0.82] tracking-[-0.01em] xl:text-[clamp(54px,10vw,1…) @ apps/web/src/components/landing/hero.tsx:229
+      [p] (attrs=className="mt-7.5 max-w-[540px] font-vietnam text-body leading-[1.7] text-white/78 lg:max-w-[480px] lg:text-[15px] sm:mt-[22px] s…) @ apps/web/src/components/landing/hero.tsx:240
+      [a] (href=https://shopee.vn/remvina.vn | attrs=href="https://shopee.vn/remvina.vn" className="hero-new-link hover-target inline-flex min-h-12 w-full items-center justify-center…) @ apps/web/src/components/landing/hero.tsx:250
+      [a] (href=#order | attrs=href="#order" className="hero-new-link hover-target inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-lg bord…) @ apps/web/src/components/landing/hero.tsx:260
+    [visible copy and content literals]
+      "Bảo vệ vô hình" @ apps/web/src/components/landing/hero.tsx:14
+      "May đo" @ apps/web/src/components/landing/hero.tsx:19
+      "Thông thoáng" @ apps/web/src/components/landing/hero.tsx:24
+      "Thẩm mỹ" @ apps/web/src/components/landing/hero.tsx:29
+      "(null); const bgImgRef = useRef" @ apps/web/src/components/landing/hero.tsx:55
+      "(null); const grainRef = useRef" @ apps/web/src/components/landing/hero.tsx:56
+      "(null); const vignetteRef = useRef" @ apps/web/src/components/landing/hero.tsx:57
+      "(null); const title1Ref = useRef" @ apps/web/src/components/landing/hero.tsx:58
+      "(null); const title2Ref = useRef" @ apps/web/src/components/landing/hero.tsx:59
+      "(null); const kickerRef = useRef" @ apps/web/src/components/landing/hero.tsx:60
+      "(null); const descRef = useRef" @ apps/web/src/components/landing/hero.tsx:61
+      "(null); const actionsRef = useRef" @ apps/web/src/components/landing/hero.tsx:62
+      "(null); const featuresBarRef = useRef" @ apps/web/src/components/landing/hero.tsx:63
+      "(null); const scrollCueRef = useRef" @ apps/web/src/components/landing/hero.tsx:64
+      "(01) Lưới chống muỗi may đo" @ apps/web/src/components/landing/hero.tsx:225
+      "Rèm" @ apps/web/src/components/landing/hero.tsx:231
+      "Vina" @ apps/web/src/components/landing/hero.tsx:234
+      "Giải pháp lưới chống muỗi cao cấp cho cửa sổ và cửa đi. May đo theo từng khung, giữ không gian thoáng sáng mà vẫn bảo vệ gia đình mỗi ngày." @ apps/web/src/components/landing/hero.tsx:243
+      "Mua" @ apps/web/src/components/landing/hero.tsx:253
+      "Mua hàng" @ apps/web/src/components/landing/hero.tsx:258
+      "Đặt may" @ apps/web/src/components/landing/hero.tsx:263
+      "Tư vấn kích thước" @ apps/web/src/components/landing/hero.tsx:266
+  [source] apps/web/src/components/landing/threat.tsx
+    [component inventory]
+      [Threat] apps/web/src/components/landing/threat.tsx:55
+    [semantic hierarchy]
+      [section] (attrs=.threat) @ apps/web/src/components/landing/threat.tsx:47
+      [section] (id=threat | attrs=className="threat pinned relative flex h-dvh items-center justify-center overflow-hidden bg-black font-sans text-white" id="threa…) @ apps/web/src/components/landing/threat.tsx:191
+      [img] (attrs=className="threat-backdrop-img h-full w-full object-cover will-change-transform" src={step.image.src} alt="" decoding="async" loa…) @ apps/web/src/components/landing/threat.tsx:203
+      [p] (attrs=className="font-vietnam text-[12px] tracking-[0.22em] text-[var(--accent-soft)] uppercase") @ apps/web/src/components/landing/threat.tsx:225
+      [h2] (attrs=className="max-w-[16ch] font-playfair text-h1 font-normal leading-[1.08] tracking-[-0.01em]") @ apps/web/src/components/landing/threat.tsx:228
+      [p] (attrs=className="max-w-[52ch] font-vietnam text-lead leading-[1.6] text-white/78") @ apps/web/src/components/landing/threat.tsx:231
+    [visible copy and content literals]
+      "Mối đe dọa" @ apps/web/src/components/landing/threat.tsx:7
+      "Muỗi len vào từ những khe nhỏ nhất." @ apps/web/src/components/landing/threat.tsx:8
+      "Giải pháp" @ apps/web/src/components/landing/threat.tsx:17
+      "Một lớp chắn gần như vô hình." @ apps/web/src/components/landing/threat.tsx:18
+      "Kết quả" @ apps/web/src/components/landing/threat.tsx:27
+      "Nhà thoáng, sạch và yên tĩnh." @ apps/web/src/components/landing/threat.tsx:28
+      "← the pinned element *" @ apps/web/src/components/landing/threat.tsx:47
+      "← backdrop stack (absolute) *" @ apps/web/src/components/landing/threat.tsx:48
+      "← centered text stage *" @ apps/web/src/components/landing/threat.tsx:49
+      "(null); const stageRef = useRef" @ apps/web/src/components/landing/threat.tsx:56
+      "(\".threat-step\"); const backdrops = section.querySelectorAll" @ apps/web/src/components/landing/threat.tsx:78
+      "(\".threat-backdrop-item\"); const images = section.querySelectorAll" @ apps/web/src/components/landing/threat.tsx:80
+  [source] apps/web/src/components/landing/marquee.tsx
+    [component inventory]
+      [Marquee] apps/web/src/components/landing/marquee.tsx:22
+    [semantic hierarchy]
+    [visible copy and content literals]
+      "setIsPaused(false)} >" @ apps/web/src/components/landing/marquee.tsx:74
+  [source] apps/web/src/components/landing/benefits.tsx
+    [component inventory]
+      [Benefits] apps/web/src/components/landing/benefits.tsx:39
+    [semantic hierarchy]
+      [section] (id=benefits | attrs=className="benefits py-[var(--space-section)] font-sans max-[640px]:py-[12vh]" id="benefits" ref={sectionRef}) @ apps/web/src/components/landing/benefits.tsx:94
+      [p] (attrs=className="mb-[2vh] text-[11px] tracking-[0.25em] uppercase opacity-70") @ apps/web/src/components/landing/benefits.tsx:101
+      [h2] (attrs=className="mb-[2.5vh] font-playfair text-h1 font-normal leading-[1.05] max-[1024px]:text-[8vw] max-[640px]:text-[42px]" ref={titl…) @ apps/web/src/components/landing/benefits.tsx:104
+      [p] (attrs=className="mx-auto max-w-[560px] text-base leading-[1.6] opacity-70") @ apps/web/src/components/landing/benefits.tsx:110
+      [article] (attrs=key={title} className="benefit-card hover-target relative flex flex-col gap-4 pt-6 opacity-85 border-t-2 [border-top-color:color-…) @ apps/web/src/components/landing/benefits.tsx:118
+      [h3] (attrs=className="font-playfair text-2xl font-normal leading-[1.25]") @ apps/web/src/components/landing/benefits.tsx:128
+      [p] (attrs=className="m-0 text-sm leading-[1.6] opacity-70") @ apps/web/src/components/landing/benefits.tsx:131
+    [visible copy and content literals]
+      "Sợi thủy tinh cao cấp" @ apps/web/src/components/landing/benefits.tsx:9
+      "May đo vừa khít" @ apps/web/src/components/landing/benefits.tsx:14
+      "Bảo vệ vô hình" @ apps/web/src/components/landing/benefits.tsx:19
+      "Lắp đặt tận nơi" @ apps/web/src/components/landing/benefits.tsx:24
+      "(null); const titleRef = useSplitReveal" @ apps/web/src/components/landing/benefits.tsx:40
+      "Lợi ích cốt lõi" @ apps/web/src/components/landing/benefits.tsx:101
+      "Giữ nhà thoáng, sạch và yên tĩnh." @ apps/web/src/components/landing/benefits.tsx:107
+      "Bốn cam kết làm nên trải nghiệm của Rèm Vina, từ vật liệu, độ vừa khít đến dịch vụ lắp đặt trọn gói." @ apps/web/src/components/landing/benefits.tsx:110
+  [source] apps/web/src/components/landing/craft.tsx
+    [component inventory]
+      [Craft] apps/web/src/components/landing/craft.tsx:12
+    [semantic hierarchy]
+      [section] (id=craft | attrs=className="craft py-[var(--space-section)] font-sans max-[640px]:py-[12vh]" id="craft" ref={sectionRef}) @ apps/web/src/components/landing/craft.tsx:45
+      [p] (attrs=className="section-eyebrow mb-[18px] text-[11px] font-medium leading-[1.4] tracking-[0.18em] opacity-72 uppercase") @ apps/web/src/components/landing/craft.tsx:64
+      [h2] (attrs=className="mb-[2vh] font-playfair text-h2 font-normal max-[1024px]:text-[8vw]") @ apps/web/src/components/landing/craft.tsx:67
+      [p] (attrs=className="text-[14px] leading-[1.6] text-[color:var(--text-muted)]") @ apps/web/src/components/landing/craft.tsx:70
+    [visible copy and content literals]
+      "Cận cảnh thao tác may lưới chống muỗi" @ apps/web/src/components/landing/craft.tsx:55
+      "(03) Chế tác" @ apps/web/src/components/landing/craft.tsx:64
+      "Tinh chỉnh từng mép lưới cho vừa khung cửa thật." @ apps/web/src/components/landing/craft.tsx:67
+      "Mỗi bộ lưới được đo, cắt, may và kiểm tra thủ công để đường viền ôm sát bề mặt dán. Kết quả là một lớp bảo vệ gọn nhẹ, bền và không làm nặng hình khối kiến trúc." @ apps/web/src/components/landing/craft.tsx:70
+  [source] apps/web/src/components/landing/bento-details.tsx
+    [component inventory]
+      [StatNumber] apps/web/src/components/landing/bento-details.tsx:78
+      [BentoImage] apps/web/src/components/landing/bento-details.tsx:100
+      [BentoBox] apps/web/src/components/landing/bento-details.tsx:156
+      [BentoDetails] apps/web/src/components/landing/bento-details.tsx:237
+    [semantic hierarchy]
+      [img] (attrs=ref={imgRef} src={src} alt={alt} className="bento-bg-img" /) @ apps/web/src/components/landing/bento-details.tsx:150
+      [section] (id=details | attrs=className="bento-details py-[var(--space-section)] font-sans max-[640px]:py-[12vh]" id="details" ref={sectionRef}) @ apps/web/src/components/landing/bento-details.tsx:283
+      [p] (attrs=className="section-eyebrow font-vietnam mb-[18px] text-[11px] font-medium leading-[1.4] tracking-[0.18em] opacity-72 uppercase") @ apps/web/src/components/landing/bento-details.tsx:290
+      [h2] (attrs=className="massive-text bento-title font-playfair mb-0 text-center text-display leading-[0.85] tracking-[-0.02em]" ref={titleRef}) @ apps/web/src/components/landing/bento-details.tsx:293
+      [h3] @ apps/web/src/components/landing/bento-details.tsx:308
+      [p] @ apps/web/src/components/landing/bento-details.tsx:309
+      [h3] @ apps/web/src/components/landing/bento-details.tsx:346
+      [p] @ apps/web/src/components/landing/bento-details.tsx:347
+      [h3] @ apps/web/src/components/landing/bento-details.tsx:353
+      [p] @ apps/web/src/components/landing/bento-details.tsx:354
+      [h3] @ apps/web/src/components/landing/bento-details.tsx:364
+      [p] @ apps/web/src/components/landing/bento-details.tsx:365
+    [visible copy and content literals]
+      "(null); const imgRef = useRef" @ apps/web/src/components/landing/bento-details.tsx:101
+      "(null); const coarse = useCoarsePointer(); const canTilt = !coarse; // quickTo setters, created once the element mounts. const tiltRef = useRef" @ apps/web/src/components/landing/bento-details.tsx:163
+      "(null); const titleRef = useSplitReveal" @ apps/web/src/components/landing/bento-details.tsx:238
+      "(04) Chi tiết kỹ thuật" @ apps/web/src/components/landing/bento-details.tsx:290
+      "Kỹ thuật may đo cho khung cửa Việt." @ apps/web/src/components/landing/bento-details.tsx:296
+      "Cận cảnh sợi thủy tinh bọc PVC" @ apps/web/src/components/landing/bento-details.tsx:305
+      "Sợi thủy tinh siêu mảnh" @ apps/web/src/components/landing/bento-details.tsx:308
+      "Lưới được dệt từ sợi thủy tinh bọc PVC chuyên dụng, đàn hồi tốt và giữ bề mặt ổn định sau thời gian dài sử dụng." @ apps/web/src/components/landing/bento-details.tsx:309
+      "Chất độc hại" @ apps/web/src/components/landing/bento-details.tsx:319
+      "Chống muỗi" @ apps/web/src/components/landing/bento-details.tsx:326
+      "Năm độ bền" @ apps/web/src/components/landing/bento-details.tsx:333
+      "Luồng gió" @ apps/web/src/components/landing/bento-details.tsx:340
+      "Viền dán gọn" @ apps/web/src/components/landing/bento-details.tsx:346
+      "Đường viền mảnh, ôm khung và dễ tháo vệ sinh khi cần." @ apps/web/src/components/landing/bento-details.tsx:347
+      "Lắp trong ngày" @ apps/web/src/components/landing/bento-details.tsx:353
+      "Kỹ thuật viên đo, tư vấn và hoàn thiện theo lịch hẹn tại nhà." @ apps/web/src/components/landing/bento-details.tsx:354
+      "Lưới chống muỗi lắp trên cửa sổ hiện đại" @ apps/web/src/components/landing/bento-details.tsx:361
+      "Đạt chuẩn cho không gian sống hiện đại" @ apps/web/src/components/landing/bento-details.tsx:364
+      "Vật liệu chống tia UV, hạn chế rách và an toàn cho gia đình có trẻ nhỏ hoặc thú cưng." @ apps/web/src/components/landing/bento-details.tsx:365
+  [source] apps/web/src/components/landing/horizontal-gallery.tsx
+    [component inventory]
+      [HorizontalGallery] apps/web/src/components/landing/horizontal-gallery.tsx:84
+    [semantic hierarchy]
+      [section] (id=lifestyle | attrs=ref={sectionRef} className="font-sans py-section" id="lifestyle") @ apps/web/src/components/landing/horizontal-gallery.tsx:255
+      [p] (attrs=className="section-eyebrow font-vietnam mb-[14px] text-[11px] font-medium leading-[1.4] tracking-[0.18em] opacity-72 uppercase") @ apps/web/src/components/landing/horizontal-gallery.tsx:262
+      [h2] (attrs=className="font-playfair text-[clamp(40px,8vw,120px)] leading-[0.95] max-[640px]:text-[14vw]" ref={titleRef}) @ apps/web/src/components/landing/horizontal-gallery.tsx:265
+      [img] (attrs=className="h-full w-full object-cover" src={item.src} alt={item.title} /) @ apps/web/src/components/landing/horizontal-gallery.tsx:280
+      [section] (id=lifestyle | attrs=ref={sectionRef} className="relative h-dvh overflow-hidden font-sans" id="lifestyle") @ apps/web/src/components/landing/horizontal-gallery.tsx:303
+      [p] (attrs=className="section-eyebrow font-vietnam mb-[14px] text-[11px] font-medium leading-[1.4] tracking-[0.18em] opacity-72 uppercase") @ apps/web/src/components/landing/horizontal-gallery.tsx:313
+      [h2] (attrs=className="font-playfair text-[clamp(40px,8vw,120px)] leading-[0.95] max-[640px]:text-[14vw]" ref={titleRef}) @ apps/web/src/components/landing/horizontal-gallery.tsx:316
+      [img] (attrs=className="h-full w-full rounded-lg object-cover will-change-transform" src={item.src} alt={item.title} /) @ apps/web/src/components/landing/horizontal-gallery.tsx:336
+    [visible copy and content literals]
+      "Phòng khách mở sáng" @ apps/web/src/components/landing/horizontal-gallery.tsx:9
+      "Góc nghỉ yên tĩnh" @ apps/web/src/components/landing/horizontal-gallery.tsx:14
+      "Không gian bếp sạch" @ apps/web/src/components/landing/horizontal-gallery.tsx:19
+      "Đón gió tự nhiên" @ apps/web/src/components/landing/horizontal-gallery.tsx:24
+      "(null); const trackRef = useRef" @ apps/web/src/components/landing/horizontal-gallery.tsx:86
+      "(null); const headerRef = useRef" @ apps/web/src/components/landing/horizontal-gallery.tsx:87
+      "(null); const counterRef = useRef" @ apps/web/src/components/landing/horizontal-gallery.tsx:88
+      "(null); const progressRef = useRef" @ apps/web/src/components/landing/horizontal-gallery.tsx:89
+      "(null); const titleRef = useSplitReveal" @ apps/web/src/components/landing/horizontal-gallery.tsx:90
+      "(\".gallery-caption-meta\"); const titles = track.querySelectorAll" @ apps/web/src/components/landing/horizontal-gallery.tsx:180
+      "(05) Lối sống" @ apps/web/src/components/landing/horizontal-gallery.tsx:262
+      "Không Gian" @ apps/web/src/components/landing/horizontal-gallery.tsx:268
+      "Tuyệt Đỉnh" @ apps/web/src/components/landing/horizontal-gallery.tsx:270
+      "); } // ---- Full-motion layout: pinned horizontal scroll ----------------------- return (" @ apps/web/src/components/landing/horizontal-gallery.tsx:297
+      "Xem" @ apps/web/src/components/landing/horizontal-gallery.tsx:333
+      "01" @ apps/web/src/components/landing/horizontal-gallery.tsx:357
+  [source] apps/web/src/components/landing/measure-guide.tsx
+    [component inventory]
+      [ParallaxImage] apps/web/src/components/landing/measure-guide.tsx:10
+      [MeasureGuide] apps/web/src/components/landing/measure-guide.tsx:100
+    [semantic hierarchy]
+      [img] (attrs=ref={imgRef} src={src} alt={alt} className="parallax-img" /) @ apps/web/src/components/landing/measure-guide.tsx:77
+      [section] (id=measure | attrs=className="measure py-[10vh] font-sans" id="measure" ref={sectionRef}) @ apps/web/src/components/landing/measure-guide.tsx:148
+      [p] (attrs=className="section-eyebrow mb-[18px] font-vietnam text-[11px] font-medium leading-[1.4] tracking-[0.18em] opacity-72 uppercase") @ apps/web/src/components/landing/measure-guide.tsx:151
+      [h2] (attrs=className="font-playfair text-center text-display leading-[0.85] tracking-[-0.02em]" style={{ marginBottom: "10vh" }} ref={titleR…) @ apps/web/src/components/landing/measure-guide.tsx:154
+      [h3] (attrs=className="reveal-item mb-5 text-[12px] tracking-[0.2em] uppercase") @ apps/web/src/components/landing/measure-guide.tsx:172
+      [p] (attrs=className="reveal-item measure-desc mb-[60px] font-playfair text-h2 leading-[1.4]") @ apps/web/src/components/landing/measure-guide.tsx:175
+      [button] (type=button | attrs=type="button" className="acc-head hover-target flex w-full items-center justify-between border-0 bg-transparent py-[30px] text-le…) @ apps/web/src/components/landing/measure-guide.tsx:188
+      [p] (attrs=className="pb-[30px] text-sm leading-[1.6]") @ apps/web/src/components/landing/measure-guide.tsx:204
+    [visible copy and content literals]
+      "(null); const imgRef = useRef" @ apps/web/src/components/landing/measure-guide.tsx:19
+      "01. Đo chiều rộng" @ apps/web/src/components/landing/measure-guide.tsx:84
+      "02. Đo chiều cao" @ apps/web/src/components/landing/measure-guide.tsx:89
+      "03. Gửi hình khung cửa" @ apps/web/src/components/landing/measure-guide.tsx:94
+      "(0); const sectionRef = useRef" @ apps/web/src/components/landing/measure-guide.tsx:101
+      "(null); const titleRef = useSplitReveal" @ apps/web/src/components/landing/measure-guide.tsx:102
+      "(06) Cách đo" @ apps/web/src/components/landing/measure-guide.tsx:151
+      "Chuẩn xác từ số đo đầu tiên." @ apps/web/src/components/landing/measure-guide.tsx:158
+      "Hướng dẫn đo kích thước khung cửa" @ apps/web/src/components/landing/measure-guide.tsx:167
+      "Hướng dẫn đo phủ bì" @ apps/web/src/components/landing/measure-guide.tsx:172
+      "Số đo đúng giúp lớp lưới ôm khít, không hở mép và giữ bề mặt phẳng đẹp sau khi dán lên khung." @ apps/web/src/components/landing/measure-guide.tsx:175
+      "setOpenIndex(isOpen ? null : index)} >" @ apps/web/src/components/landing/measure-guide.tsx:192
+  [source] apps/web/src/components/landing/faq.tsx
+    [component inventory]
+      [FaqItem] apps/web/src/components/landing/faq.tsx:37
+      [Faq] apps/web/src/components/landing/faq.tsx:88
+    [semantic hierarchy]
+      [button] (type=button | attrs=type="button" className="faq-head hover-target flex w-full items-center justify-between gap-6 border-0 bg-transparent py-7 text-l…) @ apps/web/src/components/landing/faq.tsx:57
+      [p] (attrs=className="max-w-[680px] text-[15px] leading-[1.7] text-[color:color-mix(in_srgb,var(--text-color)_66%,transparent)]") @ apps/web/src/components/landing/faq.tsx:79
+      [section] (id=faq | attrs=className="pt-[16vh] pb-[20vh] font-sans max-[640px]:py-[12vh]" id="faq" ref={sectionRef}) @ apps/web/src/components/landing/faq.tsx:134
+      [p] (attrs=className="section-eyebrow mb-[18px] font-vietnam text-[11px] font-medium leading-[1.4] tracking-[0.18em] opacity-72 uppercase") @ apps/web/src/components/landing/faq.tsx:141
+      [h2] (attrs=className="massive-text font-playfair text-center text-display leading-[0.85] tracking-[-0.02em]" ref={titleRef}) @ apps/web/src/components/landing/faq.tsx:144
+    [visible copy and content literals]
+      "Kích thước có bao gồm phần viền không?" @ apps/web/src/components/landing/faq.tsx:8
+      "Có. Kích thước sản xuất là kích thước phủ bì, đã tính cả phần viền dán. Bạn chỉ cần đo mép ngoài cùng của khung cửa." @ apps/web/src/components/landing/faq.tsx:9
+      "Nên đo bên trong hay bên ngoài khung?" @ apps/web/src/components/landing/faq.tsx:13
+      "Hãy đo cạnh ngoài của khung để lưới che phủ toàn bộ mép cửa. Nếu khung có gờ hoặc tay nắm đặc biệt, gửi thêm ảnh để được tư vấn." @ apps/web/src/components/landing/faq.tsx:14
+      "Lưới có làm tối nhà không?" @ apps/web/src/components/landing/faq.tsx:18
+      "Không. Mắt lưới mảnh nên vẫn giữ ánh sáng tự nhiên và tầm nhìn thoáng khi nhìn từ khoảng cách sinh hoạt thông thường." @ apps/web/src/components/landing/faq.tsx:19
+      "Có nhận may kích thước cửa lớn không?" @ apps/web/src/components/landing/faq.tsx:23
+      "Có. Đội ngũ có thể tư vấn phương án chia tấm hoặc may khổ lớn tùy cấu trúc cửa để hạn chế nhăn, võng và hở mép." @ apps/web/src/components/landing/faq.tsx:24
+      "(0); const sectionRef = useRef" @ apps/web/src/components/landing/faq.tsx:89
+      "(null); const titleRef = useSplitReveal" @ apps/web/src/components/landing/faq.tsx:90
+      "(\".section-eyebrow\"); const items = section.querySelectorAll" @ apps/web/src/components/landing/faq.tsx:102
+      "(07) Câu hỏi thường gặp" @ apps/web/src/components/landing/faq.tsx:141
+      "Trước khi đặt may." @ apps/web/src/components/landing/faq.tsx:147
+      "setActiveIndex(activeIndex === index ? null : index) } /> ))}" @ apps/web/src/components/landing/faq.tsx:158
+  [source] apps/web/src/components/landing/curtain-footer.tsx
+    [component inventory]
+      [CurtainFooter] apps/web/src/components/landing/curtain-footer.tsx:17
+    [semantic hierarchy]
+      [footer] (id=order | attrs=className="footer curtain-footer fixed bottom-0 left-0 z-[1] flex h-dvh w-full flex-col items-center justify-center bg-[var(--tex…) @ apps/web/src/components/landing/curtain-footer.tsx:55
+      [h2] (attrs=className="font-playfair mb-[2vh] text-[6vw] font-normal") @ apps/web/src/components/landing/curtain-footer.tsx:61
+      [a] (href=mailto:tuvan@remvina.vn | attrs=href="mailto:tuvan@remvina.vn" className="massive-link hover-target font-playfair mb-[15vh] block text-[8vw] font-normal text-[va…) @ apps/web/src/components/landing/curtain-footer.tsx:66
+      [p] @ apps/web/src/components/landing/curtain-footer.tsx:75
+      [a] (attrs=href={settings.socials.facebook} className="hover-target text-[var(--bg-color)] no-underline" rel="noreferrer" target="_blank" da…) @ apps/web/src/components/landing/curtain-footer.tsx:77
+      [a] (attrs=href={settings.socials.shopee} className="hover-target text-[var(--bg-color)] no-underline" rel="noreferrer" target="_blank" data…) @ apps/web/src/components/landing/curtain-footer.tsx:86
+    [visible copy and content literals]
+      "(\".footer-cta h2\"); const cta = footer.querySelector" @ apps/web/src/components/landing/curtain-footer.tsx:26
+      "(\".massive-link\"); const bottom = footer.querySelector" @ apps/web/src/components/landing/curtain-footer.tsx:27
+      "Bắt đầu" @ apps/web/src/components/landing/curtain-footer.tsx:61
+      "dự án của bạn." @ apps/web/src/components/landing/curtain-footer.tsx:63
+      "Đặt may" @ apps/web/src/components/landing/curtain-footer.tsx:69
+      "tuvan@remvina.vn" @ apps/web/src/components/landing/curtain-footer.tsx:70
+      "&copy; 2026 Rèm Vina. Bản quyền đã được bảo hộ." @ apps/web/src/components/landing/curtain-footer.tsx:75
+      "Mở" @ apps/web/src/components/landing/curtain-footer.tsx:82
+      "Facebook" @ apps/web/src/components/landing/curtain-footer.tsx:83
+      "Shopee" @ apps/web/src/components/landing/curtain-footer.tsx:92
+  [source] apps/web/src/components/landing/reveal-image.tsx
+    [component inventory]
+      [RevealImage] apps/web/src/components/landing/reveal-image.tsx:46
+    [semantic hierarchy]
+      [img] (attrs=ref={imgRef} src={src} alt={alt} className="reveal-img h-full w-full object-cover will-change-transform" /) @ apps/web/src/components/landing/reveal-image.tsx:118
+    [visible copy and content literals]
+      "(null); const maskRef = useRef" @ apps/web/src/components/landing/reveal-image.tsx:55
+      "(null); const imgRef = useRef" @ apps/web/src/components/landing/reveal-image.tsx:56

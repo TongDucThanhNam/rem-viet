@@ -1,33 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
+import {
+  defaultHorizontalGalleryBlock,
+  type HorizontalGalleryBlock,
+} from "@rem-viet/cms";
 
-import { gsap, ScrollTrigger, useGSAP, prefersReducedMotion } from "@/lib/gsap";
+import {
+  gsap,
+  ScrollTrigger,
+  useGSAP,
+  shouldUseStaticLanding,
+} from "@/lib/gsap";
 import { useSplitReveal } from "@/hooks/use-split-reveal";
-
-const GALLERY_ITEMS = [
-  {
-    src: "/assets/gallery_1.png",
-    title: "Phòng khách mở sáng",
-    meta: "Cửa sổ lớn",
-  },
-  {
-    src: "/assets/gallery_2.png",
-    title: "Góc nghỉ yên tĩnh",
-    meta: "Lưới gần như vô hình",
-  },
-  {
-    src: "/assets/gallery_3.png",
-    title: "Không gian bếp sạch",
-    meta: "Hạn chế côn trùng",
-  },
-  {
-    src: "/assets/lifestyle_breeze.png",
-    title: "Đón gió tự nhiên",
-    meta: "Không che tầm nhìn",
-  },
-] as const;
-
-/** Total slides — also drives the counter denominator + initial text. */
-const TOTAL = GALLERY_ITEMS.length;
 
 /**
  * Client-only reduced-motion flag. Initialised to `false` so SSR and the first
@@ -81,8 +64,13 @@ function useReducedMotion(): boolean {
  * and nothing fights the Tailwind classes. useGSAP returns early — no
  * autonomous motion.
  */
-export function HorizontalGallery() {
+export function HorizontalGallery({
+  content = defaultHorizontalGalleryBlock,
+}: {
+  content?: HorizontalGalleryBlock;
+}) {
   const reduced = useReducedMotion();
+  const total = content.items.length;
   const sectionRef = useRef<HTMLElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -102,7 +90,7 @@ export function HorizontalGallery() {
 
       // Reduced motion: no autonomous motion at all. Layout is handled by the
       // React class swap below; nothing to do here.
-      if (reduced || prefersReducedMotion()) return;
+      if (reduced || shouldUseStaticLanding()) return;
 
       // 1. Velocity skew setter, created first so the onUpdate closure below
       //    always sees a bound setter. Layered on the same element as the
@@ -135,7 +123,7 @@ export function HorizontalGallery() {
             // scroll then settle back to flat.
             skewTo(gsap.utils.clamp(-3, 3, self.getVelocity() / 320));
             // Counter — maps progress to the active slide index.
-            const idx = Math.min(TOTAL, Math.floor(self.progress * TOTAL) + 1);
+            const idx = Math.min(total, Math.floor(self.progress * total) + 1);
             const counter = counterRef.current;
             if (counter) counter.textContent = String(idx).padStart(2, "0");
             // Progress line — direct style write (cheap, no tween per frame).
@@ -177,8 +165,12 @@ export function HorizontalGallery() {
         "inset(0 0 100% 0)", // top → bottom
         "inset(0 0 0 100%)", // left → right
       ];
-      const metas = track.querySelectorAll<HTMLElement>(".gallery-caption-meta");
-      const titles = track.querySelectorAll<HTMLElement>(".gallery-caption-title");
+      const metas = track.querySelectorAll<HTMLElement>(
+        ".gallery-caption-meta",
+      );
+      const titles = track.querySelectorAll<HTMLElement>(
+        ".gallery-caption-title",
+      );
 
       metas.forEach((meta, i) => {
         gsap.fromTo(
@@ -244,7 +236,11 @@ export function HorizontalGallery() {
       const refreshId = window.setTimeout(() => ScrollTrigger.refresh(), 300);
       return () => window.clearTimeout(refreshId);
     },
-    { dependencies: [reduced], revertOnUpdate: true, scope: sectionRef },
+    {
+      dependencies: [reduced, total],
+      revertOnUpdate: true,
+      scope: sectionRef,
+    },
   );
 
   // ---- Reduced-motion layout: a clean vertical stack ----------------------
@@ -252,39 +248,42 @@ export function HorizontalGallery() {
   // stay consistent (the pinned layout renders first, then this flips).
   if (reduced) {
     return (
-      <section
-        ref={sectionRef}
-        className="font-sans py-section"
-        id="lifestyle"
-      >
+      <section ref={sectionRef} className="font-sans py-section" id="lifestyle">
         <div className="container">
           <div className="mb-block">
             <p className="section-eyebrow font-vietnam mb-[14px] text-[11px] font-medium leading-[1.4] tracking-[0.18em] opacity-72 uppercase">
-              (05) Lối sống
+              {content.eyebrow}
             </p>
             <h2
-              className="font-playfair text-[clamp(40px,8vw,120px)] leading-[0.95] max-[640px]:text-[14vw]"
+              className="max-w-[10ch] font-playfair text-h1 leading-[0.98] tracking-[-0.02em]"
               ref={titleRef}
             >
-              Không Gian
-              <br />
-              Tuyệt Đỉnh
+              {content.titleLines.map((line, index) => (
+                <Fragment key={`${line}-${index}`}>
+                  {index > 0 && <br />}
+                  <span className="gallery-title-line">{line}</span>
+                </Fragment>
+              ))}
             </h2>
           </div>
           <div className="flex flex-col gap-block">
-            {GALLERY_ITEMS.map((item, i) => (
+            {content.items.map((item, i) => (
               <figure
-                key={item.src}
+                key={item.id}
                 className="gallery-item relative mx-auto aspect-[3/2] w-full max-w-[1100px] overflow-hidden rounded-lg"
               >
                 <img
                   className="h-full w-full object-cover"
-                  src={item.src}
-                  alt={item.title}
+                  src={item.image.src}
+                  alt={item.image.alt}
+                  loading="lazy"
+                  decoding="async"
+                  fetchPriority="low"
                 />
                 <figcaption className="absolute bottom-[22px] left-6 right-6 z-2 text-white font-vietnam">
                   <span className="block text-[11px] leading-[1.3] tracking-[0.14em] text-white/68 uppercase">
-                    ({String(i + 1).padStart(2, "0")}) · {item.meta}
+                    ({String(i + 1).padStart(2, "0")} /{" "}
+                    {String(total).padStart(2, "0")}) · {item.meta}
                   </span>
                   <strong className="mt-2 block font-playfair text-[30px] font-normal leading-[1.1]">
                     {item.title}
@@ -311,15 +310,18 @@ export function HorizontalGallery() {
           className="absolute top-[12vh] left-[4vw] z-10 max-[640px]:top-[9vh]"
         >
           <p className="section-eyebrow font-vietnam mb-[14px] text-[11px] font-medium leading-[1.4] tracking-[0.18em] opacity-72 uppercase">
-            (05) Lối sống
+            {content.eyebrow}
           </p>
           <h2
-            className="font-playfair text-[clamp(40px,8vw,120px)] leading-[0.95] max-[640px]:text-[14vw]"
+            className="max-w-[10ch] font-playfair text-h1 leading-[0.98] tracking-[-0.02em]"
             ref={titleRef}
           >
-            Không Gian
-            <br />
-            Tuyệt Đỉnh
+            {content.titleLines.map((line, index) => (
+              <Fragment key={`${line}-${index}`}>
+                {index > 0 && <br />}
+                <span className="gallery-title-line">{line}</span>
+              </Fragment>
+            ))}
           </h2>
         </div>
 
@@ -327,16 +329,19 @@ export function HorizontalGallery() {
           ref={trackRef}
           className="gallery-track js-horizontal-track flex h-[60vh] gap-[4vw] px-[20vw] will-change-transform max-[1024px]:px-[7.5vw]"
         >
-          {GALLERY_ITEMS.map((item, i) => (
+          {content.items.map((item, i) => (
             <figure
               className="gallery-item hover-target relative h-full w-[60vw] flex-shrink-0 overflow-hidden rounded-lg max-[1024px]:w-[85vw]"
-              data-cursor="Xem"
-              key={item.src}
+              data-cursor={content.cursorLabel}
+              key={item.id}
             >
               <img
                 className="h-full w-full rounded-lg object-cover will-change-transform"
-                src={item.src}
-                alt={item.title}
+                src={item.image.src}
+                alt={item.image.alt}
+                loading="lazy"
+                decoding="async"
+                fetchPriority="low"
               />
               <figcaption className="gallery-caption absolute bottom-[22px] left-6 right-6 z-2 text-white will-change-[clip-path,opacity] max-[640px]:bottom-[18px] max-[640px]:left-[18px] max-[640px]:right-[18px] font-vietnam">
                 <span className="gallery-caption-meta block text-[11px] leading-[1.3] tracking-[0.14em] text-white/68 uppercase">
@@ -354,7 +359,7 @@ export function HorizontalGallery() {
             the horizontal scrub. */}
         <div className="absolute bottom-[6vh] left-[4vw] z-10 flex items-center gap-[18px] max-[640px]:bottom-[4vh] max-[640px]:gap-[14px]">
           <span className="font-vietnam text-[12px] tracking-[0.18em] text-[color:var(--text-muted)] uppercase">
-            <span ref={counterRef}>01</span> / {String(TOTAL).padStart(2, "0")}
+            <span ref={counterRef}>01</span> / {String(total).padStart(2, "0")}
           </span>
           <div className="relative h-px w-[14rem] max-w-[40vw] bg-[color:var(--hairline)]">
             <div

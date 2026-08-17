@@ -1,49 +1,57 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
-import alchemy from "alchemy/cloudflare/tanstack-start";
 import { defineConfig } from "vite";
-const alchemyConfigPath = fileURLToPath(
-  new URL("./.alchemy/local/wrangler.jsonc", import.meta.url),
+
+const siteId = process.env.SITE_ID?.trim() ?? "";
+if (siteId && !/^[a-z][a-z0-9-]{1,62}$/.test(siteId)) {
+  throw new Error("SITE_ID must be a safe site slug.");
+}
+const manifestPath = fileURLToPath(
+  siteId
+    ? new URL(`../../sites/${siteId}/site.manifest.json`, import.meta.url)
+    : new URL("../../site.manifest.json", import.meta.url),
 );
-const localWranglerConfigPath = fileURLToPath(new URL("./wrangler.jsonc", import.meta.url));
-const cloudflareConfigPath = existsSync(localWranglerConfigPath)
-  ? localWranglerConfigPath
-  : existsSync(alchemyConfigPath)
-    ? alchemyConfigPath
-    : undefined;
-const cloudflareWorkersShimPath = fileURLToPath(
-  new URL("../../packages/env/src/cloudflare-local.ts", import.meta.url),
-);
+if (!existsSync(manifestPath)) {
+  throw new Error(`Site manifest not found: ${manifestPath}`);
+}
+const selectedManifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+
 const asyncHooksShimPath = fileURLToPath(
   new URL("./src/shims/node-async-hooks.ts", import.meta.url),
 );
-const cloudflareWorkersAlias: Record<string, string> = cloudflareConfigPath
-  ? {}
-  : {
-      "cloudflare:workers": cloudflareWorkersShimPath,
-    };
 
 export default defineConfig({
+  define: {
+    __SITE_MANIFEST__: JSON.stringify(selectedManifest),
+  },
   server: {
     port: 3001,
+  },
+  build: {
+    rollupOptions: {
+      // Resolved by workerd at runtime; Node builds cannot bundle it.
+      external: ["cloudflare:workers"],
+    },
   },
   optimizeDeps: {
     exclude: ["@tanstack/start-client-core", "@tanstack/start-storage-context"],
   },
   resolve: {
     tsconfigPaths: true,
-    alias: cloudflareWorkersAlias,
   },
   plugins: [
     {
       name: "browser-node-async-hooks-shim",
       enforce: "pre",
       resolveId(id, _importer, options) {
-        if ((id === "node:async_hooks" || id === "async_hooks") && !options.ssr) {
+        if (
+          (id === "node:async_hooks" || id === "async_hooks") &&
+          !options.ssr
+        ) {
           return asyncHooksShimPath;
         }
         return null;
@@ -52,6 +60,5 @@ export default defineConfig({
     tailwindcss(),
     tanstackStart(),
     viteReact(),
-    ...(cloudflareConfigPath ? [alchemy({ configPath: cloudflareConfigPath })] : []),
   ],
 });

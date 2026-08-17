@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "siteId": "rem-viet",
+  "stage": "staging",
+  "origin": "https://rem-viet-web-staging.example.workers.dev",
+  "recordedAt": "",
+  "pilot": {
+    "deployment": { "commit": "", "inputSha256": "" },
+    "testerName": "",
+    "testerRelationship": "non-developer",
+    "browserAndDevice": "",
+    "startedAt": "",
+    "completedAt": "",
+    "durationMinutes": 0,
+    "trainingDurationMinutes": 0,
+    "revisionRestoreMinutes": 0,
+    "editableRecurringContentPercent": 0,
+    "clientManualUsedWithoutExtraGuidance": false,
+    "developerInterventions": 0,
+    "openP0": 0,
+    "openP1": 0,
+    "issueIds": [],
+    "tasks": {
+      "loginAndRole": false,
+      "editHeroImageFaqAndGallery": false,
+      "privateResponsivePreview": false,
+      "publishRestoreAndRepublish": false,
+      "pageSlugAndRedirect": false,
+      "sanitizedRichTextPost": false,
+      "leadInboxNoteAndCsv": false,
+      "referencedMediaDeleteBlocked": false,
+      "noJsonOrCode": false
+    }
+  },
+  "taskMinutes": {
+    "loginAndRole": 0,
+    "editHeroImageFaqAndGallery": 0,
+    "privateResponsivePreview": 0,
+    "publishRestoreAndRepublish": 0,
+    "pageSlugAndRedirect": 0,
+    "sanitizedRichTextPost": 0,
+    "leadInboxNoteAndCsv": 0,
+    "referencedMediaDeleteBlocked": 0
+  },
+  "confusionPoints": [],
+  "testerApproval": { "name": "", "approvedAt": "" }
+}

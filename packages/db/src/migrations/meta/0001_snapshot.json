@@ -103,9 +103,7 @@
       "indexes": {
         "account_userId_idx": {
           "name": "account_userId_idx",
-          "columns": [
-            "user_id"
-          ],
+          "columns": ["user_id"],
           "isUnique": false
         }
       },
@@ -114,12 +112,8 @@
           "name": "account_user_id_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -192,16 +186,12 @@
       "indexes": {
         "session_token_unique": {
           "name": "session_token_unique",
-          "columns": [
-            "token"
-          ],
+          "columns": ["token"],
           "isUnique": true
         },
         "session_userId_idx": {
           "name": "session_userId_idx",
-          "columns": [
-            "user_id"
-          ],
+          "columns": ["user_id"],
           "isUnique": false
         }
       },
@@ -210,12 +200,8 @@
           "name": "session_user_id_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -283,9 +269,7 @@
       "indexes": {
         "user_email_unique": {
           "name": "user_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": true
         }
       },
@@ -345,9 +329,7 @@
       "indexes": {
         "verification_identifier_idx": {
           "name": "verification_identifier_idx",
-          "columns": [
-            "identifier"
-          ],
+          "columns": ["identifier"],
           "isUnique": false
         }
       },
@@ -486,17 +468,12 @@
       "indexes": {
         "products_slug_idx": {
           "name": "products_slug_idx",
-          "columns": [
-            "slug"
-          ],
+          "columns": ["slug"],
           "isUnique": false
         },
         "products_active_deleted_idx": {
           "name": "products_active_deleted_idx",
-          "columns": [
-            "is_active",
-            "is_deleted"
-          ],
+          "columns": ["is_active", "is_deleted"],
           "isUnique": false
         }
       },
@@ -579,17 +556,12 @@
       "indexes": {
         "variants_product_id_idx": {
           "name": "variants_product_id_idx",
-          "columns": [
-            "product_id"
-          ],
+          "columns": ["product_id"],
           "isUnique": false
         },
         "variants_active_deleted_idx": {
           "name": "variants_active_deleted_idx",
-          "columns": [
-            "is_active",
-            "is_deleted"
-          ],
+          "columns": ["is_active", "is_deleted"],
           "isUnique": false
         }
       },
@@ -598,12 +570,8 @@
           "name": "variants_product_id_products_id_fk",
           "tableFrom": "variants",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -664,16 +632,12 @@
       "indexes": {
         "newsletter_email_idx": {
           "name": "newsletter_email_idx",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": false
         },
         "newsletter_phone_number_idx": {
           "name": "newsletter_phone_number_idx",
-          "columns": [
-            "phone_number"
-          ],
+          "columns": ["phone_number"],
           "isUnique": false
         }
       },
@@ -806,16 +770,12 @@
       "indexes": {
         "orders_status_idx": {
           "name": "orders_status_idx",
-          "columns": [
-            "status"
-          ],
+          "columns": ["status"],
           "isUnique": false
         },
         "orders_created_at_idx": {
           "name": "orders_created_at_idx",
-          "columns": [
-            "created_at"
-          ],
+          "columns": ["created_at"],
           "isUnique": false
         }
       },
@@ -916,23 +876,17 @@
       "indexes": {
         "posts_slug_unique": {
           "name": "posts_slug_unique",
-          "columns": [
-            "slug"
-          ],
+          "columns": ["slug"],
           "isUnique": true
         },
         "posts_slug_idx": {
           "name": "posts_slug_idx",
-          "columns": [
-            "slug"
-          ],
+          "columns": ["slug"],
           "isUnique": false
         },
         "posts_status_idx": {
           "name": "posts_status_idx",
-          "columns": [
-            "status"
-          ],
+          "columns": ["status"],
           "isUnique": false
         }
       },

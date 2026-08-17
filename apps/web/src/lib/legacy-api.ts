@@ -15,9 +15,9 @@ export function legacyHttpStatus(result: { statusCode?: number }) {
   return status >= 100 && status <= 599 ? status : 200;
 }
 
-export function stringifyLegacyVariantValues<T extends ProductWithVariantsResponse>(
-  result: T,
-) {
+export function stringifyLegacyVariantValues<
+  T extends ProductWithVariantsResponse,
+>(result: T) {
   if (!result.data?.variants) {
     return result;
   }

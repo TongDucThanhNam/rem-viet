@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useLenis } from "lenis/react";
 
-import { gsap, ScrollTrigger } from "@/lib/gsap";
+import { gsap, ScrollTrigger, shouldUseStaticLanding } from "@/lib/gsap";
 
 /**
  * The canonical GSAP × Lenis integration — the bulletproof setup.
@@ -22,7 +22,7 @@ export function GsapScrollSync() {
   const lenis = useLenis();
 
   useEffect(() => {
-    if (!lenis) {
+    if (!lenis || shouldUseStaticLanding()) {
       // Lenis creates its instance asynchronously (in ReactLenis's own effect).
       // When it resolves, this effect re-runs via the [lenis] dependency and
       // wires everything below. Nothing to do on the first pass.

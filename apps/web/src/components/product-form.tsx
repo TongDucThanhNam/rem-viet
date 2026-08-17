@@ -1,11 +1,19 @@
 import { Button } from "@rem-viet/ui/components/button";
-import { Card, CardContent, CardHeader } from "@rem-viet/ui/components/card";
 import { Input } from "@rem-viet/ui/components/input";
 import { Label } from "@rem-viet/ui/components/label";
-import { cn } from "@rem-viet/ui/lib/utils";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@rem-viet/ui/components/table";
+import { Textarea } from "@rem-viet/ui/components/textarea";
 import { ImagePlus, Trash2, UploadCloud, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { FormSection } from "@/components/admin-ui";
 import { cloudflareImageUrl } from "@/lib/site-config";
 import { normalizeVariantValues } from "@/lib/variants";
 
@@ -294,7 +302,7 @@ export default function ProductForm({
       };
 
       if (!response.ok) {
-        throw new Error(result.message || "Không thể tải ảnh lên storage.");
+        throw new Error(result.message || "Không thể tải ảnh lên kho lưu trữ.");
       }
 
       return (result.data ?? [])
@@ -321,7 +329,7 @@ export default function ProductForm({
       setError(
         uploadError instanceof Error
           ? uploadError.message
-          : "Không thể tải ảnh lên storage.",
+          : "Không thể tải ảnh lên kho lưu trữ.",
       );
       return;
     }
@@ -348,212 +356,160 @@ export default function ProductForm({
 
   return (
     <form
-      className="mx-auto my-14 flex w-full max-w-2xl flex-col items-center justify-center gap-2 px-4 lg:px-0"
+      className="mx-auto grid w-full max-w-4xl gap-4"
       onSubmit={(event) => {
         event.preventDefault();
         submitForm();
       }}
     >
-      <div className="w-full">
-        <Card className="w-full rounded-lg">
-          <CardContent className="grid gap-4">
-            <div className="flex w-fit overflow-hidden rounded-md border">
-              {[
-                ["url", "Nhập đường dẫn ảnh"],
-                ["file", "Tải tệp ảnh"],
-              ].map(([mode, label]) => (
-                <button
-                  className={cn(
-                    "px-3 py-2 text-xs font-medium",
-                    activeImageMode === mode
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-background",
-                  )}
-                  key={mode}
-                  type="button"
-                  onClick={() => setActiveImageMode(mode as "url" | "file")}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+      <FormSection
+        description="Thêm từ URL hoặc tải tệp lên thư viện media hiện tại."
+        title="Hình ảnh"
+      >
+        <div aria-label="Nguồn ảnh" className="flex w-fit border" role="group">
+          {[
+            ["url", "Nhập đường dẫn"],
+            ["file", "Tải tệp"],
+          ].map(([mode, label]) => (
+            <Button
+              aria-pressed={activeImageMode === mode}
+              className="rounded-none border-0"
+              key={mode}
+              size="sm"
+              type="button"
+              variant={activeImageMode === mode ? "secondary" : "ghost"}
+              onClick={() => setActiveImageMode(mode as "url" | "file")}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
 
-            {activeImageMode === "url" ? (
-              <div className="grid gap-2">
-                <Label htmlFor="image-address">Đường dẫn ảnh</Label>
-                <Input
-                  aria-label="Image Address"
-                  className="h-10"
-                  id="image-address"
-                  name="image-address"
-                  placeholder="Nhập đường dẫn ảnh"
-                  value={imageUrl}
-                  onChange={(event) => setImageUrl(event.target.value)}
-                />
-                <Button className="w-fit" type="button" onClick={addImageUrl}>
-                  <ImagePlus aria-hidden />
-                  Thêm ảnh
+        {activeImageMode === "url" ? (
+          <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+            <div className="grid gap-2">
+              <Label htmlFor="image-address">Đường dẫn ảnh</Label>
+              <Input
+                id="image-address"
+                name="image-address"
+                placeholder="https://…"
+                value={imageUrl}
+                onChange={(event) => setImageUrl(event.target.value)}
+              />
+            </div>
+            <Button type="button" variant="outline" onClick={addImageUrl}>
+              <ImagePlus aria-hidden className="size-4" />
+              Thêm ảnh
+            </Button>
+          </div>
+        ) : (
+          <label className="flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 border border-dashed bg-muted/20 p-5 text-center outline-none focus-within:ring-2 focus-within:ring-ring">
+            <UploadCloud aria-hidden className="size-5 text-muted-foreground" />
+            <span className="text-sm font-medium">Chọn tệp ảnh</span>
+            <span className="text-xs text-muted-foreground">
+              AVIF, GIF, JPEG, PNG hoặc WebP · tối đa 5 MB mỗi ảnh
+            </span>
+            <Input
+              aria-label="Chọn tệp ảnh"
+              className="sr-only"
+              accept="image/avif,image/gif,image/jpeg,image/png,image/webp"
+              multiple
+              type="file"
+              onChange={(event) => updateSelectedFiles(event.target.files)}
+            />
+          </label>
+        )}
+
+        {selectedFiles.length ? (
+          <div className="grid gap-2" aria-label="Tệp chờ tải lên">
+            {selectedFiles.map((file, index) => (
+              <div
+                className="flex min-w-0 items-center gap-3 border p-3 text-xs"
+                key={`${file.name}-${file.lastModified}-${index}`}
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{file.name}</p>
+                  <p className="text-muted-foreground">
+                    {(file.size / (1024 * 1024)).toFixed(2)} MB ·{" "}
+                    {file.type || "image/*"}
+                  </p>
+                </div>
+                <Button
+                  aria-label={`Xóa tệp ${file.name}`}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
+                  onClick={() =>
+                    setSelectedFiles((current) =>
+                      current.filter((_, itemIndex) => itemIndex !== index),
+                    )
+                  }
+                >
+                  <X aria-hidden className="size-4" />
                 </Button>
               </div>
-            ) : (
-              <div className="grid gap-4">
-                <label className="group/file relative block w-full cursor-pointer overflow-hidden rounded-lg p-10">
-                  <div className="absolute inset-0 opacity-70 [mask-image:radial-gradient(ellipse_at_center,white,transparent)]">
-                    <div className="flex scale-105 flex-wrap items-center justify-center gap-px bg-gray-100 dark:bg-neutral-900">
-                      {Array.from({ length: 120 }).map((_, index) => (
-                        <div
-                          className={cn(
-                            "size-10 shrink-0 rounded-[2px] bg-gray-50 dark:bg-neutral-950",
-                            index % 2 === 1 &&
-                              "shadow-[0_0_1px_3px_rgba(255,255,255,1)_inset] dark:shadow-[0_0_1px_3px_rgba(0,0,0,1)_inset]",
-                          )}
-                          key={index}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="relative z-10 flex flex-col items-center justify-center text-center">
-                    <p className="font-sans text-base font-bold text-neutral-700 dark:text-neutral-300">
-                      Tải tệp ảnh
-                    </p>
-                    <p className="mt-2 max-w-md font-sans text-base font-normal text-neutral-400">
-                      Kéo và thả hoặc chọn tệp ảnh
-                    </p>
-                    <p className="mt-1 max-w-md font-sans text-xs font-normal text-neutral-400">
-                      Hình ảnh nên có kích thước 500x500 hoặc 800x800 và dưới
-                      5MB
-                    </p>
-                    <div className="relative mx-auto mt-10 w-full max-w-xl">
-                      <div className="relative z-40 mx-auto mt-4 flex h-32 w-full max-w-[8rem] items-center justify-center rounded-md bg-white shadow-[0_10px_50px_rgba(0,0,0,0.1)] transition-transform group-hover/file:-translate-y-5 group-hover/file:translate-x-5 group-hover/file:shadow-2xl dark:bg-neutral-900">
-                        <UploadCloud
-                          aria-hidden
-                          className="size-5 text-neutral-600 dark:text-neutral-300"
-                        />
-                      </div>
-                      <div className="absolute inset-0 z-30 mx-auto mt-4 flex h-32 w-full max-w-[8rem] items-center justify-center rounded-md border border-dashed border-sky-400 bg-transparent opacity-0 transition-opacity group-hover/file:opacity-100" />
-                    </div>
-                  </div>
-                  <Input
-                    aria-label="Chọn tệp ảnh"
-                    className="sr-only"
-                    accept="image/avif,image/gif,image/jpeg,image/png,image/webp"
-                    multiple
-                    type="file"
-                    onChange={(event) =>
-                      updateSelectedFiles(event.target.files)
-                    }
-                  />
-                </label>
+            ))}
+          </div>
+        ) : null}
 
-                {selectedFiles.length ? (
-                  <div className="grid gap-2 rounded-md border bg-background p-3">
-                    {selectedFiles.map((file, index) => (
-                      <div
-                        className="relative grid gap-2 rounded-md bg-white p-4 pr-12 text-xs shadow-sm dark:bg-neutral-900"
-                        key={`${file.name}-${file.lastModified}-${index}`}
-                      >
-                        <div className="flex items-center justify-between gap-4">
-                          <p className="max-w-xs truncate text-base text-neutral-700 dark:text-neutral-300">
-                            {file.name}
-                          </p>
-                          <p className="shrink-0 rounded-lg px-2 py-1 text-sm text-neutral-600 shadow-sm dark:bg-neutral-800 dark:text-white">
-                            {(file.size / (1024 * 1024)).toFixed(2)} MB
-                          </p>
-                        </div>
-                        <div className="flex flex-col justify-between gap-2 text-sm text-neutral-600 dark:text-neutral-400 md:flex-row md:items-center">
-                          <p className="rounded-md bg-gray-100 px-1 py-0.5 dark:bg-neutral-800">
-                            {file.type || "image/*"}
-                          </p>
-                          <p>
-                            Chỉnh sửa lúc{" "}
-                            {new Date(file.lastModified).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <Button
-                          aria-label={`Xóa tệp ${file.name}`}
-                          className="absolute right-3 top-3 size-7 p-0"
-                          type="button"
-                          variant="ghost"
-                          onClick={() =>
-                            setSelectedFiles((current) =>
-                              current.filter(
-                                (_, itemIndex) => itemIndex !== index,
-                              ),
-                            )
-                          }
-                        >
-                          <X aria-hidden className="size-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
+        {imageUrls.length ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {imageUrls.map((url, index) => (
+              <div
+                className="group relative border p-1"
+                key={`${url}-${index}`}
+              >
+                <img
+                  alt={`Ảnh sản phẩm ${index + 1}`}
+                  className="aspect-square w-full object-cover"
+                  src={url}
+                />
+                <Button
+                  aria-label={`Xóa ảnh ${index + 1}`}
+                  className="absolute right-2 top-2"
+                  size="icon-sm"
+                  type="button"
+                  variant="destructive"
+                  onClick={() => removeImage(index)}
+                >
+                  <X aria-hidden className="size-4" />
+                </Button>
               </div>
-            )}
+            ))}
+          </div>
+        ) : null}
+      </FormSection>
 
-            {imageUrls.length ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-                {imageUrls.map((url, index) => (
-                  <div className="group relative" key={`${url}-${index}`}>
-                    <img
-                      alt={`Preview ${index + 1}`}
-                      className="h-40 w-full rounded-lg object-cover"
-                      src={url}
-                    />
-                    <Button
-                      className="absolute right-2 top-2 size-8 p-0 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100"
-                      type="button"
-                      variant="destructive"
-                      onClick={() => removeImage(index)}
-                    >
-                      <X aria-hidden className="size-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="h-5" />
-
-      <div className="grid w-full gap-2 text-center">
-        <Label htmlFor="name">Tên sản phẩm</Label>
-        <Input
-          id="name"
-          name="san-pham-name"
-          placeholder="Nhập tên sản phẩm"
-          required
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-        />
-      </div>
-
-      <div className="h-1" />
-
-      <div className="grid w-full gap-2 text-center">
-        <Label htmlFor="description">Mô tả sản phẩm</Label>
-        <textarea
-          className="min-h-28 w-full rounded-md border border-input bg-transparent px-2.5 py-2 text-xs outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50"
-          id="description"
-          placeholder="Nhập mô tả sản phẩm"
-          value={description}
-          onChange={(event) => setDescription(event.target.value)}
-        />
-      </div>
-
-      <div className="h-1" />
-
-      <details className="w-full rounded-lg border bg-background">
-        <summary className="cursor-pointer px-4 py-3 text-left text-sm font-medium">
-          Thông tin mở rộng
-        </summary>
-        <div className="grid gap-4 border-t p-4">
-          <div className="grid w-full gap-2 text-center">
+      <FormSection
+        description="Tên, mô tả và phân loại hiển thị trong danh mục bán hàng."
+        title="Thông tin cơ bản"
+      >
+        <div className="grid gap-2">
+          <Label htmlFor="name">Tên sản phẩm</Label>
+          <Input
+            id="name"
+            name="san-pham-name"
+            placeholder="Nhập tên sản phẩm"
+            required
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="description">Mô tả sản phẩm</Label>
+          <Textarea
+            className="min-h-28"
+            id="description"
+            placeholder="Nhập mô tả sản phẩm"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+          />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-2">
             <Label htmlFor="categoryId">Danh mục</Label>
             <select
-              className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50"
+              className="h-9 w-full border border-input bg-background px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/50"
               id="categoryId"
               value={categoryId}
               onChange={(event) => setCategoryId(event.target.value)}
@@ -566,62 +522,104 @@ export default function ProductForm({
               ))}
             </select>
           </div>
-
-          <div className="grid w-full gap-2 text-center">
+          <div className="grid gap-2">
             <Label htmlFor="size">Kích thước</Label>
-            <textarea
-              className="min-h-20 w-full rounded-md border border-input bg-transparent px-2.5 py-2 text-xs outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50"
+            <Textarea
+              className="min-h-20"
               id="size"
-              placeholder="30&#10;30&#10;10"
+              placeholder={"30\n60\n90"}
               value={size}
               onChange={(event) => setSize(event.target.value)}
             />
           </div>
         </div>
-      </details>
+      </FormSection>
 
-      <div className="h-1" />
+      <FormSection
+        description="Dùng một mức giá hoặc bật biến thể để đặt giá theo tổ hợp thuộc tính."
+        title="Giá và biến thể"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3 border p-3">
+          <div>
+            <p className="text-sm font-medium">Kích hoạt biến thể</p>
+            <p className="text-xs text-muted-foreground">
+              Ví dụ: màu sắc, kích thước hoặc chất liệu.
+            </p>
+          </div>
+          <Button
+            aria-pressed={isVariantEnabled}
+            type="button"
+            variant={isVariantEnabled ? "default" : "outline"}
+            onClick={() => {
+              setIsVariantEnabled((current) => {
+                const next = !current;
+                if (!next) {
+                  setVariantGroups([]);
+                  setVariantCombinations([]);
+                }
+                return next;
+              });
+            }}
+          >
+            {isVariantEnabled ? "Đang bật" : "Đang tắt"}
+          </Button>
+        </div>
 
-      <Card className="w-full rounded-lg">
-        <CardHeader>
-          <label className="flex cursor-pointer items-center gap-3 text-sm font-semibold">
-            <button
-              aria-pressed={isVariantEnabled}
-              className={cn(
-                "h-5 w-9 rounded-full border p-0.5 transition-colors",
-                isVariantEnabled ? "bg-primary" : "bg-muted",
-              )}
-              type="button"
-              onClick={() => {
-                setIsVariantEnabled((current) => {
-                  const next = !current;
-                  if (!next) {
-                    setVariantGroups([]);
-                    setVariantCombinations([]);
-                  }
-                  return next;
-                });
-              }}
-            >
-              <span
-                className={cn(
-                  "block size-4 rounded-full bg-background transition-transform",
-                  isVariantEnabled && "translate-x-4",
-                )}
-              />
-            </button>
-            Kích hoạt biến thể
-          </label>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          {variantGroups.length ? (
-            <div className="space-y-6">
-              {variantGroups.map((group) => (
-                <div className="w-full" key={group.name}>
-                  <div className="mb-2 flex items-center justify-between gap-3">
-                    <h3 className="text-lg font-semibold">{group.name}</h3>
+        {isVariantEnabled ? (
+          <>
+            <div className="grid gap-3 border p-3">
+              <Label htmlFor="variantName">Thêm nhóm biến thể</Label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Input
+                  aria-label="Tên nhóm biến thể"
+                  id="variantName"
+                  name="variant-names"
+                  placeholder="Tên nhóm, ví dụ: Màu"
+                  value={variantName}
+                  onChange={(event) => setVariantName(event.target.value)}
+                />
+                <div className="grid gap-2">
+                  {variantValueInputs.map((value, index) => (
+                    <Input
+                      aria-label={`Giá trị biến thể ${index + 1}`}
+                      key={`variant-value-${index}`}
+                      name={`variant-value-${index}`}
+                      placeholder={`Giá trị ${index + 1}`}
+                      value={value}
+                      onChange={(event) =>
+                        updateVariantValueInput(event.target.value, index)
+                      }
+                    />
+                  ))}
+                </div>
+              </div>
+              <Button
+                aria-label="Thêm nhóm biến thể"
+                className="w-fit"
+                type="button"
+                variant="outline"
+                onClick={addVariantGroup}
+              >
+                Thêm nhóm
+              </Button>
+            </div>
+
+            {variantGroups.length ? (
+              <div className="grid gap-3">
+                {variantGroups.map((group) => (
+                  <div
+                    className="flex items-start gap-3 border p-3"
+                    key={group.name}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium">{group.name}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {group.values.join(" · ")}
+                      </p>
+                    </div>
                     <Button
-                      className="size-7 p-0"
+                      aria-label={`Xóa nhóm ${group.name}`}
+                      size="icon-sm"
                       type="button"
                       variant="ghost"
                       onClick={() => removeVariantGroup(group.name)}
@@ -629,152 +627,102 @@ export default function ProductForm({
                       <Trash2 aria-hidden className="size-4" />
                     </Button>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {group.values.map((value) => (
-                      <span
-                        aria-label={`Variant Value ${value}`}
-                        className="bg-primary/10 px-3 py-1 text-sm transition-colors duration-200 hover:bg-primary/20"
-                        key={`${group.name}-${value}`}
-                      >
-                        {value}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </CardContent>
-      </Card>
-
-      <div className="h-1" />
-
-      {isVariantEnabled ? (
-        <>
-          <Card className="w-full rounded-lg">
-            <CardHeader>Thêm biến thể cho sản phẩm</CardHeader>
-            <CardContent className="grid gap-4">
-              <Input
-                aria-label="Add Variant"
-                id="variantName"
-                name="variant-names"
-                placeholder="Nhập tên biến thể"
-                value={variantName}
-                onChange={(event) => setVariantName(event.target.value)}
-              />
-
-              <div className="grid gap-3">
-                {variantValueInputs.map((value, index) => (
-                  <Input
-                    aria-label={`Variant Value ${index}`}
-                    key={`variant-value-${index}`}
-                    name={`variant-value-${index}`}
-                    placeholder={`Giá trị biến thể - ${index}`}
-                    value={value}
-                    onChange={(event) =>
-                      updateVariantValueInput(event.target.value, index)
-                    }
-                  />
                 ))}
               </div>
+            ) : null}
 
-              <Button
-                aria-label="Add Variants"
-                className="w-fit"
-                type="button"
-                onClick={addVariantGroup}
-              >
-                Thêm biến thể
-              </Button>
-            </CardContent>
-          </Card>
-
-          <div className="w-full overflow-x-auto rounded-md border">
-            <table className="w-full border-collapse text-left text-sm">
-              <thead className="border-b bg-muted/40 text-muted-foreground">
-                <tr>
-                  <th className="w-2/3 px-4 py-3 font-semibold">Values</th>
-                  <th className="w-1/3 px-4 py-3 font-semibold">Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {variantCombinations.length ? (
-                  variantCombinations.map((variant) => (
-                    <tr className="border-b last:border-b-0" key={variant.key}>
-                      <td className="px-4 py-4">
-                        <div className="flex max-w-xs flex-wrap gap-2">
+            <div className="overflow-x-auto border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Giá trị</TableHead>
+                    <TableHead className="w-48">Giá</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {variantCombinations.length ? (
+                    variantCombinations.map((variant) => (
+                      <TableRow key={variant.key}>
+                        <TableCell>
                           {Object.entries(variant.values)
-                            .slice(0, 3)
-                            .map(([key, value]) => (
-                              <span
-                                aria-label={`Variant ${key}`}
-                                className="bg-primary/10 px-2 py-1 text-sm transition-colors duration-200 hover:bg-primary/20"
-                                key={`${variant.key}-${key}`}
-                              >
-                                {key}: {value}
-                              </span>
-                            ))}
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <Input
-                          aria-label={`price-${variant.key}`}
-                          min="0"
-                          name={`price-${variant.key}`}
-                          placeholder="10000"
-                          type="number"
-                          value={String(variant.variantPrice || "")}
-                          onChange={(event) =>
-                            updateCombinationPrice(
-                              variant.key,
-                              event.target.value,
-                            )
-                          }
-                        />
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td
-                      className="px-4 py-6 text-center text-muted-foreground"
-                      colSpan={2}
-                    >
-                      Chưa có biến thể để hiển thị.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                            .map(([key, value]) => `${key}: ${value}`)
+                            .join(" · ")}
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            aria-label={`price-${variant.key}`}
+                            min="0"
+                            name={`price-${variant.key}`}
+                            placeholder="10000"
+                            type="number"
+                            value={String(variant.variantPrice || "")}
+                            onChange={(event) =>
+                              updateCombinationPrice(
+                                variant.key,
+                                event.target.value,
+                              )
+                            }
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell className="text-muted-foreground" colSpan={2}>
+                        Thêm ít nhất một nhóm để tạo tổ hợp biến thể.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </>
+        ) : (
+          <div className="grid gap-2">
+            <Label htmlFor="product-price">Giá sản phẩm</Label>
+            <Input
+              aria-label="Giá sản phẩm"
+              id="product-price"
+              min="0"
+              name="san-pham-price"
+              placeholder="Nhập giá sản phẩm"
+              type="number"
+              value={price}
+              onChange={(event) => setPrice(event.target.value)}
+            />
           </div>
-        </>
-      ) : (
-        <Input
-          aria-label="Product Price"
-          name="san-pham-price"
-          placeholder="Nhập giá sản phẩm"
-          type="number"
-          value={price}
-          onChange={(event) => setPrice(event.target.value)}
-        />
-      )}
+        )}
+      </FormSection>
 
       {error ? (
-        <p className="w-full text-xs text-destructive">{error}</p>
+        <div
+          className="border border-destructive/40 bg-destructive/5 p-3 text-xs text-destructive"
+          role="alert"
+        >
+          {error}
+        </div>
       ) : null}
 
-      <div className="h-5" />
-
-      <Button
-        aria-label="Save Product"
-        className="w-fit"
-        disabled={isSubmitting || isUploading || !canSubmit}
-        type="submit"
-      >
-        {isUploading ? "Đang tải ảnh..." : isSubmitting ? "Đang lưu..." : submitLabel}
-      </Button>
-
-      <div className="h-10" />
+      <div className="sticky bottom-0 z-10 flex items-center justify-between gap-3 border bg-background/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/85">
+        <p aria-live="polite" className="text-xs text-muted-foreground">
+          {isUploading
+            ? "Đang tải ảnh…"
+            : isSubmitting
+              ? "Đang lưu sản phẩm…"
+              : "Thay đổi chỉ được ghi khi bạn lưu."}
+        </p>
+        <Button
+          aria-label="Lưu sản phẩm"
+          disabled={isSubmitting || isUploading || !canSubmit}
+          type="submit"
+        >
+          {isUploading
+            ? "Đang tải ảnh…"
+            : isSubmitting
+              ? "Đang lưu…"
+              : submitLabel}
+        </Button>
+      </div>
     </form>
   );
 }

@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { siteConfig } from "@/lib/site-config";
+
 export const Route = createFileRoute("/api-docs")({
   head: () => ({
     meta: [
-      { title: "API docs - Rèm Vina" },
+      { title: `API docs - ${siteConfig.name}` },
       {
         name: "description",
         content:
@@ -19,7 +21,11 @@ const endpointGroups = [
     title: "Products",
     description: "Product CRUD và variant API từ Express backend cũ.",
     endpoints: [
-      ["GET", "/api/products", "Danh sách sản phẩm, hỗ trợ search/sort/page/limit."],
+      [
+        "GET",
+        "/api/products",
+        "Danh sách sản phẩm, hỗ trợ search/sort/page/limit.",
+      ],
       [
         "GET",
         "/api/products/:productId",
@@ -36,7 +42,11 @@ const endpointGroups = [
       ["DELETE", "/api/product/:productId", "Xóa mềm sản phẩm."],
       ["POST", "/api/add-product", "Alias legacy từ admin cũ."],
       ["PUT", "/api/edit-product/:productId", "Alias legacy từ admin cũ."],
-      ["POST", "/api/uploads/product-images", "Upload ảnh sản phẩm vào Cloudflare R2, yêu cầu admin."],
+      [
+        "POST",
+        "/api/uploads/product-images",
+        "Upload ảnh sản phẩm vào Cloudflare R2, yêu cầu admin.",
+      ],
       ["GET", "/api/product-images/:key", "Đọc ảnh sản phẩm đã upload từ R2."],
     ],
   },
@@ -104,7 +114,10 @@ function ApiDocsRoute() {
 
         <div className="grid gap-6">
           {endpointGroups.map((group) => (
-            <section className="overflow-hidden rounded-md border bg-background" key={group.title}>
+            <section
+              className="overflow-hidden rounded-md border bg-background"
+              key={group.title}
+            >
               <div className="border-b px-4 py-3">
                 <h2 className="text-lg font-semibold tracking-normal">
                   {group.title}

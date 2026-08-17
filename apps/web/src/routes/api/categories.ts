@@ -24,7 +24,7 @@ export const Route = createFileRoute("/api/categories")({
         return Response.json(result);
       },
       POST: async ({ request }) => {
-        const unauthorized = await requireApiSession();
+        const unauthorized = await requireApiSession(request);
 
         if (unauthorized) {
           return unauthorized;

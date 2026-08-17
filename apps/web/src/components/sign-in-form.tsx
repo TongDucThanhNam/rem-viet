@@ -4,19 +4,16 @@ import { Input } from "@rem-viet/ui/components/input";
 import { Label } from "@rem-viet/ui/components/label";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
-import { ExternalLink, Eye, EyeOff, KeyRound, Mail } from "lucide-react";
+import { Eye, EyeOff, KeyRound, Mail } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import z from "zod";
 
 import AuthLayout from "@/components/auth-layout";
 import { authClient } from "@/lib/auth-client";
+import { siteConfig } from "@/lib/site-config";
 
-export default function SignInForm({
-  onSwitchToSignUp,
-}: {
-  onSwitchToSignUp: () => void;
-}) {
+export default function SignInForm() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [remember, setRemember] = useState(true);
   const navigate = useNavigate({
@@ -56,15 +53,16 @@ export default function SignInForm({
   });
 
   return (
-    <AuthLayout quote="Cổng đăng nhập vào hệ thống Rèm Vina">
+    <AuthLayout quote={`Cổng đăng nhập vào hệ thống ${siteConfig.name}`}>
       <div className="mb-6">
         <p className="text-xl font-semibold">Đăng nhập</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Truy cập trang quản trị Rèm Vina.
+          Truy cập trang quản trị {siteConfig.name}.
         </p>
       </div>
 
       <form
+        method="post"
         onSubmit={(e) => {
           e.preventDefault();
           e.stopPropagation();
@@ -181,43 +179,12 @@ export default function SignInForm({
         </form.Subscribe>
       </form>
 
-      <div className="my-5 flex items-center gap-4">
-        <div className="h-px flex-1 bg-border" />
-        <p className="text-xs text-muted-foreground">HOẶC</p>
-        <div className="h-px flex-1 bg-border" />
+      <div className="mt-5 rounded-lg border bg-muted/40 p-3 text-sm leading-6 text-muted-foreground">
+        <p className="font-medium text-foreground">
+          Không hỗ trợ đăng ký công khai.
+        </p>
+        <p>Tài khoản quản trị do Owner hoặc đơn vị triển khai cấp.</p>
       </div>
-
-      <div className="grid gap-2">
-        <Button
-          className="h-10 rounded-lg text-sm"
-          type="button"
-          variant="outline"
-          onClick={() => toast.info("Google OAuth chưa được cấu hình.")}
-        >
-          <span className="font-semibold">G</span>
-          Đăng nhập bằng Google
-        </Button>
-        <Button
-          className="h-10 rounded-lg text-sm"
-          type="button"
-          variant="outline"
-          onClick={() => toast.info("Github OAuth chưa được cấu hình.")}
-        >
-          <ExternalLink aria-hidden />
-          Đăng nhập bằng Github
-        </Button>
-      </div>
-
-      <p className="mt-5 text-center text-sm text-muted-foreground">
-        Chưa có tài khoản?{" "}
-        <button
-          className="font-medium text-foreground underline-offset-4 hover:underline"
-          type="button"
-          onClick={onSwitchToSignUp}
-        >
-          Đăng ký ngay
-        </button>
-      </p>
     </AuthLayout>
   );
 }

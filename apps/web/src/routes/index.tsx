@@ -1,88 +1,87 @@
-import { ReactLenis } from "lenis/react";
+import { getPageBySlug, getSiteSettings } from "@rem-viet/api/services/content";
+import { homeBlockSchema } from "@rem-viet/cms";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createServerFn } from "@tanstack/react-start";
 
-import { CustomCursorRaw } from "@/components/custom-cursor-raw";
-import { GsapScrollSync } from "@/components/gsap-scroll-sync";
-import { LoadingScreenRaw } from "@/components/loading-screen-raw";
-import { ScrollProgress } from "@/components/scroll-progress";
-import { Navigation } from "@/components/landing/navigation";
-import { Hero } from "@/components/landing/hero";
-import { Threat } from "@/components/landing/threat";
-import { Marquee } from "@/components/landing/marquee";
-import { Benefits } from "@/components/landing/benefits";
-import { Craft } from "@/components/landing/craft";
-import { BentoDetails } from "@/components/landing/bento-details";
-import { HorizontalGallery } from "@/components/landing/horizontal-gallery";
-import { MeasureGuide } from "@/components/landing/measure-guide";
-import { Faq } from "@/components/landing/faq";
-import { CurtainFooter } from "@/components/landing/curtain-footer";
-import { useThemeBySection } from "@/hooks/use-theme-by-section";
-import { useMagneticScope } from "@/hooks/use-magnetic-scope";
+import { HomepageRenderer } from "@/components/landing/homepage-renderer";
+import { siteConfig, siteManifest } from "@/lib/site-config";
+import {
+  buildOrganizationStructuredData,
+  serializeStructuredData,
+} from "@/lib/structured-data";
 
 export const Route = createFileRoute("/")({
+  loader: () => getHomePageData(),
+  head: ({ loaderData }) => ({
+    meta: [
+      { title: loaderData?.seoTitle || siteConfig.name },
+      {
+        name: "description",
+        content: loaderData?.seoDescription || siteConfig.description,
+      },
+      {
+        name: "robots",
+        content: `${loaderData?.robotsIndex === false ? "noindex" : "index"}, ${loaderData?.robotsFollow === false ? "nofollow" : "follow"}`,
+      },
+      {
+        property: "og:title",
+        content: loaderData?.seoTitle || siteConfig.name,
+      },
+      {
+        property: "og:description",
+        content: loaderData?.seoDescription || siteConfig.description,
+      },
+      {
+        property: "og:image",
+        content: loaderData?.ogImage || siteConfig.image,
+      },
+    ],
+    links: [
+      { rel: "canonical", href: loaderData?.canonicalUrl || siteConfig.url },
+    ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: serializeStructuredData(
+          buildOrganizationStructuredData(
+            siteManifest,
+            loaderData?.siteSettings,
+          ),
+        ),
+      },
+    ],
+  }),
   component: HomeComponent,
 });
 
+const getHomePageData = createServerFn({ method: "GET" }).handler(async () => {
+  const [page, siteSettings] = await Promise.all([
+    getPageBySlug({ slug: "home", status: "published" }),
+    getSiteSettings(),
+  ]);
+  if (!page) {
+    throw new Error("Published homepage is unavailable.");
+  }
+
+  return {
+    blocks: homeBlockSchema.array().parse(page.blocks),
+    source: "cms" as const,
+    seoTitle: page.seoTitle,
+    seoDescription: page.seoDescription,
+    canonicalUrl: page.canonicalUrl,
+    ogImage: page.ogImage,
+    robotsIndex: page.robotsIndex,
+    robotsFollow: page.robotsFollow,
+    siteSettings: {
+      address: siteSettings.address,
+      logo: siteSettings.logo,
+      phone: siteSettings.phone,
+      socials: siteSettings.socials,
+    },
+  };
+});
+
 function HomeComponent() {
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  // Drive `<html data-theme="...">` based on the section currently
-  // crossing the viewport's middle. Affects --bg-color / --text-color
-  // for the custom cursor, navigation, and any descendant that consumes
-  // the CSS vars.
-  useThemeBySection();
-
-  // Scope-based magnetic effect for all non-nav hover targets.
-  useMagneticScope();
-
-  return (
-    <ReactLenis
-      root
-      options={{
-        autoRaf: false,
-        duration: 1.25,
-        easing: (t) => 1 - Math.pow(1 - t, 4),
-        smoothWheel: true,
-        syncTouch: false,
-      }}
-    >
-      {/* Film Grain overlay */}
-      <div className="noise-overlay" />
-
-      {/* Vignette — subtle edge darkening for cinematic depth */}
-      <div className="vignette-overlay" />
-
-      {/* Keep ScrollTrigger in lock-step with Lenis's smoothed scroll */}
-      <GsapScrollSync />
-
-      {/* Luxury Custom Cursor */}
-      <CustomCursorRaw />
-
-      {/* Smooth Loading Screen */}
-      <LoadingScreenRaw onComplete={() => setIsLoaded(true)} />
-
-      {/* Top-of-viewport scroll progress bar */}
-      <ScrollProgress />
-
-      {/* Navigation */}
-      <Navigation />
-
-      {/* Main scrolling wrapper */}
-      <main id="smooth-wrapper" className="font-sans">
-        <Hero isLoaded={isLoaded} />
-        <Threat />
-        <Marquee />
-        <Benefits />
-        <Craft />
-        <BentoDetails />
-        <HorizontalGallery />
-        <MeasureGuide />
-        <Faq />
-      </main>
-
-      {/* Curtain Footer */}
-      <CurtainFooter />
-    </ReactLenis>
-  );
+  const content = Route.useLoaderData();
+  return <HomepageRenderer blocks={content.blocks} />;
 }

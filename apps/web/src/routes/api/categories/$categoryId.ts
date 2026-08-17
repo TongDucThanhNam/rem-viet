@@ -20,7 +20,7 @@ export const Route = createFileRoute("/api/categories/$categoryId")({
   server: {
     handlers: {
       PUT: async ({ request, params }) => {
-        const unauthorized = await requireApiSession();
+        const unauthorized = await requireApiSession(request);
 
         if (unauthorized) {
           return unauthorized;

@@ -1,0 +1,33 @@
+[Threat] apps/web/src/components/landing/threat.tsx (full route surface)
+  [source] apps/web/src/components/landing/threat.tsx
+    [component inventory]
+      [Threat] apps/web/src/components/landing/threat.tsx:48
+    [semantic hierarchy]
+      [section] (id=threat | attrs=className="threat pinned relative overflow-hidden bg-black font-sans text-white" id="threat" ref={sectionRef}) @ apps/web/src/components/landing/threat.tsx:193
+      [img] (attrs=className="threat-backdrop-img h-[112%] w-full object-cover will-change-transform" src={step.image.src} alt="" decoding="async" l…) @ apps/web/src/components/landing/threat.tsx:209
+      [article] (attrs=className="threat-step absolute inset-0 flex items-end pb-[clamp(88px,13vh,168px)] will-change-[transform,opacity]" key={step.eye…) @ apps/web/src/components/landing/threat.tsx:227
+      [p] (attrs=className="font-vietnam text-label tracking-[0.22em] text-brand-soft uppercase") @ apps/web/src/components/landing/threat.tsx:232
+      [h2] (attrs=className="max-w-[14ch] font-playfair text-h1 leading-[1.02] font-normal tracking-[-0.025em] text-balance") @ apps/web/src/components/landing/threat.tsx:235
+      [p] (attrs=className="max-w-[48ch] font-vietnam text-lead leading-[1.55] text-white/72") @ apps/web/src/components/landing/threat.tsx:238
+      [p] (attrs=className="absolute right-[4vw] bottom-8 z-3 font-vietnam text-[10px] tracking-[0.2em] text-white/44 uppercase") @ apps/web/src/components/landing/threat.tsx:266
+      [article] (attrs=className="threat-static-card relative min-h-[76dvh] overflow-hidden" data-tone={step.image.tone} key={step.eyebrow}) @ apps/web/src/components/landing/threat.tsx:273
+      [img] (attrs=className="threat-static-img absolute inset-0 h-full w-full object-cover" src={step.image.src} alt={step.image.alt} decoding="asy…) @ apps/web/src/components/landing/threat.tsx:278
+      [p] (attrs=className="font-vietnam text-label tracking-[0.2em] text-brand-soft uppercase") @ apps/web/src/components/landing/threat.tsx:291
+      [h2] (attrs=className="max-w-[15ch] font-playfair text-h2 leading-[1.05] font-normal tracking-[-0.02em] text-balance") @ apps/web/src/components/landing/threat.tsx:294
+      [p] (attrs=className="max-w-[42ch] font-vietnam text-body leading-[1.55] text-white/76") @ apps/web/src/components/landing/threat.tsx:297
+    [visible copy and content literals]
+      "Mối đe dọa" @ apps/web/src/components/landing/threat.tsx:7
+      "Muỗi len vào từ những khe nhỏ nhất." @ apps/web/src/components/landing/threat.tsx:8
+      "Khe hở nhỏ trên khung cửa nơi muỗi có thể xâm nhập" @ apps/web/src/components/landing/threat.tsx:14
+      "Giải pháp" @ apps/web/src/components/landing/threat.tsx:19
+      "Một lớp chắn gần như vô hình." @ apps/web/src/components/landing/threat.tsx:20
+      "Cận cảnh lưới chống muỗi và đường viền được may đo sát khung" @ apps/web/src/components/landing/threat.tsx:26
+      "Kết quả" @ apps/web/src/components/landing/threat.tsx:31
+      "Nhà thoáng, sạch và yên tĩnh." @ apps/web/src/components/landing/threat.tsx:32
+      "Không gian sống thoáng sáng với lưới chống muỗi gần như vô hình" @ apps/web/src/components/landing/threat.tsx:38
+      "(null); const stageRef = useRef" @ apps/web/src/components/landing/threat.tsx:49
+      "( stage.querySelectorAll(\".threat-step\"), ); const backdrops = gsap.utils.toArray" @ apps/web/src/components/landing/threat.tsx:61
+      "( section.querySelectorAll(\".threat-backdrop-item\"), ); const images = gsap.utils.toArray" @ apps/web/src/components/landing/threat.tsx:64
+      "( section.querySelectorAll(\".threat-backdrop-img\"), ); const progressItems = gsap.utils.toArray" @ apps/web/src/components/landing/threat.tsx:67
+      "( section.querySelectorAll(\".threat-progress-item\"), ); const progressFills = gsap.utils.toArray" @ apps/web/src/components/landing/threat.tsx:70
+      "Cuộn để khám phá" @ apps/web/src/components/landing/threat.tsx:266

@@ -196,8 +196,9 @@ function orderItemsFromUnknown(value: unknown) {
 
     return {
       productId:
-        objectId(record.productId ?? product._id ?? product.id ?? directProductId) ??
-        `legacy-unresolved-product-${index}`,
+        objectId(
+          record.productId ?? product._id ?? product.id ?? directProductId,
+        ) ?? `legacy-unresolved-product-${index}`,
       name: String(record.name ?? product.name ?? "Sản phẩm"),
       price: priceNumber(record.price ?? record.productPrice ?? product.price),
       quantity: Number(record.quantity ?? 1),
@@ -233,15 +234,12 @@ async function readCollection(
 
 async function assertNoUnmappedCollections(db: ReturnType<MongoClient["db"]>) {
   const mapped = new Set<string>(mappedCollections);
-  const collections = await db.listCollections({}, { nameOnly: true }).toArray();
+  const collections = await db
+    .listCollections({}, { nameOnly: true })
+    .toArray();
   const unmapped = collections
     .map((collection) => collection.name)
-    .filter(
-      (name) =>
-        name &&
-        !name.startsWith("system.") &&
-        !mapped.has(name),
-    );
+    .filter((name) => name && !name.startsWith("system.") && !mapped.has(name));
   const nonEmpty = [];
 
   for (const name of unmapped) {

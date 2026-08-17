@@ -1,5 +1,6 @@
 import type { AppRouter } from "@rem-viet/api/routers/index";
 import { getSiteSettings, listMenus } from "@rem-viet/api/services/content";
+import { env } from "@rem-viet/env/server";
 import { Toaster } from "@rem-viet/ui/components/sonner";
 import type { QueryClient } from "@tanstack/react-query";
 import { createServerFn } from "@tanstack/react-start";
@@ -17,6 +18,7 @@ import FloatingContact from "../components/floating-contact";
 import Header from "../components/header";
 import { ErrorState } from "../components/app-state";
 import SiteFooter from "../components/site-footer";
+import { WebVitalsReporter } from "../components/web-vitals-reporter";
 import { getSiteChromeData } from "../lib/site-chrome";
 import { siteConfig } from "../lib/site-config";
 
@@ -132,19 +134,39 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
   notFoundComponent: NotFound,
 });
 
-const getRootChromeData = createServerFn({ method: "GET" }).handler(async () => {
-  const [settings, menus] = await Promise.all([getSiteSettings(), listMenus()]);
+const getRootChromeData = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const [settings, menus] = await Promise.all([
+      getSiteSettings(),
+      listMenus(),
+    ]);
 
-  return getSiteChromeData(settings, menus);
-});
+    const configuredSampleRate = Number(env.RUM_SAMPLE_RATE);
+    return {
+      ...getSiteChromeData(settings, menus),
+      rumSampleRate: Number.isFinite(configuredSampleRate)
+        ? Math.min(1, Math.max(0, configuredSampleRate))
+        : 0,
+    };
+  },
+);
 
 function RootDocument() {
   const chromeData = Route.useLoaderData();
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
-  const isAuthRoute = ["/dang-nhap", "/dang-ky", "/login"].includes(pathname);
+  const isAuthRoute = [
+    "/dang-nhap",
+    "/dang-ky",
+    "/quen-mat-khau",
+    "/login",
+  ].includes(pathname);
   const isAdminRoute = pathname.startsWith("/admin");
+  const isPreviewRoute =
+    pathname === "/admin/home-preview" ||
+    pathname === "/admin/settings-preview" ||
+    /^\/admin\/(?:pages|posts)\/[^/]+\/preview$/.test(pathname);
   const isLegacyAdminRoute =
     pathname === "/dashboard" ||
     pathname === "/products" ||
@@ -165,7 +187,8 @@ function RootDocument() {
   // sees the regular header overlay and only the parts of the hero
   // that bleed through. So `/` joins the chrome-hidden set.
   const isLandingRoute = pathname === "/";
-  const isBlogRoute = pathname === "/bai-viet" || pathname.startsWith("/bai-viet/");
+  const isBlogRoute =
+    pathname === "/bai-viet" || pathname.startsWith("/bai-viet/");
   const hideSiteChrome =
     isAuthRoute ||
     isAdminRoute ||
@@ -174,6 +197,8 @@ function RootDocument() {
     isLandingRoute ||
     isBlogRoute;
   const showSiteFooter = !hideSiteChrome;
+  const collectWebVitals =
+    !isAuthRoute && !isAdminRoute && !isLegacyAdminRoute && !isStandaloneRoute;
 
   return (
     <html lang="vi">
@@ -195,7 +220,19 @@ function RootDocument() {
           {showSiteFooter ? <SiteFooter initialChrome={chromeData} /> : null}
         </div>
         {hideSiteChrome ? null : <FloatingContact initialChrome={chromeData} />}
-        <Toaster richColors />
+        {collectWebVitals ? (
+          <WebVitalsReporter sampleRate={chromeData.rumSampleRate} />
+        ) : null}
+        <Toaster
+          containerAriaLabel={
+            isPreviewRoute
+              ? "Thông báo bản xem trước"
+              : isAdminRoute
+                ? "Thông báo quản trị"
+                : "Thông báo trang web"
+          }
+          richColors
+        />
         <Scripts />
       </body>
     </html>

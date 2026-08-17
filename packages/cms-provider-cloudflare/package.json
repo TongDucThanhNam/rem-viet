@@ -1,0 +1,39 @@
+{
+  "name": "@agency/cms-provider-cloudflare",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test tests"
+  },
+  "peerDependencies": {
+    "@agency/cms-core": "0.1.0",
+    "@agency/cms-runtime": "0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@agency/cms-core": {
+      "optional": true
+    },
+    "@agency/cms-runtime": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@agency/cms-core": "workspace:*",
+    "@agency/cms-runtime": "workspace:*",
+    "@libsql/client": "catalog:",
+    "miniflare": "5.20260811.1-alpha",
+    "typescript": "catalog:"
+  }
+}

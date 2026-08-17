@@ -1,0 +1,91 @@
+name: Scheduled immutable CMS backup
+
+on:
+  schedule:
+    - cron: "17 2 * * 0"
+  workflow_dispatch:
+    inputs:
+      site:
+        description: Manifest site ID
+        required: true
+        type: string
+      stage:
+        description: Cloudflare stage to back up
+        required: true
+        default: staging
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cms-backup-${{ inputs.site || vars.CMS_BACKUP_SITE || 'unconfigured' }}
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CMS_BACKUP_SITE: ${{ inputs.site || vars.CMS_BACKUP_SITE }}
+      CMS_BACKUP_STAGE: ${{ inputs.stage || vars.CMS_BACKUP_STAGE }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CMS_BACKUP_CLOUDFLARE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Validate scheduled-backup configuration
+        shell: bash
+        run: |
+          if [[ ! "$CMS_BACKUP_SITE" =~ ^[a-z][a-z0-9-]{1,62}$ ]]; then
+            echo "::error::Set CMS_BACKUP_SITE to a valid manifest site ID."
+            exit 1
+          fi
+          if [[ ! "$CMS_BACKUP_STAGE" =~ ^[a-z][a-z0-9-]{0,31}$ ]]; then
+            echo "::error::Set CMS_BACKUP_STAGE to the deployed stage."
+            exit 1
+          fi
+          if [[ ! "$CLOUDFLARE_ACCOUNT_ID" =~ ^[0-9a-fA-F]{32}$ ]]; then
+            echo "::error::Set the CLOUDFLARE_ACCOUNT_ID repository variable."
+            exit 1
+          fi
+          if [[ ${#CLOUDFLARE_API_TOKEN} -lt 20 ]]; then
+            echo "::error::Set the CMS_BACKUP_CLOUDFLARE_API_TOKEN secret."
+            exit 1
+          fi
+          backup_output="backups/${CMS_BACKUP_SITE}-${CMS_BACKUP_STAGE}-gha-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.sql"
+          echo "CMS_BACKUP_OUTPUT=$backup_output" >> "$GITHUB_ENV"
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+      - name: Resolve and validate the archive plan
+        id: plan
+        shell: bash
+        run: |
+          plan="$(bun scripts/site-backup-scheduled.ts \
+            --site="$CMS_BACKUP_SITE" \
+            --stage="$CMS_BACKUP_STAGE" \
+            --output="$CMS_BACKUP_OUTPUT" \
+            --auth-source=environment \
+            --dry-run)"
+          bucket="$(printf '%s' "$plan" | bun -e 'const value = await Bun.stdin.json(); if (typeof value.bucket !== "string") process.exit(1); console.log(value.bucket)')"
+          echo "bucket=$bucket" >> "$GITHUB_OUTPUT"
+      - name: Export, lock, archive, download and verify
+        run: >-
+          bun run site:backup:scheduled
+          --site="$CMS_BACKUP_SITE"
+          --stage="$CMS_BACKUP_STAGE"
+          --output="$CMS_BACKUP_OUTPUT"
+          --auth-source=environment
+          --confirm-site="$CMS_BACKUP_SITE"
+          --confirm-bucket="${{ steps.plan.outputs.bucket }}"
+          --apply
+      - name: Retain non-secret backup evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cms-backup-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.CMS_BACKUP_OUTPUT }}.evidence.json
+            ${{ env.CMS_BACKUP_OUTPUT }}.immutable.json
+          if-no-files-found: warn
+          retention-days: 90

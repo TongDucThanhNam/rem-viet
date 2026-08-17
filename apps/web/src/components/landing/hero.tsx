@@ -1,35 +1,43 @@
 import { useRef } from "react";
-import { ArrowDownRight, Ruler, ShieldCheck, ShoppingBag, Sparkles, Wind } from "lucide-react";
-
 import {
-  gsap,
-  SplitText,
-  useGSAP,
-  prefersReducedMotion,
-} from "@/lib/gsap";
+  ArrowDownRight,
+  Ruler,
+  ShieldCheck,
+  ShoppingBag,
+  Sparkles,
+  Wind,
+} from "lucide-react";
+import {
+  defaultHeroBlock,
+  type HeroBlockData,
+  type HeroFeatureIconKey,
+} from "@agency/cms-template-rem-viet";
 
-const features = [
-  {
-    icon: ShieldCheck,
-    label: "Bảo vệ vô hình",
-    value: "99.9% chống muỗi",
-  },
-  {
-    icon: Ruler,
-    label: "May đo",
-    value: "Vừa khít từng mm",
-  },
-  {
-    icon: Wind,
-    label: "Thông thoáng",
-    value: "Giữ ánh sáng tự nhiên",
-  },
-  {
-    icon: Sparkles,
-    label: "Thẩm mỹ",
-    value: "Hợp kiến trúc hiện đại",
-  },
-] as const;
+import { gsap, SplitText, useGSAP, shouldUseStaticLanding } from "@/lib/gsap";
+
+const featureIcons = {
+  ruler: Ruler,
+  shield: ShieldCheck,
+  sparkles: Sparkles,
+  wind: Wind,
+} satisfies Record<HeroFeatureIconKey, typeof ShieldCheck>;
+
+const backgroundPosition = {
+  bottom: "center bottom",
+  center: "center center",
+  left: "left center",
+  right: "right center",
+  top: "center top",
+} satisfies Record<HeroBlockData["background"]["position"], string>;
+
+type HeroProps = {
+  content?: HeroBlockData;
+  isLoaded: boolean;
+};
+
+function isExternalHref(href: string) {
+  return /^(https?:)?\/\//.test(href);
+}
 
 /**
  * Hero — full-bleed background with layered parallax, overlay content
@@ -46,16 +54,14 @@ const features = [
  * blur-to-sharp on the shared `cinematic` CustomEase.
  *
  * Separately, a scrubbed ScrollTrigger drives a 3-layer parallax on scroll:
- * bg image (slow downward drift), grain (medium), content (counter-drift
- * up) + a fade-out as the hero leaves — giving cinematic depth.
+ * bg image (slow downward drift) and content (counter-drift up) + a fade-out
+ * as the hero leaves — giving cinematic depth without darkening the photo.
  *
  * `isLoaded` MUST stay in the signature — the Loader contract depends on it.
  */
-export function Hero({ isLoaded }: { isLoaded: boolean }) {
+export function Hero({ content = defaultHeroBlock.data, isLoaded }: HeroProps) {
   const heroRef = useRef<HTMLElement>(null);
   const bgImgRef = useRef<HTMLImageElement>(null);
-  const grainRef = useRef<HTMLDivElement>(null);
-  const vignetteRef = useRef<HTMLDivElement>(null);
   const title1Ref = useRef<HTMLSpanElement>(null);
   const title2Ref = useRef<HTMLSpanElement>(null);
   const kickerRef = useRef<HTMLParagraphElement>(null);
@@ -63,28 +69,32 @@ export function Hero({ isLoaded }: { isLoaded: boolean }) {
   const actionsRef = useRef<HTMLDivElement>(null);
   const featuresBarRef = useRef<HTMLDivElement>(null);
   const scrollCueRef = useRef<HTMLDivElement>(null);
+  const primaryExternal = isExternalHref(content.primaryCta.href);
+  const secondaryExternal = isExternalHref(content.secondaryCta.href);
 
   // Scroll-driven parallax runs once on mount (independent of isLoaded) —
   // the layers should always drift with scroll, even before the entrance
   // plays (the loader covers them anyway).
   useGSAP(
     () => {
-      if (prefersReducedMotion()) return;
+      if (shouldUseStaticLanding()) return;
 
       const hero = heroRef.current;
       const bgImg = bgImgRef.current;
-      const grain = grainRef.current;
       const content = hero?.querySelector<HTMLElement>(".hero-new-content");
       const features = featuresBarRef.current;
       if (!hero || !bgImg) return;
 
-      const st = { trigger: hero, start: "top top", end: "bottom top", scrub: true };
+      const st = {
+        trigger: hero,
+        start: "top top",
+        end: "bottom top",
+        scrub: true,
+      };
 
-      // 3-layer parallax: bg slow, grain medium, content counter-drifts up.
-      // Different yPercent ranges create the depth illusion. useGSAP's scope
-      // auto-reverts these tweens + ScrollTriggers on unmount.
+      // The bg drifts down while the content counter-drifts up. useGSAP's
+      // scope auto-reverts these tweens + ScrollTriggers on unmount.
       gsap.to(bgImg, { yPercent: 18, ease: "none", scrollTrigger: st });
-      if (grain) gsap.to(grain, { yPercent: 8, ease: "none", scrollTrigger: st });
       if (content) {
         gsap.to(content, {
           yPercent: -8,
@@ -111,7 +121,7 @@ export function Hero({ isLoaded }: { isLoaded: boolean }) {
     () => {
       if (!isLoaded) return;
 
-      const reduce = prefersReducedMotion();
+      const reduce = shouldUseStaticLanding();
 
       const els = [
         kickerRef.current,
@@ -132,15 +142,17 @@ export function Hero({ isLoaded }: { isLoaded: boolean }) {
       // Split each masked title line into chars (mask = .hero-title-line).
       const split1 = title1Ref.current
         ? new SplitText(title1Ref.current, {
-          type: "chars",
-          charsClass: "hero-title-char",
-        })
+            type: "chars",
+            charsClass: "hero-title-char",
+            aria: "none",
+          })
         : null;
       const split2 = title2Ref.current
         ? new SplitText(title2Ref.current, {
-          type: "chars",
-          charsClass: "hero-title-char",
-        })
+            type: "chars",
+            charsClass: "hero-title-char",
+            aria: "none",
+          })
         : null;
 
       const tl = gsap.timeline({ defaults: { ease: "cinematic" } });
@@ -208,31 +220,40 @@ export function Hero({ isLoaded }: { isLoaded: boolean }) {
       id="home"
       ref={heroRef}
     >
-      <div className="hero-new-bg absolute inset-0 -z-2 overflow-hidden" aria-hidden="true">
+      <div
+        className="hero-new-bg absolute inset-0 -z-2 overflow-hidden"
+        aria-hidden="true"
+      >
         <img
           className="h-[115%] w-full object-cover object-center will-change-transform"
-          src="/assets/7c9323bc-888a-4cba-b876-f0aa79b35158.png"
-          alt=""
+          src={content.background.src}
+          alt={content.background.alt}
+          width={1672}
+          height={941}
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
+          style={{
+            objectPosition: backgroundPosition[content.background.position],
+          }}
           ref={bgImgRef}
         />
       </div>
-      <div className="hero-vignette" aria-hidden="true" ref={vignetteRef} />
-
       <div className="hero-new-content relative z-2 w-full max-w-[760px]">
         <p
           className="hero-new-kicker relative mb-5 pb-3.5 font-vietnam text-[12px] font-medium leading-tight tracking-[0.18em] text-white/78 uppercase"
           ref={kickerRef}
         >
-          (01) Lưới chống muỗi may đo
+          {content.kicker}
         </p>
 
         <h1 className="hero-new-title m-0 font-playfair text-display font-normal leading-[0.82] tracking-[-0.01em] xl:text-[clamp(54px,10vw,112px)] lg:text-[clamp(42px,9vw,78px)] sm:text-[54px] sm:leading-[0.88]">
           <span className="hero-title-line hero-title-line-single">
             <span className="hero-title-word" ref={title1Ref}>
-              Rèm
+              {content.title.prefix}
             </span>
             <span className="hero-title-word text-brand italic" ref={title2Ref}>
-              Vina
+              {content.title.accent}
             </span>
           </span>
         </h1>
@@ -241,55 +262,82 @@ export function Hero({ isLoaded }: { isLoaded: boolean }) {
           className="mt-7.5 max-w-[540px] font-vietnam text-body leading-[1.7] text-white/78 lg:max-w-[480px] lg:text-[15px] sm:mt-[22px] sm:text-[14px] sm:leading-[1.65]"
           ref={descRef}
         >
-          Giải pháp lưới chống muỗi cao cấp cho cửa sổ và cửa đi. May đo theo
-          từng khung, giữ không gian thoáng sáng mà vẫn bảo vệ gia đình mỗi ngày.
+          {content.description}
         </p>
 
         {/* Hero Actions */}
-        <div className="hero-new-actions mt-8.5 grid w-full max-w-[540px] grid-cols-2 gap-3" ref={actionsRef}>
+        <div
+          className="hero-new-actions mt-8.5 grid w-full max-w-[540px] grid-cols-2 gap-3"
+          ref={actionsRef}
+        >
           <a
-            href="https://shopee.vn/remvina.vn"
-            className="hero-new-link hover-target inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-lg border border-brand bg-brand px-5 text-[12px] font-semibold tracking-[0.12em] text-black uppercase no-underline shadow-[0_12px_32px_rgba(0,0,0,0.24)] will-change-transform transition-[background-color,border-color] duration-300 hoverable:hover:border-brand-soft hoverable:hover:bg-brand-soft"
-            data-cursor="Mua"
-            target="_blank"
-            rel="noopener noreferrer"
+            href={content.primaryCta.href}
+            className="hero-new-link hover-target inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-lg border border-brand-solid bg-brand-solid px-5 text-[12px] font-semibold tracking-[0.12em] text-white uppercase no-underline shadow-[0_12px_32px_rgba(0,0,0,0.24)] will-change-transform transition-[background-color,border-color,color] duration-300 hoverable:hover:border-brand-soft hoverable:hover:bg-brand-soft hoverable:hover:text-black"
+            data-cursor={content.primaryCta.cursorLabel}
+            target={primaryExternal ? "_blank" : undefined}
+            rel={primaryExternal ? "noopener noreferrer" : undefined}
           >
-            <ShoppingBag aria-hidden="true" size={18} strokeWidth={1.7} className="text-black/70" />
-            <span>Mua hàng</span>
+            <ArrowDownRight
+              aria-hidden="true"
+              size={18}
+              strokeWidth={1.7}
+              className="text-black/70"
+            />
+            <span>{content.primaryCta.label}</span>
           </a>
           <a
-            href="#order"
+            href={content.secondaryCta.href}
             className="hero-new-link hover-target inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-lg border border-white/28 bg-white/12 px-4.5 text-[12px] font-medium tracking-[0.12em] text-white uppercase no-underline backdrop-blur-[14px] will-change-transform"
-            data-cursor="Đặt may"
+            data-cursor={content.secondaryCta.cursorLabel}
+            target={secondaryExternal ? "_blank" : undefined}
+            rel={secondaryExternal ? "noopener noreferrer" : undefined}
           >
-            <ArrowDownRight aria-hidden="true" size={18} strokeWidth={1.7} className="text-brand" />
-            <span>Tư vấn kích thước</span>
+            <ShoppingBag
+              aria-hidden="true"
+              size={18}
+              strokeWidth={1.7}
+              className="text-brand"
+            />
+            <span>{content.secondaryCta.label}</span>
           </a>
         </div>
       </div>
 
+      <div
+        className="hero-scroll-cue font-vietnam"
+        aria-hidden="true"
+        ref={scrollCueRef}
+      >
+        <span>{content.scrollLabel}</span>
+        <span className="hero-scroll-cue-line" />
+      </div>
+
       <div className="hero-features-bar font-vietnam" ref={featuresBarRef}>
-        {features.map(({ icon: Icon, label, value }) => (
-          <div
-            className="hero-feature flex min-h-24 items-center gap-3.5 bg-black/18 p-5 xl:p-[18px] lg:min-h-[82px] lg:p-4 sm:min-h-15 sm:gap-3 sm:px-3.5 sm:py-3"
-            key={label}
-          >
-            <Icon
-              aria-hidden="true"
-              size={20}
-              strokeWidth={1.5}
-              className="text-brand shrink-0 sm:h-[18px] sm:w-[18px]"
-            />
-            <div>
-              <span className="block text-[11px] tracking-[0.12em] leading-[1.3] text-white/62 uppercase sm:text-[10px]">
-                {label}
-              </span>
-              <strong className="mt-1.5 block text-[14px] font-medium leading-[1.45] text-white sm:mt-[3px] sm:text-[13px]">
-                {value}
-              </strong>
+        {content.features.map(({ iconKey, id, label, value }) => {
+          const Icon = featureIcons[iconKey];
+
+          return (
+            <div
+              className="hero-feature flex min-h-24 items-center gap-3.5 bg-black/18 p-5 xl:p-[18px] lg:min-h-[82px] lg:p-4 sm:min-h-15 sm:gap-3 sm:px-3.5 sm:py-3"
+              key={id}
+            >
+              <Icon
+                aria-hidden="true"
+                size={20}
+                strokeWidth={1.5}
+                className="text-brand shrink-0 sm:h-[18px] sm:w-[18px]"
+              />
+              <div>
+                <span className="block text-[11px] tracking-[0.12em] leading-[1.3] text-white/62 uppercase sm:text-[10px]">
+                  {label}
+                </span>
+                <strong className="mt-1.5 block text-[14px] font-medium leading-[1.45] text-white sm:mt-[3px] sm:text-[13px]">
+                  {value}
+                </strong>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

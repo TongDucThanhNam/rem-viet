@@ -1,6 +1,6 @@
 version: 1
 plan:
-  name: 'Nâng cấp Landing LUXE MESH lên AWWWARDS SOTD-wannabe'
+  name: "Nâng cấp Landing LUXE MESH lên AWWWARDS SOTD-wannabe"
   max_concurrency: 4
   max_consecutive_failures: 2
   max_cycles: 8
@@ -10,7 +10,7 @@ plan:
   auto_reject_retries: 1
 tasks:
   - id: track-1-theme-benefits
-    title: 'Track 1 — Benefits section + theme engine theo viewport'
+    title: "Track 1 — Benefits section + theme engine theo viewport"
     assigned_to: coder
     timeout_ms: 1800000
     prompt: |
@@ -101,7 +101,7 @@ tasks:
       Báo cáo PASS/FAIL với evidence (paste 5-10 dòng output của `bun run check-types` + build).
 
   - id: track-2-cursor-progress-anchors
-    title: 'Track 2 — Cursor label + Scroll progress bar + Smooth anchor nav'
+    title: "Track 2 — Cursor label + Scroll progress bar + Smooth anchor nav"
     assigned_to: coder
     timeout_ms: 1800000
     prompt: |
@@ -185,7 +185,7 @@ tasks:
       Báo cáo PASS/FAIL với evidence.
 
   - id: track-3-bento-measure-polish
-    title: 'Track 3 — Bento + Measure-Guide polish (hover tilt, stat count-up, mask reveal mạnh hơn)'
+    title: "Track 3 — Bento + Measure-Guide polish (hover tilt, stat count-up, mask reveal mạnh hơn)"
     assigned_to: coder
     timeout_ms: 1800000
     prompt: |
@@ -251,7 +251,7 @@ tasks:
       Báo cáo PASS/FAIL với evidence.
 
   - id: track-4-footer-marquee-craft
-    title: 'Track 4 — Footer CTA reveal + Marquee hover-pause + Craft image scale-in'
+    title: "Track 4 — Footer CTA reveal + Marquee hover-pause + Craft image scale-in"
     assigned_to: coder
     timeout_ms: 1800000
     prompt: |
@@ -318,10 +318,16 @@ tasks:
       Báo cáo PASS/FAIL với evidence.
 
   - id: track-5-integration-gate
-    title: 'Track 5 — Integration gate: build pass, anchor map đúng, không regress'
+    title: "Track 5 — Integration gate: build pass, anchor map đúng, không regress"
     assigned_to: verifier
     role: verify-as-task
-    depends_on: [track-1-theme-benefits, track-2-cursor-progress-anchors, track-3-bento-measure-polish, track-4-footer-marquee-craft]
+    depends_on:
+      [
+        track-1-theme-benefits,
+        track-2-cursor-progress-anchors,
+        track-3-bento-measure-polish,
+        track-4-footer-marquee-craft,
+      ]
     timeout_ms: 1200000
     prompt: |
       Bạn là integration verifier — KHÔNG sửa code product. Nhiệm vụ: chạy toàn bộ

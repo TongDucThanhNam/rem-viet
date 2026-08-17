@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 
 import SignInForm from "@/components/sign-in-form";
 
@@ -7,7 +7,5 @@ export const Route = createFileRoute("/dang-nhap")({
 });
 
 function DangNhapRoute() {
-  const navigate = useNavigate();
-
-  return <SignInForm onSwitchToSignUp={() => navigate({ to: "/dang-ky" })} />;
+  return <SignInForm />;
 }

@@ -1,0 +1,36 @@
+{
+  "id": "acme-demo",
+  "name": "Acme Demo",
+  "siteUrl": "https://acme-demo.example.com",
+  "description": "Acme Demo — website chính thức.",
+  "locale": "vi-VN",
+  "preset": "showcase",
+  "brand": {
+    "logo": "/assets/acme-demo-logo.svg",
+    "colors": {
+      "accent": "#B58A43",
+      "ink": "#111111",
+      "canvas": "#F8F5EF"
+    },
+    "fonts": ["Be Vietnam Pro", "Playfair Display"]
+  },
+  "contact": {
+    "phone": "",
+    "email": "",
+    "address": "",
+    "socials": {}
+  },
+  "features": {
+    "blog": true,
+    "catalog": false,
+    "orders": false,
+    "leads": true
+  },
+  "infrastructure": {
+    "alchemyApp": "acme-demo",
+    "workerName": "acme-demo-web",
+    "d1Name": "acme-demo-db",
+    "r2BucketName": "acme-demo-media",
+    "backupBucketName": "acme-demo-backups"
+  }
+}

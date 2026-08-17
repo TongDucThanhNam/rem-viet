@@ -1,13 +1,23 @@
 import { getPageBySlug } from "@rem-viet/api/services/content";
+import { resolveRedirect } from "@rem-viet/api/services/operations";
 import { createServerFn } from "@tanstack/react-start";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { FileText } from "lucide-react";
 
 import CmsPageBlocks from "@/components/cms-page-blocks";
 import { siteConfig } from "@/lib/site-config";
 
 export const Route = createFileRoute("/$slug")({
-  loader: ({ params }) => getCmsPageData({ data: { slug: params.slug } }),
+  loader: async ({ params }) => {
+    const result = await getCmsPageData({ data: { slug: params.slug } });
+    if (result.redirect) {
+      throw redirect({
+        href: result.redirect.newPath,
+        statusCode: result.redirect.statusCode,
+      });
+    }
+    return result.page;
+  },
   head: ({ loaderData }) => {
     if (!loaderData) {
       return {
@@ -29,6 +39,21 @@ export const Route = createFileRoute("/$slug")({
         { property: "og:title", content: loaderData.title },
         { property: "og:description", content: description },
         { property: "og:type", content: "website" },
+        {
+          property: "og:image",
+          content: loaderData.ogImage || siteConfig.image,
+        },
+        {
+          name: "robots",
+          content: `${loaderData.robotsIndex ? "index" : "noindex"}, ${loaderData.robotsFollow ? "follow" : "nofollow"}`,
+        },
+      ],
+      links: [
+        {
+          rel: "canonical",
+          href:
+            loaderData.canonicalUrl || `${siteConfig.url}/${loaderData.slug}`,
+        },
       ],
     };
   },
@@ -38,7 +63,9 @@ export const Route = createFileRoute("/$slug")({
 const getCmsPageData = createServerFn({ method: "GET" })
   .inputValidator((data: { slug: string }) => data)
   .handler(async ({ data }) => {
-    return getPageBySlug({ slug: data.slug, status: "published" });
+    const page = await getPageBySlug({ slug: data.slug, status: "published" });
+    if (page) return { page, redirect: null };
+    return { page: null, redirect: await resolveRedirect(`/${data.slug}`) };
   });
 
 function CmsPageRoute() {

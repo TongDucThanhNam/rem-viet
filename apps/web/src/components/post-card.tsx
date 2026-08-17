@@ -37,13 +37,10 @@ function coverUrl(post: PostCardProps["post"]) {
   const cover = post.coverImage || post.cover;
 
   if (!cover) {
-    return "/assets/7c9323bc-888a-4cba-b876-f0aa79b35158.png";
+    return "/assets/rem-vina-hero.webp";
   }
 
-  return (
-    cloudflareImageUrl(cover) ||
-    "/assets/7c9323bc-888a-4cba-b876-f0aa79b35158.png"
-  );
+  return cloudflareImageUrl(cover) || "/assets/rem-vina-hero.webp";
 }
 
 function postSlug(slug: string) {

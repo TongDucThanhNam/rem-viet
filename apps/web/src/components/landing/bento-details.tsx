@@ -5,12 +5,16 @@ import {
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
 } from "react";
+import {
+  defaultBentoDetailsBlock,
+  type BentoDetailsBlock,
+} from "@rem-viet/cms";
 
 import {
   gsap,
   ScrollTrigger,
   useGSAP,
-  prefersReducedMotion,
+  shouldUseStaticLanding,
 } from "@/lib/gsap";
 import { useSplitReveal } from "@/hooks/use-split-reveal";
 
@@ -56,12 +60,26 @@ function useCountUp(
     () => {
       const el = ref.current;
       if (!el) return;
+
+      if (shouldUseStaticLanding()) {
+        setValue(formatNumber(target, decimals));
+        return;
+      }
+
       const obj = { v: start };
+      const clampValue = gsap.utils.clamp(
+        Math.min(start, target),
+        Math.max(start, target),
+      );
+
       gsap.to(obj, {
         v: target,
         duration,
         ease: "settle",
-        onUpdate: () => setValue(formatNumber(obj.v, decimals)),
+        // `settle` intentionally overshoots. Clamp the presented value so a
+        // 99.9% product claim never flashes as 108% while the tween resolves.
+        onUpdate: () => setValue(formatNumber(clampValue(obj.v), decimals)),
+        onComplete: () => setValue(formatNumber(target, decimals)),
         scrollTrigger: {
           trigger: el,
           start: "top 85%",
@@ -81,17 +99,18 @@ function StatNumber({
   suffix = "",
   fallback,
 }: {
-  target: number;
+  target: number | null;
   decimals?: number;
   suffix?: string;
   fallback?: string;
 }) {
-  const finite = Number.isFinite(target);
-  const { ref, value } = useCountUp(finite ? target : 0, { decimals });
+  const finiteTarget = target !== null && Number.isFinite(target) ? target : 0;
+  const finite = target !== null && Number.isFinite(target);
+  const { ref, value } = useCountUp(finiteTarget, { decimals });
 
   return (
     <span ref={ref} className="stat-num font-playfair">
-      {finite ? `${value}${suffix}` : (fallback ?? target.toString())}
+      {finite ? `${value}${suffix}` : (fallback ?? "")}
     </span>
   );
 }
@@ -109,7 +128,7 @@ function BentoImage({ src, alt }: { src: string; alt: string }) {
 
       gsap.set(img, { scale: 1.05 });
 
-      if (!prefersReducedMotion()) {
+      if (!shouldUseStaticLanding()) {
         // Parallax across the full pass through the viewport.
         gsap.fromTo(
           img,
@@ -147,7 +166,15 @@ function BentoImage({ src, alt }: { src: string; alt: string }) {
 
   return (
     <div ref={containerRef} className="bento-bg">
-      <img ref={imgRef} src={src} alt={alt} className="bento-bg-img" />
+      <img
+        ref={imgRef}
+        src={src}
+        alt={alt}
+        className="bento-bg-img"
+        loading="lazy"
+        decoding="async"
+        fetchPriority="low"
+      />
     </div>
   );
 }
@@ -177,17 +204,26 @@ function BentoBox({
       const el = boxRef.current;
       if (!el) return;
 
-      gsap.set(el, { transformStyle: "preserve-3d", transformPerspective: 1000 });
+      gsap.set(el, {
+        transformStyle: "preserve-3d",
+        transformPerspective: 1000,
+      });
 
-      if (!canTilt || prefersReducedMotion()) return;
+      if (!canTilt || shouldUseStaticLanding()) return;
 
       tiltRef.current = {
         rotX: gsap.quickTo(el, "rotationX", { duration: 0.4, ease: "power3" }),
         rotY: gsap.quickTo(el, "rotationY", { duration: 0.4, ease: "power3" }),
         lift: gsap.quickTo(el, "y", { duration: 0.5, ease: "power3" }),
         // Glare position tracked as CSS vars (0–1) the ::before reads.
-        glareX: gsap.quickTo(el, "--glare-x", { duration: 0.3, ease: "power3" }),
-        glareY: gsap.quickTo(el, "--glare-y", { duration: 0.3, ease: "power3" }),
+        glareX: gsap.quickTo(el, "--glare-x", {
+          duration: 0.3,
+          ease: "power3",
+        }),
+        glareY: gsap.quickTo(el, "--glare-y", {
+          duration: 0.3,
+          ease: "power3",
+        }),
       };
       gsap.set(el, { "--glare-x": 0.5, "--glare-y": 0.5 });
     },
@@ -234,7 +270,11 @@ function BentoBox({
   );
 }
 
-export function BentoDetails() {
+export function BentoDetails({
+  content = defaultBentoDetailsBlock,
+}: {
+  content?: BentoDetailsBlock;
+}) {
   const sectionRef = useRef<HTMLElement>(null);
   const titleRef = useSplitReveal<HTMLHeadingElement>({
     type: "words",
@@ -260,20 +300,23 @@ export function BentoDetails() {
 
       // Staggered entrance for the tiles (opacity + scale; tilt handles the
       // rest of the transform, so we avoid `y` here to not fight it).
-      if (!prefersReducedMotion()) {
-        ScrollTrigger.batch(section.querySelectorAll<HTMLElement>(".bento-box"), {
-          start: "top 88%",
-          once: true,
-          onEnter: (batch) =>
-            gsap.from(batch, {
-              opacity: 0,
-              scale: 0.94,
-              duration: 0.9,
-              ease: "power3.out",
-              stagger: 0.08,
-              overwrite: true,
-            }),
-        });
+      if (!shouldUseStaticLanding()) {
+        ScrollTrigger.batch(
+          section.querySelectorAll<HTMLElement>(".bento-box"),
+          {
+            start: "top 88%",
+            once: true,
+            onEnter: (batch) =>
+              gsap.from(batch, {
+                opacity: 0,
+                scale: 0.94,
+                duration: 0.9,
+                ease: "power3.out",
+                stagger: 0.08,
+                overwrite: true,
+              }),
+          },
+        );
       }
     },
     { scope: sectionRef },
@@ -286,86 +329,61 @@ export function BentoDetails() {
       ref={sectionRef}
     >
       <div className="container">
-        <div className="mb-[10vh] max-w-[1040px]">
+        <div className="mb-block max-w-[1040px]">
           <p className="section-eyebrow font-vietnam mb-[18px] text-[11px] font-medium leading-[1.4] tracking-[0.18em] opacity-72 uppercase">
-            (04) Chi tiết kỹ thuật
+            {content.eyebrow}
           </p>
           <h2
-            className="massive-text bento-title font-playfair mb-0 text-center text-display leading-[0.85] tracking-[-0.02em]"
+            className="mb-0 max-w-[16ch] text-left font-playfair text-h1 leading-[1.02] tracking-[-0.025em] text-balance"
             ref={titleRef}
           >
-            Kỹ thuật may đo cho khung cửa Việt.
+            {content.title}
           </h2>
         </div>
 
         <div className="bento-grid font-vietnam">
           <BentoBox className="bento-large">
             <BentoImage
-              src="/assets/fiberglass-mesh.png"
-              alt="Cận cảnh sợi thủy tinh bọc PVC"
+              src={content.material.image.src}
+              alt={content.material.image.alt}
             />
             <div className="bento-content">
-              <h3>Sợi thủy tinh siêu mảnh</h3>
-              <p>
-                Lưới được dệt từ sợi thủy tinh bọc PVC chuyên dụng, đàn hồi tốt
-                và giữ bề mặt ổn định sau thời gian dài sử dụng.
-              </p>
+              <h3>{content.material.title}</h3>
+              <p>{content.material.description}</p>
             </div>
           </BentoBox>
 
-          <BentoBox className="bento-stat">
-            <div className="stat-item">
-              <StatNumber target={0} suffix="%" />
-              <span className="stat-lbl">Chất độc hại</span>
-            </div>
-          </BentoBox>
+          {content.stats.map((stat) => (
+            <BentoBox className="bento-stat" key={stat.id}>
+              <div className="stat-item">
+                <StatNumber
+                  target={stat.value}
+                  decimals={stat.decimals}
+                  suffix={stat.suffix}
+                  fallback={stat.fallback}
+                />
+                <span className="stat-lbl">{stat.label}</span>
+              </div>
+            </BentoBox>
+          ))}
 
-          <BentoBox className="bento-stat">
-            <div className="stat-item">
-              <StatNumber target={99.9} decimals={1} suffix="%" />
-              <span className="stat-lbl">Chống muỗi</span>
-            </div>
-          </BentoBox>
-
-          <BentoBox className="bento-stat">
-            <div className="stat-item">
-              <StatNumber target={10} suffix="+" />
-              <span className="stat-lbl">Năm độ bền</span>
-            </div>
-          </BentoBox>
-
-          <BentoBox className="bento-stat">
-            <div className="stat-item">
-              <StatNumber target={Infinity} fallback="∞" />
-              <span className="stat-lbl">Luồng gió</span>
-            </div>
-          </BentoBox>
-
-          <BentoBox className="bento-small">
-            <div className="bento-content">
-              <h3>Viền dán gọn</h3>
-              <p>Đường viền mảnh, ôm khung và dễ tháo vệ sinh khi cần.</p>
-            </div>
-          </BentoBox>
-
-          <BentoBox className="bento-small">
-            <div className="bento-content">
-              <h3>Lắp trong ngày</h3>
-              <p>Kỹ thuật viên đo, tư vấn và hoàn thiện theo lịch hẹn tại nhà.</p>
-            </div>
-          </BentoBox>
+          {content.features.map((feature) => (
+            <BentoBox className="bento-small" key={feature.id}>
+              <div className="bento-content">
+                <h3>{feature.title}</h3>
+                <p>{feature.description}</p>
+              </div>
+            </BentoBox>
+          ))}
 
           <BentoBox className="bento-wide">
             <BentoImage
-              src="/assets/window-mosquito-net-hero.png"
-              alt="Lưới chống muỗi lắp trên cửa sổ hiện đại"
+              src={content.standards.image.src}
+              alt={content.standards.image.alt}
             />
             <div className="bento-content">
-              <h3>Đạt chuẩn cho không gian sống hiện đại</h3>
-              <p>
-                Vật liệu chống tia UV, hạn chế rách và an toàn cho gia đình có
-                trẻ nhỏ hoặc thú cưng.
-              </p>
+              <h3>{content.standards.title}</h3>
+              <p>{content.standards.description}</p>
             </div>
           </BentoBox>
         </div>

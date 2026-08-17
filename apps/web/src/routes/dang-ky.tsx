@@ -6,6 +6,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ExternalLink, Eye, KeyRound, Mail, ShieldAlert } from "lucide-react";
 
 import AuthLayout from "@/components/auth-layout";
+import { siteConfig } from "@/lib/site-config";
 
 export const Route = createFileRoute("/dang-ky")({
   component: DangKyRoute,
@@ -13,7 +14,9 @@ export const Route = createFileRoute("/dang-ky")({
 
 function DangKyRoute() {
   return (
-    <AuthLayout quote="Cổng quản trị Rèm Vina chỉ dành cho tài khoản đã được cấp quyền">
+    <AuthLayout
+      quote={`Cổng quản trị ${siteConfig.name} chỉ dành cho tài khoản đã được cấp quyền`}
+    >
       <div className="mb-5">
         <p className="text-xl font-semibold">Đăng ký</p>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -25,8 +28,8 @@ function DangKyRoute() {
       <div className="mb-4 flex gap-3 rounded-lg border border-amber-300/40 bg-amber-100/60 p-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-100">
         <ShieldAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
         <p>
-          Tài khoản quản trị phải được tạo trước và đưa vào allowlist{" "}
-          <code className="rounded bg-background/70 px-1">ADMIN_EMAILS</code>.
+          Tài khoản quản trị phải được tạo trước bởi Owner hoặc đơn vị triển
+          khai.
         </p>
       </div>
 
@@ -98,13 +101,16 @@ function DangKyRoute() {
         <Label className="flex items-start gap-2 text-sm leading-6 text-muted-foreground">
           <Checkbox className="mt-1 rounded" disabled />
           <span>
-            Tôi đồng ý với{" "}
-            <span className="text-foreground">Điều Khoản</span> và{" "}
-            <span className="text-foreground">Chính Sách Bảo Mật</span>
+            Tôi đồng ý với <span className="text-foreground">Điều Khoản</span>{" "}
+            và <span className="text-foreground">Chính Sách Bảo Mật</span>
           </span>
         </Label>
 
-        <Button className="h-10 w-full rounded-lg text-sm" disabled type="submit">
+        <Button
+          className="h-10 w-full rounded-lg text-sm"
+          disabled
+          type="submit"
+        >
           Đăng Ký
         </Button>
       </form>
@@ -116,11 +122,21 @@ function DangKyRoute() {
       </div>
 
       <div className="grid gap-2">
-        <Button className="h-10 rounded-lg text-sm" disabled type="button" variant="outline">
+        <Button
+          className="h-10 rounded-lg text-sm"
+          disabled
+          type="button"
+          variant="outline"
+        >
           <span className="font-semibold">G</span>
           Tiếp Tục với Google
         </Button>
-        <Button className="h-10 rounded-lg text-sm" disabled type="button" variant="outline">
+        <Button
+          className="h-10 rounded-lg text-sm"
+          disabled
+          type="button"
+          variant="outline"
+        >
           <ExternalLink aria-hidden />
           Tiếp Tục với Github
         </Button>

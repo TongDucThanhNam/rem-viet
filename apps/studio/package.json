@@ -1,0 +1,27 @@
+{
+  "name": "@rem-viet/studio",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:studio": "sanity build",
+    "check-types": "tsc --noEmit",
+    "dev": "sanity dev --host 127.0.0.1 --port 3333",
+    "deploy": "sanity deploy",
+    "test": "bun test tests"
+  },
+  "dependencies": {
+    "@agency/cms-provider-sanity": "workspace:*",
+    "@agency/cms-template-rem-viet": "workspace:*",
+    "@sanity/vision": "^6.9.2",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "sanity": "^6.9.2",
+    "styled-components": "^6.1.19"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "catalog:",
+    "typescript": "catalog:"
+  }
+}

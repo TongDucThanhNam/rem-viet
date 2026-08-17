@@ -1,0 +1,36 @@
+{
+  "name": "@agency/cms-admin",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test tests"
+  },
+  "peerDependencies": {
+    "@agency/cms-core": "0.1.0",
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "@agency/cms-core": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "catalog:",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "typescript": "catalog:"
+  }
+}

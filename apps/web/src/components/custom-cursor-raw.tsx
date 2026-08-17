@@ -86,24 +86,26 @@ export function CustomCursorRaw() {
     const cleanupLabelListeners: Array<() => void> = [];
 
     const bindLabelTargets = () => {
-      document.querySelectorAll<CursorLabelTarget>("[data-cursor]").forEach((target) => {
-        if (target.__cursorLabelBound) return;
-        target.__cursorLabelBound = true;
+      document
+        .querySelectorAll<CursorLabelTarget>("[data-cursor]")
+        .forEach((target) => {
+          if (target.__cursorLabelBound) return;
+          target.__cursorLabelBound = true;
 
-        const onEnter = () => {
-          const label = target.getAttribute("data-cursor");
-          if (label) setLabel(label);
-        };
-        const onLeave = clearHover;
+          const onEnter = () => {
+            const label = target.getAttribute("data-cursor");
+            if (label) setLabel(label);
+          };
+          const onLeave = clearHover;
 
-        target.addEventListener("mouseenter", onEnter);
-        target.addEventListener("mouseleave", onLeave);
-        cleanupLabelListeners.push(() => {
-          target.removeEventListener("mouseenter", onEnter);
-          target.removeEventListener("mouseleave", onLeave);
-          target.__cursorLabelBound = false;
+          target.addEventListener("mouseenter", onEnter);
+          target.addEventListener("mouseleave", onLeave);
+          cleanupLabelListeners.push(() => {
+            target.removeEventListener("mouseenter", onEnter);
+            target.removeEventListener("mouseleave", onLeave);
+            target.__cursorLabelBound = false;
+          });
         });
-      });
     };
 
     bindLabelTargets();

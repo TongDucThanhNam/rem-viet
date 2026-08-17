@@ -1,33 +1,230 @@
 import { z } from "zod";
+import { cmsCapabilitySchema, type CmsCapability } from "@agency/cms-core";
+
+import {
+  bentoDetailsBlockSchema,
+  benefitsBlockSchema,
+  craftProcessBlockSchema,
+  faqBlockSchema,
+  footerCtaBlockSchema,
+  heroBlockSchema,
+  horizontalGalleryBlockSchema,
+  marqueeBlockSchema,
+  measurementGuideBlockSchema,
+  threatNarrativeBlockSchema,
+} from "./landing";
+import { safePublicLinkSchema } from "./url";
+
+export * from "./landing";
+export * from "./deployment";
+export * from "./incidents";
+export * from "./operations";
+export * from "./rich-text";
+export * from "./site-manifest";
+export * from "./url";
+export * from "./vitals";
+export {
+  CmsError,
+  cmsBlockBaseSchema,
+  cmsDocumentStatusSchema,
+  cmsErrorCodeSchema,
+  cmsErrorContractSchema,
+  cmsProviderCapabilitiesSchema,
+  createCmsBlockSchema,
+  createCmsDocumentSchema,
+  migrateBlockData,
+  schemaVersionSchema,
+  type CmsBlock,
+  type CmsBlockMigration,
+  type CmsDocument,
+  type CmsDocumentStatus,
+  type CmsErrorCode,
+  type CmsErrorContract,
+  type CmsProviderCapabilities,
+} from "@agency/cms-core";
+export { cmsCapabilitySchema };
+export type { CmsCapability };
 
 export const postStatusSchema = z.enum(["draft", "published"]);
 export type PostStatus = z.infer<typeof postStatusSchema>;
 
-export const pageBlockSchema = z.discriminatedUnion("type", [
+export const homeBlockSchema = z.union([
+  heroBlockSchema,
+  threatNarrativeBlockSchema,
+  marqueeBlockSchema,
+  benefitsBlockSchema,
+  craftProcessBlockSchema,
+  bentoDetailsBlockSchema,
+  horizontalGalleryBlockSchema,
+  measurementGuideBlockSchema,
+  faqBlockSchema,
+  footerCtaBlockSchema,
+]);
+export type HomeBlock = z.infer<typeof homeBlockSchema>;
+
+export const standardPageBlockSchema = z.union([
   z.object({
-    type: z.literal("hero"),
-    title: z.string().min(1),
-    subtitle: z.string().optional(),
-    image: z.string().optional(),
-  }),
-  z.object({
+    id: z.string().trim().min(1).max(128).optional(),
     type: z.literal("richText"),
     content: z.string().default(""),
   }),
   z.object({
+    id: z.string().trim().min(1).max(128).optional(),
     type: z.literal("productGrid"),
     categoryId: z.string().optional(),
     limit: z.coerce.number().int().positive().max(24).optional(),
   }),
   z.object({
+    id: z.string().trim().min(1).max(128).optional(),
     type: z.literal("cta"),
     title: z.string().min(1),
-    href: z.string().min(1),
+    href: safePublicLinkSchema,
   }),
+]);
+export type StandardPageBlock = z.infer<typeof standardPageBlockSchema>;
+export type IdentifiedStandardPageBlock = StandardPageBlock & { id: string };
+
+export const pageBlockSchema = z.union([
+  homeBlockSchema,
+  standardPageBlockSchema,
 ]);
 export type PageBlock = z.infer<typeof pageBlockSchema>;
 
-export const pageBlocksSchema = z.array(pageBlockSchema).default([]);
+export const pageBlockListSchema = z.array(pageBlockSchema);
+export const pageBlocksSchema = pageBlockListSchema.default([]);
+
+export function createStandardPageBlockId(
+  type: StandardPageBlock["type"],
+  existingIds: Iterable<string>,
+  entropy = crypto.randomUUID(),
+) {
+  const claimed = new Set(existingIds);
+  const safeEntropy =
+    entropy
+      .trim()
+      .replace(/[^a-zA-Z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "block";
+  const base = `standard-${type}-${safeEntropy}`.slice(0, 128);
+  let candidate = base;
+  let suffix = 2;
+  while (claimed.has(candidate)) {
+    const marker = `-${suffix++}`;
+    candidate = `${base.slice(0, 128 - marker.length)}${marker}`;
+  }
+  return candidate;
+}
+
+/**
+ * Upgrades flattened v0 standard blocks to stable visual identities without
+ * changing their public rendering shape. Existing unique IDs are preserved;
+ * missing or duplicated IDs receive a deterministic legacy-safe identity so a
+ * reorder can be saved without retargeting the canvas selection.
+ */
+export function ensureStandardPageBlockIds(
+  blocks: readonly StandardPageBlock[],
+): IdentifiedStandardPageBlock[] {
+  const claimed = new Set<string>();
+  return blocks.map((block, index) => {
+    const existing = block.id?.trim();
+    let id = existing && !claimed.has(existing) ? existing : "";
+    if (!id) {
+      const base = `standard-${index}-${block.type}`;
+      id = base;
+      let suffix = 2;
+      while (claimed.has(id)) id = `${base}-${suffix++}`;
+    }
+    claimed.add(id);
+    return block.id === id
+      ? (block as IdentifiedStandardPageBlock)
+      : { ...block, id };
+  });
+}
+
+/**
+ * Immutable payload written to `page_revisions` when a working page is
+ * published. Public renderers must validate this payload and never fall back to
+ * mutable fields from `pages` when it is invalid.
+ */
+export const pageRevisionSnapshotSchema = z.object({
+  title: z.string().min(1),
+  slug: z.string().min(1),
+  template: z.enum(["landing", "standard"]).default("standard"),
+  blocks: pageBlocksSchema,
+  seoTitle: z.string().default(""),
+  seoDescription: z.string().default(""),
+  canonicalUrl: z.string().default(""),
+  ogImage: z.string().default(""),
+  robotsIndex: z.boolean().default(true),
+  robotsFollow: z.boolean().default(true),
+});
+export type PageRevisionSnapshot = z.infer<typeof pageRevisionSnapshotSchema>;
+
+/** Published post payload. Timestamps and the stable document id remain on the
+ * parent `posts` row; all user-visible content is snapshotted here. */
+export const postRevisionSnapshotSchema = z.object({
+  title: z.string().min(1),
+  slug: z.string().min(1),
+  description: z.string().default(""),
+  coverImage: z.string().default(""),
+  tags: z.array(z.string()).default([]),
+  content: z.string().default(""),
+  publishDate: z.string().default(""),
+  seoTitle: z.string().default(""),
+  seoDescription: z.string().default(""),
+  canonicalUrl: z.string().default(""),
+  ogImage: z.string().default(""),
+  robotsIndex: z.boolean().default(true),
+  robotsFollow: z.boolean().default(true),
+  url: z.string().default(""),
+  tableOfContents: z
+    .lazy((): z.ZodType<JsonValue> => jsonValueSchema)
+    .nullable()
+    .default(null),
+});
+export type PostRevisionSnapshot = z.infer<typeof postRevisionSnapshotSchema>;
+
+export type JsonValue =
+  string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+
+export const jsonValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.null(),
+    z.array(jsonValueSchema),
+    z.record(z.string(), jsonValueSchema),
+  ]),
+);
+
+export const staffRoleSchema = z.enum(["owner", "admin", "editor"]);
+export type StaffRole = z.infer<typeof staffRoleSchema>;
+
+export const roleCapabilities = {
+  owner: cmsCapabilitySchema.options,
+  admin: cmsCapabilitySchema.options.filter(
+    (capability) => capability !== "staff.manage",
+  ),
+  editor: [
+    "content.readDraft",
+    "content.write",
+    "content.review.request",
+    "media.manage",
+  ],
+} satisfies Record<StaffRole, readonly CmsCapability[]>;
+
+export function roleHasCapability(
+  role: StaffRole | null | undefined,
+  capability: CmsCapability,
+) {
+  const capabilities: readonly CmsCapability[] | undefined = role
+    ? roleCapabilities[role]
+    : undefined;
+
+  return capabilities?.includes(capability) ?? false;
+}
+
+export const revisionNoteSchema = z.string().trim().max(240).default("");
 
 export const menuItemSchema: z.ZodType<{
   label: string;
@@ -40,13 +237,13 @@ export const menuItemSchema: z.ZodType<{
   }>;
 }> = z.object({
   label: z.string().min(1),
-  href: z.string().min(1),
+  href: safePublicLinkSchema,
   order: z.coerce.number().int().optional(),
   children: z
     .array(
       z.object({
         label: z.string().min(1),
-        href: z.string().min(1),
+        href: safePublicLinkSchema,
         order: z.coerce.number().int().optional(),
       }),
     )
@@ -66,16 +263,18 @@ export const defaultSocials = {
   zalo: "",
 } satisfies Record<string, string>;
 
+const socialLinkSchema = z.literal("").or(safePublicLinkSchema);
+
 export const socialsSchema = z
   .object({
-    facebook: z.string().default(""),
-    instagram: z.string().default(""),
-    shopee: z.string().default(""),
-    youtube: z.string().default(""),
-    tiktok: z.string().default(""),
-    zalo: z.string().default(""),
+    facebook: socialLinkSchema.default(""),
+    instagram: socialLinkSchema.default(""),
+    shopee: socialLinkSchema.default(""),
+    youtube: socialLinkSchema.default(""),
+    tiktok: socialLinkSchema.default(""),
+    zalo: socialLinkSchema.default(""),
   })
-  .catchall(z.string())
+  .catchall(socialLinkSchema)
   .default(defaultSocials);
 export type SiteSocials = z.infer<typeof socialsSchema>;
 

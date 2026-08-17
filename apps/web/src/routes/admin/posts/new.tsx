@@ -35,11 +35,12 @@ function NewPostRoute() {
         toast.success("Đã tạo bài viết.");
         navigate({ to: "/admin/posts" });
       },
+      onError: (error) => toast.error(error.message),
     }),
   );
 
   return (
-    <AdminShell title="Thêm bài viết">
+    <AdminShell>
       <CmsPostForm
         isSubmitting={createPost.isPending}
         submitLabel="Tạo bài viết"

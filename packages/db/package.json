@@ -11,6 +11,7 @@
   },
   "scripts": {
     "check-types": "tsc --noEmit",
+    "seed:home:generate": "bun scripts/generate-home-seed.ts",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "mongo-to-d1:sql": "bun src/scripts/mongo-to-d1-sql.ts",

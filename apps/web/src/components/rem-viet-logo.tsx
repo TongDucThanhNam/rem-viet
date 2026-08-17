@@ -5,7 +5,7 @@ type RemVietLogoProps = {
 };
 
 export default function RemVietLogo({
-  alt = "Rèm Vina",
+  alt = siteConfig.name,
   size = 32,
   src = "/src/remviet2.webp",
 }: RemVietLogoProps) {
@@ -19,3 +19,4 @@ export default function RemVietLogo({
     />
   );
 }
+import { siteConfig } from "@/lib/site-config";

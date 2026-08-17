@@ -1,0 +1,1 @@
+export const REM_VIET_BLOCK_SCHEMA_VERSION = 1;

@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "releaseTag": "cms-kit-v1.0.0",
+  "assembledAt": "",
+  "releaseSourceCommit": "",
+  "sourceState": "clean",
+  "coreFix": {
+    "id": "CMSKIT-0",
+    "fromVersion": "0.9.0",
+    "toVersion": "1.0.0",
+    "sourceCommit": "",
+    "changelogSha256": ""
+  },
+  "publications": {
+    "initial": {
+      "path": "docs/releases/evidence/replace-initial-publication.json",
+      "sha256": ""
+    },
+    "target": {
+      "path": "docs/releases/evidence/replace-target-publication.json",
+      "sha256": ""
+    }
+  },
+  "adoptions": [
+    {
+      "path": "docs/releases/evidence/replace-first-paid-site-adoption.json",
+      "sha256": ""
+    },
+    {
+      "path": "docs/releases/evidence/replace-second-paid-site-adoption.json",
+      "sha256": ""
+    }
+  ],
+  "localChecks": {
+    "cleanCheckout": true,
+    "tests": true,
+    "typecheck": true,
+    "productionBuilds": true,
+    "migrations": true,
+    "packageBoundaries": true,
+    "packedConsumer": true,
+    "upgradeRollback": true,
+    "compatibilityMatrix": true,
+    "changelogAndMigrationNotes": true,
+    "installationDocumentation": true,
+    "templateDocumentation": true,
+    "upgradeDocumentation": true,
+    "incidentDocumentation": true,
+    "handoverDocumentation": true
+  },
+  "commercialBoundary": {
+    "installationTierDefined": true,
+    "recurringSupportScopeDefined": true,
+    "upgradeSlaDefined": true,
+    "deprecationPolicyDefined": true
+  },
+  "agencyApproval": {
+    "role": "agency-owner",
+    "approvedAt": "",
+    "statement": "I approve Agency CMS Platform Kit v1.0.0 for restricted commercial use."
+  }
+}

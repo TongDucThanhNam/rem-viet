@@ -8,7 +8,14 @@ import {
 } from "@rem-viet/ui/components/dropdown-menu";
 import { Input } from "@rem-viet/ui/components/input";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Menu, MessageCircle, Search, ShoppingCart, Store, Trash2 } from "lucide-react";
+import {
+  Menu,
+  MessageCircle,
+  Search,
+  ShoppingCart,
+  Store,
+  Trash2,
+} from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 import { useSiteChrome } from "@/hooks/use-site-chrome";
@@ -77,14 +84,20 @@ function HeaderNavLink({
 
 type HeaderProps = {
   initialChrome?: SiteChromeData;
+  preferInitialChrome?: boolean;
 };
 
-export default function Header({ initialChrome }: HeaderProps) {
+export default function Header({
+  initialChrome,
+  preferInitialChrome = false,
+}: HeaderProps) {
   const cart = useCart();
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
-  const { headerMenu, settings } = useSiteChrome(initialChrome);
+  const { headerMenu, settings } = useSiteChrome(initialChrome, {
+    preferInitial: preferInitialChrome,
+  });
   const [searchValue, setSearchValue] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const socialActions = [
@@ -137,11 +150,14 @@ export default function Header({ initialChrome }: HeaderProps) {
             className="flex items-center gap-2 text-sm font-semibold"
             to="/"
           >
-            <RemVietLogo alt={siteConfig.name} src={settings.logo} />
+            <RemVietLogo alt="" src={settings.logo} />
             <span className="whitespace-nowrap">{siteConfig.name}</span>
           </Link>
 
-          <nav className="hidden gap-5 text-sm md:flex">
+          <nav
+            aria-label="Điều hướng chính"
+            className="hidden gap-5 text-sm md:flex"
+          >
             {headerMenu.map((item) => (
               <HeaderNavLink
                 className="transition-colors hover:text-foreground"
@@ -296,7 +312,7 @@ export default function Header({ initialChrome }: HeaderProps) {
               <Search aria-hidden />
             </Button>
           </form>
-          <nav className="grid gap-2 text-sm">
+          <nav aria-label="Điều hướng chính" className="grid gap-2 text-sm">
             {headerMenu.map((item) => (
               <HeaderNavLink
                 className="rounded-lg px-3 py-2"

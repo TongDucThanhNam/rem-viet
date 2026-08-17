@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "current": "0.1.0",
+  "releases": [
+    {
+      "version": "0.1.0",
+      "from": null,
+      "contentMigration": "Initial install; existing Rèm Việt flattened records are read through template compatibility adapters.",
+      "providerMigration": "Run applyCloudflareCmsMigrations through 0003_media_metadata on empty or upgraded D1 before serving writes.",
+      "rollback": "For an initial install, remove only the newly provisioned isolated client resources. For an adopted client, retain the pre-migration backup and restore through the receipt-bound driver before reinstalling the last coordinated package version.",
+      "verification": [
+        "bun run cms:kit:boundaries",
+        "bun run cms:kit:consumer",
+        "bun run cms:kit:upgrade",
+        "bun run check-types",
+        "bun run build:web:secure"
+      ]
+    }
+  ]
+}

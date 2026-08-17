@@ -1,5 +1,11 @@
 import { relations, sql } from "drizzle-orm";
-import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+  index,
+  integer,
+  real,
+  sqliteTable,
+  text,
+} from "drizzle-orm/sqlite-core";
 
 import { products } from "./catalog";
 
@@ -17,8 +23,12 @@ export const orders = sqliteTable(
   "orders",
   {
     id: text("id").primaryKey(),
-    type: text("type", { enum: ["cart", "product"] }).default("cart").notNull(),
-    status: text("status", { enum: ["new", "processing", "completed", "cancelled"] })
+    type: text("type", { enum: ["cart", "product"] })
+      .default("cart")
+      .notNull(),
+    status: text("status", {
+      enum: ["new", "processing", "completed", "cancelled"],
+    })
       .default("new")
       .notNull(),
     email: text("email"),
@@ -33,9 +43,18 @@ export const orders = sqliteTable(
     total: real("total").default(0).notNull(),
     userId: text("user_id"),
     cartId: text("cart_id"),
-    products: text("products", { mode: "json" }).$type<unknown[]>().default([]).notNull(),
-    shipping: text("shipping", { mode: "json" }).$type<Record<string, unknown> | null>(),
-    payment: text("payment", { mode: "json" }).$type<Record<string, unknown> | null>(),
+    products: text("products", { mode: "json" })
+      .$type<unknown[]>()
+      .default([])
+      .notNull(),
+    shipping: text("shipping", { mode: "json" }).$type<Record<
+      string,
+      unknown
+    > | null>(),
+    payment: text("payment", { mode: "json" }).$type<Record<
+      string,
+      unknown
+    > | null>(),
     items: text("items", { mode: "json" })
       .$type<
         Array<{
@@ -63,7 +82,10 @@ export const carts = sqliteTable(
   {
     id: text("id").primaryKey(),
     userId: text("user_id").notNull(),
-    products: text("products", { mode: "json" }).$type<OrderItem[]>().default([]).notNull(),
+    products: text("products", { mode: "json" })
+      .$type<OrderItem[]>()
+      .default([])
+      .notNull(),
     ...timestamps,
   },
   (table) => [index("carts_user_id_idx").on(table.userId)],
@@ -105,7 +127,9 @@ function parseProductPrice(value?: string | number | null) {
   return Number(numericPart) || 0;
 }
 
-export function toOrderItemFromProduct(product: typeof products.$inferSelect): OrderItem {
+export function toOrderItemFromProduct(
+  product: typeof products.$inferSelect,
+): OrderItem {
   return {
     productId: product.id,
     name: product.name,

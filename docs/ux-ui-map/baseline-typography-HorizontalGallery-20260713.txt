@@ -1,0 +1,30 @@
+[HorizontalGallery] apps/web/src/components/landing/horizontal-gallery.tsx (full route surface)
+  [source] apps/web/src/components/landing/horizontal-gallery.tsx
+    [component inventory]
+      [HorizontalGallery] apps/web/src/components/landing/horizontal-gallery.tsx:84
+    [semantic hierarchy]
+      [section] (id=lifestyle | attrs=ref={sectionRef} className="font-sans py-section" id="lifestyle") @ apps/web/src/components/landing/horizontal-gallery.tsx:259
+      [p] (attrs=className="section-eyebrow font-vietnam mb-[14px] text-[11px] font-medium leading-[1.4] tracking-[0.18em] opacity-72 uppercase") @ apps/web/src/components/landing/horizontal-gallery.tsx:262
+      [h2] (attrs=className="font-playfair text-[clamp(40px,8vw,120px)] leading-[0.95] max-[640px]:text-[14vw]" ref={titleRef}) @ apps/web/src/components/landing/horizontal-gallery.tsx:265
+      [img] (attrs=className="h-full w-full object-cover" src={item.src} alt={item.title} /) @ apps/web/src/components/landing/horizontal-gallery.tsx:280
+      [section] (id=lifestyle | attrs=ref={sectionRef} className="relative h-dvh overflow-hidden font-sans" id="lifestyle") @ apps/web/src/components/landing/horizontal-gallery.tsx:304
+      [p] (attrs=className="section-eyebrow font-vietnam mb-[14px] text-[11px] font-medium leading-[1.4] tracking-[0.18em] opacity-72 uppercase") @ apps/web/src/components/landing/horizontal-gallery.tsx:314
+      [h2] (attrs=className="font-playfair text-[clamp(40px,8vw,120px)] leading-[0.95] max-[640px]:text-[14vw]" ref={titleRef}) @ apps/web/src/components/landing/horizontal-gallery.tsx:317
+      [img] (attrs=className="h-full w-full rounded-lg object-cover will-change-transform" src={item.src} alt={item.title} /) @ apps/web/src/components/landing/horizontal-gallery.tsx:337
+    [visible copy and content literals]
+      "Phòng khách mở sáng" @ apps/web/src/components/landing/horizontal-gallery.tsx:9
+      "Góc nghỉ yên tĩnh" @ apps/web/src/components/landing/horizontal-gallery.tsx:14
+      "Không gian bếp sạch" @ apps/web/src/components/landing/horizontal-gallery.tsx:19
+      "Đón gió tự nhiên" @ apps/web/src/components/landing/horizontal-gallery.tsx:24
+      "(null); const trackRef = useRef" @ apps/web/src/components/landing/horizontal-gallery.tsx:86
+      "(null); const headerRef = useRef" @ apps/web/src/components/landing/horizontal-gallery.tsx:87
+      "(null); const counterRef = useRef" @ apps/web/src/components/landing/horizontal-gallery.tsx:88
+      "(null); const progressRef = useRef" @ apps/web/src/components/landing/horizontal-gallery.tsx:89
+      "(null); const titleRef = useSplitReveal" @ apps/web/src/components/landing/horizontal-gallery.tsx:90
+      "( \".gallery-caption-meta\", ); const titles = track.querySelectorAll" @ apps/web/src/components/landing/horizontal-gallery.tsx:180
+      "(05) Lối sống" @ apps/web/src/components/landing/horizontal-gallery.tsx:262
+      "Không Gian" @ apps/web/src/components/landing/horizontal-gallery.tsx:268
+      "Tuyệt Đỉnh" @ apps/web/src/components/landing/horizontal-gallery.tsx:270
+      "); } // ---- Full-motion layout: pinned horizontal scroll ----------------------- return (" @ apps/web/src/components/landing/horizontal-gallery.tsx:298
+      "Xem" @ apps/web/src/components/landing/horizontal-gallery.tsx:334
+      "01" @ apps/web/src/components/landing/horizontal-gallery.tsx:358

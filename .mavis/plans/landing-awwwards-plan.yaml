@@ -1,6 +1,6 @@
 version: 1
 plan:
-  name: 'Landing mới full AWWWARDS — chuyển hero mới, bento background, gallery caption, FAQ, curtain footer fixed, magnetic đầy đủ'
+  name: "Landing mới full AWWWARDS — chuyển hero mới, bento background, gallery caption, FAQ, curtain footer fixed, magnetic đầy đủ"
   max_concurrency: 3
   max_consecutive_failures: 2
   max_cycles: 6
@@ -9,7 +9,7 @@ plan:
     audit_sample_rate: 0.0
 tasks:
   - id: hero-magnetic
-    title: 'Track A — Hero mới full-bleed + Features bar + Magnetic cho .hover-target'
+    title: "Track A — Hero mới full-bleed + Features bar + Magnetic cho .hover-target"
     assigned_to: coder
     verified_by: verifier
     timeout_ms: 1800000
@@ -154,7 +154,7 @@ tasks:
       nếu có vấn đề.
 
   - id: sections-bento-gallery-faq
-    title: 'Track B — Bento có bg image + Gallery caption + FAQ section mới + CSS tương ứng'
+    title: "Track B — Bento có bg image + Gallery caption + FAQ section mới + CSS tương ứng"
     assigned_to: coder
     verified_by: verifier
     timeout_ms: 1800000
@@ -306,7 +306,7 @@ tasks:
       FAIL nếu thiếu bất kỳ mục nào, FAQ copy sai text, hoặc typecheck fail.
 
   - id: footer-loader-wrapper
-    title: 'Track C — Curtain footer fixed full-screen + smooth-wrapper spacing + Loader polish'
+    title: "Track C — Curtain footer fixed full-screen + smooth-wrapper spacing + Loader polish"
     assigned_to: coder
     verified_by: verifier
     timeout_ms: 1500000
@@ -409,9 +409,10 @@ tasks:
       typecheck fail.
 
   - id: final-integration-check
-    title: 'Final integration — build, typecheck, route /, kiểm tra visual end-to-end'
+    title: "Final integration — build, typecheck, route /, kiểm tra visual end-to-end"
     assigned_to: verifier
-    depends_on: [hero-magnetic, sections-bento-gallery-faq, footer-loader-wrapper]
+    depends_on:
+      [hero-magnetic, sections-bento-gallery-faq, footer-loader-wrapper]
     role: verify-as-task
     timeout_ms: 1500000
     prompt: |

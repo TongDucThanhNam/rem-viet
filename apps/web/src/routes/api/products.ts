@@ -1,4 +1,7 @@
-import { listProducts, listProductsInputSchema } from "@rem-viet/api/services/products";
+import {
+  listProducts,
+  listProductsInputSchema,
+} from "@rem-viet/api/services/products";
 import { createFileRoute } from "@tanstack/react-router";
 
 function getSearchParams(request: Request) {

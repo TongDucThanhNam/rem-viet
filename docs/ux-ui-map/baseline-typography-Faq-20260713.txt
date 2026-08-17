@@ -1,0 +1,26 @@
+[Faq] apps/web/src/components/landing/faq.tsx (full route surface)
+  [source] apps/web/src/components/landing/faq.tsx
+    [component inventory]
+      [FaqItem] apps/web/src/components/landing/faq.tsx:37
+      [Faq] apps/web/src/components/landing/faq.tsx:88
+    [semantic hierarchy]
+      [button] (type=button | attrs=type="button" className="faq-head hover-target flex w-full items-center justify-between gap-6 border-0 bg-transparent py-7 text-l…) @ apps/web/src/components/landing/faq.tsx:57
+      [p] (attrs=className="max-w-[680px] text-[15px] leading-[1.7] text-[color:color-mix(in_srgb,var(--text-color)_66%,transparent)]") @ apps/web/src/components/landing/faq.tsx:79
+      [section] (id=faq | attrs=className="pt-[16vh] pb-[20vh] font-sans max-[640px]:py-[12vh]" id="faq" ref={sectionRef}) @ apps/web/src/components/landing/faq.tsx:134
+      [p] (attrs=className="section-eyebrow mb-[18px] font-vietnam text-[11px] font-medium leading-[1.4] tracking-[0.18em] opacity-72 uppercase") @ apps/web/src/components/landing/faq.tsx:141
+      [h2] (attrs=className="massive-text font-playfair text-center text-display leading-[0.85] tracking-[-0.02em]" ref={titleRef}) @ apps/web/src/components/landing/faq.tsx:144
+    [visible copy and content literals]
+      "Kích thước có bao gồm phần viền không?" @ apps/web/src/components/landing/faq.tsx:8
+      "Có. Kích thước sản xuất là kích thước phủ bì, đã tính cả phần viền dán. Bạn chỉ cần đo mép ngoài cùng của khung cửa." @ apps/web/src/components/landing/faq.tsx:9
+      "Nên đo bên trong hay bên ngoài khung?" @ apps/web/src/components/landing/faq.tsx:13
+      "Hãy đo cạnh ngoài của khung để lưới che phủ toàn bộ mép cửa. Nếu khung có gờ hoặc tay nắm đặc biệt, gửi thêm ảnh để được tư vấn." @ apps/web/src/components/landing/faq.tsx:14
+      "Lưới có làm tối nhà không?" @ apps/web/src/components/landing/faq.tsx:18
+      "Không. Mắt lưới mảnh nên vẫn giữ ánh sáng tự nhiên và tầm nhìn thoáng khi nhìn từ khoảng cách sinh hoạt thông thường." @ apps/web/src/components/landing/faq.tsx:19
+      "Có nhận may kích thước cửa lớn không?" @ apps/web/src/components/landing/faq.tsx:23
+      "Có. Đội ngũ có thể tư vấn phương án chia tấm hoặc may khổ lớn tùy cấu trúc cửa để hạn chế nhăn, võng và hở mép." @ apps/web/src/components/landing/faq.tsx:24
+      "(0); const sectionRef = useRef" @ apps/web/src/components/landing/faq.tsx:89
+      "(null); const titleRef = useSplitReveal" @ apps/web/src/components/landing/faq.tsx:90
+      "(\".section-eyebrow\"); const items = section.querySelectorAll" @ apps/web/src/components/landing/faq.tsx:102
+      "(07) Câu hỏi thường gặp" @ apps/web/src/components/landing/faq.tsx:141
+      "Trước khi đặt may." @ apps/web/src/components/landing/faq.tsx:147
+      "setActiveIndex(activeIndex === index ? null : index) } /> ))}" @ apps/web/src/components/landing/faq.tsx:158

@@ -1,5 +1,5 @@
 {
   "extends": "@rem-viet/config/tsconfig.base.json",
-  "include": ["alchemy.run.ts"],
-  "exclude": ["node_modules", "dist", ".alchemy"]
+  "include": ["alchemy.run.ts", "scripts/**/*.ts", "src/**/*.ts"],
+  "exclude": ["node_modules", "dist", ".alchemy", "src/**/*.test.ts"]
 }

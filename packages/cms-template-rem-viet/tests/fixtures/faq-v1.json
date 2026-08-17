@@ -1,0 +1,39 @@
+{
+  "id": "home-faq",
+  "enabled": true,
+  "type": "faq",
+  "schemaVersion": 1,
+  "data": {
+    "eyebrow": "(07) Câu hỏi thường gặp",
+    "backdropLabel": "HỎI",
+    "title": "Trước khi đặt may.",
+    "intro": "Những điều khách hàng thường hỏi trước khi gửi số đo và chọn kiểu viền phù hợp cho từng khung cửa.",
+    "cta": {
+      "label": "Cần tư vấn riêng",
+      "href": "#order",
+      "cursorLabel": "Liên hệ"
+    },
+    "items": [
+      {
+        "id": "included-border",
+        "question": "Kích thước có bao gồm phần viền không?",
+        "answer": "Có. Kích thước sản xuất là kích thước phủ bì, đã tính cả phần viền dán. Bạn chỉ cần đo mép ngoài cùng của khung cửa."
+      },
+      {
+        "id": "inside-outside",
+        "question": "Nên đo bên trong hay bên ngoài khung?",
+        "answer": "Hãy đo cạnh ngoài của khung để lưới che phủ toàn bộ mép cửa. Nếu khung có gờ hoặc tay nắm đặc biệt, gửi thêm ảnh để được tư vấn."
+      },
+      {
+        "id": "natural-light",
+        "question": "Lưới có làm tối nhà không?",
+        "answer": "Không. Mắt lưới mảnh nên vẫn giữ ánh sáng tự nhiên và tầm nhìn thoáng khi nhìn từ khoảng cách sinh hoạt thông thường."
+      },
+      {
+        "id": "large-opening",
+        "question": "Có nhận may kích thước cửa lớn không?",
+        "answer": "Có. Đội ngũ có thể tư vấn phương án chia tấm hoặc may khổ lớn tùy cấu trúc cửa để hạn chế nhăn, võng và hở mép."
+      }
+    ]
+  }
+}

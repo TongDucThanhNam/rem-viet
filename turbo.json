@@ -9,7 +9,15 @@
     "CLOUDFLARE_ACCOUNT_ID",
     "CLOUDFLARE_DATABASE_ID",
     "CLOUDFLARE_D1_TOKEN",
-    "ALCHEMY_PASSWORD"
+    "SANITY_STUDIO_PROJECT_ID",
+    "SANITY_STUDIO_DATASET",
+    "SANITY_STUDIO_PREVIEW_URL",
+    "SANITY_STUDIO_ALLOW_ORIGINS",
+    "SANITY_PROJECT_ID",
+    "SANITY_DATASET",
+    "SANITY_STUDIO_URL",
+    "SANITY_API_READ_TOKEN",
+    "SANITY_PREVIEW_COOKIE_SECRET"
   ],
   "tasks": {
     "build": {
@@ -38,13 +46,16 @@
       "cache": false
     },
     "db:generate": {
-      "cache": false
+      "cache": false,
+      "interactive": true
     },
     "deploy": {
-      "cache": false
+      "cache": false,
+      "interactive": true
     },
     "destroy": {
-      "cache": false
+      "cache": false,
+      "interactive": true
     }
   }
 }

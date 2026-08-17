@@ -1,45 +1,47 @@
 :root {
-    --bg-color: #F8F5EF;
-    --text-color: #111111;
-    --accent-color: #B58A43;
+  --bg-color: #f8f5ef;
+  --text-color: #111111;
+  --accent-color: #b58a43;
 
-    --font-primary: 'Playfair Display', serif;
-    --font-secondary: 'Be Vietnam Pro', sans-serif;
+  --font-primary: "Playfair Display", serif;
+  --font-secondary: "Be Vietnam Pro", sans-serif;
 
-    --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
-    --ease-in-out-expo: cubic-bezier(1, 0, 0, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+  --ease-in-out-expo: cubic-bezier(1, 0, 0, 1);
 
-    /* === Design tokens — fluid type scale + spacing rhythm (AWWWARDS-grade
+  /* === Design tokens — fluid type scale + spacing rhythm (AWWWARDS-grade
        consistency). Section sizes below reference these instead of hardcoded
        px/vw so the whole page breathes on one ladder. === */
 
-    /* Type scale (fluid via clamp; min→ideal→max) */
-    --fs-display: clamp(64px, 13vw, 200px);   /* hero title, signature moments */
-    --fs-h1: clamp(40px, 7vw, 96px);          /* section titles */
-    --fs-h2: clamp(28px, 3.5vw, 48px);        /* sub-titles, card titles large */
-    --fs-h3: clamp(20px, 1.8vw, 28px);
-    --fs-lead: clamp(18px, 1.6vw, 24px);      /* descriptive lead paragraphs */
-    --fs-body: 16px;
-    --fs-small: 14px;
-    --fs-eyebrow: 12px;                       /* (01) section eyebrows */
-    --fs-label: 10px;                         /* stat labels */
+  /* Type scale (fluid via clamp; min→ideal→max) */
+  --fs-display: clamp(64px, 13vw, 200px); /* hero title, signature moments */
+  --fs-h1: clamp(40px, 7vw, 96px); /* section titles */
+  --fs-h2: clamp(28px, 3.5vw, 48px); /* sub-titles, card titles large */
+  --fs-h3: clamp(20px, 1.8vw, 28px);
+  --fs-lead: clamp(18px, 1.6vw, 24px); /* descriptive lead paragraphs */
+  --fs-body: 16px;
+  --fs-small: 14px;
+  --fs-eyebrow: 12px; /* (01) section eyebrows */
+  --fs-label: 10px; /* stat labels */
 
-    /* Spacing rhythm */
-    --space-section: clamp(96px, 16vh, 200px); /* section vertical padding */
-    --space-block: clamp(48px, 8vh, 96px);     /* intra-section gap */
-    --space-gutter: 4vw;                       /* horizontal page padding */
+  /* Spacing rhythm */
+  --space-section: clamp(96px, 16vh, 200px); /* section vertical padding */
+  --space-block: clamp(48px, 8vh, 96px); /* intra-section gap */
+  --space-gutter: 4vw; /* horizontal page padding */
 
-    /* Accent variants — the brass voice. Light = trầm, dark = sáng lên
+  /* Accent variants — the brass voice. Light = trầm, dark = sáng lên
        để nổi trên nền đen. */
-    --accent: #B58A43;
-    --accent-soft: #C9A86A;
+  --accent: #b58a43;
+  --accent-soft: #c9a86a;
+  --accent-text: #806022;
+  --accent-solid: #806022;
 
-    /* Muted text (desc/labels) — theme-aware via color-mix so it works
+  /* Muted text (desc/labels) — theme-aware via color-mix so it works
        on both cream and black backgrounds. */
-    --text-muted: color-mix(in srgb, var(--text-color) 60%, transparent);
-    --text-faint: color-mix(in srgb, var(--text-color) 38%, transparent);
-    --hairline: color-mix(in srgb, var(--text-color) 12%, transparent);
-    --hairline-strong: color-mix(in srgb, var(--text-color) 24%, transparent);
+  --text-muted: color-mix(in srgb, var(--text-color) 60%, transparent);
+  --text-faint: color-mix(in srgb, var(--text-color) 38%, transparent);
+  --hairline: color-mix(in srgb, var(--text-color) 12%, transparent);
+  --hairline-strong: color-mix(in srgb, var(--text-color) 24%, transparent);
 }
 
 /* Theme engine — driven by `useThemeBySection()` which sets
@@ -47,15 +49,17 @@
    viewport's middle. Inheriting `--accent-color` and `--font-*` from the
    base :root keeps the brand voice consistent across themes. */
 :root[data-theme="dark"] {
-    --bg-color: #111111;
-    --text-color: #F8F5EF;
-    --accent: #D6BB82;
-    --accent-soft: #E2C896;
+  --bg-color: #111111;
+  --text-color: #f8f5ef;
+  --accent: #d6bb82;
+  --accent-soft: #e2c896;
+  --accent-text: #e2c896;
 }
 
 :root[data-theme="light"] {
-    --bg-color: #F8F5EF;
-    --text-color: #111111;
+  --bg-color: #f8f5ef;
+  --text-color: #111111;
+  --accent-text: #806022;
 }
 
 /* The `* { margin:0; padding:0; box-sizing:border-box }` reset was removed —
@@ -63,25 +67,25 @@
 
 .has-custom-cursor,
 .has-custom-cursor * {
-    cursor: none !important;
+  cursor: none !important;
 }
 
 body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: var(--font-secondary);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    overflow-x: hidden;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-secondary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
 }
 
 body > div {
-    min-width: 0;
-    overflow-x: hidden;
+  min-width: 0;
+  overflow-x: clip;
 }
 
 body.is-loading {
-    overflow: hidden;
+  overflow: hidden;
 }
 
 /* Custom Cursor — base styles migrated to Tailwind utilities in
@@ -89,19 +93,19 @@ body.is-loading {
    use JS-toggled state classes (.hovering / .has-text) + descendant
    selectors that can't be utilities. */
 .cursor.hovering .cursor-dot {
-    width: 60px;
-    height: 60px;
+  width: 60px;
+  height: 60px;
 }
 
 .cursor.has-text .cursor-dot {
-    width: 80px;
-    height: 80px;
-    background-color: #fff;
-    mix-blend-mode: normal;
+  width: 80px;
+  height: 80px;
+  background-color: #fff;
+  mix-blend-mode: normal;
 }
 
 .cursor.has-text .cursor-text {
-    opacity: 1;
+  opacity: 1;
 }
 
 /* Scroll Progress Bar
@@ -111,67 +115,144 @@ body.is-loading {
    re-tints automatically when `useThemeBySection` flips the
    `data-theme` attribute on <html> as you scroll. */
 .scroll-progress {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 3px;
-    background-color: var(--accent-color);
-    transform-origin: 0 50%;
-    z-index: 9999;
-    pointer-events: none;
-    will-change: transform;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 3px;
+  background-color: var(--accent-color);
+  transform-origin: 0 50%;
+  z-index: 9999;
+  pointer-events: none;
+  will-change: transform;
 }
 
-/* Loader + Nav — migrated to Tailwind utilities in their components.
-   .nav-cta is kept only as a hook class (excluded from useMagneticScope),
-   no styles of its own. */
+/* Navigation — base layout lives in navigation.tsx. The scrolled glass state
+   is adapted from the supplied transparent-glass-scroll-header reference.
+   ScrollTrigger only toggles `.is-scrolled`; CSS owns the visual transition. */
+.nav {
+  color: #fff;
+  transition:
+    top 0.55s var(--ease-out-expo),
+    left 0.55s var(--ease-out-expo),
+    width 0.55s var(--ease-out-expo),
+    padding 0.55s var(--ease-out-expo),
+    color 0.35s ease,
+    background-color 0.45s ease,
+    border-color 0.45s ease,
+    box-shadow 0.45s ease,
+    backdrop-filter 0.45s ease;
+}
+
+.nav-link {
+  position: relative;
+  color: inherit;
+}
+
+.nav-link[data-section]::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -8px;
+  left: 0;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.45s var(--ease-out-expo);
+}
+
+.nav-link[aria-current="location"]::after {
+  transform: scaleX(1);
+}
+
+.nav.is-scrolled {
+  top: 12px;
+  left: 2vw;
+  width: 96vw;
+  padding: 14px 20px;
+  color: var(--text-color);
+  border: 1px solid var(--hairline-strong);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg-color) 78%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in srgb, var(--text-color) 8%, transparent),
+    0 18px 52px color-mix(in srgb, var(--text-color) 10%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  backdrop-filter: blur(20px) saturate(1.2);
+  mix-blend-mode: normal;
+}
+
+.nav.is-menu-open {
+  color: var(--bg-color);
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  mix-blend-mode: normal;
+}
+
+.mobile-nav-link[aria-current="location"] > span:first-child {
+  color: var(--accent-soft);
+}
 
 /* Grid System */
 .container {
-    width: 100%;
-    max-width: 100%;
-    padding: 0 4vw;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 4vw;
 }
 
 .grid-12 {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    gap: 2vw;
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 2vw;
 }
 
-.col-4 { grid-column: span 4; }
-.col-5 { grid-column: span 5; }
-.col-6 { grid-column: span 6; }
-.col-8 { grid-column: span 8; }
-.col-start-8 { grid-column-start: 8; }
+.col-4 {
+  grid-column: span 4;
+}
+.col-5 {
+  grid-column: span 5;
+}
+.col-6 {
+  grid-column: span 6;
+}
+.col-8 {
+  grid-column: span 8;
+}
+.col-start-8 {
+  grid-column-start: 8;
+}
 
-.align-center { align-items: center; }
+.align-center {
+  align-items: center;
+}
 
 .section-eyebrow {
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    line-height: 1.4;
-    text-transform: uppercase;
-    opacity: 0.72;
-    margin-bottom: 18px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  margin-bottom: 18px;
 }
 
 /* Image Masks & Parallax */
 .img-mask {
-    overflow: hidden;
-    position: relative;
-    width: 100%;
-    height: 100%;
-    clip-path: inset(100% 0 0 0); /* Pre-animation state */
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  clip-path: inset(100% 0 0 0); /* Pre-animation state */
 }
 
 .img-mask img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transform: scale(1.2); /* Pre-animation state */
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.2); /* Pre-animation state */
 }
 
 /* Legacy `.hero` / `.hero-grid` / `.hero-heading` / `.hero-desc` /
@@ -181,208 +262,244 @@ body.is-loading {
 
 /* New full-bleed hero */
 /* Hero — most layout/typography now lives in Tailwind utilities in hero.tsx.
-   These rules remain only for what Tailwind can't express: the ::after overlay
-   gradient, the kicker underline (GSAP-tweened --kicker-underline-w var),
-   the SplitText mask (.hero-title-line), the SVG-noise grain, the radial
-   vignette, and the glassmorphism feature bar. Base hero layout/typography
-   still lives in Tailwind utilities; `.hero-new*` classes are kept as hooks
-   for pseudo-elements, animation, and narrow-mobile overrides. */
+   These rules remain only for what Tailwind can't express: the kicker
+   underline (GSAP-tweened --kicker-underline-w var), the SplitText mask
+   (.hero-title-line), and the glassmorphism feature bar. */
 .hero-new-bg {
-    position: absolute;
-    inset: 0;
-    z-index: -2;
-    overflow: hidden;
-}
-
-.hero-new-bg::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    background:
-        linear-gradient(90deg, rgba(0, 0, 0, 0.74) 0%, rgba(0, 0, 0, 0.38) 48%, rgba(0, 0, 0, 0.08) 100%),
-        linear-gradient(0deg, rgba(0, 0, 0, 0.46) 0%, rgba(0, 0, 0, 0) 42%);
-}
-
-/* Hero-specific film grain — heavier than the page-wide .noise-overlay so
-   the photographic backdrop reads as cinema, not a stock photo. Drifts at a
-   different parallax speed than the bg image for depth. */
-.hero-grain {
-    position: absolute;
-    inset: -10%;
-    z-index: -1;
-    pointer-events: none;
-    opacity: 0.12;
-    mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='heroNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23heroNoise)'/%3E%3C/svg%3E");
-    will-change: transform;
-}
-
-/* Hero vignette — deepens the bg at the edges + corners to focus the eye
-   on the bottom-left content block. Sits above the grain so it reads. */
-.hero-vignette {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background: radial-gradient(
-        ellipse 90% 70% at 30% 80%,
-        transparent 0%,
-        rgba(0, 0, 0, 0.35) 80%,
-        rgba(0, 0, 0, 0.55) 100%
-    );
-    will-change: transform;
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  overflow: hidden;
 }
 
 /* Kicker underline — draws in via --kicker-underline-w (tweened by GSAP).
    The kicker's other styles (color, font, spacing) are Tailwind utilities
    in hero.tsx; only the pseudo-element needs CSS. */
 .hero-new-kicker {
-    --kicker-underline-w: 0;
+  --kicker-underline-w: 0;
 }
 .hero-new-kicker::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    width: calc(var(--kicker-underline-w) * 40px);
-    height: 1px;
-    background: var(--accent-soft);
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: calc(var(--kicker-underline-w) * 40px);
+  height: 1px;
+  background: var(--accent-soft);
 }
 
 /* SplitText mask — overflow:hidden line wrappers. Children are inline-block. */
 .hero-title-line {
-    display: block;
-    overflow: hidden;
+  display: block;
+  overflow: hidden;
 }
 
 .hero-title-line-single {
-    display: flex;
-    align-items: baseline;
-    gap: 0.12em;
-    white-space: nowrap;
+  display: flex;
+  align-items: baseline;
+  gap: 0.12em;
+  white-space: nowrap;
 }
 
 .hero-title-line > span,
 .hero-title-char {
-    display: inline-block;
+  display: inline-block;
 }
 
 .hero-title-line > span {
-    white-space: nowrap;
+  white-space: nowrap;
 }
 
 /* Glassmorphism feature bar — kept as a class because it combines absolute
    positioning with a multi-property backdrop-blur grid that reads cleaner in
    CSS. The per-feature tiles use Tailwind utilities in hero.tsx. */
 .hero-features-bar {
-    position: absolute;
-    left: 4vw;
-    right: auto;
-    bottom: 5vh;
-    width: min(70vw, calc(100vw - 8vw));
-    z-index: 2;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1px;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(18px);
-    transform: translateY(0) scale(1);
-    transform-origin: left bottom;
+  position: absolute;
+  left: 4vw;
+  right: auto;
+  bottom: 5vh;
+  width: min(70vw, calc(100vw - 8vw));
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px);
+  transform: translateY(0) scale(1);
+  transform-origin: left bottom;
 }
 
 /* Scroll cue — a small "scroll" label + bouncing line at the hero's
    right-bottom. Bounces on an infinite yoyo while the hero is in view to
    invite the user downward. Hidden on coarse pointers / narrow screens. */
 .hero-scroll-cue {
-    position: absolute;
-    right: 4vw;
-    bottom: 6vh;
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    writing-mode: vertical-rl;
-    will-change: transform, opacity;
+  position: absolute;
+  right: 4vw;
+  bottom: 6vh;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  will-change: transform, opacity;
 }
 
 .hero-scroll-cue-line {
-    width: 1px;
-    height: 56px;
-    background: linear-gradient(to bottom, var(--accent-soft), transparent);
-    will-change: transform;
+  width: 1px;
+  height: 56px;
+  background: linear-gradient(to bottom, var(--accent-soft), transparent);
+  will-change: transform;
 }
 
 @media (pointer: coarse), (max-width: 768px) {
-    .hero-scroll-cue { display: none; }
+  .hero-scroll-cue {
+    display: none;
+  }
 }
 
 /* Marquee */
 .marquee {
-    padding: var(--space-block) 0;
-    overflow: hidden;
-    white-space: nowrap;
-    border-top: 1px solid var(--hairline);
-    border-bottom: 1px solid var(--hairline);
+  padding: var(--space-block) 0;
+  overflow: hidden;
+  white-space: nowrap;
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
 }
 
 .marquee-inner {
-    display: inline-block;
-    animation: marquee 20s linear infinite;
-    /* GSAP writes skewX on scroll velocity (see marquee.tsx). transform-origin
+  display: inline-block;
+  animation: marquee 20s linear infinite;
+  /* GSAP writes skewX on scroll velocity (see marquee.tsx). transform-origin
        center keeps the skew symmetric instead of drifting sideways. */
-    transform-origin: center;
-    will-change: transform;
+  transform-origin: center;
+  will-change: transform;
 }
 
 .marquee-inner span {
-    font-family: var(--font-primary);
-    font-size: 5vw;
-    font-style: italic;
-    padding-right: 2vw;
+  font-family: var(--font-primary);
+  font-size: 5vw;
+  font-style: italic;
+  padding-right: 2vw;
 }
 
 @keyframes marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-33.33%); }
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-33.33%);
+  }
 }
 
 /* Benefits Section — sits between Marquee and Craft. No `dark-theme`
    class is hard-coded here; the theme engine flips it via the global
    :root[data-theme] variables. */
-/* Benefits — base styles migrated to Tailwind in benefits.tsx.
-   .benefit-card + .benefit-card-icon stay as hook classes backing the
-   ::before accent line + the @media (hover:hover) state rules below. */
-@media (hover: hover) {
-    .benefit-card:hover {
-        opacity: 1;
-    }
-    .benefit-card:hover::before {
-        transform: scaleX(1);
-    }
-    .benefit-card:hover .benefit-card-icon {
-        transform: translateY(-4px);
-    }
+/* Directional benefit grid. GSAP owns clip-path + image scale; CSS owns the
+   color handoff so the copy remains readable before, during and after hover. */
+.benefit-card {
+  transition:
+    border-color 0.55s var(--ease-out-expo),
+    box-shadow 0.55s var(--ease-out-expo);
 }
 .benefit-card::before {
-    content: "";
-    position: absolute;
-    top: -2px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: var(--accent);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.5s var(--ease-out-expo);
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s var(--ease-out-expo);
+  z-index: 5;
+}
+.benefit-card-media {
+  clip-path: inset(100% 0 0 0);
+}
+.benefit-card-media img {
+  filter: saturate(0.82) contrast(1.04);
+}
+.benefit-card-grade {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(7, 7, 7, 0.34) 0%,
+      rgba(7, 7, 7, 0.08) 38%,
+      rgba(7, 7, 7, 0.86) 100%
+    ),
+    radial-gradient(circle at 80% 15%, transparent 0%, rgba(7, 7, 7, 0.24) 78%);
+}
+.benefit-card-copy {
+  color: var(--text-color);
+  transition: color 0.5s var(--ease-out-expo);
+}
+.benefit-card-description {
+  color: var(--text-muted);
+  transition: color 0.5s var(--ease-out-expo);
+}
+.benefit-card-kicker,
+.benefit-card-index {
+  color: var(--text-faint);
+  transition: color 0.5s var(--ease-out-expo);
+}
+.benefit-card-ghost {
+  color: color-mix(in srgb, var(--text-color) 4%, transparent);
+  transition: color 0.55s var(--ease-out-expo);
+}
+.benefit-card-icon {
+  transition:
+    transform 0.5s var(--ease-out-expo),
+    border-color 0.5s var(--ease-out-expo);
+}
+.benefit-card.is-active {
+  border-color: color-mix(in srgb, var(--accent) 42%, transparent);
+  box-shadow: 0 34px 90px -42px rgba(0, 0, 0, 0.66);
+}
+.benefit-card.is-active::before {
+  transform: scaleX(1);
+}
+.benefit-card.is-active .benefit-card-copy {
+  color: #f8f5ef;
+}
+.benefit-card.is-active .benefit-card-description {
+  color: rgba(248, 245, 239, 0.72);
+}
+.benefit-card.is-active .benefit-card-kicker,
+.benefit-card.is-active .benefit-card-index {
+  color: rgba(248, 245, 239, 0.62);
+}
+.benefit-card.is-active .benefit-card-ghost {
+  color: rgba(248, 245, 239, 0.075);
+}
+.benefit-card.is-active .benefit-card-icon {
+  border-color: rgba(248, 245, 239, 0.28);
+  transform: translateY(-4px) rotate(4deg);
+}
+.benefit-card:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 42%, transparent);
+}
+@media (hover: hover) {
+  .benefit-card:not(.is-static):hover::before {
+    transform: scaleX(1);
+  }
+}
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .benefit-card-media {
+    clip-path: inset(0) !important;
+  }
+  .benefit-card-media img {
+    transform: none !important;
+  }
 }
 
 /* Legacy `.details` / `.details-intro` / `.details-visual` / `.details-stats`
@@ -391,44 +508,211 @@ body.is-loading {
    still used by BentoDetails. */
 
 .stat-item {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 
 .stat-num {
-    font-family: var(--font-primary);
-    font-size: clamp(36px, 3.5vw, 52px);
-    color: var(--accent);
+  font-family: var(--font-primary);
+  font-size: clamp(36px, 3.5vw, 52px);
+  color: var(--accent);
 }
 
 .stat-lbl {
-    font-size: var(--fs-label);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
+  font-size: var(--fs-label);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
 }
 
 /* Measure Section — base styles migrated to Tailwind in measure-guide.tsx.
    .measure-content + .reveal-item stay as hook classes (the reveal-item
    animation reset + prefers-reduced-motion fallback below). */
 .measure-content .reveal-item {
-    will-change: transform, opacity;
+  will-change: transform, opacity;
+}
+.measure-media-shell {
+  box-shadow: 0 32px 90px -42px rgba(0, 0, 0, 0.42);
+  will-change: clip-path;
+}
+.measure-media-grade {
+  z-index: 1;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(7, 7, 7, 0.24) 0%,
+      transparent 30%,
+      transparent 64%,
+      rgba(7, 7, 7, 0.72) 100%
+    ),
+    linear-gradient(90deg, rgba(7, 7, 7, 0.18), transparent 32%);
+}
+.measure-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+.measure-dimension-x {
+  position: absolute;
+  top: 18%;
+  right: 13%;
+  left: 13%;
+}
+.measure-dimension-y {
+  position: absolute;
+  top: 14%;
+  bottom: 17%;
+  left: 13%;
+}
+.measure-line {
+  position: relative;
+  display: block;
+  background: var(--accent-soft);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--accent) 52%, transparent);
+}
+.measure-line::before,
+.measure-line::after {
+  content: "";
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--accent-soft);
+  border-radius: 50%;
+  background: rgba(13, 13, 13, 0.72);
+}
+.measure-line-x {
+  width: 100%;
+  height: 1px;
+  transform-origin: left center;
+}
+.measure-line-x::before {
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+}
+.measure-line-x::after {
+  top: 50%;
+  right: 0;
+  transform: translate(50%, -50%);
+}
+.measure-line-y {
+  width: 1px;
+  height: 100%;
+  transform-origin: center top;
+}
+.measure-line-y::before {
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.measure-line-y::after {
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 50%);
+}
+.measure-overlay-label {
+  position: absolute;
+  padding: 8px 12px;
+  border: 1px solid rgba(248, 245, 239, 0.22);
+  border-radius: 999px;
+  background: rgba(13, 13, 13, 0.64);
+  backdrop-filter: blur(10px);
+  color: #f8f5ef;
+  font-family: var(--font-secondary);
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.measure-dimension-x .measure-overlay-label {
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.measure-dimension-y .measure-overlay-label {
+  top: 50%;
+  left: 16px;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: left center;
+}
+.measure-overlay-photo {
+  inset: 12% 10% 16%;
+}
+.measure-focus-corner {
+  position: absolute;
+  width: clamp(28px, 4vw, 52px);
+  height: clamp(28px, 4vw, 52px);
+  border-color: var(--accent-soft);
+}
+.measure-focus-corner-tl {
+  top: 0;
+  left: 0;
+  border-top: 1px solid;
+  border-left: 1px solid;
+  transform-origin: top left;
+}
+.measure-focus-corner-tr {
+  top: 0;
+  right: 0;
+  border-top: 1px solid;
+  border-right: 1px solid;
+  transform-origin: top right;
+}
+.measure-focus-corner-bl {
+  bottom: 0;
+  left: 0;
+  border-bottom: 1px solid;
+  border-left: 1px solid;
+  transform-origin: bottom left;
+}
+.measure-focus-corner-br {
+  right: 0;
+  bottom: 0;
+  border-right: 1px solid;
+  border-bottom: 1px solid;
+  transform-origin: bottom right;
+}
+.measure-photo-label {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.acc-item {
+  transition:
+    background-color 0.45s var(--ease-out-expo),
+    border-color 0.45s var(--ease-out-expo);
+}
+.acc-item.is-open {
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 34%, transparent);
+}
+.acc-item.is-open .acc-head {
+  padding-inline: 14px;
 }
 @media (prefers-reduced-motion: reduce) {
-    .measure-content .reveal-item {
-        opacity: 1 !important;
-        transform: none !important;
-    }
+  body:not(.is-loading) .benefit-card,
+  body:not(.is-loading) .reveal-item,
+  body:not(.is-loading) .acc-item,
+  body:not(.is-loading) .reveal-mask,
+  body:not(.is-loading) .portrait-mask {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 /* Accordion state — .acc-item.is-open toggles the icon rotation + opens the
    body. The base accordion/body styles migrated to Tailwind in
    measure-guide.tsx; these descendant state rules stay. */
 .acc-item.is-open .acc-icon {
-    transform: rotate(45deg);
+  transform: rotate(45deg);
 }
 .acc-item.is-open .acc-body {
-    grid-template-rows: 1fr;
+  grid-template-rows: 1fr;
 }
 
 /* Footer — migrated to Tailwind utilities in curtain-footer.tsx.
@@ -438,7 +722,37 @@ body.is-loading {
 /* ScrollImageReveal & Storytelling — .threat/.craft/.threat-title/.craft-title
    base styles migrated to Tailwind in their components. .dark-theme kept
    as a hook (data-theme flips colors via :root[data-theme] vars). */
-.dark-theme { background-color: var(--text-color); color: var(--bg-color); }
+.dark-theme {
+  background-color: var(--text-color);
+  color: var(--bg-color);
+}
+
+/* Stacked made-to-measure story. The desktop visual column is sticky rather
+   than pinned, so the page keeps native layout semantics while GSAP only
+   animates clip-path, scale and opacity. */
+.process-panel {
+  clip-path: inset(0% 0 0 0);
+  will-change: clip-path;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .process-grid {
+    display: block;
+  }
+
+  .process-media {
+    display: none;
+  }
+
+  .process-step {
+    min-height: auto;
+    opacity: 1 !important;
+  }
+
+  .process-mobile-media {
+    display: block !important;
+  }
+}
 
 /* === Threat pinned narrative ===
    Most layout/typography lives in Tailwind utilities in threat.tsx now.
@@ -447,98 +761,189 @@ body.is-loading {
    one-off utility strings. */
 .threat.pinned .container,
 .threat.pinned .threat-content,
-.threat.pinned .section-eyebrow { display: none; }
+.threat.pinned .section-eyebrow {
+  display: none;
+}
+
+.threat-static {
+  display: none;
+}
 
 .threat-backdrop {
-    isolation: isolate;
-    background: #050505;
+  isolation: isolate;
+  background: #050505;
 }
 
 .threat-backdrop-item {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    transform-origin: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform-origin: center;
 }
 
 .threat-backdrop-item:first-child {
-    opacity: 1;
-    visibility: visible;
-    transform: scale(1.04);
+  opacity: 1;
+  visibility: visible;
+  transform: scale(1.04);
 }
 
 .threat-backdrop-img {
-    filter: brightness(0.72) contrast(1.06) saturate(0.9);
+  filter: brightness(0.82) contrast(1.06) saturate(0.92);
 }
 
 .threat-backdrop-grade {
-    background:
-        linear-gradient(180deg, rgba(0, 0, 0, 0.58) 0%, rgba(0, 0, 0, 0.24) 42%, rgba(0, 0, 0, 0.68) 100%),
-        linear-gradient(90deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.28) 46%, rgba(0, 0, 0, 0.62) 100%);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.32) 0%,
+      rgba(0, 0, 0, 0.08) 44%,
+      rgba(0, 0, 0, 0.6) 100%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.82) 0%,
+      rgba(0, 0, 0, 0.56) 38%,
+      rgba(0, 0, 0, 0.08) 74%,
+      rgba(0, 0, 0, 0.22) 100%
+    );
 }
 
 .threat-backdrop-grade::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    mix-blend-mode: screen;
-    background-image:
-        linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-    background-size: 34px 34px;
-    mask-image: radial-gradient(circle at 50% 46%, black 0%, transparent 62%);
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  mix-blend-mode: screen;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(circle at 72% 48%, black 0%, transparent 58%);
 }
 
 .threat-backdrop-item[data-tone="danger"] .threat-backdrop-img {
-    filter: brightness(0.62) contrast(1.16) saturate(0.82);
+  filter: brightness(0.86) contrast(1.1) saturate(0.86);
 }
 
 .threat-backdrop-item[data-tone="danger"] .threat-backdrop-grade {
-    background:
-        linear-gradient(180deg, rgba(0, 0, 0, 0.64) 0%, rgba(0, 0, 0, 0.32) 44%, rgba(0, 0, 0, 0.78) 100%),
-        linear-gradient(90deg, rgba(0, 0, 0, 0.74) 0%, rgba(10, 18, 16, 0.24) 48%, rgba(0, 0, 0, 0.66) 100%);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.34) 0%,
+      rgba(0, 0, 0, 0.06) 46%,
+      rgba(0, 0, 0, 0.66) 100%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.84) 0%,
+      rgba(0, 0, 0, 0.58) 38%,
+      rgba(8, 10, 9, 0.06) 72%,
+      rgba(0, 0, 0, 0.18) 100%
+    );
 }
 
 .threat-backdrop-item[data-tone="solution"] .threat-backdrop-img {
-    filter: brightness(0.54) contrast(1.18) saturate(0.72);
+  filter: brightness(0.76) contrast(1.12) saturate(0.82);
 }
 
 .threat-backdrop-item[data-tone="solution"] .threat-backdrop-grade {
-    background:
-        linear-gradient(180deg, rgba(0, 0, 0, 0.62) 0%, rgba(16, 13, 8, 0.36) 44%, rgba(0, 0, 0, 0.72) 100%),
-        linear-gradient(90deg, rgba(0, 0, 0, 0.72) 0%, rgba(181, 138, 67, 0.18) 48%, rgba(0, 0, 0, 0.64) 100%);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.3) 0%,
+      rgba(16, 13, 8, 0.08) 44%,
+      rgba(0, 0, 0, 0.62) 100%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.84) 0%,
+      rgba(16, 13, 8, 0.58) 38%,
+      rgba(181, 138, 67, 0.04) 72%,
+      rgba(0, 0, 0, 0.16) 100%
+    );
 }
 
 .threat-backdrop-item[data-tone="solution"] .threat-backdrop-grade::after {
-    opacity: 0.18;
+  opacity: 0.12;
 }
 
 .threat-backdrop-item[data-tone="result"] .threat-backdrop-img {
-    filter: brightness(0.66) contrast(1.02) saturate(0.82);
+  filter: brightness(0.78) contrast(1.04) saturate(0.86);
 }
 
 .threat-backdrop-item[data-tone="result"] .threat-backdrop-grade {
-    background:
-        linear-gradient(180deg, rgba(0, 0, 0, 0.56) 0%, rgba(0, 0, 0, 0.18) 46%, rgba(0, 0, 0, 0.66) 100%),
-        linear-gradient(90deg, rgba(0, 0, 0, 0.68) 0%, rgba(10, 19, 17, 0.16) 46%, rgba(0, 0, 0, 0.56) 100%);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.28) 0%,
+      rgba(0, 0, 0, 0.04) 44%,
+      rgba(0, 0, 0, 0.58) 100%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.82) 0%,
+      rgba(10, 14, 12, 0.56) 38%,
+      rgba(10, 19, 17, 0.04) 72%,
+      rgba(0, 0, 0, 0.12) 100%
+    );
+}
+
+.threat-progress-item {
+  opacity: 0.34;
+}
+
+.threat-progress-item:first-child {
+  opacity: 1;
+}
+
+.threat-static-grade {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.1) 0%,
+      rgba(0, 0, 0, 0.16) 38%,
+      rgba(0, 0, 0, 0.9) 100%
+    ),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.52) 0%, transparent 72%);
+}
+
+.threat-static-card + .threat-static-card {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 768px), (prefers-reduced-motion: reduce) {
+  .threat {
+    overflow: visible;
+  }
+
+  .threat-motion {
+    display: none;
+  }
+
+  .threat-static {
+    display: block;
+  }
+
+  .threat-static-img {
+    filter: brightness(0.78) contrast(1.06) saturate(0.88);
+  }
 }
 /* Massive Typography & Main Wrap — single source of truth above
    (.massive-text uses var(--fs-display)). Kept here only for the
    plain (non-centered) variant used by section headings; the centered
    margin-bottom lives in the earlier rule. */
 .massive-text {
-    font-family: var(--font-primary);
+  font-family: var(--font-primary);
 }
 
 #smooth-wrapper {
-    background-color: var(--bg-color);
-    position: relative;
-    z-index: 2;
-    width: 100%;
-    min-width: 0;
-    overflow-x: hidden;
-    margin-bottom: 100dvh; /* Space for Curtain Footer */
+  background-color: var(--bg-color);
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  min-width: 0;
+  overflow-x: clip;
+  margin-bottom: 100dvh; /* Space for Curtain Footer */
 }
 
 /* Bento Box Layout */
@@ -547,150 +952,166 @@ body.is-loading {
    + .stat-item + .stat-num/.stat-lbl stay — they back complex grid layout,
    the :has(.bento-bg)::after gradient overlay, and descendant selectors. */
 .bento-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(3, 300px);
-    gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 300px);
+  gap: 20px;
 }
 .bento-box {
-    background: color-mix(in srgb, var(--text-color) 4%, transparent);
-    border: 1px solid color-mix(in srgb, var(--text-color) 8%, transparent);
-    border-radius: 8px;
-    padding: 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    position: relative;
-    overflow: hidden;
-    /* Hover-lift, 3D tilt and glare are driven by GSAP quickTo in
+  background: color-mix(in srgb, var(--text-color) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-color) 8%, transparent);
+  border-radius: 8px;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  /* Hover-lift, 3D tilt and glare are driven by GSAP quickTo in
        bento-details.tsx (BentoBox). The CSS `transform` here is intentionally
        left blank so the inline GSAP transform is not overridden on hover.
        A deeper drop-shadow appears on hover to sell the lift. */
-    transition: box-shadow 0.4s var(--ease-out-expo);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.4s var(--ease-out-expo);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 @media (hover: hover) {
-    .bento-box:hover {
-        box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.35);
-    }
+  .bento-box:hover {
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.35);
+  }
 }
 /* Moving glare layer — a soft radial highlight that follows the cursor,
    positioned via --glare-x/--glare-y (0–1) set by GSAP in BentoBox.
    Hidden on coarse pointers (the tilt is skipped there too). */
 .bento-glare {
-    position: absolute;
-    inset: 0;
-    z-index: 4;
-    pointer-events: none;
-    border-radius: inherit;
-    opacity: 0;
-    transition: opacity 0.4s var(--ease-out-expo);
-    background: radial-gradient(
-        circle 180px at calc(var(--glare-x, 0.5) * 100%) calc(var(--glare-y, 0.5) * 100%),
-        rgba(255, 255, 255, 0.22),
-        transparent 70%
-    );
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.4s var(--ease-out-expo);
+  background: radial-gradient(
+    circle 180px at calc(var(--glare-x, 0.5) * 100%)
+      calc(var(--glare-y, 0.5) * 100%),
+    rgba(255, 255, 255, 0.22),
+    transparent 70%
+  );
 }
 @media (hover: hover) {
-    .bento-box:hover .bento-glare { opacity: 1; }
+  .bento-box:hover .bento-glare {
+    opacity: 1;
+  }
 }
 @media (pointer: coarse) {
-    .bento-glare { display: none; }
+  .bento-glare {
+    display: none;
+  }
 }
-.bento-large { grid-column: span 2; grid-row: span 2; }
-.bento-wide  { grid-column: span 2; grid-row: span 1; }
-.bento-small { grid-column: span 1; grid-row: span 1; }
-.bento-stat  { justify-content: center; }
+.bento-large {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+.bento-wide {
+  grid-column: span 2;
+  grid-row: span 1;
+}
+.bento-small {
+  grid-column: span 1;
+  grid-row: span 1;
+}
+.bento-stat {
+  justify-content: center;
+}
 .bento-stat .stat-item {
-    /* Push the label to the bottom for a "huge number + caption" feel
+  /* Push the label to the bottom for a "huge number + caption" feel
        matching the original draft design. */
-    height: auto;
-    flex-grow: 1;
-    justify-content: space-between;
+  height: auto;
+  flex-grow: 1;
+  justify-content: space-between;
 }
 
 .bento-bg {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
 }
 .bento-bg img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    /* The transform (y parallax, base scale, whileHover scale) is driven by
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* The transform (y parallax, base scale, whileHover scale) is driven by
        framer-motion on the motion.img in bento-details.tsx — do NOT add a
        CSS `transition: transform` here or it will smooth over the
        framer-motion tween. */
-    will-change: transform;
+  will-change: transform;
 }
 .bento-box:has(.bento-bg)::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 70%;
-    /* Fade to the section's bg so the gradient reads correctly on both
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 70%;
+  /* Fade to the section's bg so the gradient reads correctly on both
        cream and black sections (the box content sits above this overlay). */
-    background: linear-gradient(
-        to top,
-        color-mix(in srgb, var(--bg-color) 96%, transparent) 0%,
-        color-mix(in srgb, var(--bg-color) 0%, transparent) 100%
-    );
-    z-index: 2;
-    pointer-events: none;
+  background: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--bg-color) 96%, transparent) 0%,
+    color-mix(in srgb, var(--bg-color) 0%, transparent) 100%
+  );
+  z-index: 2;
+  pointer-events: none;
 }
 .bento-content,
 .stat-item {
-    position: relative;
-    z-index: 3;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    height: 100%;
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
 }
 .bento-box h3 {
-    position: relative;
-    z-index: 3;
-    max-width: 520px;
-    font-family: var(--font-primary);
-    font-size: 28px;
-    font-weight: 400;
-    line-height: 1.15;
-    letter-spacing: 0;
+  position: relative;
+  z-index: 3;
+  max-width: 520px;
+  font-family: var(--font-primary);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: 0;
 }
 .bento-box p {
-    position: relative;
-    z-index: 3;
-    max-width: 520px;
-    line-height: 1.6;
-    color: color-mix(in srgb, var(--text-color) 66%, transparent);
+  position: relative;
+  z-index: 3;
+  max-width: 520px;
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--text-color) 66%, transparent);
 }
 
 /* Stat typography */
 .stat-item {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
 }
 .stat-num {
-    font-family: var(--font-primary);
-    font-size: 52px;
-    color: var(--accent-color);
-    /* `font-variant-numeric: tabular-nums` keeps each digit the same width
+  font-family: var(--font-primary);
+  font-size: 52px;
+  color: var(--accent-text);
+  /* `font-variant-numeric: tabular-nums` keeps each digit the same width
        so the layout doesn't jitter as the count-up animates. */
-    font-variant-numeric: tabular-nums;
-    display: inline-block;
-    min-height: 1.1em;
+  font-variant-numeric: tabular-nums;
+  display: inline-block;
+  min-height: 1.1em;
 }
 .stat-lbl {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-    color: color-mix(in srgb, var(--text-color) 58%, transparent);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: color-mix(in srgb, var(--text-color) 64%, transparent);
 }
 
 /* Horizontal Gallery Scroll */
@@ -698,206 +1119,311 @@ body.is-loading {
    caption + caption span/strong) migrated to Tailwind utilities in
    horizontal-gallery.tsx. Only the ::after gradient overlay stays (pseudo). */
 .gallery-item::after {
-    content: "";
-    position: absolute;
-    inset: auto 0 0;
-    height: 45%;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0));
-    pointer-events: none;
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 45%;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0));
+  pointer-events: none;
 }
 
-/* FAQ */
-/* FAQ — base styles migrated to Tailwind in faq.tsx. Only state-class hooks
-   (.active icon rotation, :last-child border) stay. */
+/* FAQ — sticky editorial index + reversible accordion state. */
+.faq-item::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.5s var(--ease-out-expo);
+}
 .faq-item:last-child {
-    border-bottom: 1px solid color-mix(in srgb, var(--text-color) 12%, transparent);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--text-color) 12%, transparent);
+}
+.faq-item.active::before {
+  transform: scaleX(1);
+}
+.faq-item.active .faq-index {
+  color: var(--accent);
+}
+.faq-item.active .faq-question {
+  transform: translateX(6px);
 }
 .faq-item.active .faq-icon {
-    transform: rotate(45deg);
+  transform: rotate(45deg);
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #111111;
+}
+.faq-cta svg {
+  transition: transform 0.4s var(--ease-out-expo);
+}
+@media (hover: hover) {
+  .faq-item:hover::before {
+    transform: scaleX(1);
+  }
+  .faq-cta:hover svg {
+    transform: translate(3px, 3px);
+  }
 }
 
-/* Curtain Footer base styles migrated to Tailwind in curtain-footer.tsx.
-   .curtain-footer kept as a hook class for useThemeBySection. */
+/* Curtain footer: the markup owns layout; these authored layers provide the
+   restrained halo, architectural grid and tactile CTA response. */
+.curtain-footer {
+  isolation: isolate;
+}
+.curtain-footer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.24;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+  background-size: clamp(44px, 6vw, 92px) clamp(44px, 6vw, 92px);
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 28%,
+    black 78%,
+    transparent
+  );
+}
+.footer-glow {
+  z-index: 0;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--accent) 24%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 8%, transparent) 38%,
+    transparent 72%
+  );
+  will-change: transform, opacity;
+}
+.footer-link-arrow {
+  transition:
+    transform 0.5s var(--ease-out-expo),
+    background-color 0.5s var(--ease-out-expo),
+    color 0.5s var(--ease-out-expo);
+}
+@media (hover: hover) {
+  .massive-link:hover .footer-link-arrow {
+    transform: rotate(45deg) scale(1.04);
+    background: var(--accent);
+    color: #111111;
+  }
+}
 
 .noise-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100dvh;
-    pointer-events: none;
-    z-index: 9999;
-    opacity: 0.06;
-    /* `overlay` blend makes the grain react to underlying luminance —
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100dvh;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.06;
+  /* `overlay` blend makes the grain react to underlying luminance —
        grain darkens bright areas and lightens dark areas, giving the
        film-stock texture an AWWWARDS site has. Falls back gracefully
        (browsers without blend-mode support just show the noise at opacity). */
-    mix-blend-mode: overlay;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-/* Vignette — a fixed, subtle radial darkening at the viewport edges.
-   Adds cinematic depth and pulls the eye toward content. Sits below the
-   noise overlay (lower z) so grain still reads on top. Both layers are
-   pointer-events:none so they never intercept clicks. */
+/* Article routes still opt into this edge vignette. The landing route no
+   longer renders it, keeping the Hero photograph completely undimmed. */
 .vignette-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 9998;
-    pointer-events: none;
-    background: radial-gradient(
-        ellipse at center,
-        transparent 55%,
-        color-mix(in srgb, #000 18%, transparent) 100%
-    );
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 55%,
+    color-mix(in srgb, #000 18%, transparent) 100%
+  );
 }
 
 /* RevealImage base styles (.reveal-container/mask/img) now live in Tailwind
    utilities in reveal-image.tsx. Only the [data-aspect] attribute selector —
    which can't be a utility — stays here. */
-.reveal-container[data-aspect="wide"] .reveal-mask { aspect-ratio: 16/9; }
-.reveal-container[data-aspect="portrait"] .reveal-mask { aspect-ratio: 3/4; }
-.reveal-container[data-aspect="landscape"] .reveal-mask { aspect-ratio: 4/3; }
+.reveal-container[data-aspect="wide"] .reveal-mask {
+  aspect-ratio: 16/9;
+}
+.reveal-container[data-aspect="portrait"] .reveal-mask {
+  aspect-ratio: 3/4;
+}
+.reveal-container[data-aspect="landscape"] .reveal-mask {
+  aspect-ratio: 4/3;
+}
 
 /* Responsive — only rules for classes still alive in JSX (component-level
    responsive now lives in Tailwind variants like max-[1024px]: / sm:). */
 @media (max-width: 1024px) {
-    .hero-features-bar {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        bottom: 4vh;
-    }
+  .hero-features-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    bottom: 4vh;
+  }
 
-    .grid-12 {
-        display: flex;
-        flex-direction: column;
-        gap: 8vw;
-    }
+  .grid-12 {
+    display: flex;
+    flex-direction: column;
+    gap: 8vw;
+  }
 
-    .portrait-mask { width: 100%; height: 60vh; }
+  .portrait-mask {
+    width: 100%;
+    height: 60vh;
+  }
 
-    .marquee-inner span { font-size: 8vw; }
+  .marquee-inner span {
+    font-size: 8vw;
+  }
 
-    .col-4, .col-5, .col-6, .col-8 { grid-column: span 1; }
-    .col-start-8 { grid-column-start: auto; }
+  .col-4,
+  .col-5,
+  .col-6,
+  .col-8 {
+    grid-column: span 1;
+  }
+  .col-start-8 {
+    grid-column-start: auto;
+  }
 
-    .bento-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-template-rows: auto;
-    }
-    .bento-large,
-    .bento-wide {
-        grid-column: span 2;
-        grid-row: span 1;
-    }
-    .bento-small,
-    .bento-stat {
-        grid-column: span 1;
-        min-height: 220px;
-    }
-    #smooth-wrapper { margin-bottom: 70dvh; }
-    .curtain-footer { height: 70dvh; }
-    .gallery-item { width: 85vw; }
+  .bento-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: auto;
+  }
+  .bento-large,
+  .bento-wide {
+    grid-column: span 2;
+    grid-row: span 1;
+  }
+  .bento-small,
+  .bento-stat {
+    grid-column: span 1;
+    min-height: 220px;
+  }
+  #smooth-wrapper {
+    margin-bottom: 70dvh;
+  }
+  .curtain-footer {
+    height: 70dvh;
+  }
+  .gallery-item {
+    width: 85vw;
+  }
 }
 
 @media (max-width: 640px) {
-    .container {
-        padding: 0 22px;
-    }
+  .container {
+    padding: 0 22px;
+  }
 
-    .hero-new {
-        flex-direction: column;
-        align-items: stretch;
-        justify-content: flex-end;
-        padding: 92px 22px 22px;
-    }
+  .nav.is-scrolled {
+    top: 8px;
+    left: 12px;
+    width: calc(100vw - 24px);
+    padding: 10px 12px;
+  }
 
-    .hero-new-bg::after {
-        background:
-            linear-gradient(180deg, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.28) 38%, rgba(0, 0, 0, 0.68) 100%),
-            linear-gradient(90deg, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0.1) 100%);
-    }
+  .hero-new {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-end;
+    padding: 92px 22px 22px;
+  }
 
-    .hero-new-content {
-        max-width: none;
-    }
+  .hero-new-content {
+    max-width: none;
+  }
 
-    .hero-new-kicker {
-        margin-bottom: 16px;
-        padding-bottom: 12px;
-        font-size: 10px;
-        letter-spacing: 0.16em;
-    }
+  .hero-new-kicker {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+  }
 
-    .hero-new-title {
-        font-size: clamp(62px, 18vw, 86px);
-        line-height: 0.84;
-    }
+  .hero-new-title {
+    font-size: clamp(62px, 18vw, 86px);
+    line-height: 0.84;
+  }
 
-    .hero-new-content > p:not(.hero-new-kicker) {
-        max-width: 34ch;
-        margin-top: 16px;
-        font-size: 13px;
-        line-height: 1.55;
-    }
+  .hero-new-content > p:not(.hero-new-kicker) {
+    max-width: 34ch;
+    margin-top: 16px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
 
-    .hero-new-actions {
-        margin-top: 20px;
-    }
+  .hero-new-actions {
+    margin-top: 20px;
+  }
 
-    .hero-new-link {
-        min-height: 44px;
-        width: 100%;
-        max-width: 100%;
-        padding-inline: 16px;
-        font-size: 11px;
-    }
+  .hero-new-link {
+    min-height: 44px;
+    width: 100%;
+    max-width: 100%;
+    padding-inline: 16px;
+    font-size: 11px;
+  }
 
-    .hero-features-bar {
-        position: static;
-        left: auto;
-        right: auto;
-        bottom: auto;
-        width: auto;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        margin-top: 22px;
-        overflow: hidden;
-        background-color: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(14px);
-    }
+  .hero-features-bar {
+    position: static;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 22px;
+    overflow: hidden;
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(14px);
+  }
 
-    .hero-feature {
-        min-height: 68px;
-        gap: 10px;
-        padding: 12px;
-    }
+  .hero-feature {
+    min-height: 68px;
+    gap: 10px;
+    padding: 12px;
+  }
 
-    .hero-feature svg {
-        width: 16px;
-        height: 16px;
-    }
+  .hero-feature svg {
+    width: 16px;
+    height: 16px;
+  }
 
-    .hero-feature span {
-        font-size: 9px;
-        line-height: 1.2;
-    }
+  .hero-feature span {
+    font-size: 9px;
+    line-height: 1.2;
+  }
 
-    .hero-feature strong {
-        font-size: 12px;
-        line-height: 1.25;
-    }
+  .hero-feature strong {
+    font-size: 12px;
+    line-height: 1.25;
+  }
 
-    .bento-grid {
-        grid-template-columns: 1fr;
-    }
+  .bento-grid {
+    grid-template-columns: 1fr;
+  }
 
-    .bento-large,
-    .bento-wide,
-    .bento-small,
-    .bento-stat {
-        grid-column: span 1;
-        min-height: 260px;
-    }
+  .bento-large,
+  .bento-wide,
+  .bento-small,
+  .bento-stat {
+    grid-column: span 1;
+    min-height: 260px;
+  }
 
-    .bento-box {
-        padding: 28px;
-    }
+  .bento-box {
+    padding: 28px;
+  }
 }
 
 /* ================================================
@@ -920,99 +1446,200 @@ body.is-loading {
 
 /* ---- Scroll-triggered reveals (Threat, Craft images) ---- */
 body:not(.is-loading) .reveal-mask {
-    animation: fm-clip-reveal-center 1s var(--ease-out-expo) 0.3s both;
+  animation: fm-clip-reveal-center 1s var(--ease-out-expo) 0.3s both;
 }
 
 /* ---- MeasureGuide image ---- */
 body:not(.is-loading) .portrait-mask {
-    animation: fm-clip-reveal-down 1.5s var(--ease-out-expo) 0.4s both;
+  animation: fm-clip-reveal-down 1.5s var(--ease-out-expo) 0.4s both;
 }
 
-/* ---- Text reveals (Benefits, MeasureGuide, CurtainFooter) ---- */
+/* ---- Text reveals (Benefits, MeasureGuide) ---- */
 body:not(.is-loading) .benefit-card {
-    animation: fm-reveal-up 0.9s var(--ease-out-expo) both;
+  animation: fm-reveal-up 0.9s var(--ease-out-expo) both;
 }
-body:not(.is-loading) .benefit-card:nth-child(1) { animation-delay: 0.4s; }
-body:not(.is-loading) .benefit-card:nth-child(2) { animation-delay: 0.5s; }
-body:not(.is-loading) .benefit-card:nth-child(3) { animation-delay: 0.6s; }
-body:not(.is-loading) .benefit-card:nth-child(4) { animation-delay: 0.7s; }
+body:not(.is-loading) .benefit-card:nth-child(1) {
+  animation-delay: 0.4s;
+}
+body:not(.is-loading) .benefit-card:nth-child(2) {
+  animation-delay: 0.5s;
+}
+body:not(.is-loading) .benefit-card:nth-child(3) {
+  animation-delay: 0.6s;
+}
+body:not(.is-loading) .benefit-card:nth-child(4) {
+  animation-delay: 0.7s;
+}
 
 body:not(.is-loading) .measure-content .reveal-item,
 body:not(.is-loading) .measure-content .acc-item {
-    animation: fm-reveal-up 0.7s var(--ease-out-expo) both;
+  animation: fm-reveal-up 0.7s var(--ease-out-expo) both;
 }
 body:not(.is-loading) .measure-content .reveal-item:nth-of-type(1),
-body:not(.is-loading) .measure-content .acc-item:nth-of-type(1) { animation-delay: 0.3s; }
+body:not(.is-loading) .measure-content .acc-item:nth-of-type(1) {
+  animation-delay: 0.3s;
+}
 body:not(.is-loading) .measure-content .reveal-item:nth-of-type(2),
-body:not(.is-loading) .measure-content .acc-item:nth-of-type(2) { animation-delay: 0.4s; }
+body:not(.is-loading) .measure-content .acc-item:nth-of-type(2) {
+  animation-delay: 0.4s;
+}
 body:not(.is-loading) .measure-content .reveal-item:nth-of-type(3),
-body:not(.is-loading) .measure-content .acc-item:nth-of-type(3) { animation-delay: 0.5s; }
+body:not(.is-loading) .measure-content .acc-item:nth-of-type(3) {
+  animation-delay: 0.5s;
+}
 body:not(.is-loading) .measure-content .reveal-item:nth-of-type(4),
-body:not(.is-loading) .measure-content .acc-item:nth-of-type(4) { animation-delay: 0.6s; }
-
-body:not(.is-loading) .footer-cta h2 {
-    animation: fm-reveal-up 1s var(--ease-out-expo) 0.3s both;
-}
-body:not(.is-loading) .footer-cta a {
-    animation: fm-reveal-up 1s var(--ease-out-expo) 0.5s both;
-}
-body:not(.is-loading) .footer-bottom {
-    animation: fm-fade-in 1s var(--ease-out-expo) 0.7s both;
+body:not(.is-loading) .measure-content .acc-item:nth-of-type(4) {
+  animation-delay: 0.6s;
 }
 
 /* ---- Keyframes ---- */
 @keyframes fm-fade-in {
-    from { opacity: 0; }
-    to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 @keyframes fm-reveal-up {
-    from { opacity: 0; transform: translateY(28px); }
-    to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes fm-clip-reveal-down {
-    from { clip-path: inset(100% 0 0 0); }
-    to   { clip-path: inset(0% 0 0 0); }
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    clip-path: inset(0% 0 0 0);
+  }
 }
 @keyframes fm-clip-reveal-center {
-    from { clip-path: inset(0% 50% 0% 50%); }
-    to   { clip-path: inset(0% 0 0 0); }
+  from {
+    clip-path: inset(0% 50% 0% 50%);
+  }
+  to {
+    clip-path: inset(0% 0 0 0);
+  }
 }
 @keyframes heroParallax {
-    from { transform: translateY(0); }
-    to { transform: translateY(150px); }
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(150px);
+  }
 }
 @keyframes featureBarReveal {
-    from {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(42px) scale(0.98);
-    }
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(42px) scale(0.98);
+  }
 }
 
 /* Prefer native scroll-driven animations in modern Chromium */
 @supports (animation-timeline: view()) {
-    .hero-new-bg img {
-        animation: heroParallax linear both;
-        animation-timeline: view();
-        animation-range: entry 0% exit 100%;
-    }
+  .hero-new-bg img {
+    animation: heroParallax linear both;
+    animation-timeline: view();
+    animation-range: entry 0% exit 100%;
+  }
 
-    .hero-features-bar {
-        animation: featureBarReveal linear both;
-        animation-timeline: view();
-        animation-range: exit 0% exit 50%;
-    }
+  .hero-features-bar {
+    animation: featureBarReveal linear both;
+    animation-timeline: view();
+    animation-range: exit 0% exit 50%;
+  }
 
-    body:not(.is-loading) .benefit-card,
-    body:not(.is-loading) .reveal-item,
-    body:not(.is-loading) .acc-item,
-    body:not(.is-loading) .reveal-mask,
-    body:not(.is-loading) .portrait-mask {
-        animation-timeline: view();
-        animation-range: entry 0% entry 40%;
-        animation-delay: 0s;
-    }
+  body:not(.is-loading) .benefit-card,
+  body:not(.is-loading) .reveal-item,
+  body:not(.is-loading) .acc-item,
+  body:not(.is-loading) .reveal-mask,
+  body:not(.is-loading) .portrait-mask {
+    animation-timeline: view();
+    animation-range: entry 0% entry 40%;
+    animation-delay: 0s;
+  }
+}
+
+/* Provider-neutral visual editor targeting. Only active inside private previews. */
+[data-cms-preview-block="true"] {
+  cursor: pointer;
+  outline: 2px solid transparent;
+  outline-offset: -2px;
+  transition:
+    outline-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+[data-cms-preview-block="true"]:hover {
+  outline-color: color-mix(in srgb, var(--accent) 78%, white);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+[data-cms-preview-selected="true"] {
+  outline: 3px solid color-mix(in srgb, var(--accent) 86%, white);
+  outline-offset: -3px;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 42%, transparent),
+    0 0 0 1px color-mix(in srgb, black 28%, transparent);
+}
+
+[data-cms-preview-dragging="true"] {
+  opacity: 0.58;
+  filter: saturate(0.7);
+}
+
+[data-cms-drop-placement="before"] {
+  box-shadow:
+    inset 0 5px 0 color-mix(in srgb, var(--accent) 88%, white),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+[data-cms-drop-placement="after"] {
+  box-shadow:
+    inset 0 -5px 0 color-mix(in srgb, var(--accent) 88%, white),
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+[data-cms-preview-field="true"] {
+  cursor: text;
+  outline: 1px solid transparent;
+  outline-offset: 5px;
+  border-radius: 2px;
+  scroll-margin-block: 24dvh;
+  transition:
+    outline-color 160ms ease,
+    outline-offset 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+[data-cms-preview-field="true"].pointer-events-none {
+  pointer-events: auto;
+}
+
+[data-cms-preview-field="true"]:hover {
+  outline-color: color-mix(in srgb, var(--accent) 82%, white);
+  outline-offset: 7px;
+  background-color: color-mix(in srgb, var(--accent) 12%, transparent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 9%, transparent);
+}
+
+[data-cms-preview-field="true"][data-cms-preview-field-selected="true"] {
+  outline: 2px solid color-mix(in srgb, var(--accent) 88%, white);
+  outline-offset: 7px;
+  background-color: color-mix(in srgb, var(--accent) 15%, transparent);
+  box-shadow:
+    0 0 0 5px color-mix(in srgb, var(--accent) 12%, transparent),
+    0 10px 32px color-mix(in srgb, black 18%, transparent);
 }

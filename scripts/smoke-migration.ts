@@ -15,8 +15,11 @@ type ProductsResponse = {
   data?: Product[];
 };
 
-const checks: Array<{ name: string; status: "pass" | "skip"; detail?: string }> =
-  [];
+const checks: Array<{
+  name: string;
+  status: "pass" | "skip";
+  detail?: string;
+}> = [];
 
 function recordPass(name: string, detail?: string) {
   checks.push({ name, status: "pass", detail });
@@ -50,7 +53,9 @@ async function assertRedirect(
   input: string,
   expectedLocation: string,
 ) {
-  const response = await assertResponse(name, input, 307, { redirect: "manual" });
+  const response = await assertResponse(name, input, 307, {
+    redirect: "manual",
+  });
   const location = response.headers.get("location");
 
   if (location !== expectedLocation) {
@@ -103,7 +108,8 @@ async function main() {
     "/api/products",
     200,
   );
-  const products = ((await productsResponse.json()) as ProductsResponse).data ?? [];
+  const products =
+    ((await productsResponse.json()) as ProductsResponse).data ?? [];
   const deletedProductsResponse = await assertResponse(
     "products deleted filter",
     "/api/products?isDeleted=true",
@@ -118,14 +124,20 @@ async function main() {
     ((await deletedProductsResponse.json()) as ProductsResponse).data ?? [];
   const inactiveProducts =
     ((await inactiveProductsResponse.json()) as ProductsResponse).data ?? [];
-  const leakedProducts = [...products, ...deletedProducts, ...inactiveProducts].filter(
+  const leakedProducts = [
+    ...products,
+    ...deletedProducts,
+    ...inactiveProducts,
+  ].filter(
     (product) => product.isActive === false || product.isDeleted === true,
   );
 
   if (leakedProducts.length) {
     throw new Error(
       `public /api/products leaked inactive/deleted products: ${leakedProducts
-        .map((product) => product.id ?? product._id ?? product.name ?? "unknown")
+        .map(
+          (product) => product.id ?? product._id ?? product.name ?? "unknown",
+        )
         .join(", ")}`,
     );
   }
@@ -138,14 +150,14 @@ async function main() {
     0,
   );
   await assertBodyIncludes(
-    "home page includes migrated homepage sections",
+    "home page renders published homepage shell",
     "/",
-    "Lưới chống các loại côn trùng",
+    'id="home"',
   );
   await assertBodyIncludes(
-    "home page includes migrated FAQ section",
+    "home page renders published FAQ section",
     "/",
-    "Câu hỏi thường xuyên",
+    'id="faq"',
   );
   await assertBodyIncludes(
     "legacy /san-pham renders migrated product listing",
@@ -157,13 +169,22 @@ async function main() {
     "/dang-ky",
     "Tài khoản quản trị phải được tạo trước",
   );
-  await assertBodyIncludes("robots endpoint includes sitemap", "/robots.txt", "Sitemap:");
+  await assertBodyIncludes(
+    "robots endpoint includes sitemap",
+    "/robots.txt",
+    "Sitemap:",
+  );
 
-  await assertResponse("admin product write requires auth", "/api/product", 401, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ name: "unauthorized smoke", price: "1" }),
-  });
+  await assertResponse(
+    "admin product write requires auth",
+    "/api/product",
+    401,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: "unauthorized smoke", price: "1" }),
+    },
+  );
   await assertResponse(
     "legacy admin add-product alias requires auth",
     "/api/add-product",
@@ -344,11 +365,16 @@ async function main() {
     { redirect: "manual" },
   );
 
-  await assertResponse("newsletter validation is JSON 400", "/api/send-newsletter", 400, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({}),
-  });
+  await assertResponse(
+    "newsletter validation is JSON 400",
+    "/api/send-newsletter",
+    400,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({}),
+    },
+  );
   await assertResponse("orders validation is JSON 400", "/api/orders", 400, {
     method: "POST",
     headers: { "content-type": "application/json" },

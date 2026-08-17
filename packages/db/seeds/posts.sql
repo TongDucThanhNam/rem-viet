@@ -1,4 +1,6 @@
-INSERT OR REPLACE INTO posts (
+-- Seed is intentionally non-destructive. Re-running it must not replace an
+-- edited post or cascade-delete its revision history.
+INSERT INTO posts (
   id,
   slug,
   title,
@@ -20,7 +22,7 @@ INSERT OR REPLACE INTO posts (
   'luoi-chong-muoi-may-do-la-gi',
   'Lưới chống muỗi may đo là gì? Khi nào nên dùng cho cửa sổ và cửa đi',
   'Hiểu đúng lưới chống muỗi may đo, điểm khác với lưới bán sẵn và những trường hợp nên chọn giải pháp làm theo từng khung cửa.',
-  '/assets/window-mosquito-net-hero.png',
+  '/assets/window-mosquito-net-hero.webp',
   '["lưới chống muỗi","may đo","cửa sổ","cửa đi"]',
   'published',
   '/bai-viet/luoi-chong-muoi-may-do-la-gi.html',
@@ -88,7 +90,7 @@ Gửi chiều ngang ba điểm, chiều cao ba điểm, ảnh tổng thể cửa
   'chon-vat-lieu-luoi-chong-muoi-fiberglass-inox-polyester',
   'Fiberglass, inox hay polyester: chọn vật liệu lưới chống muỗi thế nào?',
   'So sánh các vật liệu lưới chống muỗi phổ biến theo độ thoáng, độ bền, thẩm mỹ và môi trường sử dụng trong nhà ở.',
-  '/assets/fiberglass-mesh.png',
+  '/assets/fiberglass-mesh.webp',
   '["vật liệu","fiberglass","inox","polyester"]',
   'published',
   '/bai-viet/chon-vat-lieu-luoi-chong-muoi-fiberglass-inox-polyester.html',
@@ -125,7 +127,7 @@ Một bộ lưới bền còn phụ thuộc vào khung, phụ kiện, ray, cách
   'bao-tri-luoi-chong-muoi-trong-can-ho',
   'Bảo trì lưới chống muỗi trong căn hộ: sạch, thoáng và bền hơn',
   'Các bước vệ sinh và kiểm tra lưới chống muỗi định kỳ để giữ độ thoáng, tránh xệ lưới và kéo dài tuổi thọ bộ khung.',
-  '/assets/lifestyle_breeze.png',
+  '/assets/lifestyle_breeze.webp',
   '["bảo trì","vệ sinh","căn hộ","độ bền"]',
   'published',
   '/bai-viet/bao-tri-luoi-chong-muoi-trong-can-ho.html',
@@ -154,4 +156,50 @@ Bảo trì tốt giúp bộ lưới giữ được ba thứ quan trọng: chốn
   'Hướng dẫn vệ sinh, kiểm tra khung ray và bảo trì lưới chống muỗi định kỳ để giữ độ thoáng và độ bền.',
   cast(strftime('%s', '2026-06-26T01:00:00Z') as integer) * 1000,
   cast(strftime('%s', '2026-06-26T01:00:00Z') as integer) * 1000
-);
+)
+ON CONFLICT(id) DO NOTHING;
+
+-- Empty databases run migrations before this import in some deployment paths,
+-- so create the initial immutable snapshot here as well as in migration 0006's
+-- legacy backfill. Existing documents with a published pointer are untouched.
+INSERT OR IGNORE INTO post_revisions (
+  id,
+  post_id,
+  version,
+  snapshot,
+  note,
+  created_by,
+  created_at
+)
+SELECT
+  'seed-revision-' || id,
+  id,
+  version,
+  json_object(
+    'title', title,
+    'slug', slug,
+    'description', description,
+    'coverImage', cover_image,
+    'tags', json(tags),
+    'content', content,
+    'publishDate', publish_date,
+    'seoTitle', seo_title,
+    'seoDescription', seo_description,
+    'url', url,
+    'tableOfContents', CASE
+      WHEN table_of_contents IS NULL THEN NULL
+      ELSE json(table_of_contents)
+    END
+  ),
+  'Initial published seed',
+  'seed',
+  updated_at
+FROM posts
+WHERE id LIKE 'seed-post-%' AND published_revision_id IS NULL;
+
+UPDATE posts
+SET
+  published_revision_id = 'seed-revision-' || id,
+  published_at = COALESCE(published_at, updated_at),
+  updated_by = CASE WHEN updated_by = '' THEN 'seed' ELSE updated_by END
+WHERE id LIKE 'seed-post-%' AND published_revision_id IS NULL;

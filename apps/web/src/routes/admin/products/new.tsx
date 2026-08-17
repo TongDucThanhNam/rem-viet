@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 
 import AdminShell from "@/components/admin-shell";
 import ProductForm, { type ProductFormValues } from "@/components/product-form";
@@ -28,13 +29,15 @@ function NewProductRoute() {
     trpc.products.create.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(trpc.products.adminList.queryFilter());
+        toast.success("Đã tạo sản phẩm.");
         navigate({ to: "/admin/products" });
       },
+      onError: (error) => toast.error(error.message),
     }),
   );
 
   return (
-    <AdminShell hideHeading legacyContentFrame title="Thêm sản phẩm">
+    <AdminShell>
       <ProductForm
         categories={categoriesQuery.data ?? []}
         isSubmitting={createProduct.isPending}

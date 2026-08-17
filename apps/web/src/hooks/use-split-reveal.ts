@@ -1,6 +1,6 @@
 import { useRef } from "react";
 
-import { gsap, SplitText, useGSAP, prefersReducedMotion } from "@/lib/gsap";
+import { gsap, SplitText, useGSAP, shouldUseStaticLanding } from "@/lib/gsap";
 
 type SplitRevealOptions = {
   /** Split granularity: "chars", "words", or "lines". */
@@ -47,7 +47,7 @@ export function useSplitReveal<T extends HTMLElement = HTMLElement>(
       if (!el) return;
 
       // Respect users who prefer reduced motion: show the text immediately.
-      if (prefersReducedMotion()) {
+      if (shouldUseStaticLanding()) {
         gsap.set(el, { opacity: 1 });
         return;
       }

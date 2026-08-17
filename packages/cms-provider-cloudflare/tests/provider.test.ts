@@ -1,0 +1,530 @@
+import { afterEach, describe, expect, test } from "bun:test";
+import { type CmsBlock, CmsError } from "@agency/cms-core";
+import {
+  runEditorialReviewProviderConformance,
+  runGlobalContentProviderConformance,
+  runPageProviderConformance,
+  type CmsPageContent,
+} from "@agency/cms-runtime";
+import { convertV4MiniflareOptions, Miniflare } from "miniflare";
+
+import {
+  applyCloudflareCmsMigrations,
+  createCloudflareCmsGlobalContentProvider,
+  createCloudflareCmsPageProvider,
+  type CloudflareD1Database,
+} from "../src";
+import { LibsqlD1Database } from "./libsql-d1";
+
+type TextBlock = CmsBlock<"text", { text: string }>;
+type TestContent = CmsPageContent<TextBlock>;
+
+const databases: LibsqlD1Database[] = [];
+
+afterEach(() => {
+  for (const database of databases.splice(0)) database.close();
+});
+
+function database() {
+  const value = new LibsqlD1Database();
+  databases.push(value);
+  return value;
+}
+
+function parseContent(value: unknown): TestContent {
+  const content = value as TestContent;
+  if (
+    !content ||
+    typeof content.title !== "string" ||
+    typeof content.slug !== "string" ||
+    !Array.isArray(content.blocks) ||
+    !content.seo
+  ) {
+    throw new CmsError({
+      code: "VALIDATION_FAILED",
+      message: "Invalid test page content.",
+      retryable: false,
+    });
+  }
+  return content;
+}
+
+function content(title: string, text: string): TestContent {
+  return {
+    title,
+    slug: "home",
+    template: "landing",
+    blocks: [
+      {
+        id: "intro",
+        type: "text",
+        schemaVersion: 1,
+        enabled: true,
+        data: { text },
+      },
+    ],
+    seo: {
+      title,
+      description: `${title} description`,
+      canonicalUrl: "",
+      ogImage: "",
+      robotsIndex: true,
+      robotsFollow: true,
+    },
+  };
+}
+
+function encodeBlocks(value: TestContent) {
+  return value.blocks.map((block) => ({
+    id: block.id,
+    type: block.type,
+    enabled: block.enabled,
+    text: block.data.text,
+  }));
+}
+
+function encodeRevision(value: TestContent) {
+  return {
+    title: value.title,
+    slug: value.slug,
+    template: value.template,
+    blocks: encodeBlocks(value),
+    seoTitle: value.seo.title,
+    seoDescription: value.seo.description,
+    canonicalUrl: value.seo.canonicalUrl,
+    ogImage: value.seo.ogImage,
+    robotsIndex: value.seo.robotsIndex,
+    robotsFollow: value.seo.robotsFollow,
+  };
+}
+
+function parseEncodedContent(value: unknown): TestContent {
+  const input = value as Record<string, unknown>;
+  const seo = input.seo as TestContent["seo"] | undefined;
+  const blocks = (input.blocks as Array<Record<string, unknown>>).map(
+    (block) =>
+      "data" in block
+        ? (block as TextBlock)
+        : {
+            id: String(block.id),
+            type: "text" as const,
+            schemaVersion: 1,
+            enabled: Boolean(block.enabled),
+            data: { text: String(block.text) },
+          },
+  );
+  return parseContent({
+    title: input.title,
+    slug: input.slug,
+    template: input.template,
+    blocks,
+    seo: seo ?? {
+      title: String(input.seoTitle ?? ""),
+      description: String(input.seoDescription ?? ""),
+      canonicalUrl: String(input.canonicalUrl ?? ""),
+      ogImage: String(input.ogImage ?? ""),
+      robotsIndex: Boolean(input.robotsIndex),
+      robotsFollow: Boolean(input.robotsFollow),
+    },
+  });
+}
+
+describe("Cloudflare D1 page provider", () => {
+  test("applies the empty and upgraded schema migrations idempotently", async () => {
+    const empty = database();
+    await applyCloudflareCmsMigrations(empty);
+    await applyCloudflareCmsMigrations(empty);
+    const migrationCount = await empty
+      .prepare("SELECT COUNT(*) AS count FROM cms_provider_migrations")
+      .first<{ count: number }>();
+    expect(Number(migrationCount?.count)).toBe(5);
+
+    const upgraded = database();
+    await upgraded.exec(`
+      CREATE TABLE pages (
+        id TEXT PRIMARY KEY, slug TEXT NOT NULL UNIQUE, title TEXT NOT NULL,
+        template TEXT NOT NULL DEFAULT 'standard', blocks TEXT NOT NULL DEFAULT '[]',
+        status TEXT NOT NULL DEFAULT 'draft', seo_title TEXT NOT NULL DEFAULT '',
+        seo_description TEXT NOT NULL DEFAULT '', canonical_url TEXT NOT NULL DEFAULT '',
+        og_image TEXT NOT NULL DEFAULT '', robots_index INTEGER NOT NULL DEFAULT 1,
+        robots_follow INTEGER NOT NULL DEFAULT 1, published_revision_id TEXT,
+        version INTEGER NOT NULL DEFAULT 1, updated_by TEXT NOT NULL DEFAULT '',
+        created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+      );
+      CREATE TABLE page_revisions (
+        id TEXT PRIMARY KEY, page_id TEXT NOT NULL, version INTEGER NOT NULL,
+        snapshot TEXT NOT NULL, note TEXT NOT NULL DEFAULT '',
+        created_by TEXT NOT NULL DEFAULT '', created_at INTEGER NOT NULL
+      );
+    `);
+    await applyCloudflareCmsMigrations(upgraded);
+    await expect(
+      upgraded.prepare("SELECT id FROM pages").all(),
+    ).resolves.toEqual({ results: [] });
+    await expect(
+      upgraded.prepare("SELECT id FROM media").all(),
+    ).resolves.toEqual({ results: [] });
+    await expect(
+      upgraded.prepare("SELECT key FROM cms_globals").all(),
+    ).resolves.toEqual({ results: [] });
+    await expect(
+      upgraded.prepare("SELECT id FROM cms_review_events").all(),
+    ).resolves.toEqual({ results: [] });
+    const upgradedColumns = await upgraded
+      .prepare("PRAGMA table_info(pages)")
+      .all<{ name: string }>();
+    expect(upgradedColumns.results.map(({ name }) => name)).toEqual(
+      expect.arrayContaining([
+        "published_at",
+        "scheduled_at",
+        "scheduled_by",
+        "schedule_note",
+      ]),
+    );
+  });
+
+  test("passes versioned global settings and navigation conformance", async () => {
+    const db = database();
+    await applyCloudflareCmsMigrations(db);
+    let sequence = 0;
+    const provider = createCloudflareCmsGlobalContentProvider({
+      database: db,
+      parseContent(value) {
+        const content = value as { label?: unknown; links?: unknown };
+        if (
+          typeof content?.label !== "string" ||
+          !Array.isArray(content.links) ||
+          !content.links.every((link) => typeof link === "string")
+        )
+          throw new CmsError({
+            code: "VALIDATION_FAILED",
+            message: "Invalid global test content.",
+            retryable: false,
+          });
+        return { label: content.label, links: content.links as string[] };
+      },
+      createId: () => `global-revision-${++sequence}`,
+      now: () => new Date(`2026-08-16T00:00:0${sequence}.000Z`),
+    });
+
+    await expect(
+      runGlobalContentProviderConformance({
+        provider,
+        key: "navigation:header",
+        initial: { label: "Primary", links: ["/"] },
+        changed: { label: "Primary", links: ["/", "/journal"] },
+      }),
+    ).resolves.toEqual({
+      create: true,
+      optimisticConflict: true,
+      revisionHistory: true,
+      restore: true,
+      update: true,
+    });
+  });
+
+  test("passes the runtime draft/publish/conflict/restore conformance suite", async () => {
+    const db = database();
+    await applyCloudflareCmsMigrations(db);
+    let sequence = 0;
+    const provider = createCloudflareCmsPageProvider({
+      database: db,
+      parseContent,
+      createId: () => `provider-id-${++sequence}`,
+      now: () => new Date("2026-08-16T00:00:00.000Z"),
+    });
+
+    await expect(
+      runPageProviderConformance({
+        provider,
+        initial: content("Initial", "Hero and FAQ v1"),
+        changed: content("Changed", "Edited working draft"),
+      }),
+    ).resolves.toEqual({
+      delete: true,
+      draftIsolation: true,
+      optimisticConflict: true,
+      publish: true,
+      revisionRestore: true,
+      scheduling: true,
+      unpublish: true,
+    });
+  });
+
+  test("passes the version-bound editorial review conformance suite", async () => {
+    const db = database();
+    await applyCloudflareCmsMigrations(db);
+    let sequence = 0;
+    const provider = createCloudflareCmsPageProvider({
+      database: db,
+      parseContent,
+      createId: () => `review-id-${++sequence}`,
+      now: () =>
+        new Date(`2026-08-17T00:00:${String(sequence).padStart(2, "0")}.000Z`),
+    });
+    let document = await provider.createDraft({
+      id: "review-conformance",
+      content: content("Review v1", "Initial review copy"),
+      actorId: "editor-conformance",
+    });
+
+    await expect(
+      runEditorialReviewProviderConformance({
+        workflow: provider.reviews,
+        target: { documentId: document.id, documentType: "page" },
+        advanceDocument: async () => {
+          document = await provider.saveDraft({
+            id: document.id,
+            expectedVersion: document.version,
+            content: content(
+              `Review v${document.version + 1}`,
+              `Working copy ${document.version + 1}`,
+            ),
+            actorId: "editor-conformance",
+          });
+          return document;
+        },
+        publishDocument: async () => {
+          const published = await provider.publish({
+            id: document.id,
+            expectedVersion: document.version,
+            actorId: "reviewer-conformance",
+          });
+          document = published.document;
+          return document;
+        },
+      }),
+    ).resolves.toEqual({
+      approvalResolution: true,
+      decisionValidation: true,
+      idempotentRequest: true,
+      pendingQueue: true,
+      staleProtection: true,
+      versionBound: true,
+    });
+  });
+
+  test("keeps legacy storage codecs and mutation statements inside each D1 batch", async () => {
+    const db = database();
+    await applyCloudflareCmsMigrations(db);
+    await db.exec(`
+      CREATE TABLE provider_audit (
+        action TEXT NOT NULL,
+        document_id TEXT NOT NULL,
+        version INTEGER NOT NULL
+      );
+    `);
+    let sequence = 0;
+    const provider = createCloudflareCmsPageProvider({
+      database: db,
+      parseContent: parseEncodedContent,
+      encodeBlocks,
+      encodeRevision,
+      createId: () => `codec-id-${++sequence}`,
+      now: () => new Date("2026-08-16T00:00:00.000Z"),
+      prepareMutationStatements: (event) =>
+        db
+          .prepare(
+            "INSERT INTO provider_audit (action, document_id, version) VALUES (?, ?, ?)",
+          )
+          .bind(event.action, event.documentId, event.version),
+    });
+
+    await runPageProviderConformance({
+      provider,
+      initial: content("Codec initial", "Legacy row v1"),
+      changed: content("Codec changed", "Legacy row v2"),
+    });
+
+    const page = await db
+      .prepare("SELECT blocks FROM pages WHERE id = ?")
+      .bind("conformance-home")
+      .first<{ blocks: string }>();
+    const revision = await db
+      .prepare("SELECT snapshot FROM page_revisions ORDER BY version LIMIT 1")
+      .first<{ snapshot: string }>();
+    const audit = await db
+      .prepare("SELECT action FROM provider_audit ORDER BY rowid")
+      .all<{ action: string }>();
+
+    expect(JSON.parse(page!.blocks)[0]).toEqual({
+      id: "intro",
+      type: "text",
+      enabled: true,
+      text: "Legacy row v2",
+    });
+    expect(JSON.parse(revision!.snapshot)).toMatchObject({
+      seoTitle: "Codec initial",
+      blocks: [{ text: "Legacy row v1" }],
+    });
+    expect(JSON.parse(revision!.snapshot)).not.toHaveProperty("seo");
+    expect(audit.results.map(({ action }) => action)).toEqual([
+      "create",
+      "schedule",
+      "unschedule",
+      "publish",
+      "save",
+      "schedule",
+      "publish",
+      "restore",
+      "unpublish",
+      "save",
+      "publish",
+      "create",
+      "delete",
+    ]);
+  });
+
+  test("rejects schedules that are not in the future", async () => {
+    const db = database();
+    await applyCloudflareCmsMigrations(db);
+    const provider = createCloudflareCmsPageProvider({
+      database: db,
+      parseContent,
+      now: () => new Date("2026-08-16T00:00:00.000Z"),
+    });
+    const created = await provider.createDraft({
+      id: "past-schedule",
+      content: content("Past", "Past schedule"),
+      actorId: "owner-1",
+    });
+
+    await expect(
+      provider.schedule({
+        id: created.id,
+        expectedVersion: created.version,
+        scheduledAt: "2026-08-15T00:00:00.000Z",
+        actorId: "owner-1",
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
+  });
+
+  test("maps unique slugs and stale lifecycle commands to portable conflicts", async () => {
+    const db = database();
+    await applyCloudflareCmsMigrations(db);
+    const provider = createCloudflareCmsPageProvider({
+      database: db,
+      parseContent,
+    });
+    const created = await provider.createDraft({
+      id: "portable-conflict",
+      content: content("First", "First"),
+      actorId: "owner-1",
+    });
+
+    await expect(
+      provider.createDraft({
+        id: "duplicate-slug",
+        content: content("Duplicate", "Duplicate"),
+        actorId: "owner-1",
+      }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+
+    const changed = await provider.saveDraft({
+      id: created.id,
+      expectedVersion: created.version,
+      content: content("Changed", "Changed"),
+      actorId: "owner-1",
+    });
+    await expect(
+      provider.delete({
+        id: created.id,
+        expectedVersion: created.version,
+        actorId: "owner-1",
+      }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+    await expect(
+      provider.delete({
+        id: created.id,
+        expectedVersion: changed.version,
+        actorId: "owner-1",
+      }),
+    ).resolves.toMatchObject({ id: created.id });
+  });
+
+  test("rolls back a page save when an application mutation statement conflicts", async () => {
+    const db = database();
+    await applyCloudflareCmsMigrations(db);
+    await db.exec(`
+      CREATE TABLE provider_redirects (
+        old_path TEXT NOT NULL UNIQUE,
+        new_path TEXT NOT NULL
+      );
+      INSERT INTO provider_redirects (old_path, new_path)
+      VALUES ('/old', '/existing');
+    `);
+    const provider = createCloudflareCmsPageProvider({
+      database: db,
+      parseContent,
+      prepareMutationStatements: (event) =>
+        event.action === "save"
+          ? db
+              .prepare(
+                "INSERT INTO provider_redirects (old_path, new_path) VALUES (?, ?)",
+              )
+              .bind("/old", "/new")
+          : null,
+    });
+    const created = await provider.createDraft({
+      id: "atomic-page-redirect",
+      content: content("Before", "Before"),
+      actorId: "owner-1",
+    });
+
+    await expect(
+      provider.saveDraft({
+        id: created.id,
+        expectedVersion: created.version,
+        content: content("After", "After"),
+        actorId: "owner-1",
+      }),
+    ).rejects.toMatchObject({ code: "CONFLICT" });
+    await expect(provider.getDraft({ id: created.id })).resolves.toMatchObject({
+      version: created.version,
+      content: { title: "Before" },
+    });
+  });
+
+  test("passes the same conformance suite on an isolated Miniflare D1 binding", async () => {
+    const miniflare = new Miniflare(
+      convertV4MiniflareOptions({
+        modules: true,
+        script:
+          'export default { fetch() { return new Response("cms-provider-test") } }',
+        d1Databases: { DB: "cms-provider-test" },
+      }),
+    );
+
+    try {
+      const db = (await miniflare.getD1Database(
+        "DB",
+      )) as unknown as CloudflareD1Database;
+      await applyCloudflareCmsMigrations(db);
+      let sequence = 0;
+      const provider = createCloudflareCmsPageProvider({
+        database: db,
+        parseContent,
+        createId: () => `miniflare-id-${++sequence}`,
+        now: () => new Date("2026-08-16T00:00:00.000Z"),
+      });
+
+      await expect(
+        runPageProviderConformance({
+          provider,
+          initial: content("D1 initial", "Hero and FAQ v1"),
+          changed: content("D1 changed", "Edited working draft"),
+        }),
+      ).resolves.toEqual({
+        delete: true,
+        draftIsolation: true,
+        optimisticConflict: true,
+        publish: true,
+        revisionRestore: true,
+        scheduling: true,
+        unpublish: true,
+      });
+    } finally {
+      await miniflare.dispose();
+    }
+  });
+});

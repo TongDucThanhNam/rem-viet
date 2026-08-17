@@ -1,0 +1,53 @@
+{
+  "id": "home-hero",
+  "enabled": true,
+  "type": "hero",
+  "schemaVersion": 1,
+  "data": {
+    "kicker": "(01) Lưới chống muỗi may đo",
+    "title": { "prefix": "Rèm", "accent": "Vina" },
+    "description": "Giải pháp lưới chống muỗi cao cấp cho cửa sổ và cửa đi. May đo theo từng khung, giữ không gian thoáng sáng mà vẫn bảo vệ gia đình mỗi ngày.",
+    "background": {
+      "src": "/assets/rem-vina-hero.webp",
+      "alt": "",
+      "position": "center"
+    },
+    "primaryCta": {
+      "label": "Tư vấn kích thước",
+      "href": "#order",
+      "cursorLabel": "Đặt may"
+    },
+    "secondaryCta": {
+      "label": "Mua hàng",
+      "href": "https://shopee.vn/remvina.vn",
+      "cursorLabel": "Mua"
+    },
+    "features": [
+      {
+        "id": "protection",
+        "iconKey": "shield",
+        "label": "Bảo vệ vô hình",
+        "value": "99.9% chống muỗi"
+      },
+      {
+        "id": "tailored",
+        "iconKey": "ruler",
+        "label": "May đo",
+        "value": "Vừa khít từng mm"
+      },
+      {
+        "id": "airflow",
+        "iconKey": "wind",
+        "label": "Thông thoáng",
+        "value": "Giữ ánh sáng tự nhiên"
+      },
+      {
+        "id": "aesthetic",
+        "iconKey": "sparkles",
+        "label": "Thẩm mỹ",
+        "value": "Hợp kiến trúc hiện đại"
+      }
+    ],
+    "scrollLabel": "Cuộn"
+  }
+}

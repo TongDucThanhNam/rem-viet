@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "rem-viet-web-local",
-  "main": "@tanstack/react-start/server-entry",
+  "main": "src/server.ts",
   "compatibility_date": "2026-03-10",
   "compatibility_flags": [
     "nodejs_compat",
@@ -18,10 +18,20 @@
     "CORS_ORIGIN": "http://localhost:3001",
     "BETTER_AUTH_SECRET": "development-secret-change-me",
     "BETTER_AUTH_URL": "http://localhost:3001",
-    "ADMIN_EMAILS": "admin@example.com",
+    "ADMIN_EMAILS": "tongducthanhnam@gmail.com",
     "TELEGRAM_BOT_TOKEN": "",
     "TELEGRAM_CHAT_ID": "",
+    "RESEND_API_KEY": "",
+    "LEAD_NOTIFICATION_EMAIL": "",
+    "EMAIL_FROM": "",
     "JSONLINK_API_KEY": "",
+    "RUM_SAMPLE_RATE": "1",
+    "NOTIFICATIONS_REQUIRED": "0",
+    "RELEASE_SITE_ID": "rem-viet",
+    "RELEASE_STAGE": "local",
+    "RELEASE_GIT_SHA": "unknown",
+    "RELEASE_INPUT_SHA256": "unknown",
+    "RELEASE_SOURCE_STATE": "unknown",
   },
   "d1_databases": [
     {

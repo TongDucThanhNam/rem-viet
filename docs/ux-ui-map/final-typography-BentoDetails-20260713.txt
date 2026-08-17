@@ -1,0 +1,40 @@
+[BentoDetails] apps/web/src/components/landing/bento-details.tsx (full route surface)
+  [source] apps/web/src/components/landing/bento-details.tsx
+    [component inventory]
+      [StatNumber] apps/web/src/components/landing/bento-details.tsx:73
+      [BentoImage] apps/web/src/components/landing/bento-details.tsx:95
+      [BentoBox] apps/web/src/components/landing/bento-details.tsx:151
+      [BentoDetails] apps/web/src/components/landing/bento-details.tsx:241
+    [semantic hierarchy]
+      [img] (attrs=ref={imgRef} src={src} alt={alt} className="bento-bg-img" /) @ apps/web/src/components/landing/bento-details.tsx:145
+      [section] (id=details | attrs=className="bento-details py-[var(--space-section)] font-sans max-[640px]:py-[12vh]" id="details" ref={sectionRef}) @ apps/web/src/components/landing/bento-details.tsx:290
+      [p] (attrs=className="section-eyebrow font-vietnam mb-[18px] text-[11px] font-medium leading-[1.4] tracking-[0.18em] opacity-72 uppercase") @ apps/web/src/components/landing/bento-details.tsx:297
+      [h2] (attrs=className="mb-0 max-w-[16ch] text-left font-playfair text-h1 leading-[1.02] tracking-[-0.025em] text-balance" ref={titleRef}) @ apps/web/src/components/landing/bento-details.tsx:300
+      [h3] @ apps/web/src/components/landing/bento-details.tsx:315
+      [p] @ apps/web/src/components/landing/bento-details.tsx:316
+      [h3] @ apps/web/src/components/landing/bento-details.tsx:353
+      [p] @ apps/web/src/components/landing/bento-details.tsx:354
+      [h3] @ apps/web/src/components/landing/bento-details.tsx:360
+      [p] @ apps/web/src/components/landing/bento-details.tsx:361
+      [h3] @ apps/web/src/components/landing/bento-details.tsx:373
+      [p] @ apps/web/src/components/landing/bento-details.tsx:374
+    [visible copy and content literals]
+      "(null); const imgRef = useRef" @ apps/web/src/components/landing/bento-details.tsx:96
+      "(null); const coarse = useCoarsePointer(); const canTilt = !coarse; // quickTo setters, created once the element mounts. const tiltRef = useRef" @ apps/web/src/components/landing/bento-details.tsx:158
+      "(null); const titleRef = useSplitReveal" @ apps/web/src/components/landing/bento-details.tsx:242
+      "(04) Chi tiết kỹ thuật" @ apps/web/src/components/landing/bento-details.tsx:297
+      "Kỹ thuật may đo cho khung cửa Việt." @ apps/web/src/components/landing/bento-details.tsx:303
+      "Cận cảnh sợi thủy tinh bọc PVC" @ apps/web/src/components/landing/bento-details.tsx:312
+      "Sợi thủy tinh siêu mảnh" @ apps/web/src/components/landing/bento-details.tsx:315
+      "Lưới được dệt từ sợi thủy tinh bọc PVC chuyên dụng, đàn hồi tốt và giữ bề mặt ổn định sau thời gian dài sử dụng." @ apps/web/src/components/landing/bento-details.tsx:316
+      "Chất độc hại" @ apps/web/src/components/landing/bento-details.tsx:326
+      "Chống muỗi" @ apps/web/src/components/landing/bento-details.tsx:333
+      "Năm độ bền" @ apps/web/src/components/landing/bento-details.tsx:340
+      "Luồng gió" @ apps/web/src/components/landing/bento-details.tsx:347
+      "Viền dán gọn" @ apps/web/src/components/landing/bento-details.tsx:353
+      "Đường viền mảnh, ôm khung và dễ tháo vệ sinh khi cần." @ apps/web/src/components/landing/bento-details.tsx:354
+      "Lắp trong ngày" @ apps/web/src/components/landing/bento-details.tsx:360
+      "Kỹ thuật viên đo, tư vấn và hoàn thiện theo lịch hẹn tại nhà." @ apps/web/src/components/landing/bento-details.tsx:361
+      "Lưới chống muỗi lắp trên cửa sổ hiện đại" @ apps/web/src/components/landing/bento-details.tsx:370
+      "Đạt chuẩn cho không gian sống hiện đại" @ apps/web/src/components/landing/bento-details.tsx:373
+      "Vật liệu chống tia UV, hạn chế rách và an toàn cho gia đình có trẻ nhỏ hoặc thú cưng." @ apps/web/src/components/landing/bento-details.tsx:374

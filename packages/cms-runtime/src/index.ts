@@ -10,6 +10,7 @@ import {
 } from "@agency/cms-core";
 
 export * from "./collections.js";
+export * from "./page-collection-adapter.js";
 
 export type CmsPageTemplate = "landing" | "standard";
 

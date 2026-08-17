@@ -31,3 +31,8 @@ targets, keeps drafts isolated behind published revision pointers, supports
 filtered/paginated reads, and enforces restrict/nullify reference behavior on
 delete. An optional authorization callback binds neutral collection actions to a
 consumer's permission system.
+
+Consumers can append prepared statements to every generic collection mutation.
+The statements share the provider's D1 batch, enabling atomic audit records,
+compatibility projections, redirects, and review publication events without a
+brand or collection switch inside the provider.

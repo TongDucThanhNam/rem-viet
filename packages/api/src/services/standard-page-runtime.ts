@@ -1,9 +1,20 @@
 import {
-  createCloudflareCmsPageProvider,
+  createCloudflareCmsCollectionProvider,
+  createCloudflareCmsEditorialReviewProvider,
+  type CloudflareCmsCollectionMutationEvent,
+  type CloudflareCmsMutationEvent,
   type CloudflareD1Database,
+  type CloudflareD1PreparedStatement,
 } from "@agency/cms-provider-cloudflare";
-import type { CmsPageContent } from "@agency/cms-runtime";
+import { createCollectionRegistry } from "@agency/cms-core";
 import {
+  createCmsPageCollectionAdapter,
+  type CmsPageContent,
+} from "@agency/cms-runtime";
+import {
+  fromRemVietStandardPageCollectionData,
+  remVietStandardPagesCollection,
+  toRemVietStandardPageCollectionData,
   toLegacyRemVietStandardBlock,
   toRemVietStandardBlock,
   type RemVietStandardBlock,
@@ -19,7 +30,15 @@ import {
   type PageSlugRedirect,
 } from "./page-provider-redirect";
 
-export type RemVietStandardPageContent = CmsPageContent<RemVietStandardBlock>;
+export type RemVietStandardPageContent = Omit<
+  CmsPageContent<RemVietStandardBlock>,
+  "template"
+> & { template: "standard" };
+
+type RemVietPageMutationEvent =
+  CloudflareCmsMutationEvent<RemVietStandardPageContent> & {
+    readonly note?: string;
+  };
 
 type StoredStandardContent = Record<string, unknown> & {
   blocks?: unknown;
@@ -104,6 +123,195 @@ export function encodeRemVietStandardPageRevision(
   };
 }
 
+const remVietCollectionRegistry = createCollectionRegistry([
+  remVietStandardPagesCollection,
+]);
+
+function legacyPageValues(content: RemVietStandardPageContent) {
+  return [
+    content.slug,
+    content.title,
+    content.template,
+    JSON.stringify(encodeRemVietStandardPageBlocks(content)),
+    content.seo.title,
+    content.seo.description,
+    content.seo.canonicalUrl,
+    content.seo.ogImage,
+    content.seo.robotsIndex ? 1 : 0,
+    content.seo.robotsFollow ? 1 : 0,
+  ] as const;
+}
+
+function pageMutationEvent(
+  event: CloudflareCmsCollectionMutationEvent,
+): RemVietPageMutationEvent {
+  const parse = (value: Readonly<Record<string, unknown>> | null) =>
+    value
+      ? parseRemVietStandardPageContent(
+          fromRemVietStandardPageCollectionData(value),
+        )
+      : null;
+  return {
+    action: event.action,
+    actorId: event.actorId,
+    after: parse(event.after),
+    before: parse(event.before),
+    documentId: event.documentId,
+    previousPublishedRevisionId: event.previousPublishedRevisionId,
+    previousScheduledAt: event.previousScheduledAt,
+    revisionId: event.revisionId,
+    note: event.note,
+    scheduledAt: event.scheduledAt,
+    timestamp: event.timestamp,
+    version: event.version,
+  };
+}
+
+function legacyPageProjectionStatements(
+  database: CloudflareD1Database,
+  event: RemVietPageMutationEvent,
+): CloudflareD1PreparedStatement[] {
+  const now = event.timestamp.getTime();
+  const expectedVersion = Math.max(1, event.version - 1);
+  if (event.action === "create") {
+    if (!event.after) throw new Error("Page creation requires content.");
+    return [
+      database
+        .prepare(
+          `INSERT INTO pages (
+            id, slug, title, template, blocks, status,
+            seo_title, seo_description, canonical_url, og_image,
+            robots_index, robots_follow, published_revision_id,
+            version, updated_by, published_at, scheduled_at,
+            scheduled_by, schedule_note, created_at, updated_at
+          ) VALUES (?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, NULL,
+            1, ?, NULL, NULL, '', '', ?, ?)`,
+        )
+        .bind(
+          event.documentId,
+          ...legacyPageValues(event.after),
+          event.actorId,
+          now,
+          now,
+        ),
+    ];
+  }
+  if (event.action === "save" || event.action === "restore") {
+    if (!event.after) throw new Error(`${event.action} requires page content.`);
+    return [
+      database
+        .prepare(
+          `UPDATE pages SET
+            slug = ?, title = ?, template = ?, blocks = ?,
+            seo_title = ?, seo_description = ?, canonical_url = ?, og_image = ?,
+            robots_index = ?, robots_follow = ?, version = ?, updated_by = ?,
+            updated_at = ?, scheduled_at = CASE WHEN ? THEN NULL ELSE scheduled_at END,
+            scheduled_by = CASE WHEN ? THEN '' ELSE scheduled_by END,
+            schedule_note = CASE WHEN ? THEN '' ELSE schedule_note END
+           WHERE id = ? AND version = ?`,
+        )
+        .bind(
+          ...legacyPageValues(event.after),
+          event.version,
+          event.actorId,
+          now,
+          event.action === "restore" ? 1 : 0,
+          event.action === "restore" ? 1 : 0,
+          event.action === "restore" ? 1 : 0,
+          event.documentId,
+          expectedVersion,
+        ),
+    ];
+  }
+  if (event.action === "schedule" || event.action === "unschedule") {
+    const scheduledAt = event.scheduledAt
+      ? new Date(event.scheduledAt).getTime()
+      : null;
+    return [
+      database
+        .prepare(
+          `UPDATE pages SET scheduled_at = ?, scheduled_by = ?, schedule_note = ?,
+            version = ?, updated_by = ?, updated_at = ?
+           WHERE id = ? AND version = ?`,
+        )
+        .bind(
+          scheduledAt,
+          scheduledAt === null ? "" : event.actorId,
+          scheduledAt === null ? "" : (event.note ?? ""),
+          event.version,
+          event.actorId,
+          now,
+          event.documentId,
+          expectedVersion,
+        ),
+    ];
+  }
+  if (event.action === "publish") {
+    if (!event.after || !event.revisionId)
+      throw new Error("Page publication requires content and a revision.");
+    return [
+      database
+        .prepare(
+          `INSERT INTO page_revisions
+            (id, page_id, version, snapshot, note, created_by, created_at)
+           SELECT ?, id, ?, ?, ?, ?, ? FROM pages
+           WHERE id = ? AND version = ?`,
+        )
+        .bind(
+          event.revisionId,
+          event.version,
+          JSON.stringify(encodeRemVietStandardPageRevision(event.after)),
+          event.note ?? "",
+          event.actorId,
+          now,
+          event.documentId,
+          expectedVersion,
+        ),
+      database
+        .prepare(
+          `UPDATE pages SET status = 'published', published_revision_id = ?,
+            published_at = ?, scheduled_at = NULL, scheduled_by = '', schedule_note = '',
+            version = ?, updated_by = ?, updated_at = ?
+           WHERE id = ? AND version = ?`,
+        )
+        .bind(
+          event.revisionId,
+          now,
+          event.version,
+          event.actorId,
+          now,
+          event.documentId,
+          expectedVersion,
+        ),
+    ];
+  }
+  if (event.action === "unpublish") {
+    return [
+      database
+        .prepare(
+          `UPDATE pages SET status = 'draft', published_revision_id = NULL,
+            published_at = NULL, version = ?, updated_by = ?, updated_at = ?
+           WHERE id = ? AND version = ?`,
+        )
+        .bind(
+          event.version,
+          event.actorId,
+          now,
+          event.documentId,
+          expectedVersion,
+        ),
+    ];
+  }
+  return [
+    database
+      .prepare("DELETE FROM page_revisions WHERE page_id = ?")
+      .bind(event.documentId),
+    database
+      .prepare("DELETE FROM pages WHERE id = ? AND version = ?")
+      .bind(event.documentId, event.version),
+  ];
+}
+
 function databaseBinding() {
   return env.DB as unknown as CloudflareD1Database;
 }
@@ -118,30 +326,64 @@ export function createRemVietStandardPageProvider(
   actor?: CmsActor,
   options?: { slugRedirect?: PageSlugRedirect },
 ) {
-  const database = databaseBinding();
-  return createCloudflareCmsPageProvider({
+  return createRemVietStandardPageProviderForDatabase(
+    databaseBinding(),
+    actor,
+    options,
+  );
+}
+
+export function createRemVietStandardPageProviderForDatabase(
+  database: CloudflareD1Database,
+  actor?: CmsActor,
+  options?: { slugRedirect?: PageSlugRedirect },
+) {
+  const reviews = createCloudflareCmsEditorialReviewProvider({ database });
+  const provider = createCloudflareCmsCollectionProvider({
     database,
-    parseContent: parseRemVietStandardPageContent,
-    encodeBlocks: encodeRemVietStandardPageBlocks,
-    encodeRevision: encodeRemVietStandardPageRevision,
-    prepareMutationStatements: actor
-      ? (event) => [
-          ...pageMutationStatements(
-            database,
-            actor,
-            event,
-            encodeRemVietStandardPageRevision,
-          ),
-          ...(options?.slugRedirect
-            ? pageSlugRedirectStatements(
-                database,
-                actor,
-                options.slugRedirect,
-                event,
-              )
-            : []),
-        ]
-      : undefined,
+    registry: remVietCollectionRegistry,
+    prepareMutationStatements: (collectionEvent) => {
+      const event = pageMutationEvent(collectionEvent);
+      return [
+        ...legacyPageProjectionStatements(database, event),
+        ...(event.action === "publish"
+          ? [
+              reviews.preparePublicationStatement({
+                actorId: event.actorId,
+                documentId: event.documentId,
+                occurredAt: event.timestamp,
+                reviewVersion: event.version - 1,
+              }),
+            ]
+          : []),
+        ...(actor
+          ? pageMutationStatements(
+              database,
+              actor,
+              event,
+              encodeRemVietStandardPageRevision,
+            )
+          : []),
+        ...(actor && options?.slugRedirect
+          ? pageSlugRedirectStatements(
+              database,
+              actor,
+              options.slugRedirect,
+              event,
+            )
+          : []),
+      ];
+    },
+  });
+  return createCmsPageCollectionAdapter<RemVietStandardPageContent>({
+    provider,
+    collection: remVietStandardPagesCollection,
+    reviews,
+    toData: toRemVietStandardPageCollectionData,
+    fromData: (data) =>
+      parseRemVietStandardPageContent(
+        fromRemVietStandardPageCollectionData(data),
+      ),
   });
 }
 

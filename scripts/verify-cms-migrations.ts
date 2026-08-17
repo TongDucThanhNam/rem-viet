@@ -49,6 +49,8 @@ try {
     "staff_roles",
     "audit_events",
     "cms_review_events",
+    "cms_collection_documents",
+    "cms_collection_revisions",
     "redirects",
     "form_definitions",
     "form_submissions",
@@ -80,7 +82,9 @@ try {
   const legacyFiles = files.filter((file) => file < "0006_");
   apply(upgraded, legacyFiles);
   upgraded.run(
-    "INSERT INTO pages (id,slug,title,blocks,status,seo_title,seo_description) VALUES ('legacy-page','legacy-page','Legacy page','[]','published','','')",
+    `INSERT INTO pages (id,slug,title,blocks,status,seo_title,seo_description)
+     VALUES ('legacy-page','legacy-page','Legacy page',
+       '[{"type":"richText","content":"Legacy body"}]','published','','')`,
   );
   upgraded.run(
     "INSERT INTO posts (id,slug,title,status) VALUES ('legacy-post','legacy-post','Legacy post','published')",
@@ -103,6 +107,28 @@ try {
     throw new Error("Legacy published content không được backfill revision.");
   if (count(upgraded, "page_revisions") !== 1)
     throw new Error("Page revision backfill sai số lượng.");
+  const collectionPage = upgraded
+    .query(
+      `SELECT schema_version AS schemaVersion, data
+       FROM cms_collection_documents
+       WHERE collection_slug = 'standard-pages' AND id = 'legacy-page'`,
+    )
+    .get() as { schemaVersion: number; data: string } | null;
+  const collectionData = collectionPage
+    ? (JSON.parse(collectionPage.data) as Record<string, unknown>)
+    : null;
+  if (
+    collectionPage?.schemaVersion !== 1 ||
+    collectionData?.template !== "standard" ||
+    !Array.isArray(collectionData.blocks) ||
+    (collectionData.blocks[0] as { schemaVersion?: unknown } | undefined)
+      ?.schemaVersion !== 1 ||
+    typeof collectionData.robotsIndex !== "boolean"
+  ) {
+    throw new Error("Standard page collection backfill sai dữ liệu.");
+  }
+  if (count(upgraded, "cms_collection_revisions") !== 1)
+    throw new Error("Collection revision backfill sai số lượng.");
   if (count(upgraded, "post_revisions") !== 1)
     throw new Error("Post revision backfill sai số lượng.");
   if (count(upgraded, "form_definitions") !== 1)
@@ -120,6 +146,7 @@ try {
         emptyDatabase: requiredTables.length,
         upgradedFixture: {
           pageRevision: page.revisionId,
+          collectionDocument: "standard-pages/legacy-page",
           postRevision: post.revisionId,
         },
       },

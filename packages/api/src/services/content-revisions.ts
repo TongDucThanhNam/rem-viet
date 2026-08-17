@@ -824,7 +824,10 @@ export function unschedulePost(
 export async function publishDueContent(now = new Date()) {
   const db = createDb();
   const [duePages, duePosts] = await Promise.all([
-    db.select({ id: pages.id }).from(pages).where(lte(pages.scheduledAt, now)),
+    db
+      .select({ id: pages.id, template: pages.template })
+      .from(pages)
+      .where(lte(pages.scheduledAt, now)),
     db.select({ id: posts.id }).from(posts).where(lte(posts.scheduledAt, now)),
   ]);
   const result = {
@@ -835,10 +838,19 @@ export async function publishDueContent(now = new Date()) {
 
   for (const item of duePages) {
     try {
-      await publishPage(
-        { pageId: item.id, note: "Scheduled publish" },
-        systemActor,
-      );
+      if (item.template === "standard") {
+        const { publishRemVietStandardPage } =
+          await import("./standard-page-runtime");
+        await publishRemVietStandardPage(
+          { pageId: item.id, note: "Scheduled publish" },
+          systemActor,
+        );
+      } else {
+        await publishPage(
+          { pageId: item.id, note: "Scheduled publish" },
+          systemActor,
+        );
+      }
       result.pages.push(item.id);
     } catch (error) {
       reportOperationalIncident({

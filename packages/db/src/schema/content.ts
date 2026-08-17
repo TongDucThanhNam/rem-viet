@@ -1,7 +1,9 @@
 import { sql } from "drizzle-orm";
 import {
+  foreignKey,
   index,
   integer,
+  primaryKey,
   sqliteTable,
   text,
   uniqueIndex,
@@ -147,6 +149,72 @@ export const pageRevisions = sqliteTable(
     index("page_revisions_page_id_idx").on(table.pageId),
     uniqueIndex("page_revisions_page_version_unique").on(
       table.pageId,
+      table.version,
+    ),
+  ],
+);
+
+export const cmsCollectionDocuments = sqliteTable(
+  "cms_collection_documents",
+  {
+    collectionSlug: text("collection_slug").notNull(),
+    id: text("id").notNull(),
+    schemaVersion: integer("schema_version").notNull(),
+    version: integer("version").default(1).notNull(),
+    status: text("status", { enum: ["draft", "published"] })
+      .default("draft")
+      .notNull(),
+    data: text("data", { mode: "json" })
+      .$type<Record<string, unknown>>()
+      .notNull(),
+    publishedRevisionId: text("published_revision_id"),
+    scheduledAt: integer("scheduled_at", { mode: "timestamp_ms" }),
+    updatedBy: text("updated_by").default("").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    primaryKey({ columns: [table.collectionSlug, table.id] }),
+    index("cms_collection_documents_status_idx").on(
+      table.collectionSlug,
+      table.status,
+      table.updatedAt,
+    ),
+  ],
+);
+
+export const cmsCollectionRevisions = sqliteTable(
+  "cms_collection_revisions",
+  {
+    id: text("id").primaryKey(),
+    collectionSlug: text("collection_slug").notNull(),
+    documentId: text("document_id").notNull(),
+    schemaVersion: integer("schema_version").notNull(),
+    version: integer("version").notNull(),
+    snapshot: text("snapshot", { mode: "json" })
+      .$type<Record<string, unknown>>()
+      .notNull(),
+    note: text("note").default("").notNull(),
+    createdBy: text("created_by").default("").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .default(sql`(cast(unixepoch('subsecond') * 1000 as integer))`)
+      .notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.collectionSlug, table.documentId],
+      foreignColumns: [
+        cmsCollectionDocuments.collectionSlug,
+        cmsCollectionDocuments.id,
+      ],
+    }).onDelete("cascade"),
+    index("cms_collection_revisions_document_idx").on(
+      table.collectionSlug,
+      table.documentId,
+      table.createdAt,
+    ),
+    uniqueIndex("cms_collection_revisions_version_unique").on(
+      table.collectionSlug,
+      table.documentId,
       table.version,
     ),
   ],

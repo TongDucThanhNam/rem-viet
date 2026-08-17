@@ -24,3 +24,10 @@ checklist, and client-named logo/media placeholders. Requested provider,
 features, preset, template identity, and exact `0.1.0` version are validated
 before a plan is returned. The stable initializer supports the Cloudflare
 provider; experimental provider setup remains a separate explicit workflow.
+
+`remVietStandardPagesCollection` is the code-first schema used by the live
+standard-page vertical slice. It declares versioned fields, lifecycle,
+permissions, SEO defaults, admin columns, and the allowed standard blocks.
+`toRemVietStandardPageCollectionData()` and
+`fromRemVietStandardPageCollectionData()` are the compatibility boundary
+between the generic collection envelope and the existing public page shape.

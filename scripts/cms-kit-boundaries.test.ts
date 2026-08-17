@@ -721,6 +721,10 @@ describe("Platform Kit package boundaries", () => {
       join(root, "apps", "web", "src", "routes", "admin", "pages.tsx"),
       "utf8",
     );
+    const collection = readFileSync(
+      join(root, "packages", "cms-template-rem-viet", "src", "collections.ts"),
+      "utf8",
+    );
 
     expect(renderer).toContain("createRemVietStandardBlockRegistry");
     expect(renderer).not.toContain("switch (block.type)");
@@ -733,7 +737,9 @@ describe("Platform Kit package boundaries", () => {
     expect(router).toContain("createRemVietStandardPage");
     expect(router).toContain("unpublishRemVietStandardPage");
     expect(router).toContain("deleteRemVietStandardPage");
-    expect(adapter).toContain("createCloudflareCmsPageProvider");
+    expect(adapter).toContain("createCloudflareCmsCollectionProvider");
+    expect(adapter).toContain("createCmsPageCollectionAdapter");
+    expect(collection).toContain("remVietStandardPagesCollection");
     expect(adapter).toContain("pageMutationStatements");
     expect(adapter).toContain("pageSlugRedirectStatements");
     expect(adapter).toContain("validateRedirectGraph");

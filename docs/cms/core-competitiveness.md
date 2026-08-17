@@ -138,3 +138,51 @@ bun --cwd packages/cms-admin test           # 24 pass, 0 fail
 bun --cwd packages/cms-admin check-types    # pass
 bun test scripts/cms-kit-boundaries.test.ts # 20 pass, 0 fail
 ```
+
+## CMP-006 — Rèm Việt and independent Acme vertical slice
+
+Status: **Complete (2026-08-17).**
+
+- The template package publishes `remVietStandardPagesCollection`, a versioned
+  public collection definition for the real standard-page content type. Its
+  shared fields cover slug/title, bounded standard blocks, SEO, robots policy,
+  lifecycle, permission metadata, and generated-admin metadata.
+- The live Rèm Việt API now composes `CloudflareCmsCollectionProvider` through
+  `createCmsPageCollectionAdapter()`. The public page/editor/router contract is
+  unchanged, while generic storage owns draft/published reads, validation,
+  scheduling, revisions, restore, queries, and optimistic versions.
+- Application migration `0012_worried_devos.sql` creates the generic D1 tables
+  and idempotently backfills standard pages and immutable revisions. Legacy
+  flattened blocks are converted to canonical versioned block envelopes.
+- Generic provider mutation hooks keep the existing `pages` and
+  `page_revisions` projection, editorial review resolution, audit events, and
+  slug redirects in the same D1 batch. This preserves existing admin listing,
+  preview, permissions, scheduling metadata, public rendering, SEO, and review
+  behavior during the incremental migration.
+- The API integration test drives create, save, schedule/unschedule, review
+  request/approval, publish, public lookup, immutable revision, audit, redirect,
+  and delete through the generic provider, then verifies the legacy projection.
+- The packed clean consumer defines independent `acme-authors` and
+  `acme-articles` collections through installed public tarballs. Its typed
+  author relationship is persisted and validated by the same generic provider;
+  lifecycle conformance passes and `CmsCollectionAdminShell` renders accessible
+  list, filter, create, edit, and relationship-picker markup from that registry.
+- Core, runtime, and provider retain the documented dependency direction; no
+  collection slug switch was added to core or the Cloudflare provider.
+
+Targeted verification:
+
+```text
+bun test packages/api/tests/standard-page-runtime.test.ts # 1 pass, 0 fail
+bun run cms:migrations:verify                             # pass (13 migrations; upgraded collection fixture)
+bun run cms:kit:consumer                                  # packed install/typecheck/build/provider smoke pass
+bun --cwd packages/cms-template-rem-viet test             # 15 pass, 0 fail
+bun run check-types                                       # 18 package tasks pass
+```
+
+Full track gate:
+
+```text
+bun run quality # pass: audits, formatting, tests, 13 migrations, packed consumer/upgrade,
+                # typechecks, secure build, performance, Rèm Việt E2E, and Acme reuse E2E
+```

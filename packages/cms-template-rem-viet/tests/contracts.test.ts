@@ -23,6 +23,7 @@ import {
   remVietStandardBlockAuthoringByType,
   remVietStandardBlockAuthoringCatalog,
   remVietStandardBlockLabels,
+  remVietStandardPagesCollection,
   remVietRichTextAuthoringByType,
   remVietRichTextAuthoringCatalog,
   remVietRichTextBlockLabels,
@@ -30,9 +31,48 @@ import {
   toLegacyRemVietTemplateBlock,
   toLegacyRemVietStandardBlock,
   toRemVietStandardBlock,
+  fromRemVietStandardPageCollectionData,
+  toRemVietStandardPageCollectionData,
 } from "../src";
 
 describe("Rem Viet flagship template contracts", () => {
+  test("defines and round-trips the versioned standard-pages collection", () => {
+    const content = {
+      title: "About Rèm Việt",
+      slug: "about-rem-viet",
+      template: "standard" as const,
+      blocks: [
+        {
+          id: "intro",
+          type: "richText" as const,
+          schemaVersion: 1,
+          enabled: true,
+          data: { content: "Our story" },
+        },
+      ],
+      seo: {
+        title: "About Rèm Việt",
+        description: "Made-to-measure curtains",
+        canonicalUrl: "",
+        ogImage: "",
+        robotsIndex: true,
+        robotsFollow: true,
+      },
+    };
+
+    expect(remVietStandardPagesCollection.schemaVersion).toBe(1);
+    expect(remVietStandardPagesCollection.lifecycle).toEqual({
+      drafts: true,
+      revisions: true,
+      scheduling: true,
+    });
+    expect(
+      fromRemVietStandardPageCollectionData(
+        toRemVietStandardPageCollectionData(content),
+      ),
+    ).toEqual(content);
+  });
+
   test("round-trips the canonical Hero golden fixture", () => {
     const parsed = heroBlockSchema.parse(heroFixture);
     expect(parsed).toEqual(defaultHeroBlock);

@@ -12,6 +12,12 @@ capability metadata declared by the collection without owning application roles,
 and `runCollectionProviderConformance()` exercises the shared lifecycle against
 any provider.
 
+`createCmsPageCollectionAdapter()` lets an established page application adopt
+that generic lifecycle one content type at a time. Consumer-supplied mappers
+preserve the public page contract while storage, queries, validation, and
+revisions move to the collection provider; optional editorial review remains on
+the established page workflow surface.
+
 The runtime also exposes media/global-content ports and a version-bound
 editorial review workflow. Review state is derived from newest-first immutable
 events: intervening saves make a request stale, reviewer decisions never

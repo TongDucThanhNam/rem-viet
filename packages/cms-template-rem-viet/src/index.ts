@@ -42,6 +42,7 @@ import {
 import { REM_VIET_BLOCK_SCHEMA_VERSION } from "./version";
 
 export * from "./blocks";
+export * from "./collections";
 export * from "./rich-text-authoring";
 export * from "./standard-blocks";
 export { REM_VIET_BLOCK_SCHEMA_VERSION } from "./version";

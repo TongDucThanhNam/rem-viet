@@ -72,6 +72,30 @@ export type CloudflareCmsCollectionAuthorizationContext = {
   readonly actorId: string | undefined;
 };
 
+export type CloudflareCmsCollectionMutationEvent = {
+  readonly action:
+    | "create"
+    | "save"
+    | "schedule"
+    | "unschedule"
+    | "publish"
+    | "unpublish"
+    | "restore"
+    | "delete";
+  readonly actorId: string;
+  readonly collection: string;
+  readonly documentId: string;
+  readonly version: number;
+  readonly timestamp: Date;
+  readonly before: Readonly<Record<string, unknown>> | null;
+  readonly after: Readonly<Record<string, unknown>> | null;
+  readonly revisionId?: string;
+  readonly note?: string;
+  readonly previousPublishedRevisionId?: string | null;
+  readonly previousScheduledAt?: string | null;
+  readonly scheduledAt?: string | null;
+};
+
 export type CloudflareCmsCollectionProviderOptions = {
   readonly database: CloudflareD1Database;
   readonly registry: CmsCollectionRegistry;
@@ -80,6 +104,12 @@ export type CloudflareCmsCollectionProviderOptions = {
   readonly authorize?: (
     context: CloudflareCmsCollectionAuthorizationContext,
   ) => void | Promise<void>;
+  readonly prepareMutationStatements?: (
+    event: CloudflareCmsCollectionMutationEvent,
+  ) =>
+    | CloudflareD1PreparedStatement
+    | readonly CloudflareD1PreparedStatement[]
+    | null;
 };
 
 function collectionNotFound(slug: string): never {
@@ -234,6 +264,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
   readonly #createId: () => string;
   readonly #now: () => Date;
   readonly #authorize?: CloudflareCmsCollectionProviderOptions["authorize"];
+  readonly #prepareMutationStatements?: CloudflareCmsCollectionProviderOptions["prepareMutationStatements"];
 
   constructor(options: CloudflareCmsCollectionProviderOptions) {
     this.#database = options.database;
@@ -241,6 +272,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     this.#createId = options.createId ?? (() => crypto.randomUUID());
     this.#now = options.now ?? (() => new Date());
     this.#authorize = options.authorize;
+    this.#prepareMutationStatements = options.prepareMutationStatements;
   }
 
   async #authorized(
@@ -265,6 +297,12 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       }
       throw error;
     }
+  }
+
+  #mutationStatements(event: CloudflareCmsCollectionMutationEvent) {
+    const prepared = this.#prepareMutationStatements?.(event);
+    if (!prepared) return [];
+    return Array.isArray(prepared) ? [...prepared] : [prepared];
   }
 
   async #rawDocument(collection: string, id: string) {
@@ -428,8 +466,9 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     const data = parseCmsCollectionData(definition, input.data);
     await this.#referencesValid(definition, data);
     const id = input.id ?? this.#createId();
-    const now = this.#now().getTime();
-    const result = await this.#database
+    const timestamp = this.#now();
+    const now = timestamp.getTime();
+    const insert = this.#database
       .prepare(
         `INSERT INTO cms_collection_documents (
           collection_slug, id, schema_version, version, status, data,
@@ -444,20 +483,23 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         input.actorId,
         now,
         now,
-      )
-      .run()
-      .catch((error: unknown) => {
-        const message = error instanceof Error ? error.message : String(error);
-        if (/unique constraint|constraint failed/i.test(message)) {
-          throw new CmsError({
-            code: "CONFLICT",
-            message: `Document \"${definition.slug}/${id}\" already exists.`,
-            retryable: false,
-          });
-        }
-        throw error;
-      });
-    if (!result.success) throw new Error("Collection draft insert failed.");
+      );
+    const [result] = await this.#batch([
+      insert,
+      ...this.#mutationStatements({
+        action: "create",
+        actorId: input.actorId,
+        collection: definition.slug,
+        documentId: id,
+        version: 1,
+        timestamp,
+        before: null,
+        after: data,
+        previousPublishedRevisionId: null,
+        previousScheduledAt: null,
+      }),
+    ]);
+    if (!result?.success) throw new Error("Collection draft insert failed.");
     return (await this.getDraft({
       collection: definition.slug,
       id,
@@ -474,8 +516,10 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       versionConflict(input.expectedVersion, current.version);
     const data = parseCmsCollectionData(definition, input.data);
     await this.#referencesValid(definition, data);
-    const now = this.#now().getTime();
-    const result = await this.#database
+    const before = decodeData(definition, current.data, current.schemaVersion);
+    const timestamp = this.#now();
+    const now = timestamp.getTime();
+    const update = this.#database
       .prepare(
         `UPDATE cms_collection_documents
          SET schema_version = ?, data = ?, version = version + 1,
@@ -490,9 +534,26 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         input.collection,
         input.id,
         input.expectedVersion,
-      )
-      .run();
-    if ((result.meta?.changes ?? 0) !== 1) {
+      );
+    const [result] = await this.#batch([
+      update,
+      ...this.#mutationStatements({
+        action: "save",
+        actorId: input.actorId,
+        collection: input.collection,
+        documentId: input.id,
+        version: current.version + 1,
+        timestamp,
+        before,
+        after: data,
+        previousPublishedRevisionId: current.publishedRevisionId,
+        previousScheduledAt:
+          current.scheduledAt === null
+            ? null
+            : new Date(current.scheduledAt).toISOString(),
+      }),
+    ]);
+    if ((result?.meta?.changes ?? 0) !== 1) {
       const latest = await this.#rawDocument(input.collection, input.id);
       if (!latest) documentNotFound(input.collection, input.id);
       versionConflict(input.expectedVersion, latest.version);
@@ -533,8 +594,14 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
   ) {
     const definition = definitionFor(this.registry, input.collection);
     await this.#authorized("update", definition, input.actorId);
-    const now = this.#now().getTime();
-    const result = await this.#database
+    const current = await this.#rawDocument(input.collection, input.id);
+    if (!current) documentNotFound(input.collection, input.id);
+    if (current.version !== input.expectedVersion)
+      versionConflict(input.expectedVersion, current.version);
+    const data = decodeData(definition, current.data, current.schemaVersion);
+    const timestamp = this.#now();
+    const now = timestamp.getTime();
+    const update = this.#database
       .prepare(
         `UPDATE cms_collection_documents
          SET scheduled_at = ?, version = version + 1, updated_by = ?, updated_at = ?
@@ -547,9 +614,29 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         input.collection,
         input.id,
         input.expectedVersion,
-      )
-      .run();
-    if ((result.meta?.changes ?? 0) !== 1) {
+      );
+    const [result] = await this.#batch([
+      update,
+      ...this.#mutationStatements({
+        action: scheduledAt === null ? "unschedule" : "schedule",
+        actorId: input.actorId,
+        collection: input.collection,
+        documentId: input.id,
+        version: current.version + 1,
+        timestamp,
+        before: data,
+        after: data,
+        previousPublishedRevisionId: current.publishedRevisionId,
+        previousScheduledAt:
+          current.scheduledAt === null
+            ? null
+            : new Date(current.scheduledAt).toISOString(),
+        scheduledAt:
+          scheduledAt === null ? null : new Date(scheduledAt).toISOString(),
+        note: input.note,
+      }),
+    ]);
+    if ((result?.meta?.changes ?? 0) !== 1) {
       const latest = await this.#rawDocument(input.collection, input.id);
       if (!latest) documentNotFound(input.collection, input.id);
       versionConflict(input.expectedVersion, latest.version);
@@ -568,7 +655,8 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     await this.#referencesValid(definition, data);
     const version = current.version + 1;
     const revisionId = this.#createId();
-    const now = this.#now().getTime();
+    const timestamp = this.#now();
+    const now = timestamp.getTime();
     const results = await this.#batch([
       this.#database
         .prepare(
@@ -607,6 +695,24 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
           input.id,
           input.expectedVersion,
         ),
+      ...this.#mutationStatements({
+        action: "publish",
+        actorId: input.actorId,
+        collection: input.collection,
+        documentId: input.id,
+        version,
+        timestamp,
+        before: data,
+        after: data,
+        revisionId,
+        note: input.note,
+        previousPublishedRevisionId: current.publishedRevisionId,
+        previousScheduledAt:
+          current.scheduledAt === null
+            ? null
+            : new Date(current.scheduledAt).toISOString(),
+        scheduledAt: null,
+      }),
     ]);
     if ((results[1]?.meta?.changes ?? 0) !== 1) {
       const latest = await this.#rawDocument(input.collection, input.id);
@@ -626,8 +732,14 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
   async unpublish(input: CmsCollectionVersionInput) {
     const definition = definitionFor(this.registry, input.collection);
     await this.#authorized("publish", definition, input.actorId);
-    const now = this.#now().getTime();
-    const result = await this.#database
+    const current = await this.#rawDocument(input.collection, input.id);
+    if (!current) documentNotFound(input.collection, input.id);
+    if (current.version !== input.expectedVersion)
+      versionConflict(input.expectedVersion, current.version);
+    const data = decodeData(definition, current.data, current.schemaVersion);
+    const timestamp = this.#now();
+    const now = timestamp.getTime();
+    const update = this.#database
       .prepare(
         `UPDATE cms_collection_documents
          SET status = 'draft', published_revision_id = NULL,
@@ -640,9 +752,26 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         input.collection,
         input.id,
         input.expectedVersion,
-      )
-      .run();
-    if ((result.meta?.changes ?? 0) !== 1) {
+      );
+    const [result] = await this.#batch([
+      update,
+      ...this.#mutationStatements({
+        action: "unpublish",
+        actorId: input.actorId,
+        collection: input.collection,
+        documentId: input.id,
+        version: current.version + 1,
+        timestamp,
+        before: data,
+        after: data,
+        previousPublishedRevisionId: current.publishedRevisionId,
+        previousScheduledAt:
+          current.scheduledAt === null
+            ? null
+            : new Date(current.scheduledAt).toISOString(),
+      }),
+    ]);
+    if ((result?.meta?.changes ?? 0) !== 1) {
       const latest = await this.#rawDocument(input.collection, input.id);
       if (!latest) documentNotFound(input.collection, input.id);
       versionConflict(input.expectedVersion, latest.version);
@@ -685,8 +814,10 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     if (!revision) documentNotFound(input.collection, input.revisionId);
     const data = revisionFromRow(definition, revision).data;
     await this.#referencesValid(definition, data);
-    const now = this.#now().getTime();
-    const result = await this.#database
+    const before = decodeData(definition, current.data, current.schemaVersion);
+    const timestamp = this.#now();
+    const now = timestamp.getTime();
+    const update = this.#database
       .prepare(
         `UPDATE cms_collection_documents
          SET schema_version = ?, data = ?, version = version + 1,
@@ -701,9 +832,29 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         input.collection,
         input.id,
         input.expectedVersion,
-      )
-      .run();
-    if ((result.meta?.changes ?? 0) !== 1)
+      );
+    const [result] = await this.#batch([
+      update,
+      ...this.#mutationStatements({
+        action: "restore",
+        actorId: input.actorId,
+        collection: input.collection,
+        documentId: input.id,
+        version: current.version + 1,
+        timestamp,
+        before,
+        after: data,
+        revisionId: input.revisionId,
+        note: input.note,
+        previousPublishedRevisionId: current.publishedRevisionId,
+        previousScheduledAt:
+          current.scheduledAt === null
+            ? null
+            : new Date(current.scheduledAt).toISOString(),
+        scheduledAt: null,
+      }),
+    ]);
+    if ((result?.meta?.changes ?? 0) !== 1)
       versionConflict(input.expectedVersion, current.version);
     return (await this.getDraft(input))!;
   }
@@ -813,6 +964,9 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
            WHERE collection_slug = ? AND document_id = ?`,
         )
         .bind(input.collection, input.id),
+    );
+    const deleteStatementIndex = statements.length;
+    statements.push(
       this.#database
         .prepare(
           `DELETE FROM cms_collection_documents
@@ -820,8 +974,25 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         )
         .bind(input.collection, input.id, input.expectedVersion),
     );
+    statements.push(
+      ...this.#mutationStatements({
+        action: "delete",
+        actorId: input.actorId,
+        collection: input.collection,
+        documentId: input.id,
+        version: current.version,
+        timestamp: new Date(now),
+        before: deletedDocument.data,
+        after: null,
+        previousPublishedRevisionId: current.publishedRevisionId,
+        previousScheduledAt:
+          current.scheduledAt === null
+            ? null
+            : new Date(current.scheduledAt).toISOString(),
+      }),
+    );
     const results = await this.#batch(statements);
-    if ((results.at(-1)?.meta?.changes ?? 0) !== 1) {
+    if ((results[deleteStatementIndex]?.meta?.changes ?? 0) !== 1) {
       const latest = await this.#rawDocument(input.collection, input.id);
       if (!latest) documentNotFound(input.collection, input.id);
       versionConflict(input.expectedVersion, latest.version);

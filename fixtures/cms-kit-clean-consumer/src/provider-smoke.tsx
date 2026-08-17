@@ -1,10 +1,12 @@
 import {
   applyCloudflareCmsMigrations,
+  createCloudflareCmsCollectionProvider,
   createCloudflareCmsMediaProvider,
   createCloudflareCmsPageProvider,
 } from "@agency/cms-provider-cloudflare";
 import {
   CmsDraftStatusSlots,
+  CmsCollectionAdminShell,
   CmsRevisionList,
   CmsWorkflowActionSlots,
   flushCmsDraft,
@@ -13,6 +15,12 @@ import {
   resolveCmsEditorialReviewPresentation,
   runCmsWorkflowCommand,
 } from "@agency/cms-admin";
+import {
+  createCollectionRegistry,
+  defineCollection,
+  relationshipField,
+  textField,
+} from "@agency/cms-core";
 import {
   composeCmsAlchemyResources,
   createCmsAlchemyResourcePlan,
@@ -29,6 +37,7 @@ import {
 import { CmsBlockRenderer } from "@agency/cms-react";
 import {
   runEditorialReviewProviderConformance,
+  runCollectionProviderConformance,
   runMediaProviderConformance,
   runPageProviderConformance,
   type CmsPageContent,
@@ -115,6 +124,132 @@ function page(title: string, prefix: string, question: string): Content {
 
 const database = new LocalD1();
 await applyCloudflareCmsMigrations(database);
+
+const acmeLifecycle = {
+  drafts: true,
+  revisions: true,
+  scheduling: true,
+} as const;
+const acmeAccess = {
+  read: [] as const,
+  create: ["content.write"] as const,
+  update: ["content.write"] as const,
+  delete: ["content.delete"] as const,
+  publish: ["content.publish"] as const,
+};
+const acmeAuthors = defineCollection({
+  slug: "acme-authors",
+  labels: { singular: "Acme author", plural: "Acme authors" },
+  schemaVersion: 1,
+  lifecycle: acmeLifecycle,
+  access: acmeAccess,
+  fields: [
+    textField({ name: "name", label: "Name", required: true, indexed: true }),
+  ],
+  admin: { useAsTitle: "name", defaultColumns: ["name"] },
+});
+const acmeArticles = defineCollection({
+  slug: "acme-articles",
+  labels: { singular: "Acme article", plural: "Acme articles" },
+  schemaVersion: 1,
+  lifecycle: acmeLifecycle,
+  access: acmeAccess,
+  fields: [
+    textField({
+      name: "title",
+      label: "Title",
+      required: true,
+      indexed: true,
+    }),
+    relationshipField({
+      name: "author",
+      label: "Author",
+      relationTo: "acme-authors",
+      hasMany: false,
+      required: true,
+      onDelete: "restrict",
+    }),
+  ],
+  admin: { useAsTitle: "title", defaultColumns: ["title", "author"] },
+});
+const acmeRegistry = createCollectionRegistry([
+  acmeAuthors,
+  acmeArticles,
+] as const);
+let acmeSequence = 0;
+const acmeProvider = createCloudflareCmsCollectionProvider({
+  database,
+  registry: acmeRegistry,
+  createId: () => `acme-${++acmeSequence}`,
+  now: () => new Date("2026-08-17T00:00:00.000Z"),
+});
+await acmeProvider.createDraft({
+  collection: acmeAuthors.slug,
+  id: "acme-author-1",
+  data: { name: "Ada Acme" },
+  actorId: "acme-editor",
+});
+const acmeEvidence = await runCollectionProviderConformance({
+  provider: acmeProvider,
+  collection: acmeArticles.slug,
+  documentId: "acme-article-1",
+  actorId: "acme-editor",
+  initial: { title: "Acme launch", author: "acme-author-1" },
+  changed: { title: "Acme launch updated", author: "acme-author-1" },
+  filter: { field: "title", operator: "equals", value: "Acme launch" },
+});
+const acmeDocuments = await acmeProvider.list({
+  collection: acmeArticles.slug,
+  pagination: { limit: 10, offset: 0 },
+});
+const acmeAdminProps = {
+  registry: acmeRegistry,
+  collection: acmeArticles.slug,
+  collectionHref: (slug: string) => `/admin/collections/${slug}`,
+  createHref: "/admin/collections/acme-articles/create",
+  editHref: (id: string) => `/admin/collections/acme-articles/${id}`,
+  cancelHref: "/admin/collections/acme-articles",
+};
+const acmeAdminMarkup = [
+  renderToStaticMarkup(
+    <CmsCollectionAdminShell
+      {...acmeAdminProps}
+      mode="list"
+      documents={acmeDocuments.documents}
+      total={acmeDocuments.total}
+    />,
+  ),
+  renderToStaticMarkup(
+    <CmsCollectionAdminShell
+      {...acmeAdminProps}
+      mode="create"
+      data={{ title: "", author: "" }}
+      relationshipOptions={{
+        "acme-authors": [{ id: "acme-author-1", label: "Ada Acme" }],
+      }}
+    />,
+  ),
+  renderToStaticMarkup(
+    <CmsCollectionAdminShell
+      {...acmeAdminProps}
+      mode="edit"
+      data={acmeDocuments.documents[0]!.data}
+      relationshipOptions={{
+        "acme-authors": [{ id: "acme-author-1", label: "Ada Acme" }],
+      }}
+    />,
+  ),
+].join("");
+if (
+  !acmeAdminMarkup.includes("Acme articles") ||
+  !acmeAdminMarkup.includes("Create Acme article") ||
+  !acmeAdminMarkup.includes("Edit Acme article") ||
+  !acmeAdminMarkup.includes("Ada Acme") ||
+  !acmeAdminMarkup.includes("Filter")
+) {
+  throw new Error(`Generated Acme collection admin failed: ${acmeAdminMarkup}`);
+}
+
 let sequence = 0;
 const provider = createCloudflareCmsPageProvider({
   database,
@@ -420,6 +555,8 @@ console.log(
     ok: true,
     evidence: {
       ...evidence,
+      acmeCollections: acmeEvidence,
+      acmeAdmin: acmeAdminMarkup,
       review: reviewEvidence,
       reviewPresentation: reviewPresentation.kind,
       media: mediaEvidence,

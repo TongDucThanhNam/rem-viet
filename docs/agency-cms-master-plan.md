@@ -977,19 +977,24 @@ Các bảng dưới đây là implementation detail của D1 provider, không ph
 `cms-core`. Phần lớn đã được triển khai trong Track A; bảng được giữ để mô tả
 semantics mà provider conformance phải bảo toàn.
 
-| Bảng               | Mục đích                                                 |
-| ------------------ | -------------------------------------------------------- |
-| `page_revisions`   | Snapshot page, version, author, note, timestamp          |
-| `post_revisions`   | Snapshot post, version, author, note, timestamp          |
-| `staff_roles`      | Map Better Auth user sang owner/admin/editor             |
-| `redirects`        | oldPath, newPath, statusCode, active                     |
-| `audit_events`     | actor, action, entity, before/after metadata, request id |
-| `form_definitions` | form key, fields/schema, notification settings           |
-| `form_submissions` | payload, status, source page, timestamps                 |
+| Bảng                       | Mục đích                                                            |
+| -------------------------- | ------------------------------------------------------------------- |
+| `page_revisions`           | Snapshot page, version, author, note, timestamp                     |
+| `post_revisions`           | Snapshot post, version, author, note, timestamp                     |
+| `staff_roles`              | Map Better Auth user sang owner/admin/editor                        |
+| `redirects`                | oldPath, newPath, statusCode, active                                |
+| `audit_events`             | actor, action, entity, before/after metadata, request id            |
+| `cms_collection_documents` | Generic draft/status/data envelope keyed by collection and document |
+| `cms_collection_revisions` | Immutable generic published snapshots and schema versions           |
+| `form_definitions`         | form key, fields/schema, notification settings                      |
+| `form_submissions`         | payload, status, source page, timestamps                            |
 
-Không tạo generic `content_entries` trong v1.0. Pages và posts đang có contract
-khác nhau; gom tất cả vào một bảng sớm sẽ làm query, migration và type safety khó
-hơn mà chưa tạo giá trị thực.
+Registered collections use provider-owned `cms_collection_documents` and
+`cms_collection_revisions` envelopes keyed by collection slug. Existing
+`pages`/`page_revisions` remain as an atomic compatibility projection while the
+Rèm Việt standard-page slice migrates, preserving review, audit, SEO, preview,
+public rendering, and established admin queries. Specialized page/post
+contracts are not exposed from core and are not required for new collections.
 
 ## 8. Trải nghiệm admin đích
 
@@ -1184,13 +1189,13 @@ Track này là critical path hiện tại. Track A/B bên dưới tiếp tục g
 release evidence nhưng không được chen các receipt bên ngoài vào backlog build
 core.
 
-| Milestone                       | Kết quả                                                                                       | Trạng thái      |
-| ------------------------------- | --------------------------------------------------------------------------------------------- | --------------- |
-| C0 — Premium authoring baseline | Visual canvas, composition, preview, workflow, revisions, media, roles and audit              | Implemented     |
-| C1 — Content model registry     | Code-first collections, fields, relationships and schema versions                             | Implemented     |
-| C2 — Generated collection admin | List/create/edit/filter forms generated from the registry and extensible by template field UX | **In progress** |
-| C3 — Extension surface          | Typed hooks and feature modules without modifying core switches                               | Planned         |
-| C4 — Locale and portability     | Locale-aware lifecycle, typed content API and schema-aware import/export                      | Planned         |
+| Milestone                       | Kết quả                                                                                       | Trạng thái  |
+| ------------------------------- | --------------------------------------------------------------------------------------------- | ----------- |
+| C0 — Premium authoring baseline | Visual canvas, composition, preview, workflow, revisions, media, roles and audit              | Implemented |
+| C1 — Content model registry     | Code-first collections, fields, relationships and schema versions                             | Implemented |
+| C2 — Generated collection admin | List/create/edit/filter forms generated from the registry and extensible by template field UX | Implemented |
+| C3 — Extension surface          | Typed hooks and feature modules without modifying core switches                               | Planned     |
+| C4 — Locale and portability     | Locale-aware lifecycle, typed content API and schema-aware import/export                      | Planned     |
 
 Track C exits when a new collection with a relationship can be registered in a
 consumer, persisted by the reference provider, edited in generated admin UI,
@@ -1897,14 +1902,14 @@ Priority is strict: `CMP-001` through `CMP-006` are P0 and must produce one
 working vertical slice before hooks, localization or additional APIs expand the
 surface.
 
-| Milestone | Status                    | Execution evidence                                                                   |
-| --------- | ------------------------- | ------------------------------------------------------------------------------------ |
-| `CMP-001` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-001--collection-contracts`                     |
-| `CMP-002` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-002--typed-fields-and-shared-validation`       |
-| `CMP-003` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-003--relationships-and-integrity-contracts`    |
-| `CMP-004` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-004--generic-runtime-and-cloudflare-lifecycle` |
-| `CMP-005` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-005--registry-generated-admin-ui`              |
-| `CMP-006` | In progress               | Rèm Việt plus independent Acme proof                                                 |
+| Milestone | Status                    | Execution evidence                                                                       |
+| --------- | ------------------------- | ---------------------------------------------------------------------------------------- |
+| `CMP-001` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-001--collection-contracts`                         |
+| `CMP-002` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-002--typed-fields-and-shared-validation`           |
+| `CMP-003` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-003--relationships-and-integrity-contracts`        |
+| `CMP-004` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-004--generic-runtime-and-cloudflare-lifecycle`     |
+| `CMP-005` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-005--registry-generated-admin-ui`                  |
+| `CMP-006` | **Complete — 2026-08-18** | `docs/cms/core-competitiveness.md#cmp-006--rem-viet-and-independent-acme-vertical-slice` |
 
 ### Historical 14-day productization backlog
 

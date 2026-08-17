@@ -12,7 +12,7 @@ test("site reuse selects the manifest, seed and deployment identity", async ({
     "The manifest-driven local harness supplies expected site identity.",
   );
 
-  const health = await request.get("/api/health");
+  const health = await request.get("/api/health", { maxRetries: 2 });
   expect(health.status()).toBe(200);
   expect(await health.json()).toMatchObject({
     status: "ok",
@@ -24,7 +24,9 @@ test("site reuse selects the manifest, seed and deployment identity", async ({
     },
   });
 
-  const webManifest = await request.get("/manifest.webmanifest");
+  const webManifest = await request.get("/manifest.webmanifest", {
+    maxRetries: 2,
+  });
   expect(webManifest.status()).toBe(200);
   expect(await webManifest.json()).toMatchObject({
     name: expectedSiteName,

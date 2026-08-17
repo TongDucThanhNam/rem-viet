@@ -518,6 +518,7 @@ function AdminHomeRoute() {
     if (!visualTarget) return;
     let focusFrame = 0;
     let recoveryFrame = 0;
+    let stabilizationTimer = 0;
     const focusVisualControl = () => {
       const control = document.getElementById(visualTarget.controlId);
       control?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -540,12 +541,23 @@ function AdminHomeRoute() {
       focusFrame = requestAnimationFrame(() => {
         focusVisualControl();
         document.addEventListener("focusout", recoverVisualFocus, true);
+        stabilizationTimer = window.setTimeout(() => {
+          const active = document.activeElement;
+          if (
+            active === document.body ||
+            active === previewFrameRef.current ||
+            active?.id === visualTarget.controlId
+          ) {
+            focusVisualControl();
+          }
+        }, 100);
       });
     });
     return () => {
       cancelAnimationFrame(mountFrame);
       cancelAnimationFrame(focusFrame);
       cancelAnimationFrame(recoveryFrame);
+      window.clearTimeout(stabilizationTimer);
       document.removeEventListener("focusout", recoverVisualFocus, true);
     };
   }, [selectedBlock, selectedFieldPath]);

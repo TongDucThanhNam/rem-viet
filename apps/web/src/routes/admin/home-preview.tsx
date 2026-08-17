@@ -174,10 +174,25 @@ function HomePreviewRoute() {
     };
     const selectBlockWithPointer = (event: PointerEvent) => {
       if (event.button !== 0 || !event.isPrimary) return;
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest("[data-cms-preview-field]")
+      )
+        return;
       selectPreviewTarget(event);
     };
-    const selectBlockWithKeyboard = (event: MouseEvent) => {
-      if (event.detail !== 0) return;
+    const selectBlockWithClick = (event: MouseEvent) => {
+      if (event.button !== 0) return;
+      const target = event.target;
+      if (
+        event.detail !== 0 &&
+        !(
+          target instanceof Element &&
+          target.closest("[data-cms-preview-field]")
+        )
+      )
+        return;
       selectPreviewTarget(event);
     };
     const updateFieldHint = (event: PointerEvent) => {
@@ -278,7 +293,7 @@ function HomePreviewRoute() {
 
     window.addEventListener("message", receiveState);
     window.addEventListener("pointerdown", selectBlockWithPointer, true);
-    window.addEventListener("click", selectBlockWithKeyboard, true);
+    window.addEventListener("click", selectBlockWithClick, true);
     window.addEventListener("dragover", dragOverBlock, true);
     window.addEventListener("drop", dropBlock, true);
     window.addEventListener("dragend", finishDragging, true);
@@ -293,7 +308,7 @@ function HomePreviewRoute() {
     return () => {
       window.removeEventListener("message", receiveState);
       window.removeEventListener("pointerdown", selectBlockWithPointer, true);
-      window.removeEventListener("click", selectBlockWithKeyboard, true);
+      window.removeEventListener("click", selectBlockWithClick, true);
       window.removeEventListener("dragover", dragOverBlock, true);
       window.removeEventListener("drop", dropBlock, true);
       window.removeEventListener("dragend", finishDragging, true);

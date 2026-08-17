@@ -13,6 +13,12 @@ lookup without provider or application switches. `CmsCollectionData<T>` infers
 the authorable data shape from a definition while keeping this package free of
 React, database, provider, and brand dependencies.
 
+Built-in field builders cover text, number, boolean, date/datetime, structured
+rich text, media IDs, bounded block arrays, and single/multiple select values.
+Each definition carries typed defaults, validation metadata, admin hints, and
+optional declarative visibility. `parseCmsCollectionData()` is the shared,
+strict validator for migrations, provider writes, and authoring UI.
+
 Editorial handoff is modeled as bounded request/decision schemas with separate
 `content.review.request` and `content.review.decide` capabilities. Notes are
 trimmed and capped at 500 characters; provider storage, roles, labels, and UI

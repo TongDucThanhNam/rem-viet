@@ -95,9 +95,27 @@ export type CmsFieldDefinition<
   readonly required: TRequired;
   readonly indexed?: boolean;
   readonly unique?: boolean;
+  readonly admin?: {
+    readonly description?: string;
+    readonly readOnly?: boolean;
+  };
+  readonly visibleWhen?: CmsFieldVisibilityCondition;
   /** Type-only marker used by CmsCollectionData; never emitted at runtime. */
   readonly __cmsFieldValue?: TValue;
 };
+
+export type CmsFieldVisibilityCondition =
+  | { readonly field: string; readonly equals: unknown }
+  | { readonly field: string; readonly notEquals: unknown }
+  | { readonly field: string; readonly in: readonly unknown[] };
+
+const cmsFieldVisibilityConditionSchema = z.union([
+  z.object({ field: cmsFieldNameSchema, equals: z.unknown() }).strict(),
+  z.object({ field: cmsFieldNameSchema, notEquals: z.unknown() }).strict(),
+  z
+    .object({ field: cmsFieldNameSchema, in: z.array(z.unknown()).min(1) })
+    .strict(),
+]);
 
 export type CmsFieldValue<TField extends CmsFieldDefinition> =
   TField extends CmsFieldDefinition<string, string, infer TValue, boolean>
@@ -159,6 +177,14 @@ const collectionShapeSchema = z
           required: z.boolean(),
           indexed: z.boolean().optional(),
           unique: z.boolean().optional(),
+          admin: z
+            .object({
+              description: z.string().trim().min(1).max(240).optional(),
+              readOnly: z.boolean().optional(),
+            })
+            .strict()
+            .optional(),
+          visibleWhen: cmsFieldVisibilityConditionSchema.optional(),
         })
         .passthrough(),
     ),
@@ -244,6 +270,21 @@ export function defineCollection<
     definition.fields.map((field) => field.name),
     "field name",
   );
+  const fieldNames = new Set(definition.fields.map((field) => field.name));
+  for (const field of definition.fields) {
+    if (
+      field.visibleWhen &&
+      (!fieldNames.has(field.visibleWhen.field) ||
+        field.visibleWhen.field === field.name)
+    ) {
+      throw new CmsError({
+        code: "VALIDATION_FAILED",
+        message: `Field \"${field.name}\" has an invalid visibility dependency.`,
+        retryable: false,
+        details: { field: field.name, dependency: field.visibleWhen.field },
+      });
+    }
+  }
   assertMigrationChain(definition.schemaVersion, definition.migrations ?? []);
   return Object.freeze(definition);
 }

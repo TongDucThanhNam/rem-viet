@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export * from "./collections.js";
+export * from "./fields.js";
 export * from "./primitives.js";
 import {
   cmsCapabilitySchema,

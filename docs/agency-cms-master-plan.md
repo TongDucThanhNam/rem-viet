@@ -1897,14 +1897,14 @@ Priority is strict: `CMP-001` through `CMP-006` are P0 and must produce one
 working vertical slice before hooks, localization or additional APIs expand the
 surface.
 
-| Milestone | Status                    | Execution evidence                                                             |
-| --------- | ------------------------- | ------------------------------------------------------------------------------ |
-| `CMP-001` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-001--collection-contracts`               |
-| `CMP-002` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-002--typed-fields-and-shared-validation` |
-| `CMP-003` | In progress               | Relationships and integrity conformance                                        |
-| `CMP-004` | Pending                   | Generic provider lifecycle                                                     |
-| `CMP-005` | Pending                   | Registry-generated admin                                                       |
-| `CMP-006` | Pending                   | Rèm Việt plus independent Acme proof                                           |
+| Milestone | Status                    | Execution evidence                                                                |
+| --------- | ------------------------- | --------------------------------------------------------------------------------- |
+| `CMP-001` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-001--collection-contracts`                  |
+| `CMP-002` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-002--typed-fields-and-shared-validation`    |
+| `CMP-003` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-003--relationships-and-integrity-contracts` |
+| `CMP-004` | In progress               | Generic provider lifecycle                                                        |
+| `CMP-005` | Pending                   | Registry-generated admin                                                          |
+| `CMP-006` | Pending                   | Rèm Việt plus independent Acme proof                                              |
 
 ### Historical 14-day productization backlog
 

@@ -342,6 +342,31 @@ export function createCollectionRegistry<
   const bySlug = new Map(
     collections.map((collection) => [collection.slug, collection] as const),
   );
+  for (const collection of collections) {
+    for (const field of collection.fields) {
+      if (
+        field.kind === "relationship" &&
+        (!("relationTo" in field) ||
+          typeof field.relationTo !== "string" ||
+          !bySlug.has(field.relationTo))
+      ) {
+        const relationTo =
+          "relationTo" in field && typeof field.relationTo === "string"
+            ? field.relationTo
+            : null;
+        throw new CmsError({
+          code: "VALIDATION_FAILED",
+          message: `Relationship field \"${collection.slug}.${field.name}\" targets an unregistered collection.`,
+          retryable: false,
+          details: {
+            collection: collection.slug,
+            field: field.name,
+            relationTo,
+          },
+        });
+      }
+    }
+  }
 
   return Object.freeze({
     collections: Object.freeze([...collections]) as unknown as TCollections,

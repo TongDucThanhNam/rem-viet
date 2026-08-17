@@ -51,3 +51,27 @@ Targeted verification:
 bun --cwd packages/cms-core test        # 12 pass, 0 fail
 bun --cwd packages/cms-core check-types # pass
 ```
+
+## CMP-003 — relationships and integrity contracts
+
+Status: **Complete (2026-08-17).**
+
+- `relationshipField()` defines a typed target collection, to-one/to-many
+  cardinality, optional item bounds, and explicit `restrict`/`nullify` deletion
+  policy.
+- Registry creation rejects relationship definitions whose targets are not in
+  the same consumer registry. Required relationships cannot declare a
+  nullification policy.
+- `collectCmsRelationshipReferences()` creates normalized reference records and
+  `assertCmsRelationshipIntegrity()` rejects dangling targets through a neutral
+  async lookup supplied by a provider.
+- `nullifyCmsRelationshipTarget()` is a deterministic, database-free fixture
+  for provider delete transactions; the core tests cover to-one, to-many,
+  dangling, missing-target, restrict metadata, and nullification behavior.
+
+Targeted verification:
+
+```text
+bun --cwd packages/cms-core test        # 16 pass, 0 fail
+bun --cwd packages/cms-core check-types # pass
+```

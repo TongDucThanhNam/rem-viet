@@ -19,6 +19,11 @@ Each definition carries typed defaults, validation metadata, admin hints, and
 optional declarative visibility. `parseCmsCollectionData()` is the shared,
 strict validator for migrations, provider writes, and authoring UI.
 
+`relationshipField()` declares an explicit registered target, to-one/to-many
+cardinality, bounds, and `restrict` or `nullify` deletion behavior. Registry
+creation rejects missing targets, while `assertCmsRelationshipIntegrity()`
+uses a provider-supplied lookup to reject dangling IDs before persistence.
+
 Editorial handoff is modeled as bounded request/decision schemas with separate
 `content.review.request` and `content.review.decide` capabilities. Notes are
 trimmed and capped at 500 characters; provider storage, roles, labels, and UI

@@ -150,6 +150,37 @@ export type CmsSelectField<
     };
   };
 
+export type CmsRelationId<TCollectionSlug extends string = string> = string & {
+  readonly __cmsRelationTarget?: TCollectionSlug;
+};
+
+export type CmsRelationshipField<
+  TName extends string = string,
+  TTarget extends string = string,
+  TRequired extends boolean = boolean,
+  THasMany extends boolean = boolean,
+> = CmsFieldDefinition<
+  TName,
+  "relationship",
+  THasMany extends true
+    ? readonly CmsRelationId<TTarget>[]
+    : CmsRelationId<TTarget>,
+  TRequired
+> &
+  FieldMetadata<
+    THasMany extends true
+      ? readonly CmsRelationId<TTarget>[]
+      : CmsRelationId<TTarget>
+  > & {
+    readonly relationTo: TTarget;
+    readonly hasMany: THasMany;
+    readonly onDelete: "restrict" | "nullify";
+    readonly validation?: {
+      readonly minItems?: number;
+      readonly maxItems?: number;
+    };
+  };
+
 export type CmsBuiltInField =
   | CmsTextField
   | CmsNumberField
@@ -158,7 +189,8 @@ export type CmsBuiltInField =
   | CmsRichTextField
   | CmsMediaField
   | CmsBlocksField
-  | CmsSelectField;
+  | CmsSelectField
+  | CmsRelationshipField;
 
 function baseField<
   const TName extends string,
@@ -360,6 +392,41 @@ export function selectField<
   >;
 }
 
+export function relationshipField<
+  const TName extends string,
+  const TTarget extends string,
+  const TRequired extends boolean = false,
+  const THasMany extends boolean = false,
+>(
+  input: FieldInput<
+    TName,
+    THasMany extends true
+      ? readonly CmsRelationId<TTarget>[]
+      : CmsRelationId<TTarget>,
+    TRequired
+  > &
+    Pick<
+      CmsRelationshipField<TName, TTarget, TRequired, THasMany>,
+      "relationTo" | "hasMany" | "onDelete" | "validation"
+    >,
+): CmsRelationshipField<TName, TTarget, TRequired, THasMany> {
+  cmsFieldKindSchema.parse(input.relationTo);
+  if (input.required && input.onDelete === "nullify") {
+    throw new CmsError({
+      code: "VALIDATION_FAILED",
+      message: `Required relationship field \"${input.name}\" cannot use nullify on delete.`,
+      retryable: false,
+    });
+  }
+  const field = {
+    ...baseField("relationship", input),
+    ...input,
+    kind: "relationship",
+  } as const;
+  validateDefault(field);
+  return Object.freeze(field);
+}
+
 const richTextValueSchema = z.object({
   version: z.number().int().positive(),
   blocks: z.array(z.looseObject({ type: z.string().trim().min(1).max(128) })),
@@ -480,6 +547,10 @@ function schemaForField(field: CmsBuiltInField): z.ZodType {
       return field.multiple
         ? itemBounds(z.array(option), field.validation)
         : option;
+    }
+    case "relationship": {
+      const id = z.string().trim().min(1).max(128);
+      return field.hasMany ? itemBounds(z.array(id), field.validation) : id;
     }
   }
 }

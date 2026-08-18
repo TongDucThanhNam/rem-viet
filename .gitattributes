@@ -1,1 +1,4 @@
+* text=auto eol=lf
+
+# Release evidence hashes must cover the exact committed bytes.
 docs/releases/evidence/** -text

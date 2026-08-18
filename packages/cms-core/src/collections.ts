@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import {
   cmsCapabilitySchema,
+  cmsLocaleSchema,
   CmsError,
   schemaVersionSchema,
   type CmsCapability,
@@ -65,6 +66,33 @@ export type CmsCollectionLifecycle = z.infer<
   typeof cmsCollectionLifecycleSchema
 >;
 
+export const cmsCollectionLocalizationSchema = z
+  .object({
+    locales: z.array(cmsLocaleSchema).min(1).max(50).readonly(),
+    defaultLocale: cmsLocaleSchema,
+  })
+  .strict()
+  .superRefine((localization, context) => {
+    if (new Set(localization.locales).size !== localization.locales.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["locales"],
+        message: "Collection locales must be unique.",
+      });
+    }
+    if (!localization.locales.includes(localization.defaultLocale)) {
+      context.addIssue({
+        code: "custom",
+        path: ["defaultLocale"],
+        message: "Default locale must be included in collection locales.",
+      });
+    }
+  });
+
+export type CmsCollectionLocalization = z.infer<
+  typeof cmsCollectionLocalizationSchema
+>;
+
 export const cmsCollectionAccessSchema = z
   .object({
     read: z.array(cmsCapabilitySchema).readonly(),
@@ -95,6 +123,8 @@ export type CmsFieldDefinition<
   readonly required: TRequired;
   readonly indexed?: boolean;
   readonly unique?: boolean;
+  /** Localized fields vary per locale; omitted/false fields are shared. */
+  readonly localized?: boolean;
   readonly admin?: {
     readonly description?: string;
     readonly readOnly?: boolean;
@@ -159,6 +189,7 @@ export type CmsCollectionDefinition<
   readonly schemaVersion: number;
   readonly fields: TFields;
   readonly lifecycle: CmsCollectionLifecycle;
+  readonly localization?: CmsCollectionLocalization;
   readonly access: CmsCollectionAccess;
   readonly admin?: {
     readonly useAsTitle: string;
@@ -181,6 +212,7 @@ const collectionShapeSchema = z
           required: z.boolean(),
           indexed: z.boolean().optional(),
           unique: z.boolean().optional(),
+          localized: z.boolean().optional(),
           admin: z
             .object({
               description: z.string().trim().min(1).max(240).optional(),
@@ -193,6 +225,7 @@ const collectionShapeSchema = z
         .passthrough(),
     ),
     lifecycle: cmsCollectionLifecycleSchema,
+    localization: cmsCollectionLocalizationSchema.optional(),
     access: cmsCollectionAccessSchema,
     admin: z
       .object({
@@ -294,6 +327,13 @@ export function defineCollection<
     });
   }
   for (const field of definition.fields) {
+    if (field.localized && !definition.localization) {
+      throw new CmsError({
+        code: "VALIDATION_FAILED",
+        message: `Field \"${field.name}\" is localized but collection \"${definition.slug}\" has localization disabled.`,
+        retryable: false,
+      });
+    }
     if (
       field.visibleWhen &&
       (!fieldNames.has(field.visibleWhen.field) ||
@@ -386,6 +426,32 @@ export function createCollectionRegistry<
             relationTo,
           },
         });
+      }
+      if (field.kind === "relationship" && "relationTo" in field) {
+        const target = bySlug.get(String(field.relationTo));
+        const behavior =
+          "localeBehavior" in field ? field.localeBehavior : undefined;
+        if (target?.localization && !behavior) {
+          throw new CmsError({
+            code: "VALIDATION_FAILED",
+            message: `Relationship field \"${collection.slug}.${field.name}\" must declare locale behavior for localized target \"${target.slug}\".`,
+            retryable: false,
+          });
+        }
+        if (!target?.localization && behavior && behavior !== "any") {
+          throw new CmsError({
+            code: "VALIDATION_FAILED",
+            message: `Relationship field \"${collection.slug}.${field.name}\" cannot use \"${behavior}\" with a non-localized target.`,
+            retryable: false,
+          });
+        }
+        if (behavior === "same" && !collection.localization) {
+          throw new CmsError({
+            code: "VALIDATION_FAILED",
+            message: `Relationship field \"${collection.slug}.${field.name}\" requires a localized source for same-locale resolution.`,
+            retryable: false,
+          });
+        }
       }
     }
   }

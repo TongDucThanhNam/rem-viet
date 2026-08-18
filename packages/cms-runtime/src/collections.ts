@@ -8,6 +8,16 @@ import {
 export type CmsCollectionAction =
   "read" | "create" | "update" | "delete" | "publish";
 
+export type CmsLocaleFallbackPolicy = "none" | "default";
+
+export type CmsCollectionLocaleInput = {
+  readonly locale?: string;
+};
+
+export type CmsCollectionReadLocaleInput = CmsCollectionLocaleInput & {
+  readonly fallback?: CmsLocaleFallbackPolicy;
+};
+
 export function assertCmsCollectionAccess(
   collection: CmsCollectionDefinition,
   action: CmsCollectionAction,
@@ -32,6 +42,10 @@ export type CmsCollectionDocument<TData = Record<string, unknown>> = {
   readonly schemaVersion: number;
   readonly version: number;
   readonly status: "draft" | "published";
+  /** Null for collections with localization disabled. */
+  readonly locale: string | null;
+  /** Requested locale when a default-locale fallback supplied this result. */
+  readonly fallbackFrom: string | null;
   readonly data: TData;
   readonly publishedRevisionId: string | null;
   readonly scheduledAt: string | null;
@@ -46,6 +60,7 @@ export type CmsCollectionRevision<TData = Record<string, unknown>> = {
   readonly documentId: string;
   readonly schemaVersion: number;
   readonly version: number;
+  readonly locale: string | null;
   readonly data: TData;
   readonly note: string;
   readonly createdAt: string;
@@ -76,7 +91,7 @@ export type ListCmsCollectionDocumentsInput = {
   };
   readonly pagination?: { readonly limit?: number; readonly offset?: number };
   readonly actorId?: string;
-};
+} & CmsCollectionLocaleInput;
 
 export type CmsCollectionPage<TData = Record<string, unknown>> = {
   readonly documents: readonly CmsCollectionDocument<TData>[];
@@ -91,7 +106,7 @@ export type CreateCmsCollectionDraftInput<TData = unknown> = {
   readonly id?: string;
   readonly data: TData;
   readonly actorId: string;
-};
+} & CmsCollectionLocaleInput;
 
 export type SaveCmsCollectionDraftInput<TData = unknown> = {
   readonly collection: string;
@@ -99,7 +114,7 @@ export type SaveCmsCollectionDraftInput<TData = unknown> = {
   readonly expectedVersion: number;
   readonly data: TData;
   readonly actorId: string;
-};
+} & CmsCollectionLocaleInput;
 
 export type CmsCollectionVersionInput = {
   readonly collection: string;
@@ -107,7 +122,7 @@ export type CmsCollectionVersionInput = {
   readonly expectedVersion: number;
   readonly actorId: string;
   readonly note?: string;
-};
+} & CmsCollectionLocaleInput;
 
 export type ScheduleCmsCollectionDraftInput = CmsCollectionVersionInput & {
   readonly scheduledAt: string;
@@ -119,16 +134,20 @@ export type RestoreCmsCollectionRevisionInput = CmsCollectionVersionInput & {
 
 export interface CmsCollectionProvider {
   readonly registry: CmsCollectionRegistry;
-  getDraft(input: {
-    collection: string;
-    id: string;
-    actorId?: string;
-  }): Promise<CmsCollectionDocument | null>;
-  getPublished(input: {
-    collection: string;
-    id: string;
-    actorId?: string;
-  }): Promise<CmsCollectionDocument | null>;
+  getDraft(
+    input: {
+      collection: string;
+      id: string;
+      actorId?: string;
+    } & CmsCollectionReadLocaleInput,
+  ): Promise<CmsCollectionDocument | null>;
+  getPublished(
+    input: {
+      collection: string;
+      id: string;
+      actorId?: string;
+    } & CmsCollectionReadLocaleInput,
+  ): Promise<CmsCollectionDocument | null>;
   list(input: ListCmsCollectionDocumentsInput): Promise<CmsCollectionPage>;
   createDraft(
     input: CreateCmsCollectionDraftInput,
@@ -143,11 +162,13 @@ export interface CmsCollectionProvider {
     revision: CmsCollectionRevision;
   }>;
   unpublish(input: CmsCollectionVersionInput): Promise<CmsCollectionDocument>;
-  listRevisions(input: {
-    collection: string;
-    id: string;
-    actorId?: string;
-  }): Promise<readonly CmsCollectionRevision[]>;
+  listRevisions(
+    input: {
+      collection: string;
+      id: string;
+      actorId?: string;
+    } & CmsCollectionLocaleInput,
+  ): Promise<readonly CmsCollectionRevision[]>;
   restore(
     input: RestoreCmsCollectionRevisionInput,
   ): Promise<CmsCollectionDocument>;
@@ -199,10 +220,11 @@ export async function runCollectionProviderConformance(input: {
   readonly filter: CmsCollectionFilter;
   readonly actorId?: string;
   readonly documentId?: string;
+  readonly locale?: string;
 }): Promise<CollectionProviderConformanceEvidence> {
   const actorId = input.actorId ?? "collection-conformance";
   const id = input.documentId ?? "collection-conformance-document";
-  const target = { collection: input.collection, id };
+  const target = { collection: input.collection, id, locale: input.locale };
   if ((await input.provider.getDraft(target)) !== null) {
     throw new Error("Collection conformance requires empty storage.");
   }
@@ -216,6 +238,7 @@ export async function runCollectionProviderConformance(input: {
   }
   const list = await input.provider.list({
     collection: input.collection,
+    locale: input.locale,
     filters: [input.filter],
     pagination: { limit: 1, offset: 0 },
   });

@@ -24,6 +24,12 @@ cardinality, bounds, and `restrict` or `nullify` deletion behavior. Registry
 creation rejects missing targets, while `assertCmsRelationshipIntegrity()`
 uses a provider-supplied lookup to reject dangling IDs before persistence.
 
+Collections may opt into localization with a bounded locale list and one
+default locale. Fields are explicitly shared or localized; marking a field
+localized without collection localization is rejected. Relationships to a
+localized target must choose `same`, `default`, or `any` locale resolution, so
+providers never infer cross-locale integrity behavior.
+
 Editorial handoff is modeled as bounded request/decision schemas with separate
 `content.review.request` and `content.review.decide` capabilities. Notes are
 trimmed and capped at 500 characters; provider storage, roles, labels, and UI

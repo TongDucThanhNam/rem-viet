@@ -159,6 +159,7 @@ export const cmsCollectionDocuments = sqliteTable(
   {
     collectionSlug: text("collection_slug").notNull(),
     id: text("id").notNull(),
+    locale: text("locale").default("").notNull(),
     schemaVersion: integer("schema_version").notNull(),
     version: integer("version").default(1).notNull(),
     status: text("status", { enum: ["draft", "published"] })
@@ -173,9 +174,10 @@ export const cmsCollectionDocuments = sqliteTable(
     ...timestamps,
   },
   (table) => [
-    primaryKey({ columns: [table.collectionSlug, table.id] }),
+    primaryKey({ columns: [table.collectionSlug, table.id, table.locale] }),
     index("cms_collection_documents_status_idx").on(
       table.collectionSlug,
+      table.locale,
       table.status,
       table.updatedAt,
     ),
@@ -188,6 +190,7 @@ export const cmsCollectionRevisions = sqliteTable(
     id: text("id").primaryKey(),
     collectionSlug: text("collection_slug").notNull(),
     documentId: text("document_id").notNull(),
+    locale: text("locale").default("").notNull(),
     schemaVersion: integer("schema_version").notNull(),
     version: integer("version").notNull(),
     snapshot: text("snapshot", { mode: "json" })
@@ -201,20 +204,23 @@ export const cmsCollectionRevisions = sqliteTable(
   },
   (table) => [
     foreignKey({
-      columns: [table.collectionSlug, table.documentId],
+      columns: [table.collectionSlug, table.documentId, table.locale],
       foreignColumns: [
         cmsCollectionDocuments.collectionSlug,
         cmsCollectionDocuments.id,
+        cmsCollectionDocuments.locale,
       ],
     }).onDelete("cascade"),
     index("cms_collection_revisions_document_idx").on(
       table.collectionSlug,
       table.documentId,
+      table.locale,
       table.createdAt,
     ),
     uniqueIndex("cms_collection_revisions_version_unique").on(
       table.collectionSlug,
       table.documentId,
+      table.locale,
       table.version,
     ),
   ],

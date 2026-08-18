@@ -35,3 +35,9 @@ between the generic collection envelope and the existing public page shape.
 permission metadata, schema migration contribution, and admin navigation
 contribution through the public core extension API used by independent
 consumers.
+
+`remVietLocalizedCampaignsCollection` is the template's localization fixture:
+Vietnamese and English variants share a campaign code while keeping their
+headline and complete lifecycle independent. It is installed by the same
+feature module, proving localization does not require a template-specific
+provider branch.

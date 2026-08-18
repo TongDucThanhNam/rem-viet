@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, mock, test } from "bun:test";
-import { applyCloudflareCmsMigrations } from "@agency/cms-provider-cloudflare";
+import {
+  applyCloudflareCmsMigrations,
+  createCloudflareCmsCollectionProvider,
+} from "@agency/cms-provider-cloudflare";
+import { createCmsExtensionRegistry } from "@agency/cms-core";
+import {
+  remVietLocalizedCampaignsCollection,
+  remVietStandardPagesModule,
+} from "@agency/cms-template-rem-viet";
 
 import { LibsqlD1Database } from "../../cms-provider-cloudflare/tests/libsql-d1";
 
@@ -62,6 +70,86 @@ function page(title: string, slug: string) {
 }
 
 describe("Rèm Việt standard-page collection runtime", () => {
+  test("keeps the installed campaign fixture lifecycle independent per locale", async () => {
+    const db = await database();
+    let sequence = 0;
+    const provider = createCloudflareCmsCollectionProvider({
+      database: db,
+      extensions: createCmsExtensionRegistry({
+        modules: [remVietStandardPagesModule],
+      }),
+      createId: () => `rem-viet-locale-${++sequence}`,
+      now: () => new Date("2026-08-18T00:00:00.000Z"),
+    });
+    const collection = remVietLocalizedCampaignsCollection.slug;
+    const vi = await provider.createDraft({
+      collection,
+      id: "summer-campaign",
+      locale: "vi-VN",
+      data: { code: "summer-2026", headline: "Mùa hè thoáng mát" },
+      actorId: "editor",
+    });
+    const viPublished = await provider.publish({
+      collection,
+      id: vi.id,
+      locale: "vi-VN",
+      expectedVersion: vi.version,
+      actorId: "publisher",
+    });
+    let en = await provider.createDraft({
+      collection,
+      id: vi.id,
+      locale: "en-US",
+      data: { code: "ignored", headline: "A breezy summer" },
+      actorId: "editor",
+    });
+    expect(en.data).toEqual({
+      code: "summer-2026",
+      headline: "A breezy summer",
+    });
+    expect(
+      await provider.getPublished({ collection, id: vi.id, locale: "en-US" }),
+    ).toBeNull();
+    en = await provider.schedule({
+      collection,
+      id: vi.id,
+      locale: "en-US",
+      expectedVersion: en.version,
+      scheduledAt: "2099-01-01T00:00:00.000Z",
+      actorId: "editor",
+    });
+    const enPublished = await provider.publish({
+      collection,
+      id: vi.id,
+      locale: "en-US",
+      expectedVersion: en.version,
+      actorId: "publisher",
+    });
+    await provider.saveDraft({
+      collection,
+      id: vi.id,
+      locale: "en-US",
+      expectedVersion: enPublished.document.version,
+      data: { code: "ignored-again", headline: "English draft only" },
+      actorId: "editor",
+    });
+    await expect(
+      provider.getPublished({ collection, id: vi.id, locale: "vi-VN" }),
+    ).resolves.toMatchObject({
+      version: viPublished.document.version,
+      data: { headline: "Mùa hè thoáng mát" },
+    });
+    await expect(
+      provider.getPublished({ collection, id: vi.id, locale: "en-US" }),
+    ).resolves.toMatchObject({ data: { headline: "A breezy summer" } });
+    await expect(
+      provider.listRevisions({ collection, id: vi.id, locale: "vi-VN" }),
+    ).resolves.toHaveLength(1);
+    await expect(
+      provider.listRevisions({ collection, id: vi.id, locale: "en-US" }),
+    ).resolves.toHaveLength(1);
+  });
+
   test("preserves the page lifecycle and legacy editorial projection atomically", async () => {
     const db = await database();
     const actor = {

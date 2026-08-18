@@ -204,6 +204,66 @@ CREATE INDEX IF NOT EXISTS cms_collection_revisions_document_idx
 CREATE UNIQUE INDEX IF NOT EXISTS cms_collection_revisions_version_unique
   ON cms_collection_revisions(collection_slug, document_id, version);`,
   },
+  {
+    id: "0007_collection_locales",
+    sql: `
+PRAGMA foreign_keys = OFF;
+CREATE TABLE cms_collection_documents_localized (
+  collection_slug TEXT NOT NULL,
+  id TEXT NOT NULL,
+  locale TEXT NOT NULL DEFAULT '',
+  schema_version INTEGER NOT NULL,
+  version INTEGER NOT NULL DEFAULT 1,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published')),
+  data TEXT NOT NULL,
+  published_revision_id TEXT,
+  scheduled_at INTEGER,
+  updated_by TEXT NOT NULL DEFAULT '',
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  PRIMARY KEY (collection_slug, id, locale)
+);
+INSERT INTO cms_collection_documents_localized (
+  collection_slug, id, locale, schema_version, version, status, data,
+  published_revision_id, scheduled_at, updated_by, created_at, updated_at
+)
+SELECT collection_slug, id, '', schema_version, version, status, data,
+  published_revision_id, scheduled_at, updated_by, created_at, updated_at
+FROM cms_collection_documents;
+CREATE TABLE cms_collection_revisions_localized (
+  id TEXT PRIMARY KEY,
+  collection_slug TEXT NOT NULL,
+  document_id TEXT NOT NULL,
+  locale TEXT NOT NULL DEFAULT '',
+  schema_version INTEGER NOT NULL,
+  version INTEGER NOT NULL,
+  snapshot TEXT NOT NULL,
+  note TEXT NOT NULL DEFAULT '',
+  created_by TEXT NOT NULL DEFAULT '',
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY (collection_slug, document_id, locale)
+    REFERENCES cms_collection_documents_localized(collection_slug, id, locale)
+    ON DELETE CASCADE
+);
+INSERT INTO cms_collection_revisions_localized (
+  id, collection_slug, document_id, locale, schema_version, version,
+  snapshot, note, created_by, created_at
+)
+SELECT id, collection_slug, document_id, '', schema_version, version,
+  snapshot, note, created_by, created_at
+FROM cms_collection_revisions;
+DROP TABLE cms_collection_revisions;
+DROP TABLE cms_collection_documents;
+ALTER TABLE cms_collection_documents_localized RENAME TO cms_collection_documents;
+ALTER TABLE cms_collection_revisions_localized RENAME TO cms_collection_revisions;
+CREATE INDEX cms_collection_documents_status_idx
+  ON cms_collection_documents(collection_slug, locale, status, updated_at DESC);
+CREATE INDEX cms_collection_revisions_document_idx
+  ON cms_collection_revisions(collection_slug, document_id, locale, created_at DESC);
+CREATE UNIQUE INDEX cms_collection_revisions_version_unique
+  ON cms_collection_revisions(collection_slug, document_id, locale, version);
+PRAGMA foreign_keys = ON;`,
+  },
 ] as const;
 
 async function ensureColumn(

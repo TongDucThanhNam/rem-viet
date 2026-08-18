@@ -107,6 +107,7 @@ describe("CMS extension registry", () => {
       collection,
       actorId: "editor",
       documentId: "article-1",
+      locale: null,
       data: { title: "  Hello  " },
       previousData: null,
     });
@@ -115,6 +116,7 @@ describe("CMS extension registry", () => {
       collection,
       actorId: "editor",
       documentId: "article-1",
+      locale: null,
       data,
       previousData: null,
     });
@@ -202,6 +204,7 @@ describe("CMS extension registry", () => {
       collection,
       actorId: "editor",
       documentId: "article-1",
+      locale: null,
       data: { title: "Isolated" },
       previousData: null,
     };

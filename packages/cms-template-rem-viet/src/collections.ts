@@ -17,6 +17,37 @@ import {
 } from "./standard-blocks";
 
 export const REM_VIET_STANDARD_PAGES_COLLECTION = "standard-pages";
+export const REM_VIET_LOCALIZED_CAMPAIGNS_COLLECTION =
+  "rem-viet-localized-campaigns";
+
+/** Independent locale fixture installed by the Rèm Việt module. */
+export const remVietLocalizedCampaignsCollection = defineCollection({
+  slug: REM_VIET_LOCALIZED_CAMPAIGNS_COLLECTION,
+  labels: { singular: "Localized campaign", plural: "Localized campaigns" },
+  schemaVersion: 1,
+  localization: {
+    locales: ["vi-VN", "en-US"],
+    defaultLocale: "vi-VN",
+  },
+  fields: [
+    textField({ name: "code", label: "Campaign code", required: true }),
+    textField({
+      name: "headline",
+      label: "Headline",
+      required: true,
+      localized: true,
+    }),
+  ],
+  lifecycle: { drafts: true, revisions: true, scheduling: true },
+  access: {
+    read: ["content.readDraft"],
+    create: ["content.write"],
+    update: ["content.write"],
+    delete: ["content.delete"],
+    publish: ["content.publish"],
+  },
+  admin: { useAsTitle: "headline", defaultColumns: ["headline", "code"] },
+});
 
 export const remVietStandardPagesCollection = defineCollection({
   slug: REM_VIET_STANDARD_PAGES_COLLECTION,
@@ -117,7 +148,10 @@ export const remVietStandardPagesCollection = defineCollection({
 /** Installable Rèm Việt collection surface, consumed through the same API as fixtures. */
 export const remVietStandardPagesModule = defineFeatureModule({
   id: "rem-viet-standard-pages",
-  collections: [remVietStandardPagesCollection],
+  collections: [
+    remVietStandardPagesCollection,
+    remVietLocalizedCampaignsCollection,
+  ],
   hooks: [
     defineCmsLifecycleHook({
       id: "rem-viet-standard-pages/validate-template",

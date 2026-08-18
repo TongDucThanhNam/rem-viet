@@ -7,6 +7,7 @@ export * from "./primitives.js";
 export * from "./relationships.js";
 import {
   cmsCapabilitySchema,
+  cmsLocaleSchema,
   CmsError,
   schemaVersionSchema,
 } from "./primitives.js";
@@ -205,9 +206,6 @@ const cmsManifestIdentifierSchema = z
   .min(1)
   .max(128)
   .regex(/^[0-9A-Za-z@][0-9A-Za-z@/._-]*$/);
-const cmsLocaleSchema = z
-  .string()
-  .regex(/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/);
 const cmsDisplayNameSchema = z
   .string()
   .trim()

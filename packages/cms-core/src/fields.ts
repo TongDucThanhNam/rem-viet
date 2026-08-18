@@ -18,6 +18,7 @@ type FieldInput<TName extends string, TValue, TRequired extends boolean> = {
   readonly defaultValue?: TValue;
   readonly indexed?: boolean;
   readonly unique?: boolean;
+  readonly localized?: boolean;
   readonly admin?: {
     readonly description?: string;
     readonly readOnly?: boolean;
@@ -175,6 +176,8 @@ export type CmsRelationshipField<
     readonly relationTo: TTarget;
     readonly hasMany: THasMany;
     readonly onDelete: "restrict" | "nullify";
+    /** How a relationship resolves when its target collection is localized. */
+    readonly localeBehavior?: "same" | "default" | "any";
     readonly validation?: {
       readonly minItems?: number;
       readonly maxItems?: number;
@@ -407,7 +410,7 @@ export function relationshipField<
   > &
     Pick<
       CmsRelationshipField<TName, TTarget, TRequired, THasMany>,
-      "relationTo" | "hasMany" | "onDelete" | "validation"
+      "relationTo" | "hasMany" | "onDelete" | "validation" | "localeBehavior"
     >,
 ): CmsRelationshipField<TName, TTarget, TRequired, THasMany> {
   cmsFieldKindSchema.parse(input.relationTo);

@@ -73,6 +73,7 @@ describe("collection relationships", () => {
         targetCollection: "authors",
         targetId: "author-1",
         onDelete: "restrict",
+        localeBehavior: "any",
       },
       {
         sourceCollection: "related-articles",
@@ -80,6 +81,7 @@ describe("collection relationships", () => {
         targetCollection: "authors",
         targetId: "author-1",
         onDelete: "nullify",
+        localeBehavior: "any",
       },
       {
         sourceCollection: "related-articles",
@@ -87,6 +89,7 @@ describe("collection relationships", () => {
         targetCollection: "authors",
         targetId: "author-2",
         onDelete: "nullify",
+        localeBehavior: "any",
       },
     ]);
   });
@@ -151,5 +154,66 @@ describe("collection relationships", () => {
         required: true,
       }),
     ).toThrow("cannot use nullify");
+  });
+
+  test("requires valid locale behavior for localized relationship targets", () => {
+    const localizedAuthors = defineCollection({
+      ...authors,
+      slug: "localized-authors",
+      localization: {
+        locales: ["vi-VN", "en-US"],
+        defaultLocale: "vi-VN",
+      },
+      fields: [
+        textField({
+          name: "name",
+          label: "Name",
+          required: true,
+          localized: true,
+        }),
+      ],
+    });
+    const localizedArticles = defineCollection({
+      ...articles,
+      slug: "localized-related-articles",
+      localization: localizedAuthors.localization,
+      fields: [
+        textField({
+          name: "title",
+          label: "Title",
+          required: true,
+          localized: true,
+        }),
+        relationshipField({
+          name: "author",
+          label: "Author",
+          relationTo: localizedAuthors.slug,
+          hasMany: false,
+          required: true,
+          onDelete: "restrict",
+          localeBehavior: "same",
+        }),
+      ],
+    });
+    expect(() =>
+      createCollectionRegistry([localizedAuthors, localizedArticles]),
+    ).not.toThrow();
+    const implicit = defineCollection({
+      ...localizedArticles,
+      slug: "implicit-locale-articles",
+      fields: [
+        relationshipField({
+          name: "author",
+          label: "Author",
+          relationTo: localizedAuthors.slug,
+          hasMany: false,
+          required: true,
+          onDelete: "restrict",
+        }),
+      ],
+    });
+    expect(() =>
+      createCollectionRegistry([localizedAuthors, implicit]),
+    ).toThrow("must declare locale behavior");
   });
 });

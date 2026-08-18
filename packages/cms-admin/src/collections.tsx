@@ -21,6 +21,8 @@ export type CmsCollectionAdminDocument = {
   readonly data: Readonly<Record<string, unknown>>;
   readonly updatedAt: string;
   readonly updatedBy?: string;
+  readonly locale?: string | null;
+  readonly fallbackFrom?: string | null;
 };
 
 export type CmsRelationshipOption = {
@@ -191,7 +193,10 @@ export type CmsCollectionListProps = {
   readonly filter: CmsCollectionFilterValue;
   readonly onFilterChange: (filter: CmsCollectionFilterValue) => void;
   readonly createHref: string;
-  readonly editHref: (id: string) => string;
+  readonly editHref: (id: string, locale?: string) => string;
+  readonly previewHref?: (id: string, locale?: string) => string;
+  readonly locale?: string;
+  readonly onLocaleChange?: (locale: string) => void;
   readonly empty?: ReactNode;
 };
 
@@ -203,6 +208,9 @@ export function CmsCollectionList({
   onFilterChange,
   createHref,
   editHref,
+  previewHref,
+  locale,
+  onLocaleChange,
   empty = "No documents found.",
 }: CmsCollectionListProps): ReactElement {
   const headingId = `cms-${collection.slug}-heading`;
@@ -220,6 +228,25 @@ export function CmsCollectionList({
         <h1 id={headingId}>{collection.labels.plural}</h1>
         <a href={createHref}>Create {collection.labels.singular}</a>
       </header>
+      {collection.localization ? (
+        <div>
+          <label htmlFor={`cms-${collection.slug}-locale`}>Locale</label>
+          <select
+            id={`cms-${collection.slug}-locale`}
+            value={locale ?? collection.localization.defaultLocale}
+            onChange={(event) => onLocaleChange?.(event.currentTarget.value)}
+          >
+            {collection.localization.locales.map((availableLocale) => (
+              <option key={availableLocale} value={availableLocale}>
+                {availableLocale}
+              </option>
+            ))}
+          </select>
+          <p aria-live="polite">
+            Showing {locale ?? collection.localization.defaultLocale} locale
+          </p>
+        </div>
+      ) : null}
       {filterable.length ? (
         <form
           aria-label={`Filter ${collection.labels.plural}`}
@@ -285,23 +312,40 @@ export function CmsCollectionList({
                 </th>
               ))}
               <th scope="col">Status</th>
+              {collection.localization ? <th scope="col">Locale</th> : null}
               <th scope="col">Actions</th>
             </tr>
           </thead>
           <tbody>
             {documents.map((document) => (
-              <tr key={document.id}>
+              <tr key={`${document.id}:${document.locale ?? "shared"}`}>
                 {columns.map((name) => (
                   <td key={name}>{displayValue(document.data[name])}</td>
                 ))}
                 <td>{document.status}</td>
+                {collection.localization ? (
+                  <td>
+                    {document.locale ?? locale}
+                    {document.fallbackFrom
+                      ? ` (fallback for ${document.fallbackFrom})`
+                      : ""}
+                  </td>
+                ) : null}
                 <td>
                   <a
                     aria-label={`Edit ${displayValue(document.data[useAsTitle(collection)])}`}
-                    href={editHref(document.id)}
+                    href={editHref(document.id, document.locale ?? locale)}
                   >
                     Edit
                   </a>
+                  {previewHref ? (
+                    <a
+                      aria-label={`Preview ${displayValue(document.data[useAsTitle(collection)])} in ${document.locale ?? locale ?? "default"}`}
+                      href={previewHref(document.id, document.locale ?? locale)}
+                    >
+                      Preview
+                    </a>
+                  ) : null}
                 </td>
               </tr>
             ))}
@@ -545,6 +589,9 @@ export type CmsCollectionFormProps = {
     errors: Readonly<Record<string, string>>,
   ) => void;
   readonly cancelHref: string;
+  readonly locale?: string;
+  readonly onLocaleChange?: (locale: string) => void;
+  readonly previewHref?: string;
 };
 
 export function CmsCollectionForm({
@@ -559,6 +606,9 @@ export function CmsCollectionForm({
   onSubmit,
   onValidationError,
   cancelHref,
+  locale,
+  onLocaleChange,
+  previewHref,
 }: CmsCollectionFormProps): ReactElement {
   const headingId = `cms-${collection.slug}-${mode}-heading`;
   const errorEntries = Object.entries(errors);
@@ -576,6 +626,24 @@ export function CmsCollectionForm({
       <h1 id={headingId}>
         {mode === "create" ? "Create" : "Edit"} {collection.labels.singular}
       </h1>
+      {collection.localization ? (
+        <div>
+          <label htmlFor={`cms-${collection.slug}-${mode}-locale`}>
+            Editing locale
+          </label>
+          <select
+            id={`cms-${collection.slug}-${mode}-locale`}
+            value={locale ?? collection.localization.defaultLocale}
+            onChange={(event) => onLocaleChange?.(event.currentTarget.value)}
+          >
+            {collection.localization.locales.map((availableLocale) => (
+              <option key={availableLocale} value={availableLocale}>
+                {availableLocale}
+              </option>
+            ))}
+          </select>
+        </div>
+      ) : null}
       {errorEntries.length ? (
         <div role="alert" tabIndex={-1}>
           <h2>Fix the following fields</h2>
@@ -601,7 +669,14 @@ export function CmsCollectionForm({
               key={field.name}
               disabled={saving || field.admin?.readOnly}
             >
-              <legend>{field.label}</legend>
+              <legend>
+                {field.label}
+                {collection.localization
+                  ? field.localized
+                    ? " (localized)"
+                    : " (shared)"
+                  : ""}
+              </legend>
               <Control
                 collection={collection}
                 field={field as CmsBuiltInField}
@@ -639,6 +714,9 @@ export function CmsCollectionForm({
           {saving ? "Saving…" : mode === "create" ? "Create" : "Save changes"}
         </button>
         <a href={cancelHref}>Cancel</a>
+        {mode === "edit" && previewHref ? (
+          <a href={previewHref}>Preview this locale</a>
+        ) : null}
       </form>
     </section>
   );
@@ -648,9 +726,11 @@ export type CmsCollectionAdminShellProps = {
   readonly registry: CmsCollectionRegistry;
   readonly collection: string;
   readonly mode: "list" | "create" | "edit";
+  readonly documentId?: string;
   readonly collectionHref: (slug: string) => string;
   readonly createHref: string;
-  readonly editHref: (id: string) => string;
+  readonly editHref: (id: string, locale?: string) => string;
+  readonly previewHref?: (id: string, locale?: string) => string;
   readonly cancelHref: string;
   readonly documents?: readonly CmsCollectionAdminDocument[];
   readonly total?: number;
@@ -670,6 +750,8 @@ export type CmsCollectionAdminShellProps = {
   readonly onValidationError?: (
     errors: Readonly<Record<string, string>>,
   ) => void;
+  readonly locale?: string;
+  readonly onLocaleChange?: (locale: string) => void;
 };
 
 export function CmsCollectionAdminShell(
@@ -698,6 +780,9 @@ export function CmsCollectionAdminShell(
           onFilterChange={props.onFilterChange ?? (() => undefined)}
           createHref={props.createHref}
           editHref={props.editHref}
+          previewHref={props.previewHref}
+          locale={props.locale}
+          onLocaleChange={props.onLocaleChange}
         />
       ) : (
         <CmsCollectionForm
@@ -712,6 +797,13 @@ export function CmsCollectionAdminShell(
           onSubmit={props.onSubmit ?? (() => undefined)}
           onValidationError={props.onValidationError}
           cancelHref={props.cancelHref}
+          locale={props.locale}
+          onLocaleChange={props.onLocaleChange}
+          previewHref={
+            props.mode === "edit" && props.previewHref && props.documentId
+              ? props.previewHref(props.documentId, props.locale)
+              : undefined
+          }
         />
       )}
     </Fragment>

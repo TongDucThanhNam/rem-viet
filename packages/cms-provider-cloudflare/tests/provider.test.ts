@@ -151,7 +151,7 @@ describe("Cloudflare D1 page provider", () => {
     const migrationCount = await empty
       .prepare("SELECT COUNT(*) AS count FROM cms_provider_migrations")
       .first<{ count: number }>();
-    expect(Number(migrationCount?.count)).toBe(6);
+    expect(Number(migrationCount?.count)).toBe(7);
 
     const upgraded = database();
     await upgraded.exec(`
@@ -380,6 +380,268 @@ describe("Cloudflare D1 page provider", () => {
         actorId: "editor",
       }),
     ).resolves.toMatchObject({ data: { name: "Permitted" } });
+  });
+
+  test("keeps localized drafts, publication, schedules, revisions, and relationships independent", async () => {
+    const db = database();
+    await applyCloudflareCmsMigrations(db);
+    const localization = {
+      locales: ["vi-VN", "en-US", "fr-FR"],
+      defaultLocale: "vi-VN",
+    } as const;
+    const lifecycle = {
+      drafts: true,
+      revisions: true,
+      scheduling: true,
+    } as const;
+    const access = {
+      read: [] as const,
+      create: ["content.write"] as const,
+      update: ["content.write"] as const,
+      delete: ["content.delete"] as const,
+      publish: ["content.publish"] as const,
+    };
+    const authors = defineCollection({
+      slug: "localized-authors",
+      labels: { singular: "Author", plural: "Authors" },
+      schemaVersion: 1,
+      localization,
+      lifecycle,
+      access,
+      fields: [
+        textField({
+          name: "name",
+          label: "Name",
+          required: true,
+          localized: true,
+        }),
+      ],
+    });
+    const articles = defineCollection({
+      slug: "localized-articles",
+      labels: { singular: "Article", plural: "Articles" },
+      schemaVersion: 1,
+      localization,
+      lifecycle,
+      access,
+      fields: [
+        textField({ name: "slug", label: "Slug", required: true }),
+        textField({
+          name: "title",
+          label: "Title",
+          required: true,
+          localized: true,
+        }),
+        relationshipField({
+          name: "author",
+          label: "Author",
+          relationTo: authors.slug,
+          hasMany: false,
+          required: true,
+          localized: true,
+          onDelete: "restrict",
+          localeBehavior: "same",
+        }),
+      ],
+    });
+    let sequence = 0;
+    const provider = createCloudflareCmsCollectionProvider({
+      database: db,
+      registry: createCollectionRegistry([authors, articles]),
+      createId: () => `localized-${++sequence}`,
+      now: () => new Date("2026-08-18T00:00:00.000Z"),
+    });
+    await provider.createDraft({
+      collection: authors.slug,
+      id: "author-1",
+      locale: "vi-VN",
+      data: { name: "Tác giả" },
+      actorId: "editor",
+    });
+    await provider.createDraft({
+      collection: authors.slug,
+      id: "author-1",
+      locale: "en-US",
+      data: { name: "Author" },
+      actorId: "editor",
+    });
+    await provider.createDraft({
+      collection: authors.slug,
+      id: "vi-only",
+      locale: "vi-VN",
+      data: { name: "Chỉ tiếng Việt" },
+      actorId: "editor",
+    });
+
+    const viDraft = await provider.createDraft({
+      collection: articles.slug,
+      id: "article-1",
+      locale: "vi-VN",
+      data: { slug: "shared-slug", title: "Tiếng Việt", author: "author-1" },
+      actorId: "editor",
+    });
+    const viPublished = await provider.publish({
+      collection: articles.slug,
+      id: viDraft.id,
+      locale: "vi-VN",
+      expectedVersion: viDraft.version,
+      actorId: "publisher",
+    });
+    await expect(
+      provider.getPublished({
+        collection: articles.slug,
+        id: viDraft.id,
+        locale: "en-US",
+      }),
+    ).resolves.toBeNull();
+    await expect(
+      provider.getPublished({
+        collection: articles.slug,
+        id: viDraft.id,
+        locale: "fr-FR",
+        fallback: "default",
+      }),
+    ).resolves.toMatchObject({
+      locale: "vi-VN",
+      fallbackFrom: "fr-FR",
+      data: { title: "Tiếng Việt", slug: "shared-slug" },
+    });
+
+    let enDraft = await provider.createDraft({
+      collection: articles.slug,
+      id: viDraft.id,
+      locale: "en-US",
+      data: {
+        slug: "ignored-translation-slug",
+        title: "English",
+        author: "author-1",
+      },
+      actorId: "editor",
+    });
+    expect(enDraft.data).toEqual({
+      slug: "shared-slug",
+      title: "English",
+      author: "author-1",
+    });
+    enDraft = await provider.schedule({
+      collection: articles.slug,
+      id: enDraft.id,
+      locale: "en-US",
+      expectedVersion: enDraft.version,
+      scheduledAt: "2099-01-01T00:00:00.000Z",
+      actorId: "editor",
+    });
+    await expect(
+      provider.getDraft({
+        collection: articles.slug,
+        id: viDraft.id,
+        locale: "vi-VN",
+      }),
+    ).resolves.toMatchObject({
+      scheduledAt: null,
+      version: viPublished.document.version,
+    });
+    const enPublished = await provider.publish({
+      collection: articles.slug,
+      id: enDraft.id,
+      locale: "en-US",
+      expectedVersion: enDraft.version,
+      actorId: "publisher",
+    });
+    let viChanged = await provider.saveDraft({
+      collection: articles.slug,
+      id: viDraft.id,
+      locale: "vi-VN",
+      expectedVersion: viPublished.document.version,
+      data: {
+        slug: "shared-updated",
+        title: "Bản nháp mới",
+        author: "author-1",
+      },
+      actorId: "editor",
+    });
+    await expect(
+      provider.getPublished({
+        collection: articles.slug,
+        id: viDraft.id,
+        locale: "en-US",
+      }),
+    ).resolves.toMatchObject({
+      version: enPublished.document.version,
+      data: { slug: "shared-slug", title: "English" },
+    });
+    const viRepublished = await provider.publish({
+      collection: articles.slug,
+      id: viDraft.id,
+      locale: "vi-VN",
+      expectedVersion: viChanged.version,
+      actorId: "publisher",
+    });
+    await expect(
+      provider.getPublished({
+        collection: articles.slug,
+        id: viDraft.id,
+        locale: "en-US",
+      }),
+    ).resolves.toMatchObject({
+      data: { slug: "shared-updated", title: "English" },
+    });
+    viChanged = await provider.restore({
+      collection: articles.slug,
+      id: viDraft.id,
+      locale: "vi-VN",
+      expectedVersion: viRepublished.document.version,
+      revisionId: viPublished.revision.id,
+      actorId: "editor",
+    });
+    expect(viChanged.data).toMatchObject({ title: "Tiếng Việt" });
+    const viUnpublished = await provider.unpublish({
+      collection: articles.slug,
+      id: viDraft.id,
+      locale: "vi-VN",
+      expectedVersion: viChanged.version,
+      actorId: "publisher",
+    });
+    expect(viUnpublished.status).toBe("draft");
+    await expect(
+      provider.getPublished({
+        collection: articles.slug,
+        id: viDraft.id,
+        locale: "en-US",
+      }),
+    ).resolves.toMatchObject({ data: { title: "English" } });
+    await expect(
+      provider.listRevisions({
+        collection: articles.slug,
+        id: viDraft.id,
+        locale: "vi-VN",
+      }),
+    ).resolves.toHaveLength(2);
+    await expect(
+      provider.listRevisions({
+        collection: articles.slug,
+        id: viDraft.id,
+        locale: "en-US",
+      }),
+    ).resolves.toHaveLength(1);
+    await expect(
+      provider.createDraft({
+        collection: articles.slug,
+        id: "dangling-locale",
+        locale: "vi-VN",
+        data: { slug: "dangling", title: "Hợp lệ", author: "vi-only" },
+        actorId: "editor",
+      }),
+    ).resolves.toMatchObject({ locale: "vi-VN" });
+    await expect(
+      provider.createDraft({
+        collection: articles.slug,
+        id: "dangling-locale",
+        locale: "en-US",
+        data: { slug: "dangling", title: "Missing locale", author: "vi-only" },
+        actorId: "editor",
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
   });
 
   test("executes ordered module hooks before D1 batches and rolls failures back", async () => {

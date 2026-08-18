@@ -139,14 +139,25 @@ const acmeAccess = {
   delete: ["content.delete"] as const,
   publish: ["content.publish"] as const,
 };
+const acmeLocalization = {
+  locales: ["vi-VN", "en-US"],
+  defaultLocale: "vi-VN",
+} as const;
 const acmeAuthors = defineCollection({
   slug: "acme-authors",
   labels: { singular: "Acme author", plural: "Acme authors" },
   schemaVersion: 1,
+  localization: acmeLocalization,
   lifecycle: acmeLifecycle,
   access: acmeAccess,
   fields: [
-    textField({ name: "name", label: "Name", required: true, indexed: true }),
+    textField({
+      name: "name",
+      label: "Name",
+      required: true,
+      indexed: true,
+      localized: true,
+    }),
   ],
   admin: { useAsTitle: "name", defaultColumns: ["name"] },
 });
@@ -154,14 +165,17 @@ const acmeArticles = defineCollection({
   slug: "acme-articles",
   labels: { singular: "Acme article", plural: "Acme articles" },
   schemaVersion: 1,
+  localization: acmeLocalization,
   lifecycle: acmeLifecycle,
   access: acmeAccess,
   fields: [
+    textField({ name: "slug", label: "Slug", required: true }),
     textField({
       name: "title",
       label: "Title",
       required: true,
       indexed: true,
+      localized: true,
     }),
     relationshipField({
       name: "author",
@@ -169,10 +183,15 @@ const acmeArticles = defineCollection({
       relationTo: "acme-authors",
       hasMany: false,
       required: true,
+      localized: true,
       onDelete: "restrict",
+      localeBehavior: "same",
     }),
   ],
-  admin: { useAsTitle: "title", defaultColumns: ["title", "author"] },
+  admin: {
+    useAsTitle: "title",
+    defaultColumns: ["title", "slug", "author"],
+  },
 });
 let acmeHookRuns = 0;
 const acmeModule = defineFeatureModule({
@@ -225,7 +244,15 @@ const acmeProvider = createCloudflareCmsCollectionProvider({
 await acmeProvider.createDraft({
   collection: acmeAuthors.slug,
   id: "acme-author-1",
+  locale: "vi-VN",
   data: { name: "Ada Acme" },
+  actorId: "acme-editor",
+});
+await acmeProvider.createDraft({
+  collection: acmeAuthors.slug,
+  id: "acme-author-1",
+  locale: "en-US",
+  data: { name: "Ada Acme EN" },
   actorId: "acme-editor",
 });
 const acmeEvidence = await runCollectionProviderConformance({
@@ -233,15 +260,61 @@ const acmeEvidence = await runCollectionProviderConformance({
   collection: acmeArticles.slug,
   documentId: "acme-article-1",
   actorId: "acme-editor",
-  initial: { title: "Acme launch", author: "acme-author-1" },
-  changed: { title: "Acme launch updated", author: "acme-author-1" },
+  locale: "vi-VN",
+  initial: {
+    slug: "acme-launch",
+    title: "Acme launch",
+    author: "acme-author-1",
+  },
+  changed: {
+    slug: "acme-launch",
+    title: "Acme launch updated",
+    author: "acme-author-1",
+  },
   filter: { field: "title", operator: "equals", value: "Acme launch" },
 });
+const acmeEnglish = await acmeProvider.createDraft({
+  collection: acmeArticles.slug,
+  id: "acme-article-1",
+  locale: "en-US",
+  data: {
+    slug: "ignored",
+    title: "Acme launch in English",
+    author: "acme-author-1",
+  },
+  actorId: "acme-editor",
+});
+await acmeProvider.publish({
+  collection: acmeArticles.slug,
+  id: acmeEnglish.id,
+  locale: "en-US",
+  expectedVersion: acmeEnglish.version,
+  actorId: "acme-editor",
+});
+const [acmeVietnamesePublished, acmeEnglishPublished] = await Promise.all([
+  acmeProvider.getPublished({
+    collection: acmeArticles.slug,
+    id: acmeEnglish.id,
+    locale: "vi-VN",
+  }),
+  acmeProvider.getPublished({
+    collection: acmeArticles.slug,
+    id: acmeEnglish.id,
+    locale: "en-US",
+  }),
+]);
+if (
+  acmeVietnamesePublished?.data.title !== "Acme launch updated" ||
+  acmeEnglishPublished?.data.title !== "Acme launch in English"
+) {
+  throw new Error("Acme locale publication state was not independent.");
+}
 if (acmeHookRuns === 0) {
   throw new Error("The installed Acme feature-module hook did not execute.");
 }
 const acmeDocuments = await acmeProvider.list({
   collection: acmeArticles.slug,
+  locale: "vi-VN",
   pagination: { limit: 10, offset: 0 },
 });
 const acmeAdminProps = {
@@ -251,6 +324,9 @@ const acmeAdminProps = {
   createHref: "/admin/collections/acme-articles/create",
   editHref: (id: string) => `/admin/collections/acme-articles/${id}`,
   cancelHref: "/admin/collections/acme-articles",
+  locale: "vi-VN",
+  previewHref: (id: string, locale?: string) =>
+    `/preview/${id}?locale=${locale}`,
 };
 const acmeAdminMarkup = [
   renderToStaticMarkup(

@@ -45,3 +45,10 @@ before any D1 batch executes. Hook transforms are parsed again through the
 registered collection schema and relationship checks. Hook failure therefore
 leaves documents, revisions, compatibility projections, and audit statements
 unchanged.
+
+Migration `0007_collection_locales` extends generic document and revision keys
+with locale while preserving existing rows under the non-localized empty-locale
+key. The provider keeps draft, schedule, published pointer, and immutable
+revisions independent for every locale. Shared fields are anchored to the
+default locale, localized fields remain per locale, fallback is opt-in, and
+relationship checks follow the schema's `same`, `default`, or `any` policy.

@@ -12,6 +12,7 @@ import {
   cmsVisualEditingCapabilitiesSchema,
   migrateBlockData,
   requestCmsEditorialReviewInputSchema,
+  textField,
   migrateCollectionData,
   type CmsCollectionData,
   type CmsFieldDefinition,
@@ -278,5 +279,51 @@ describe("code-first collection contracts", () => {
         admin: { useAsTitle: "missing", defaultColumns: ["title"] },
       }),
     ).toThrow("admin metadata references an unknown field");
+  });
+
+  test("declares opt-in collection localization with shared and localized fields", () => {
+    const localized = defineCollection({
+      ...articles,
+      slug: "localized-articles",
+      localization: {
+        locales: ["vi-VN", "en-US"],
+        defaultLocale: "vi-VN",
+      },
+      fields: [
+        textField({ name: "slug", label: "Slug", required: true }),
+        textField({
+          name: "title",
+          label: "Title",
+          required: true,
+          localized: true,
+        }),
+      ],
+      admin: { useAsTitle: "title", defaultColumns: ["title", "slug"] },
+    });
+    expect(
+      localized.fields.map(({ name, localized }) => ({ name, localized })),
+    ).toEqual([
+      { name: "slug", localized: undefined },
+      { name: "title", localized: true },
+    ]);
+    expect(() =>
+      defineCollection({
+        ...articles,
+        fields: [
+          textField({
+            name: "title",
+            label: "Title",
+            localized: true,
+          }),
+        ],
+        admin: { useAsTitle: "title", defaultColumns: ["title"] },
+      }),
+    ).toThrow("localization disabled");
+    expect(() =>
+      defineCollection({
+        ...articles,
+        localization: { locales: ["vi-VN"], defaultLocale: "en-US" },
+      }),
+    ).toThrow("Invalid collection definition");
   });
 });

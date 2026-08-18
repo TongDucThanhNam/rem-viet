@@ -2,6 +2,14 @@ import { z } from "zod";
 
 export const schemaVersionSchema = z.number().int().positive();
 
+export const cmsLocaleSchema = z
+  .string()
+  .trim()
+  .min(2)
+  .max(35)
+  .regex(/^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/);
+export type CmsLocale = z.infer<typeof cmsLocaleSchema>;
+
 export const cmsCapabilitySchema = z.enum([
   "content.readDraft",
   "content.write",

@@ -33,6 +33,7 @@ export type CmsLifecycleHookContext<TData = Record<string, unknown>> = {
   readonly collection: CmsCollectionDefinition;
   readonly actorId: string;
   readonly documentId: string;
+  readonly locale: string | null;
   readonly data: Readonly<TData> | null;
   readonly previousData: Readonly<TData> | null;
 };

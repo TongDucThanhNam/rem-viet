@@ -38,3 +38,8 @@ by the application, conditional visibility is shared with validation, and field-
 or kind-level control registries allow template-owned premium UX without forking
 the workflow shell. Transport, URLs, state, localization, and mutations remain
 consumer callbacks.
+
+For localized collections the generated list and forms expose an accessible
+locale selector, label fields as shared or localized, show locale/fallback
+state in result rows, and preserve locale in edit and preview callbacks. The
+application still owns routing and translated interface copy.

@@ -225,3 +225,37 @@ bun test packages/api/tests/standard-page-runtime.test.ts # 1 pass, 0 fail
 bun --cwd packages/cms-template-rem-viet test            # 15 pass, 0 fail
 bun run cms:kit:consumer                                 # packed install/typecheck/build/provider smoke pass
 ```
+
+## CMP-008 — explicit locale lifecycle
+
+Status: **Complete (2026-08-18).**
+
+- Collection definitions declare supported/default locales, and each field is
+  explicitly shared or localized. Registry validation rejects incoherent field
+  and relationship locale policies.
+- Every generic lifecycle operation carries locale. Draft, schedule,
+  publication, revisions, restore, unpublish, and delete are independent per
+  locale; fallback is opt-in and marked with `fallbackFrom`.
+- Cloudflare migration `0007_collection_locales` uses locale in document and
+  revision identity while preserving legacy rows. Shared fields remain rooted
+  in the default locale, and localized relationship checks obey `same`,
+  `default`, or `any` resolution.
+- Generated admin surfaces expose locale selection, shared/localized field
+  labels, fallback state, and locale-aware edit/preview URLs.
+- Rèm Việt supplies a Vietnamese/English campaign fixture. The packed Acme
+  consumer independently publishes Vietnamese and English author/article
+  variants with a same-locale relationship through installed tarballs.
+
+Decision record: `docs/adr/0033-explicit-locale-lifecycle-and-fallback.md`.
+
+Targeted verification:
+
+```text
+bun --cwd packages/cms-core test                         # 21 pass, 0 fail
+bun --cwd packages/cms-runtime test                      # 3 pass, 0 fail
+bun --cwd packages/cms-provider-cloudflare test          # 15 pass, 0 fail
+bun --cwd packages/cms-admin test                        # 25 pass, 0 fail
+bun test packages/api/tests/standard-page-runtime.test.ts # 2 pass, 0 fail
+bun run cms:migrations:verify                            # pass (14 migrations)
+bun run cms:kit:consumer                                 # packed localized consumer pass
+```

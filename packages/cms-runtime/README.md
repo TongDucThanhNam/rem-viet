@@ -12,6 +12,12 @@ capability metadata declared by the collection without owning application roles,
 and `runCollectionProviderConformance()` exercises the shared lifecycle against
 any provider.
 
+Localized collection calls carry an explicit locale through reads, writes,
+queries, schedules, revisions, restores, and deletes. Draft and publication
+state are independent per locale. Reads default to no fallback; callers may
+request default-locale fallback explicitly and receive `fallbackFrom` metadata
+instead of mistaking fallback content for a translated document.
+
 `createCmsPageCollectionAdapter()` lets an established page application adopt
 that generic lifecycle one content type at a time. Consumer-supplied mappers
 preserve the public page contract while storage, queries, validation, and

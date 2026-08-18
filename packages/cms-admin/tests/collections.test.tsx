@@ -77,6 +77,27 @@ const articles = defineCollection({
 });
 const registry = createCollectionRegistry([authors, articles] as const);
 
+const localizedArticles = defineCollection({
+  ...articles,
+  slug: "localized-admin-articles",
+  labels: { singular: "Localized article", plural: "Localized articles" },
+  localization: {
+    locales: ["vi-VN", "en-US"],
+    defaultLocale: "vi-VN",
+  },
+  fields: [
+    textField({ name: "slug", label: "Slug", required: true }),
+    textField({
+      name: "title",
+      label: "Title",
+      required: true,
+      localized: true,
+    }),
+  ],
+  admin: { useAsTitle: "title", defaultColumns: ["title", "slug"] },
+});
+const localizedRegistry = createCollectionRegistry([localizedArticles]);
+
 const shellBase = {
   registry,
   collection: articles.slug,
@@ -194,5 +215,56 @@ describe("generated collection admin", () => {
         author: "author-1",
       }),
     ).toMatchObject({ success: true });
+  });
+
+  test("exposes accessible locale list, create, edit, status, and preview state", () => {
+    const common = {
+      registry: localizedRegistry,
+      collection: localizedArticles.slug,
+      collectionHref: (slug: string) => `/admin/collections/${slug}`,
+      createHref:
+        "/admin/collections/localized-admin-articles/create?locale=en-US",
+      editHref: (id: string, locale?: string) =>
+        `/admin/collections/localized-admin-articles/${id}?locale=${locale}`,
+      previewHref: (id: string, locale?: string) =>
+        `/preview/${id}?locale=${locale}`,
+      cancelHref: "/admin/collections/localized-admin-articles?locale=en-US",
+      locale: "en-US",
+    } as const;
+    const list = renderToStaticMarkup(
+      <CmsCollectionAdminShell
+        {...common}
+        mode="list"
+        documents={[
+          {
+            id: "localized-1",
+            locale: "en-US",
+            fallbackFrom: null,
+            version: 2,
+            status: "published",
+            data: { slug: "shared", title: "English" },
+            updatedAt: "2026-08-18T00:00:00.000Z",
+          },
+        ]}
+      />,
+    );
+    expect(list).toContain("Showing en-US locale");
+    expect(list).toContain("published");
+    expect(list).toContain("Preview English in en-US");
+    expect(list).toContain("?locale=en-US");
+
+    const form = renderToStaticMarkup(
+      <CmsCollectionAdminShell
+        {...common}
+        mode="edit"
+        documentId="localized-1"
+        data={{ slug: "shared", title: "English" }}
+      />,
+    );
+    expect(form).toContain("Editing locale");
+    expect(form).toContain("Title (localized)");
+    expect(form).toContain("Slug (shared)");
+    expect(form).toContain("Preview this locale");
+    expect(form).toContain("/preview/localized-1?locale=en-US");
   });
 });

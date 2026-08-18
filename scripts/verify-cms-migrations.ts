@@ -109,16 +109,17 @@ try {
     throw new Error("Page revision backfill sai số lượng.");
   const collectionPage = upgraded
     .query(
-      `SELECT schema_version AS schemaVersion, data
+      `SELECT schema_version AS schemaVersion, locale, data
        FROM cms_collection_documents
        WHERE collection_slug = 'standard-pages' AND id = 'legacy-page'`,
     )
-    .get() as { schemaVersion: number; data: string } | null;
+    .get() as { schemaVersion: number; locale: string; data: string } | null;
   const collectionData = collectionPage
     ? (JSON.parse(collectionPage.data) as Record<string, unknown>)
     : null;
   if (
     collectionPage?.schemaVersion !== 1 ||
+    collectionPage.locale !== "" ||
     collectionData?.template !== "standard" ||
     !Array.isArray(collectionData.blocks) ||
     (collectionData.blocks[0] as { schemaVersion?: unknown } | undefined)
@@ -129,6 +130,15 @@ try {
   }
   if (count(upgraded, "cms_collection_revisions") !== 1)
     throw new Error("Collection revision backfill sai số lượng.");
+  const localizedColumns = upgraded
+    .query("PRAGMA table_info(cms_collection_documents)")
+    .all() as { name: string; pk: number }[];
+  const localeColumn = localizedColumns.find(({ name }) => name === "locale");
+  if (!localeColumn || localeColumn.pk !== 3) {
+    throw new Error(
+      "Collection locale migration thiếu composite lifecycle key.",
+    );
+  }
   if (count(upgraded, "post_revisions") !== 1)
     throw new Error("Post revision backfill sai số lượng.");
   if (count(upgraded, "form_definitions") !== 1)

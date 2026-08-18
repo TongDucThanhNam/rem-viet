@@ -34,6 +34,7 @@ import type {
 type CollectionDocumentRow = {
   collection: string;
   id: string;
+  locale: string;
   schemaVersion: number;
   version: number;
   status: "draft" | "published";
@@ -49,6 +50,7 @@ type CollectionRevisionRow = {
   id: string;
   collection: string;
   documentId: string;
+  locale: string;
   schemaVersion: number;
   version: number;
   snapshot: string;
@@ -58,13 +60,13 @@ type CollectionRevisionRow = {
 };
 
 const documentColumns = `
-  collection_slug AS collection, id, schema_version AS schemaVersion,
+  collection_slug AS collection, id, locale, schema_version AS schemaVersion,
   version, status, data, published_revision_id AS publishedRevisionId,
   scheduled_at AS scheduledAt, updated_by AS updatedBy,
   created_at AS createdAt, updated_at AS updatedAt`;
 
 const revisionColumns = `
-  id, collection_slug AS collection, document_id AS documentId,
+  id, collection_slug AS collection, document_id AS documentId, locale,
   schema_version AS schemaVersion, version, snapshot, note,
   created_by AS createdBy, created_at AS createdAt`;
 
@@ -145,6 +147,34 @@ function versionConflict(
   });
 }
 
+function localeFor(
+  definition: CmsCollectionDefinition,
+  locale: string | undefined,
+) {
+  if (!definition.localization) {
+    if (locale !== undefined) {
+      throw new CmsError({
+        code: "VALIDATION_FAILED",
+        message: `Collection \"${definition.slug}\" has localization disabled.`,
+        retryable: false,
+      });
+    }
+    return "";
+  }
+  if (!locale || !definition.localization.locales.includes(locale)) {
+    throw new CmsError({
+      code: "VALIDATION_FAILED",
+      message: `Collection \"${definition.slug}\" requires a supported locale.`,
+      retryable: false,
+      details: {
+        locale: locale ?? null,
+        locales: definition.localization.locales,
+      },
+    });
+  }
+  return locale;
+}
+
 function definitionFor(
   registry: CmsCollectionRegistry,
   slug: string,
@@ -185,6 +215,7 @@ function decodeData(
 function documentFromRow(
   definition: CmsCollectionDefinition<string, readonly CmsBuiltInField[]>,
   row: CollectionDocumentRow,
+  fallbackFrom: string | null = null,
 ): CmsCollectionDocument {
   return {
     id: row.id,
@@ -192,6 +223,8 @@ function documentFromRow(
     schemaVersion: definition.schemaVersion,
     version: row.version,
     status: row.status,
+    locale: row.locale || null,
+    fallbackFrom,
     data: decodeData(definition, row.data, row.schemaVersion),
     publishedRevisionId: row.publishedRevisionId,
     scheduledAt:
@@ -212,6 +245,7 @@ function revisionFromRow(
     documentId: row.documentId,
     schemaVersion: definition.schemaVersion,
     version: row.version,
+    locale: row.locale || null,
     data: decodeData(definition, row.snapshot, row.schemaVersion),
     note: row.note,
     createdBy: row.createdBy,
@@ -315,6 +349,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     input: {
       readonly actorId: string;
       readonly documentId: string;
+      readonly locale: string | null;
       readonly data: Record<string, unknown> | null;
       readonly previousData: Record<string, unknown> | null;
     },
@@ -363,65 +398,238 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     return Array.isArray(prepared) ? [...prepared] : [prepared];
   }
 
-  async #rawDocument(collection: string, id: string) {
+  async #rawDocument(collection: string, id: string, locale = "") {
     return this.#database
       .prepare(
         `SELECT ${documentColumns} FROM cms_collection_documents
-         WHERE collection_slug = ? AND id = ? LIMIT 1`,
+         WHERE collection_slug = ? AND id = ? AND locale = ? LIMIT 1`,
       )
-      .bind(collection, id)
+      .bind(collection, id, locale)
       .first<CollectionDocumentRow>();
+  }
+
+  #overlaySharedFields(
+    definition: CmsCollectionDefinition,
+    localized: Record<string, unknown>,
+    shared: Record<string, unknown>,
+  ) {
+    if (!definition.localization) return localized;
+    const data = { ...localized };
+    for (const field of definition.fields) {
+      if (!field.localized && Object.hasOwn(shared, field.name)) {
+        data[field.name] = shared[field.name];
+      }
+    }
+    return data;
+  }
+
+  async #draftDataForLocale(
+    definition: CmsCollectionDefinition<string, readonly CmsBuiltInField[]>,
+    id: string,
+    locale: string,
+    data: Record<string, unknown>,
+  ) {
+    if (
+      !definition.localization ||
+      locale === definition.localization.defaultLocale
+    ) {
+      return data;
+    }
+    const row = await this.#rawDocument(
+      definition.slug,
+      id,
+      definition.localization.defaultLocale,
+    );
+    if (!row) {
+      throw new CmsError({
+        code: "CONFLICT",
+        message: `Create the default locale \"${definition.localization.defaultLocale}\" before \"${locale}\".`,
+        retryable: false,
+      });
+    }
+    const shared = decodeData(definition, row.data, row.schemaVersion);
+    return this.#overlaySharedFields(definition, data, shared);
+  }
+
+  async #publishedDataForLocale(
+    definition: CmsCollectionDefinition<string, readonly CmsBuiltInField[]>,
+    id: string,
+    locale: string,
+    data: Record<string, unknown>,
+    requireDefault = false,
+  ) {
+    if (
+      !definition.localization ||
+      locale === definition.localization.defaultLocale
+    ) {
+      return data;
+    }
+    const row = await this.#database
+      .prepare(
+        `SELECT r.id, r.collection_slug AS collection,
+          r.document_id AS documentId, r.locale,
+          r.schema_version AS schemaVersion, r.version, r.snapshot,
+          r.note, r.created_by AS createdBy, r.created_at AS createdAt
+         FROM cms_collection_documents d
+         INNER JOIN cms_collection_revisions r ON r.id = d.published_revision_id
+         WHERE d.collection_slug = ? AND d.id = ? AND d.locale = ?
+           AND d.status = 'published' LIMIT 1`,
+      )
+      .bind(definition.slug, id, definition.localization.defaultLocale)
+      .first<CollectionRevisionRow>();
+    if (!row && requireDefault) {
+      throw new CmsError({
+        code: "CONFLICT",
+        message: `Publish the default locale \"${definition.localization.defaultLocale}\" before \"${locale}\".`,
+        retryable: false,
+      });
+    }
+    if (!row) return data;
+    const shared = revisionFromRow(definition, row).data;
+    return this.#overlaySharedFields(definition, data, shared);
   }
 
   async #referencesValid(
     definition: CmsCollectionDefinition<string, readonly CmsBuiltInField[]>,
     data: Record<string, unknown>,
+    locale: string,
   ) {
     await assertCmsRelationshipIntegrity({
       registry: this.registry,
       collection: definition,
       data,
-      targetExists: async ({ collection, id }) =>
-        Boolean(await this.#rawDocument(collection, id)),
+      targetExists: async ({ collection, id, localeBehavior }) => {
+        const target = definitionFor(this.registry, collection);
+        if (!target.localization) {
+          return Boolean(await this.#rawDocument(collection, id));
+        }
+        if (localeBehavior === "any") {
+          return Boolean(
+            await this.#database
+              .prepare(
+                `SELECT id FROM cms_collection_documents
+                 WHERE collection_slug = ? AND id = ? LIMIT 1`,
+              )
+              .bind(collection, id)
+              .first<{ id: string }>(),
+          );
+        }
+        const targetLocale =
+          localeBehavior === "default"
+            ? target.localization.defaultLocale
+            : locale;
+        return Boolean(await this.#rawDocument(collection, id, targetLocale));
+      },
     });
   }
 
-  async getDraft(input: { collection: string; id: string; actorId?: string }) {
+  async getDraft(input: {
+    collection: string;
+    id: string;
+    actorId?: string;
+    locale?: string;
+    fallback?: "none" | "default";
+  }) {
     const definition = definitionFor(this.registry, input.collection);
     await this.#authorized("read", definition, input.actorId);
-    const row = await this.#rawDocument(input.collection, input.id);
-    return row ? documentFromRow(definition, row) : null;
+    const locale = localeFor(definition, input.locale);
+    let row = await this.#rawDocument(input.collection, input.id, locale);
+    let fallbackFrom: string | null = null;
+    if (
+      !row &&
+      definition.localization &&
+      input.fallback === "default" &&
+      locale !== definition.localization.defaultLocale
+    ) {
+      row = await this.#rawDocument(
+        input.collection,
+        input.id,
+        definition.localization.defaultLocale,
+      );
+      fallbackFrom = row ? locale : null;
+    }
+    if (!row) return null;
+    const document = documentFromRow(definition, row, fallbackFrom);
+    if (
+      definition.localization &&
+      row.locale !== definition.localization.defaultLocale
+    ) {
+      const data = await this.#draftDataForLocale(
+        definition,
+        row.id,
+        row.locale,
+        document.data,
+      );
+      return { ...document, data };
+    }
+    return document;
   }
 
   async getPublished(input: {
     collection: string;
     id: string;
     actorId?: string;
+    locale?: string;
+    fallback?: "none" | "default";
   }) {
     const definition = definitionFor(this.registry, input.collection);
     await this.#authorized("read", definition, input.actorId);
-    const row = await this.#database
+    const requestedLocale = localeFor(definition, input.locale);
+    let resolvedLocale = requestedLocale;
+    let row = await this.#database
       .prepare(
         `SELECT r.id, r.collection_slug AS collection,
-          r.document_id AS documentId, r.schema_version AS schemaVersion,
+          r.document_id AS documentId, r.locale,
+          r.schema_version AS schemaVersion,
           r.version, r.snapshot, r.note, r.created_by AS createdBy,
           r.created_at AS createdAt
          FROM cms_collection_documents d
          INNER JOIN cms_collection_revisions r ON r.id = d.published_revision_id
-         WHERE d.collection_slug = ? AND d.id = ? AND d.status = 'published'
+         WHERE d.collection_slug = ? AND d.id = ? AND d.locale = ?
+           AND d.status = 'published'
          LIMIT 1`,
       )
-      .bind(input.collection, input.id)
+      .bind(input.collection, input.id, requestedLocale)
       .first<CollectionRevisionRow>();
+    if (
+      !row &&
+      definition.localization &&
+      input.fallback === "default" &&
+      requestedLocale !== definition.localization.defaultLocale
+    ) {
+      resolvedLocale = definition.localization.defaultLocale;
+      row = await this.#database
+        .prepare(
+          `SELECT r.id, r.collection_slug AS collection,
+            r.document_id AS documentId, r.locale,
+            r.schema_version AS schemaVersion,
+            r.version, r.snapshot, r.note, r.created_by AS createdBy,
+            r.created_at AS createdAt
+           FROM cms_collection_documents d
+           INNER JOIN cms_collection_revisions r ON r.id = d.published_revision_id
+           WHERE d.collection_slug = ? AND d.id = ? AND d.locale = ?
+             AND d.status = 'published' LIMIT 1`,
+        )
+        .bind(input.collection, input.id, resolvedLocale)
+        .first<CollectionRevisionRow>();
+    }
     if (!row) return null;
     const revision = revisionFromRow(definition, row);
+    const data = await this.#publishedDataForLocale(
+      definition,
+      input.id,
+      resolvedLocale,
+      revision.data,
+    );
     return {
       id: revision.documentId,
       collection: revision.collection,
       schemaVersion: revision.schemaVersion,
       version: revision.version,
       status: "published" as const,
-      data: revision.data,
+      data,
+      locale: revision.locale,
+      fallbackFrom: resolvedLocale === requestedLocale ? null : requestedLocale,
       publishedRevisionId: revision.id,
       scheduledAt: null,
       createdAt: revision.createdAt,
@@ -435,6 +643,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
   ): Promise<CmsCollectionPage> {
     const definition = definitionFor(this.registry, input.collection);
     await this.#authorized("read", definition, input.actorId);
+    const locale = localeFor(definition, input.locale);
     const systemFields = new Set(["id", "createdAt", "updatedAt", "status"]);
     const fieldNames = new Set(definition.fields.map((field) => field.name));
     for (const field of [
@@ -455,40 +664,63 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       const rows = await this.#database
         .prepare(
           `SELECT r.id, r.collection_slug AS collection,
-            r.document_id AS documentId, r.schema_version AS schemaVersion,
+            r.document_id AS documentId, r.locale,
+            r.schema_version AS schemaVersion,
             r.version, r.snapshot, r.note, r.created_by AS createdBy,
             r.created_at AS createdAt
            FROM cms_collection_documents d
            INNER JOIN cms_collection_revisions r ON r.id = d.published_revision_id
-           WHERE d.collection_slug = ? AND d.status = 'published'`,
+           WHERE d.collection_slug = ? AND d.locale = ?
+             AND d.status = 'published'`,
         )
-        .bind(input.collection)
+        .bind(input.collection, locale)
         .all<CollectionRevisionRow>();
-      documents = rows.results.map((row) => {
-        const revision = revisionFromRow(definition, row);
-        return {
-          id: revision.documentId,
-          collection: revision.collection,
-          schemaVersion: revision.schemaVersion,
-          version: revision.version,
-          status: "published" as const,
-          data: revision.data,
-          publishedRevisionId: revision.id,
-          scheduledAt: null,
-          createdAt: revision.createdAt,
-          updatedAt: revision.createdAt,
-          updatedBy: revision.createdBy,
-        };
-      });
+      documents = await Promise.all(
+        rows.results.map(async (row) => {
+          const revision = revisionFromRow(definition, row);
+          const data = await this.#publishedDataForLocale(
+            definition,
+            revision.documentId,
+            locale,
+            revision.data,
+          );
+          return {
+            id: revision.documentId,
+            collection: revision.collection,
+            schemaVersion: revision.schemaVersion,
+            version: revision.version,
+            status: "published" as const,
+            data,
+            locale: revision.locale,
+            fallbackFrom: null,
+            publishedRevisionId: revision.id,
+            scheduledAt: null,
+            createdAt: revision.createdAt,
+            updatedAt: revision.createdAt,
+            updatedBy: revision.createdBy,
+          };
+        }),
+      );
     } else {
       const rows = await this.#database
         .prepare(
           `SELECT ${documentColumns} FROM cms_collection_documents
-           WHERE collection_slug = ?`,
+           WHERE collection_slug = ? AND locale = ?`,
         )
-        .bind(input.collection)
+        .bind(input.collection, locale)
         .all<CollectionDocumentRow>();
-      documents = rows.results.map((row) => documentFromRow(definition, row));
+      documents = await Promise.all(
+        rows.results.map(async (row) => {
+          const document = documentFromRow(definition, row);
+          const data = await this.#draftDataForLocale(
+            definition,
+            row.id,
+            locale,
+            document.data,
+          );
+          return { ...document, data };
+        }),
+      );
     }
     for (const filter of input.filters ?? []) {
       documents = documents.filter((document) =>
@@ -521,27 +753,36 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
   async createDraft(input: CreateCmsCollectionDraftInput) {
     const definition = definitionFor(this.registry, input.collection);
     await this.#authorized("create", definition, input.actorId);
+    const locale = localeFor(definition, input.locale);
     const id = input.id ?? this.#createId();
+    const localizedInput = await this.#draftDataForLocale(
+      definition,
+      id,
+      locale,
+      input.data as Record<string, unknown>,
+    );
     const hookedData = await this.#runHooks("create", definition, {
       actorId: input.actorId,
       documentId: id,
-      data: input.data as Record<string, unknown>,
+      locale: locale || null,
+      data: localizedInput,
       previousData: null,
     });
     const data = parseCmsCollectionData(definition, hookedData);
-    await this.#referencesValid(definition, data);
+    await this.#referencesValid(definition, data, locale);
     const timestamp = this.#now();
     const now = timestamp.getTime();
     const insert = this.#database
       .prepare(
         `INSERT INTO cms_collection_documents (
-          collection_slug, id, schema_version, version, status, data,
+          collection_slug, id, locale, schema_version, version, status, data,
           published_revision_id, scheduled_at, updated_by, created_at, updated_at
-        ) VALUES (?, ?, ?, 1, 'draft', ?, NULL, NULL, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, 1, 'draft', ?, NULL, NULL, ?, ?, ?)`,
       )
       .bind(
         definition.slug,
         id,
+        locale,
         definition.schemaVersion,
         JSON.stringify(data),
         input.actorId,
@@ -568,25 +809,34 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       collection: definition.slug,
       id,
       actorId: input.actorId,
+      locale: input.locale,
     }))!;
   }
 
   async saveDraft(input: SaveCmsCollectionDraftInput) {
     const definition = definitionFor(this.registry, input.collection);
     await this.#authorized("update", definition, input.actorId);
-    const current = await this.#rawDocument(input.collection, input.id);
+    const locale = localeFor(definition, input.locale);
+    const current = await this.#rawDocument(input.collection, input.id, locale);
     if (!current) documentNotFound(input.collection, input.id);
     if (current.version !== input.expectedVersion)
       versionConflict(input.expectedVersion, current.version);
     const before = decodeData(definition, current.data, current.schemaVersion);
+    const localizedInput = await this.#draftDataForLocale(
+      definition,
+      input.id,
+      locale,
+      input.data as Record<string, unknown>,
+    );
     const hookedData = await this.#runHooks("update", definition, {
       actorId: input.actorId,
       documentId: input.id,
-      data: input.data as Record<string, unknown>,
+      locale: locale || null,
+      data: localizedInput,
       previousData: before,
     });
     const data = parseCmsCollectionData(definition, hookedData);
-    await this.#referencesValid(definition, data);
+    await this.#referencesValid(definition, data, locale);
     const timestamp = this.#now();
     const now = timestamp.getTime();
     const update = this.#database
@@ -594,7 +844,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         `UPDATE cms_collection_documents
          SET schema_version = ?, data = ?, version = version + 1,
              updated_by = ?, updated_at = ?
-         WHERE collection_slug = ? AND id = ? AND version = ?`,
+         WHERE collection_slug = ? AND id = ? AND locale = ? AND version = ?`,
       )
       .bind(
         definition.schemaVersion,
@@ -603,6 +853,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         now,
         input.collection,
         input.id,
+        locale,
         input.expectedVersion,
       );
     const [result] = await this.#batch([
@@ -624,7 +875,11 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       }),
     ]);
     if ((result?.meta?.changes ?? 0) !== 1) {
-      const latest = await this.#rawDocument(input.collection, input.id);
+      const latest = await this.#rawDocument(
+        input.collection,
+        input.id,
+        locale,
+      );
       if (!latest) documentNotFound(input.collection, input.id);
       versionConflict(input.expectedVersion, latest.version);
     }
@@ -664,7 +919,8 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
   ) {
     const definition = definitionFor(this.registry, input.collection);
     await this.#authorized("update", definition, input.actorId);
-    const current = await this.#rawDocument(input.collection, input.id);
+    const locale = localeFor(definition, input.locale);
+    const current = await this.#rawDocument(input.collection, input.id, locale);
     if (!current) documentNotFound(input.collection, input.id);
     if (current.version !== input.expectedVersion)
       versionConflict(input.expectedVersion, current.version);
@@ -675,7 +931,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       .prepare(
         `UPDATE cms_collection_documents
          SET scheduled_at = ?, version = version + 1, updated_by = ?, updated_at = ?
-         WHERE collection_slug = ? AND id = ? AND version = ?`,
+         WHERE collection_slug = ? AND id = ? AND locale = ? AND version = ?`,
       )
       .bind(
         scheduledAt,
@@ -683,6 +939,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         now,
         input.collection,
         input.id,
+        locale,
         input.expectedVersion,
       );
     const [result] = await this.#batch([
@@ -707,7 +964,11 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       }),
     ]);
     if ((result?.meta?.changes ?? 0) !== 1) {
-      const latest = await this.#rawDocument(input.collection, input.id);
+      const latest = await this.#rawDocument(
+        input.collection,
+        input.id,
+        locale,
+      );
       if (!latest) documentNotFound(input.collection, input.id);
       versionConflict(input.expectedVersion, latest.version);
     }
@@ -717,19 +978,28 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
   async publish(input: CmsCollectionVersionInput) {
     const definition = definitionFor(this.registry, input.collection);
     await this.#authorized("publish", definition, input.actorId);
-    const current = await this.#rawDocument(input.collection, input.id);
+    const locale = localeFor(definition, input.locale);
+    const current = await this.#rawDocument(input.collection, input.id, locale);
     if (!current) documentNotFound(input.collection, input.id);
     if (current.version !== input.expectedVersion)
       versionConflict(input.expectedVersion, current.version);
-    const before = decodeData(definition, current.data, current.schemaVersion);
+    const stored = decodeData(definition, current.data, current.schemaVersion);
+    const before = await this.#publishedDataForLocale(
+      definition,
+      input.id,
+      locale,
+      stored,
+      true,
+    );
     const hookedData = await this.#runHooks("publish", definition, {
       actorId: input.actorId,
       documentId: input.id,
+      locale: locale || null,
       data: before,
       previousData: before,
     });
     const data = parseCmsCollectionData(definition, hookedData);
-    await this.#referencesValid(definition, data);
+    await this.#referencesValid(definition, data, locale);
     const version = current.version + 1;
     const revisionId = this.#createId();
     const timestamp = this.#now();
@@ -738,14 +1008,15 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       this.#database
         .prepare(
           `INSERT INTO cms_collection_revisions (
-            id, collection_slug, document_id, schema_version, version,
+            id, collection_slug, document_id, locale, schema_version, version,
             snapshot, note, created_by, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .bind(
           revisionId,
           input.collection,
           input.id,
+          locale,
           definition.schemaVersion,
           version,
           JSON.stringify(data),
@@ -759,7 +1030,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
            SET schema_version = ?, data = ?, version = ?, status = 'published',
                published_revision_id = ?, scheduled_at = NULL,
                updated_by = ?, updated_at = ?
-           WHERE collection_slug = ? AND id = ? AND version = ?`,
+           WHERE collection_slug = ? AND id = ? AND locale = ? AND version = ?`,
         )
         .bind(
           definition.schemaVersion,
@@ -770,6 +1041,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
           now,
           input.collection,
           input.id,
+          locale,
           input.expectedVersion,
         ),
       ...this.#mutationStatements({
@@ -792,7 +1064,11 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       }),
     ]);
     if ((results[1]?.meta?.changes ?? 0) !== 1) {
-      const latest = await this.#rawDocument(input.collection, input.id);
+      const latest = await this.#rawDocument(
+        input.collection,
+        input.id,
+        locale,
+      );
       if (!latest) documentNotFound(input.collection, input.id);
       versionConflict(input.expectedVersion, latest.version);
     }
@@ -809,7 +1085,8 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
   async unpublish(input: CmsCollectionVersionInput) {
     const definition = definitionFor(this.registry, input.collection);
     await this.#authorized("publish", definition, input.actorId);
-    const current = await this.#rawDocument(input.collection, input.id);
+    const locale = localeFor(definition, input.locale);
+    const current = await this.#rawDocument(input.collection, input.id, locale);
     if (!current) documentNotFound(input.collection, input.id);
     if (current.version !== input.expectedVersion)
       versionConflict(input.expectedVersion, current.version);
@@ -817,6 +1094,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     await this.#runHooks("unpublish", definition, {
       actorId: input.actorId,
       documentId: input.id,
+      locale: locale || null,
       data,
       previousData: data,
     });
@@ -827,13 +1105,14 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         `UPDATE cms_collection_documents
          SET status = 'draft', published_revision_id = NULL,
              version = version + 1, updated_by = ?, updated_at = ?
-         WHERE collection_slug = ? AND id = ? AND version = ?`,
+         WHERE collection_slug = ? AND id = ? AND locale = ? AND version = ?`,
       )
       .bind(
         input.actorId,
         now,
         input.collection,
         input.id,
+        locale,
         input.expectedVersion,
       );
     const [result] = await this.#batch([
@@ -855,7 +1134,11 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       }),
     ]);
     if ((result?.meta?.changes ?? 0) !== 1) {
-      const latest = await this.#rawDocument(input.collection, input.id);
+      const latest = await this.#rawDocument(
+        input.collection,
+        input.id,
+        locale,
+      );
       if (!latest) documentNotFound(input.collection, input.id);
       versionConflict(input.expectedVersion, latest.version);
     }
@@ -866,16 +1149,18 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     collection: string;
     id: string;
     actorId?: string;
+    locale?: string;
   }) {
     const definition = definitionFor(this.registry, input.collection);
     await this.#authorized("read", definition, input.actorId);
+    const locale = localeFor(definition, input.locale);
     const rows = await this.#database
       .prepare(
         `SELECT ${revisionColumns} FROM cms_collection_revisions
-         WHERE collection_slug = ? AND document_id = ?
+         WHERE collection_slug = ? AND document_id = ? AND locale = ?
          ORDER BY version DESC`,
       )
-      .bind(input.collection, input.id)
+      .bind(input.collection, input.id, locale)
       .all<CollectionRevisionRow>();
     return rows.results.map((row) => revisionFromRow(definition, row));
   }
@@ -883,28 +1168,36 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
   async restore(input: RestoreCmsCollectionRevisionInput) {
     const definition = definitionFor(this.registry, input.collection);
     await this.#authorized("update", definition, input.actorId);
-    const current = await this.#rawDocument(input.collection, input.id);
+    const locale = localeFor(definition, input.locale);
+    const current = await this.#rawDocument(input.collection, input.id, locale);
     if (!current) documentNotFound(input.collection, input.id);
     if (current.version !== input.expectedVersion)
       versionConflict(input.expectedVersion, current.version);
     const revision = await this.#database
       .prepare(
         `SELECT ${revisionColumns} FROM cms_collection_revisions
-         WHERE id = ? AND collection_slug = ? AND document_id = ? LIMIT 1`,
+          WHERE id = ? AND collection_slug = ? AND document_id = ?
+            AND locale = ? LIMIT 1`,
       )
-      .bind(input.revisionId, input.collection, input.id)
+      .bind(input.revisionId, input.collection, input.id, locale)
       .first<CollectionRevisionRow>();
     if (!revision) documentNotFound(input.collection, input.revisionId);
     const before = decodeData(definition, current.data, current.schemaVersion);
-    const revisionData = revisionFromRow(definition, revision).data;
+    const revisionData = await this.#draftDataForLocale(
+      definition,
+      input.id,
+      locale,
+      revisionFromRow(definition, revision).data,
+    );
     const hookedData = await this.#runHooks("restore", definition, {
       actorId: input.actorId,
       documentId: input.id,
+      locale: locale || null,
       data: revisionData,
       previousData: before,
     });
     const data = parseCmsCollectionData(definition, hookedData);
-    await this.#referencesValid(definition, data);
+    await this.#referencesValid(definition, data, locale);
     const timestamp = this.#now();
     const now = timestamp.getTime();
     const update = this.#database
@@ -912,7 +1205,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         `UPDATE cms_collection_documents
          SET schema_version = ?, data = ?, version = version + 1,
              scheduled_at = NULL, updated_by = ?, updated_at = ?
-         WHERE collection_slug = ? AND id = ? AND version = ?`,
+         WHERE collection_slug = ? AND id = ? AND locale = ? AND version = ?`,
       )
       .bind(
         definition.schemaVersion,
@@ -921,6 +1214,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         now,
         input.collection,
         input.id,
+        locale,
         input.expectedVersion,
       );
     const [result] = await this.#batch([
@@ -952,14 +1246,35 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
   async delete(input: CmsCollectionVersionInput) {
     const definition = definitionFor(this.registry, input.collection);
     await this.#authorized("delete", definition, input.actorId);
-    const current = await this.#rawDocument(input.collection, input.id);
+    const locale = localeFor(definition, input.locale);
+    const current = await this.#rawDocument(input.collection, input.id, locale);
     if (!current) documentNotFound(input.collection, input.id);
     if (current.version !== input.expectedVersion)
       versionConflict(input.expectedVersion, current.version);
     const deletedDocument = documentFromRow(definition, current);
+    if (
+      definition.localization &&
+      locale === definition.localization.defaultLocale
+    ) {
+      const translation = await this.#database
+        .prepare(
+          `SELECT locale FROM cms_collection_documents
+           WHERE collection_slug = ? AND id = ? AND locale <> ? LIMIT 1`,
+        )
+        .bind(input.collection, input.id, locale)
+        .first<{ locale: string }>();
+      if (translation) {
+        throw new CmsError({
+          code: "CONFLICT",
+          message: `Delete localized variants before the default locale \"${locale}\".`,
+          retryable: false,
+        });
+      }
+    }
     await this.#runHooks("delete", definition, {
       actorId: input.actorId,
       documentId: input.id,
+      locale: locale || null,
       data: deletedDocument.data,
       previousData: deletedDocument.data,
     });
@@ -967,6 +1282,25 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     const allRows = await this.#database
       .prepare(`SELECT ${documentColumns} FROM cms_collection_documents`)
       .all<CollectionDocumentRow>();
+    const alternateTargetLocale = definition.localization
+      ? await this.#database
+          .prepare(
+            `SELECT locale FROM cms_collection_documents
+             WHERE collection_slug = ? AND id = ? AND locale <> ? LIMIT 1`,
+          )
+          .bind(input.collection, input.id, locale)
+          .first<{ locale: string }>()
+      : null;
+    const targetsDeletedLocale = (
+      reference: ReturnType<typeof collectCmsRelationshipReferences>[number],
+      sourceLocale: string,
+    ) => {
+      if (reference.localeBehavior === "same") return sourceLocale === locale;
+      if (reference.localeBehavior === "default") {
+        return locale === definition.localization?.defaultLocale;
+      }
+      return !alternateTargetLocale;
+    };
     const statements: CloudflareD1PreparedStatement[] = [];
     const now = this.#now().getTime();
     for (const row of allRows.results) {
@@ -996,7 +1330,8 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
           ).filter(
             (reference) =>
               reference.targetCollection === input.collection &&
-              reference.targetId === input.id,
+              reference.targetId === input.id &&
+              targetsDeletedLocale(reference, row.locale),
           );
           if (publishedReferences.length) {
             throw new CmsError({
@@ -1014,7 +1349,8 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       ).filter(
         (reference) =>
           reference.targetCollection === input.collection &&
-          reference.targetId === input.id,
+          reference.targetId === input.id &&
+          targetsDeletedLocale(reference, row.locale),
       );
       if (!references.length) continue;
       if (references.some((reference) => reference.onDelete === "restrict")) {
@@ -1040,7 +1376,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
             `UPDATE cms_collection_documents
              SET data = ?, schema_version = ?, version = version + 1,
                  updated_by = ?, updated_at = ?
-             WHERE collection_slug = ? AND id = ? AND version = ?`,
+              WHERE collection_slug = ? AND id = ? AND locale = ? AND version = ?`,
           )
           .bind(
             JSON.stringify(parsed),
@@ -1049,6 +1385,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
             now,
             row.collection,
             row.id,
+            row.locale,
             row.version,
           ),
       );
@@ -1057,18 +1394,18 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       this.#database
         .prepare(
           `DELETE FROM cms_collection_revisions
-           WHERE collection_slug = ? AND document_id = ?`,
+           WHERE collection_slug = ? AND document_id = ? AND locale = ?`,
         )
-        .bind(input.collection, input.id),
+        .bind(input.collection, input.id, locale),
     );
     const deleteStatementIndex = statements.length;
     statements.push(
       this.#database
         .prepare(
           `DELETE FROM cms_collection_documents
-           WHERE collection_slug = ? AND id = ? AND version = ?`,
+           WHERE collection_slug = ? AND id = ? AND locale = ? AND version = ?`,
         )
-        .bind(input.collection, input.id, input.expectedVersion),
+        .bind(input.collection, input.id, locale, input.expectedVersion),
     );
     statements.push(
       ...this.#mutationStatements({
@@ -1089,7 +1426,11 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     );
     const results = await this.#batch(statements);
     if ((results[deleteStatementIndex]?.meta?.changes ?? 0) !== 1) {
-      const latest = await this.#rawDocument(input.collection, input.id);
+      const latest = await this.#rawDocument(
+        input.collection,
+        input.id,
+        locale,
+      );
       if (!latest) documentNotFound(input.collection, input.id);
       versionConflict(input.expectedVersion, latest.version);
     }

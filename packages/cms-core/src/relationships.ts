@@ -11,11 +11,13 @@ export type CmsRelationshipReference = {
   readonly targetCollection: string;
   readonly targetId: string;
   readonly onDelete: "restrict" | "nullify";
+  readonly localeBehavior: "same" | "default" | "any";
 };
 
 export type CmsRelationshipTargetLookup = (input: {
   readonly collection: string;
   readonly id: string;
+  readonly localeBehavior: "same" | "default" | "any";
 }) => boolean | Promise<boolean>;
 
 export type CmsRelationshipNullificationResult = {
@@ -47,6 +49,7 @@ export function collectCmsRelationshipReferences(
         targetCollection: field.relationTo,
         targetId: id,
         onDelete: field.onDelete,
+        localeBehavior: field.localeBehavior ?? "any",
       });
     }
   }
@@ -76,6 +79,7 @@ export async function assertCmsRelationshipIntegrity(input: {
       !(await input.targetExists({
         collection: reference.targetCollection,
         id: reference.targetId,
+        localeBehavior: reference.localeBehavior,
       }))
     ) {
       dangling.push(reference);

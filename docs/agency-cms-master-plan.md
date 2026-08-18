@@ -1195,7 +1195,7 @@ core.
 | C1 — Content model registry     | Code-first collections, fields, relationships and schema versions                             | Implemented |
 | C2 — Generated collection admin | List/create/edit/filter forms generated from the registry and extensible by template field UX | Implemented |
 | C3 — Extension surface          | Typed hooks and feature modules without modifying core switches                               | Implemented |
-| C4 — Locale and portability     | Locale-aware lifecycle, typed content API and schema-aware import/export                      | Planned     |
+| C4 — Locale and portability     | Locale-aware lifecycle, typed content API and schema-aware import/export                      | In progress |
 
 Track C exits when a new collection with a relationship can be registered in a
 consumer, persisted by the reference provider, edited in generated admin UI,
@@ -1911,6 +1911,7 @@ surface.
 | `CMP-005` | **Complete — 2026-08-17** | `docs/cms/core-competitiveness.md#cmp-005--registry-generated-admin-ui`                  |
 | `CMP-006` | **Complete — 2026-08-18** | `docs/cms/core-competitiveness.md#cmp-006--rem-viet-and-independent-acme-vertical-slice` |
 | `CMP-007` | **Complete — 2026-08-18** | `docs/cms/core-competitiveness.md#cmp-007--typed-lifecycle-hooks-and-feature-modules`    |
+| `CMP-008` | **Complete — 2026-08-18** | `docs/cms/core-competitiveness.md#cmp-008--explicit-locale-lifecycle`                    |
 
 ### Historical 14-day productization backlog
 

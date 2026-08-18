@@ -1,4 +1,5 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { join, relative } from "node:path";
 
 type CheckStatus = "PASS" | "FAIL";
@@ -17,6 +18,14 @@ type FileCheck = {
 
 const root = process.cwd();
 const checks: Check[] = [];
+const trackedFiles = new Set(
+  execFileSync("git", ["ls-files", "-z"], {
+    cwd: root,
+    encoding: "utf8",
+  })
+    .split("\0")
+    .filter(Boolean),
+);
 
 function pathFromRoot(path: string) {
   return join(root, path);
@@ -34,6 +43,10 @@ function assertFile({ legacy, name, web }: FileCheck) {
   const webExists = exists(web);
 
   if (webExists) {
+    if (!trackedFiles.has(web)) {
+      record("FAIL", name, `web route is not tracked by Git: ${web}`);
+      return;
+    }
     const legacyDetail = legacy
       ? `${legacy}${exists(legacy) ? "" : " (retired)"} -> ${web}`
       : web;

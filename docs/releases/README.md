@@ -1,5 +1,35 @@
 # Client-ready release evidence
 
+## Evidence templates and hygiene
+
+The two Track A templates are intentionally invalid until real observations
+replace every placeholder:
+
+- `pilot-evidence.template.json` is the bounded non-developer worksheet consumed
+  by `release:pilot:verify`.
+- `v1.0.0-client-ready.template.json` is the final schema-v3 record consumed by
+  `release:verify` and the tag workflow.
+
+Only retain site/stage/origin, full Git SHA, deploy-input/artifact SHA-256,
+provider receipt IDs, canonical GitHub Actions run URLs, aggregate counts,
+bounded timing, issue IDs, and approval timestamps. Never put tokens, cookies,
+passwords, account/database/bucket IDs, email addresses, phone numbers, lead
+payloads, private env values, signed URLs, or raw provider/browser logs in these
+files. The live audit commands reduce their output to the same allowlist before
+printing it.
+
+Evidence is stale when its release commit or deploy-input identity no longer
+matches the exact clean checkout/live Worker, when a default-branch workflow
+has drifted or become inactive, or when the current scheduled-backup/provider
+audits no longer reproduce the recorded readiness. `release:readiness` performs
+those live comparisons and must be rerun immediately before the offline
+`release:verify`; a previously valid JSON file cannot override a current red
+live audit.
+
+Use `docs/cms/track-a-staging-release-procedure.md` for the exact clean-checkout
+and staging order. Do not copy sample output from documentation into either
+template.
+
 ## CMS Platform Kit private bundle
 
 Prepare the coordinated eight-package bundle from an exact clean commit with:

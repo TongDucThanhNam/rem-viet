@@ -23,6 +23,24 @@
 > optimistic conflict protection are the baseline to preserve, not backlog to
 > rebuild.
 
+> **Track A staging-readiness re-audit — 2026-08-18.** CMP-001 through CMP-009
+> and PK0 through PK5 remain completed baselines. The current candidate passes
+> the repository-local release gates: all 14 canonical migrations apply to both
+> an empty database and the upgraded fixture; the packed clean consumer and the
+> N-to-N+1 upgrade/receipt-bound rollback rehearsal pass; the release verifiers
+> reject absent or commit-stale evidence; and the exact deployment dry-run and
+> provider preflight pass. The read-only staging plan is **not converged** for
+> this newer candidate: it proposes a D1 update and Worker update while R2 is
+> `noop`. Live staging still truthfully identifies the older clean deployment
+> documented below, with 12 migrations. No staging apply or remote
+> configuration was authorized during this audit. The canonical clean-checkout
+> procedure is `docs/cms/track-a-staging-release-procedure.md`; client handover,
+> bounded pilot, operations and sanitized evidence guidance are linked there.
+> Track A remains a technical release candidate, not client-ready, until the
+> current candidate is backed up, deployed and converged and the real Resend,
+> alert, scheduled-backup, representative RUM, clean Acme, non-developer pilot
+> and production pre-migration receipts exist.
+
 > **Latest verified release checkpoint — 2026-08-17 03:23 UTC.** Published
 > `main`, `origin/main`, and the locally verified checkout all resolved to
 > `875f941af070af2a41cb2361ad39c10445f90408`; the exact root `bun run quality`

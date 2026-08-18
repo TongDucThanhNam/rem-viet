@@ -1,5 +1,12 @@
 # Agency CMS operations runbook
 
+For a Track A release candidate, follow
+`docs/cms/track-a-staging-release-procedure.md` in order. Use
+`docs/client-handover-checklist.md` for the client-facing boundary and
+`docs/pilot-handover-script.md` for the unassisted acceptance run. The commands
+below are operational references; their presence does not authorize an external
+write or replace the exact release sequence.
+
 ## Provision một site
 
 ```bash

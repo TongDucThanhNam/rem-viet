@@ -1,4 +1,4 @@
-# V1 completion audit — 2026-08-17
+# V1 completion audit — 2026-08-18
 
 Source of truth: `docs/agency-cms-master-plan.md`.
 
@@ -10,11 +10,12 @@ acceptance criterion.
 
 Current label: **technical release candidate**.
 
-- Repository-local implementation, automated critical paths and the flagship
-  Cloudflare staging deployment are complete.
+- Repository-local implementation and automated critical paths are complete.
+  The 2026-08-17 flagship deployment remains valid historical evidence, but it
+  is not evidence for the newer 14-migration candidate now in the repository.
 - Real notification delivery, real-user p75 vitals, a non-developer pilot and
   clean independent-site release provenance remain external gates. Flagship
-  staging now exposes the exact clean published commit and deploy-input hash;
+  staging exposes the exact clean historical commit and deploy-input hash;
   the isolated remote restore and isolated Acme staging runtime are proven and
   cleaned up, but the Acme receipt predates the clean release checkout.
 - No `v1.0.0-client-ready` tag is permitted until every row marked **EXTERNAL**
@@ -28,7 +29,50 @@ Status legend:
 - **PARTIAL** — implementation exists, but the plan requires broader evidence.
 - **EXTERNAL** — cannot be truthfully established from the local repository.
 
-## Latest live checkpoint
+## 2026-08-18 Track A re-audit
+
+This snapshot supersedes older "current" wording elsewhere in this historical
+audit. It does not invalidate the receipts that were true for their recorded
+commits.
+
+| Gate                   | Local/authorized status                                                                                                                                                                                       | Remaining exact gate                                                                                                                                                                                                                                                                                                            |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M3 — human editor      | **PROVEN locally.** Root quality covers the editor workflows, recovery, accessibility and responsive contracts. The bounded 30-minute script and handover checklist are executable.                           | **EXTERNAL:** one non-developer must complete all eight tasks without developer intervention and approve a pilot record bound to the deployed commit, site, stage, origin and deploy-input hash.                                                                                                                                |
+| M4 — preview/publish   | **PROVEN locally; historical staging proof retained.** Preview remains private/no-store, public reads remain immutable published revisions, and publish/schedule/restore/conflict paths pass automated tests. | **EXTERNAL for this candidate:** apply the current staging plan only after a staging backup and restore drill, then rerun authenticated staging smoke against the exact clean deployed commit.                                                                                                                                  |
+| M5 — client operations | **PROVEN locally.** Backup/restore, notification idempotency, incident sources, alert policy verification and release aggregation are executable and fail closed.                                             | **EXTERNAL:** deploy the three Resend settings and retain an exactly-once inbox receipt; configure the alert recipient and dashboard threshold, trigger a controlled failure and retain correlated dispatch/inbox receipts; configure the four GitHub backup settings and retain distinct manual and following-weekly receipts. |
+| M6 — white-label       | **PROVEN locally.** Manifest isolation, the packed clean consumer and provider contracts pass; no new package baseline was rebuilt.                                                                           | **EXTERNAL:** deploy and smoke Acme from the exact clean release checkout with its own password-manager-injected credential and retain the timed provenance/cleanup receipt.                                                                                                                                                    |
+| M7 — hardening/pilot   | **PROVEN locally.** Root quality, security, migration, accessibility, production build, browser critical paths, packed consumer and upgrade/rollback rehearsals pass.                                         | **EXTERNAL:** deploy the current candidate, collect at least 75 eligible samples for each of LCP/CLS/INP within budget, complete the human pilot, and assemble the final schema-v3 record.                                                                                                                                      |
+
+The current local migration verifier reports 14 files and passes both the empty
+database and upgraded-fixture paths. `cms:kit:consumer` passes packed install,
+typecheck, build and provider smoke. `cms:kit:upgrade` passes baseline install,
+upgrade and receipt-bound rollback while preserving content, revisions, media
+and objects. `release:verify` and `release:pilot:verify` reject absent evidence;
+focused tests also prove rejection of records bound to another commit or a dirty
+checkout.
+
+Safe provider-backed inspection was run without applying anything:
+
+- `site:deploy --dry-run` and `--preflight` pass for Rèm Việt staging;
+- `site:deploy --plan` reports D1 update, Worker update and R2 `noop`;
+- live staging provenance is clean but identifies the older deployed commit, so
+  readiness correctly rejects it for the current checkout;
+- `release:github:audit` passes for the exact active client-ready workflow;
+- `site:backup:github:audit` fails closed because required repository
+  configuration and both execution receipts are absent or mismatched;
+- the live 28-day RUM counts remain CLS 0/75, LCP 1/75 and INP 0/75;
+- the deterministic operational alert policy exists, but its recipient and
+  correlated dispatch/inbox receipt are absent;
+- deployed `RESEND_API_KEY`, `LEAD_NOTIFICATION_EMAIL` and `EMAIL_FROM` are
+  absent; and
+- the final schema-v3 release record remains intentionally absent.
+
+Exact clean-checkout staging, backup/restore, smoke, evidence and rollback
+instructions live in `docs/cms/track-a-staging-release-procedure.md`. No staging
+apply, GitHub mutation, workflow dispatch, secret write, public package publish
+or production action was performed by this audit.
+
+## Historical live checkpoint — 2026-08-17
 
 At `2026-08-17T03:06Z`, local `main`, remote `main`, and the exact successful
 root quality gate all matched
@@ -811,8 +855,10 @@ audits passing. The remaining evidence below is still mandatory.
    the exact live clean commit/site/stage/origin/deploy-input identity.
 5. Before the production migration, create and lock/hash-verify a production
    export with `site:backup:archive`; the staging archive proves the transport,
-   not the production timing requirement. Configure the remaining dedicated
-   scheduled-backup secret, pass `site:backup:github:audit`, and
+   not the production timing requirement. Reconcile the current missing or
+   mismatched `CMS_BACKUP_SITE`, `CMS_BACKUP_STAGE`,
+   `CLOUDFLARE_ACCOUNT_ID`, and dedicated
+   `CMS_BACKUP_CLOUDFLARE_API_TOKEN`, pass `site:backup:github:audit`, and
    retain both a green manual dispatch and the next weekly receipt. Keep the
    published client-ready workflow byte-exact and require
    `release:github:audit` to keep proving active Actions registration, then

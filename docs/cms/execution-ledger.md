@@ -1,6 +1,6 @@
 # Agency CMS execution ledger
 
-Last updated: 2026-08-17
+Last updated: 2026-08-18
 
 This ledger records evidence against `docs/agency-cms-master-plan.md`. “Complete”
 below means the implementation and local/reproducible gates are complete. It
@@ -11,16 +11,25 @@ does not replace the external release gates at the end of this document.
 Status: **technical release candidate**. Do not tag
 `v1.0.0-client-ready` yet.
 
-| Milestone                     | Implementation                 | Exit evidence                            | External gate                                 |
-| ----------------------------- | ------------------------------ | ---------------------------------------- | --------------------------------------------- |
-| M0 — Lock baseline            | Complete                       | Complete                                 | None                                          |
-| M1 — Safe content core        | Complete                       | Complete                                 | None                                          |
-| M2 — Flagship content-driven  | Complete                       | Staging desktop/mobile smoke complete    | Final customer visual approval                |
-| M3 — Human editor             | Complete                       | Automated workflow pass                  | Non-developer usability pilot pending         |
-| M4 — Preview/publish workflow | Complete                       | Staging workflow + real cron pass        | None                                          |
-| M5 — Client operations        | Partial: event source complete | D1/R2/lead + alert capability audit      | Real notification/error-alert routing pending |
-| M6 — White-label              | Complete                       | Local + real isolated staging smoke pass | Clean-checkout provenance receipt pending     |
-| M7 — Hardening/pilot          | Technical scope complete       | Staging smoke/Lighthouse complete        | Real-user p75 and human pilot pending         |
+The current repository candidate has 14 canonical migrations and passes empty/
+upgraded migration verification, the packed clean-consumer gate, and the
+N-to-N+1 upgrade/rollback rehearsal. The 2026-08-17 clean flagship deployment
+below remains historical evidence for its exact commit; it has 12 migrations
+and does not match the current candidate. The latest read-only provider plan
+proposes a D1 update and Worker update with R2 `noop`. No apply was authorized.
+See `docs/cms/v1-completion-audit.md` for the current gate-by-gate result and
+`docs/cms/track-a-staging-release-procedure.md` for the exact operator sequence.
+
+| Milestone                     | Implementation           | Exit evidence                                 | External gate                                         |
+| ----------------------------- | ------------------------ | --------------------------------------------- | ----------------------------------------------------- |
+| M0 — Lock baseline            | Complete                 | Complete                                      | None                                                  |
+| M1 — Safe content core        | Complete                 | Complete                                      | None                                                  |
+| M2 — Flagship content-driven  | Complete                 | Historical staging smoke + local current pass | Current-candidate staging smoke and customer approval |
+| M3 — Human editor             | Complete                 | Automated workflow pass                       | Non-developer usability pilot pending                 |
+| M4 — Preview/publish workflow | Complete                 | Local current + historical staging/cron pass  | Current-candidate staging replay                      |
+| M5 — Client operations        | Technical scope complete | Backup/lead/alert fail-closed audits pass     | Email, alert and scheduled-backup receipts            |
+| M6 — White-label              | Complete                 | Packed/local + historical isolated staging    | Exact clean-checkout Acme receipt                     |
+| M7 — Hardening/pilot          | Technical scope complete | Quality/a11y/security/lab-performance pass    | Current deployment, representative p75 and pilot      |
 
 ## M0 — Lock baseline
 

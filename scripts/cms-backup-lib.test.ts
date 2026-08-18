@@ -15,6 +15,7 @@ import {
   verifyBackupArtifact,
   verifyRemoteRestoreOutput,
 } from "./cms-backup-lib";
+import { selectNewestRestorableCmsDatabase } from "./cms-backup-local-lib";
 import { manifestFor, repoRoot } from "./site-lib";
 
 const testDirectory = await mkdtemp(join(tmpdir(), "rem-viet-backup-"));
@@ -42,6 +43,29 @@ function createCmsFixture(path: string, includeVitals = true) {
 }
 
 describe("manifest-aware D1 backup", () => {
+  test("local backup skips a newer incomplete database", async () => {
+    const complete = join(testDirectory, "local-complete.sqlite");
+    const incomplete = join(testDirectory, "local-incomplete.sqlite");
+    createCmsFixture(complete);
+    createCmsFixture(incomplete, false);
+
+    await expect(
+      selectNewestRestorableCmsDatabase([
+        { path: complete, modifiedAt: 1 },
+        { path: incomplete, modifiedAt: 2 },
+      ]),
+    ).resolves.toEqual({ path: complete, modifiedAt: 1 });
+  });
+
+  test("local backup fails closed when no database is restorable", async () => {
+    const incomplete = join(testDirectory, "local-only-incomplete.sqlite");
+    createCmsFixture(incomplete, false);
+
+    await expect(
+      selectNewestRestorableCmsDatabase([{ path: incomplete, modifiedAt: 1 }]),
+    ).resolves.toBeUndefined();
+  });
+
   test("builds a stage-isolated, ignored backup plan", () => {
     const plan = buildSiteBackupPlan({
       manifest: manifestFor("acme-studio", "showcase"),

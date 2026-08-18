@@ -282,6 +282,17 @@ một database tạm duy nhất, chạy `PRAGMA integrity_check`, kiểm tra b�
 và row counts, không ghi vào nguồn. Production restore luôn vào D1 staging mới
 trước; tuyệt đối không restore thẳng production khi chưa xác nhận artifact.
 
+Command chỉ chọn database vượt qua chính restore contract; một Miniflare file
+mới hơn nhưng thiếu migration sẽ bị bỏ qua thay vì tạo backup giả-pass. Nếu có
+nhiều local runtime, chỉ định file trong repository và vẫn giữ fail-closed check:
+
+```bash
+bun run cms:backup:local --store=wrangler --source=<relative-path-to-d1.sqlite>
+```
+
+Nếu không có database đầy đủ, chạy current migrations trên local runtime trước;
+không hạ thấp danh sách bảng bắt buộc và không dùng artifact bị verifier từ chối.
+
 ## Archive backup bất biến trên R2
 
 Mỗi manifest có `backupBucketName` riêng, khác media bucket và không thuộc

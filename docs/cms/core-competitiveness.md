@@ -259,3 +259,42 @@ bun test packages/api/tests/standard-page-runtime.test.ts # 2 pass, 0 fail
 bun run cms:migrations:verify                            # pass (14 migrations)
 bun run cms:kit:consumer                                 # packed localized consumer pass
 ```
+
+## CMP-009 — typed server API and atomic portability
+
+Status: **Complete (2026-08-18).**
+
+- `createCmsServerSdk()` derives collection data and operations from a registry
+  and exposes reads, bounded queries, create/update, publish/schedule/unpublish,
+  revisions/restore/delete, relationship resolution, and locale/fallback input.
+- `createCmsRestResources()` generates an allow-listed Fetch surface from those
+  contracts. It enforces capabilities, 100-row pages, five-filter queries,
+  bounded JSON bodies, registered fields/routes, and sanitized shared-error
+  responses with no provider/database details.
+- Deterministic schema-v1 export carries registry identity and canonical draft,
+  published, schedule, relationship, and locale state while excluding secrets,
+  provider rows, audit data, and module/private configuration.
+- Import supports validation-only, dry-run, and apply. Reports distinguish
+  creates, updates, skips, conflicts, missing relationships, validation
+  failures, and required collection migrations before any write.
+- The Cloudflare apply boundary repeats authorization/hook/schema/relationship
+  checks and uses guarded statements in one D1 batch. A rejected later hook and
+  partly invalid Rèm Việt/Acme bundles prove earlier documents do not persist.
+- Rèm Việt's installed bilingual campaign and the packed Acme author/article
+  module both exercise SDK relationship reads, bounded REST, deterministic
+  export, write-free dry runs, successful published imports, and atomic
+  rejection through the public installed-package APIs.
+
+Decision record: `docs/adr/0034-bounded-server-api-and-atomic-portability.md`.
+
+Targeted verification:
+
+```text
+bun --cwd packages/cms-runtime test                      # 3 pass, 0 fail
+bun --cwd packages/cms-runtime check-types               # pass
+bun --cwd packages/cms-provider-cloudflare test          # 16 pass, 0 fail
+bun --cwd packages/cms-provider-cloudflare check-types   # pass
+bun test packages/api/tests/standard-page-runtime.test.ts # 2 pass, 0 fail
+bun run cms:kit:consumer                                 # packed SDK/REST/portability proof pass
+bun test scripts/cms-kit-boundaries.test.ts              # 20 pass, 0 fail
+```

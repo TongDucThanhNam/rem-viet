@@ -11,6 +11,8 @@ import {
 
 export * from "./collections.js";
 export * from "./page-collection-adapter.js";
+export * from "./portability.js";
+export * from "./server.js";
 
 export type CmsPageTemplate = "landing" | "standard";
 

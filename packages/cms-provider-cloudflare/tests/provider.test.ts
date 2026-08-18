@@ -13,11 +13,17 @@ import {
 } from "@agency/cms-core";
 import {
   assertCmsCollectionAccess,
+  createCmsRestResources,
+  createCmsServerSdk,
+  exportCmsContent,
+  importCmsContent,
   runCollectionProviderConformance,
   runEditorialReviewProviderConformance,
   runGlobalContentProviderConformance,
   runPageProviderConformance,
   type CmsPageContent,
+  stableJson,
+  toCmsRestError,
 } from "@agency/cms-runtime";
 import { convertV4MiniflareOptions, Miniflare } from "miniflare";
 
@@ -642,6 +648,290 @@ describe("Cloudflare D1 page provider", () => {
         actorId: "editor",
       }),
     ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
+  });
+
+  test("serves typed REST resources and imports deterministic bundles atomically", async () => {
+    const lifecycle = {
+      drafts: true,
+      revisions: true,
+      scheduling: true,
+    } as const;
+    const access = {
+      read: ["content.readDraft"] as const,
+      create: ["content.write"] as const,
+      update: ["content.write"] as const,
+      delete: ["content.delete"] as const,
+      publish: ["content.publish"] as const,
+    };
+    const authors = defineCollection({
+      slug: "portable-authors",
+      labels: { singular: "Author", plural: "Authors" },
+      schemaVersion: 1,
+      lifecycle,
+      access,
+      fields: [textField({ name: "name", label: "Name", required: true })],
+    });
+    const articles = defineCollection({
+      slug: "portable-articles",
+      labels: { singular: "Article", plural: "Articles" },
+      schemaVersion: 2,
+      migrations: [{ from: 1, to: 2, migrate: (data) => data }],
+      lifecycle,
+      access,
+      fields: [
+        textField({ name: "title", label: "Title", required: true }),
+        relationshipField({
+          name: "author",
+          label: "Author",
+          relationTo: authors.slug,
+          hasMany: false,
+          required: true,
+          onDelete: "restrict",
+        }),
+      ],
+    });
+    const registry = createCollectionRegistry([authors, articles] as const);
+    const sourceDb = database();
+    const targetDb = database();
+    const rollbackDb = database();
+    await Promise.all(
+      [sourceDb, targetDb, rollbackDb].map(applyCloudflareCmsMigrations),
+    );
+    let sequence = 0;
+    const source = createCloudflareCmsCollectionProvider({
+      database: sourceDb,
+      registry,
+      createId: () => `portable-source-${++sequence}`,
+      now: () => new Date("2026-08-18T01:00:00.000Z"),
+    });
+    const sdk = createCmsServerSdk(registry, source);
+    const author = await sdk.collection(authors.slug).create({
+      id: "author-1",
+      data: { name: "Portable author" },
+      actorId: "editor",
+    });
+    await sdk.collection(authors.slug).publish({
+      id: author.id,
+      expectedVersion: author.version,
+      actorId: "publisher",
+    });
+    const article = await sdk.collection(articles.slug).create({
+      id: "article-1",
+      data: { title: "Portable article", author: author.id },
+      actorId: "editor",
+    });
+    await sdk.collection(articles.slug).publish({
+      id: article.id,
+      expectedVersion: article.version,
+      actorId: "publisher",
+    });
+    await expect(
+      sdk.collection(articles.slug).resolveRelationship({
+        field: "author",
+        id: author.id,
+        actorId: "reader",
+        view: "published",
+      }),
+    ).resolves.toMatchObject({ data: { name: "Portable author" } });
+
+    const rest = createCmsRestResources({
+      provider: source,
+      actorFor: async (request) => ({
+        actorId: "rest-user",
+        capabilities:
+          request.headers.get("authorization") === "allowed"
+            ? (["content.readDraft"] as const)
+            : ([] as const),
+      }),
+    });
+    expect(rest.resources).toHaveLength(8);
+    const allowed = await rest.handle(
+      new Request(
+        "https://cms.test/cms/collections/portable-articles/documents?status=published&limit=1",
+        { headers: { authorization: "allowed" } },
+      ),
+    );
+    expect(allowed.status).toBe(200);
+    await expect(allowed.json()).resolves.toMatchObject({ total: 1, limit: 1 });
+    const forbidden = await rest.handle(
+      new Request(
+        "https://cms.test/cms/collections/portable-articles/documents",
+      ),
+    );
+    expect(forbidden.status).toBe(403);
+    expect(toCmsRestError(new Error("SQL password=secret"))).toEqual({
+      code: "CAPABILITY_UNAVAILABLE",
+      message: "CMS request failed.",
+      retryable: false,
+    });
+
+    const firstExport = await exportCmsContent({
+      provider: source,
+      actorId: "exporter",
+    });
+    const secondExport = await exportCmsContent({
+      provider: source,
+      actorId: "exporter",
+    });
+    expect(stableJson(firstExport)).toBe(stableJson(secondExport));
+    expect(stableJson(firstExport)).not.toContain("password");
+
+    const target = createCloudflareCmsCollectionProvider({
+      database: targetDb,
+      registry,
+      createId: () => `portable-target-${++sequence}`,
+      now: () => new Date("2026-08-18T02:00:00.000Z"),
+    });
+    const validation = await importCmsContent({
+      provider: target,
+      bundle: firstExport,
+      actorId: "importer",
+      validationOnly: true,
+    });
+    expect(validation).toMatchObject({
+      mode: "validation",
+      applied: false,
+      creates: [{ id: "article-1" }, { id: "author-1" }],
+      conflicts: [],
+      validationFailures: [],
+    });
+    expect(
+      await target.getDraft({ collection: authors.slug, id: author.id }),
+    ).toBeNull();
+    const dryRun = await importCmsContent({
+      provider: target,
+      bundle: firstExport,
+      actorId: "importer",
+      dryRun: true,
+    });
+    expect(dryRun).toMatchObject({ mode: "dry-run", applied: false });
+    const applied = await importCmsContent({
+      provider: target,
+      bundle: firstExport,
+      actorId: "importer",
+    });
+    expect(applied).toMatchObject({ mode: "apply", applied: true });
+    await expect(
+      target.getPublished({ collection: articles.slug, id: article.id }),
+    ).resolves.toMatchObject({
+      data: { title: "Portable article", author: "author-1" },
+    });
+    const unchanged = await importCmsContent({
+      provider: target,
+      bundle: firstExport,
+      actorId: "importer",
+      dryRun: true,
+    });
+    expect(unchanged.skips).toHaveLength(2);
+    const targetArticle = await target.getDraft({
+      collection: articles.slug,
+      id: article.id,
+    });
+    const updateBundle = structuredClone(firstExport);
+    const updateDocument = updateBundle.documents.find(
+      (document) => document.collection === articles.slug,
+    )!;
+    updateDocument.expectedVersion = targetArticle!.version;
+    updateDocument.data.title = "Portable article updated";
+    updateDocument.publishedData!.title = "Portable article updated";
+    const updateReport = await importCmsContent({
+      provider: target,
+      bundle: updateBundle,
+      actorId: "importer",
+      dryRun: true,
+    });
+    expect(updateReport.updates).toHaveLength(1);
+    const conflictBundle = structuredClone(updateBundle);
+    conflictBundle.documents.find(
+      (document) => document.collection === articles.slug,
+    )!.expectedVersion = null;
+    const conflictReport = await importCmsContent({
+      provider: target,
+      bundle: conflictBundle,
+      actorId: "importer",
+      dryRun: true,
+    });
+    expect(conflictReport.conflicts).toHaveLength(1);
+
+    const migrationBundle = structuredClone(firstExport);
+    const migrationDocument = migrationBundle.documents.find(
+      (document) => document.collection === articles.slug,
+    )!;
+    migrationDocument.schemaVersion = 1;
+    const migrationDb = database();
+    await applyCloudflareCmsMigrations(migrationDb);
+    const migrationReport = await importCmsContent({
+      provider: createCloudflareCmsCollectionProvider({
+        database: migrationDb,
+        registry,
+      }),
+      bundle: migrationBundle,
+      actorId: "importer",
+      dryRun: true,
+    });
+    expect(migrationReport.requiredMigrations).toEqual([
+      { collection: articles.slug, id: article.id, from: 1, to: 2 },
+    ]);
+
+    const brokenBundle = structuredClone(firstExport);
+    brokenBundle.documents.find(
+      (document) => document.collection === articles.slug,
+    )!.data.author = "missing-author";
+    const missing = await importCmsContent({
+      provider: target,
+      bundle: brokenBundle,
+      actorId: "importer",
+      dryRun: true,
+    });
+    expect(missing.missingRelationships).toHaveLength(1);
+    const invalidDocumentBundle = structuredClone(firstExport);
+    delete invalidDocumentBundle.documents.find(
+      (document) => document.collection === articles.slug,
+    )!.data.title;
+    const invalid = await importCmsContent({
+      provider: target,
+      bundle: invalidDocumentBundle,
+      actorId: "importer",
+      dryRun: true,
+    });
+    expect(invalid.validationFailures).toHaveLength(1);
+
+    const rollbackExtensions = createCmsExtensionRegistry({
+      modules: [
+        defineFeatureModule({
+          id: "portable-rollback",
+          collections: [authors, articles],
+          hooks: [
+            defineCmsLifecycleHook({
+              id: "portable-rollback/reject",
+              event: "create",
+              collection: articles.slug,
+              run() {
+                throw new CmsError({
+                  code: "VALIDATION_FAILED",
+                  message: "Rollback fixture rejected the article.",
+                  retryable: false,
+                });
+              },
+            }),
+          ],
+        }),
+      ],
+    });
+    const rollback = createCloudflareCmsCollectionProvider({
+      database: rollbackDb,
+      extensions: rollbackExtensions,
+    });
+    await expect(
+      importCmsContent({
+        provider: rollback,
+        bundle: firstExport,
+        actorId: "importer",
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
+    await expect(
+      rollback.getDraft({ collection: authors.slug, id: author.id }),
+    ).resolves.toBeNull();
   });
 
   test("executes ordered module hooks before D1 batches and rolls failures back", async () => {

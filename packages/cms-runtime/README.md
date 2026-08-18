@@ -31,3 +31,25 @@ publish, and only publication of the exact approved version resolves the
 handoff. `runEditorialReviewProviderConformance` proves idempotent requests,
 queue behavior, stale protection, decision validation, and publication
 resolution against a real provider lifecycle.
+
+## Server SDK and REST resources
+
+`createCmsServerSdk()` binds a collection registry to its provider and derives
+collection slugs, authoring data, lifecycle inputs, revisions, relationships,
+and locale options from that registry. Every server call carries its actor
+explicitly. `createCmsRestResources()` exposes the same SDK through an
+allow-listed Fetch handler: generated collection/document/revision/action
+resources, a 100-item page ceiling, at most five filters, a configurable body
+limit, capability checks, and provider validation. Unknown failures become a
+generic shared `CmsError` contract; database/provider messages are never sent.
+
+## Portable content
+
+`exportCmsContent()` emits a deterministic schema-v1 bundle containing registry
+identity plus canonical draft, published, schedule, relationship, and locale
+state. It excludes credentials, provider rows, audit data, hook configuration,
+and other private state. `importCmsContent()` supports validation-only, dry-run,
+and apply modes. Its report separates creates, updates, skips, conflicts,
+missing relationships, field failures, and required collection migrations.
+Apply is available only through a provider that implements the atomic import
+boundary; a blocked report never invokes that boundary.

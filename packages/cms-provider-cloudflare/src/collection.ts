@@ -12,6 +12,7 @@ import {
   type CmsLifecycleOperation,
 } from "@agency/cms-core";
 import type {
+  CmsAtomicImportOperation,
   CmsCollectionAction,
   CmsCollectionDocument,
   CmsCollectionFilter,
@@ -1241,6 +1242,254 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     if ((result?.meta?.changes ?? 0) !== 1)
       versionConflict(input.expectedVersion, current.version);
     return (await this.getDraft(input))!;
+  }
+
+  /** Applies a fully preflighted portability plan in one D1 batch. */
+  async applyImportAtomically(input: {
+    actorId: string;
+    operations: readonly CmsAtomicImportOperation[];
+  }) {
+    const planned = new Map(
+      input.operations.map((operation) => [
+        `${operation.collection}\u0000${operation.id}\u0000${operation.locale ?? ""}`,
+        operation,
+      ]),
+    );
+    const timestamp = this.#now();
+    const now = timestamp.getTime();
+    const statements: CloudflareD1PreparedStatement[] = [];
+
+    for (const operation of input.operations) {
+      const definition = definitionFor(this.registry, operation.collection);
+      const locale = localeFor(definition, operation.locale ?? undefined);
+      const current = await this.#rawDocument(
+        operation.collection,
+        operation.id,
+        locale,
+      );
+      await this.#authorized(
+        operation.kind === "create" ? "create" : "update",
+        definition,
+        input.actorId,
+      );
+      if (operation.publishedData) {
+        await this.#authorized("publish", definition, input.actorId);
+      }
+      if (
+        (operation.kind === "create" && current) ||
+        (operation.kind === "update" &&
+          (!current || current.version !== operation.expectedVersion))
+      ) {
+        throw new CmsError({
+          code: "CONFLICT",
+          message: `Import precondition changed for "${operation.collection}/${operation.id}".`,
+          retryable: false,
+        });
+      }
+
+      const sharedOperation = definition.localization
+        ? planned.get(
+            `${operation.collection}\u0000${operation.id}\u0000${definition.localization.defaultLocale}`,
+          )
+        : undefined;
+      let data = this.#overlaySharedFields(
+        definition,
+        operation.data as Record<string, unknown>,
+        (sharedOperation?.data ?? operation.data) as Record<string, unknown>,
+      );
+      data = (await this.#runHooks(
+        operation.kind === "create" ? "create" : "update",
+        definition,
+        {
+          actorId: input.actorId,
+          documentId: operation.id,
+          locale: operation.locale,
+          data,
+          previousData: current
+            ? decodeData(definition, current.data, current.schemaVersion)
+            : null,
+        },
+      ))!;
+      data = parseCmsCollectionData(definition, data);
+      let publishedData = operation.publishedData
+        ? this.#overlaySharedFields(
+            definition,
+            operation.publishedData as Record<string, unknown>,
+            (sharedOperation?.publishedData ??
+              operation.publishedData) as Record<string, unknown>,
+          )
+        : null;
+      if (publishedData) {
+        publishedData = (await this.#runHooks("publish", definition, {
+          actorId: input.actorId,
+          documentId: operation.id,
+          locale: operation.locale,
+          data: publishedData,
+          previousData: current
+            ? decodeData(definition, current.data, current.schemaVersion)
+            : null,
+        }))!;
+        publishedData = parseCmsCollectionData(definition, publishedData);
+      }
+
+      for (const source of [data, ...(publishedData ? [publishedData] : [])]) {
+        for (const reference of collectCmsRelationshipReferences(
+          definition,
+          source,
+        )) {
+          const target = definitionFor(
+            this.registry,
+            reference.targetCollection,
+          );
+          const targetLocales = !target.localization
+            ? [""]
+            : reference.localeBehavior === "same"
+              ? [locale]
+              : reference.localeBehavior === "default"
+                ? [target.localization.defaultLocale]
+                : target.localization.locales;
+          let exists = false;
+          for (const targetLocale of targetLocales) {
+            if (
+              planned.has(
+                `${reference.targetCollection}\u0000${reference.targetId}\u0000${targetLocale}`,
+              ) ||
+              (await this.#rawDocument(
+                reference.targetCollection,
+                reference.targetId,
+                targetLocale,
+              ))
+            ) {
+              exists = true;
+              break;
+            }
+          }
+          if (!exists) {
+            throw new CmsError({
+              code: "VALIDATION_FAILED",
+              message: `Relationship target "${reference.targetCollection}/${reference.targetId}" was not found.`,
+              retryable: false,
+            });
+          }
+        }
+      }
+
+      const nextVersion = current ? current.version + 1 : 1;
+      const revisionId = publishedData ? this.#createId() : null;
+      const scheduledAt = operation.scheduledAt
+        ? Date.parse(operation.scheduledAt)
+        : null;
+      const guard =
+        operation.kind === "create"
+          ? this.#database
+              .prepare(
+                `SELECT CASE WHEN NOT EXISTS (
+                   SELECT 1 FROM cms_collection_documents
+                   WHERE collection_slug = ? AND id = ? AND locale = ?
+                 ) THEN 1 ELSE json('invalid') END`,
+              )
+              .bind(operation.collection, operation.id, locale)
+          : this.#database
+              .prepare(
+                `SELECT CASE WHEN EXISTS (
+                   SELECT 1 FROM cms_collection_documents
+                   WHERE collection_slug = ? AND id = ? AND locale = ? AND version = ?
+                 ) THEN 1 ELSE json('invalid') END`,
+              )
+              .bind(
+                operation.collection,
+                operation.id,
+                locale,
+                operation.expectedVersion,
+              );
+      statements.push(guard);
+
+      if (!current) {
+        statements.push(
+          this.#database
+            .prepare(
+              `INSERT INTO cms_collection_documents (
+                 collection_slug, id, locale, schema_version, version, status,
+                 data, published_revision_id, scheduled_at, updated_by,
+                 created_at, updated_at
+               ) VALUES (?, ?, ?, ?, ?, 'draft', ?, NULL, ?, ?, ?, ?)`,
+            )
+            .bind(
+              operation.collection,
+              operation.id,
+              locale,
+              definition.schemaVersion,
+              nextVersion,
+              JSON.stringify(data),
+              scheduledAt,
+              input.actorId,
+              now,
+              now,
+            ),
+        );
+      }
+      if (publishedData && revisionId) {
+        statements.push(
+          this.#database
+            .prepare(
+              `INSERT INTO cms_collection_revisions (
+                 id, collection_slug, document_id, locale, schema_version,
+                 version, snapshot, note, created_by, created_at
+               ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            )
+            .bind(
+              revisionId,
+              operation.collection,
+              operation.id,
+              locale,
+              definition.schemaVersion,
+              nextVersion,
+              JSON.stringify(publishedData),
+              "Imported publication",
+              input.actorId,
+              now,
+            ),
+        );
+      }
+      statements.push(
+        this.#database
+          .prepare(
+            `UPDATE cms_collection_documents
+             SET schema_version = ?, version = ?, status = ?, data = ?,
+                 published_revision_id = ?, scheduled_at = ?, updated_by = ?,
+                 updated_at = ?
+             WHERE collection_slug = ? AND id = ? AND locale = ?
+               ${current ? "AND version = ?" : ""}`,
+          )
+          .bind(
+            definition.schemaVersion,
+            nextVersion,
+            publishedData ? "published" : "draft",
+            JSON.stringify(data),
+            revisionId,
+            publishedData ? null : scheduledAt,
+            input.actorId,
+            now,
+            operation.collection,
+            operation.id,
+            locale,
+            ...(current ? [operation.expectedVersion] : []),
+          ),
+      );
+    }
+
+    if (statements.length) {
+      try {
+        await this.#batch(statements);
+      } catch (error) {
+        if (error instanceof CmsError) throw error;
+        throw new CmsError({
+          code: "CONFLICT",
+          message: "Import preconditions changed before the atomic write.",
+          retryable: true,
+        });
+      }
+    }
   }
 
   async delete(input: CmsCollectionVersionInput) {

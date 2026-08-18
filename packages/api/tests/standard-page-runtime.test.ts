@@ -5,6 +5,12 @@ import {
 } from "@agency/cms-provider-cloudflare";
 import { createCmsExtensionRegistry } from "@agency/cms-core";
 import {
+  createCmsRestResources,
+  createCmsServerSdk,
+  exportCmsContent,
+  importCmsContent,
+} from "@agency/cms-runtime";
+import {
   remVietLocalizedCampaignsCollection,
   remVietStandardPagesModule,
 } from "@agency/cms-template-rem-viet";
@@ -82,8 +88,9 @@ describe("Rèm Việt standard-page collection runtime", () => {
       now: () => new Date("2026-08-18T00:00:00.000Z"),
     });
     const collection = remVietLocalizedCampaignsCollection.slug;
-    const vi = await provider.createDraft({
-      collection,
+    const sdk = createCmsServerSdk(provider.registry, provider);
+    const campaigns = sdk.collection(collection);
+    const vi = await campaigns.create({
       id: "summer-campaign",
       locale: "vi-VN",
       data: { code: "summer-2026", headline: "Mùa hè thoáng mát" },
@@ -148,6 +155,85 @@ describe("Rèm Việt standard-page collection runtime", () => {
     await expect(
       provider.listRevisions({ collection, id: vi.id, locale: "en-US" }),
     ).resolves.toHaveLength(1);
+
+    const rest = createCmsRestResources({
+      provider,
+      actorFor: () => ({
+        actorId: "api-reader",
+        capabilities: ["content.readDraft"],
+      }),
+    });
+    const response = await rest.handle(
+      new Request(
+        `https://rem-viet.test/cms/collections/${collection}/documents/${vi.id}?locale=en-US&view=published`,
+      ),
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      locale: "en-US",
+      data: { headline: "A breezy summer" },
+    });
+
+    const bundle = await exportCmsContent({ provider, actorId: "exporter" });
+    const targetDb = await database();
+    const target = createCloudflareCmsCollectionProvider({
+      database: targetDb,
+      extensions: createCmsExtensionRegistry({
+        modules: [remVietStandardPagesModule],
+      }),
+      createId: () => `rem-viet-import-${++sequence}`,
+    });
+    const dryRun = await importCmsContent({
+      provider: target,
+      bundle,
+      actorId: "importer",
+      dryRun: true,
+    });
+    expect(dryRun).toMatchObject({ applied: false, creates: { length: 2 } });
+    expect(
+      await target.getDraft({ collection, id: vi.id, locale: "vi-VN" }),
+    ).toBeNull();
+    await expect(
+      importCmsContent({ provider: target, bundle, actorId: "importer" }),
+    ).resolves.toMatchObject({ applied: true });
+    await expect(
+      target.getPublished({ collection, id: vi.id, locale: "en-US" }),
+    ).resolves.toMatchObject({ data: { headline: "A breezy summer" } });
+
+    const rollbackDb = await database();
+    const rollback = createCloudflareCmsCollectionProvider({
+      database: rollbackDb,
+      extensions: createCmsExtensionRegistry({
+        modules: [remVietStandardPagesModule],
+      }),
+    });
+    const invalidBundle = {
+      ...bundle,
+      documents: bundle.documents.map((document) =>
+        document.collection === collection && document.locale === "en-US"
+          ? {
+              ...document,
+              data: Object.fromEntries(
+                Object.entries(document.data).filter(
+                  ([key]) => key !== "headline",
+                ),
+              ),
+            }
+          : document,
+      ),
+    };
+    const rejected = await importCmsContent({
+      provider: rollback,
+      bundle: invalidBundle,
+      actorId: "importer",
+    });
+    expect(rejected).toMatchObject({
+      applied: false,
+      validationFailures: { length: 1 },
+    });
+    expect(
+      await rollback.getDraft({ collection, id: vi.id, locale: "vi-VN" }),
+    ).toBeNull();
   });
 
   test("preserves the page lifecycle and legacy editorial projection atomically", async () => {

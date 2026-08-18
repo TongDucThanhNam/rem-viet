@@ -38,6 +38,10 @@ import {
 } from "@agency/cms-cli";
 import { CmsBlockRenderer } from "@agency/cms-react";
 import {
+  createCmsRestResources,
+  createCmsServerSdk,
+  exportCmsContent,
+  importCmsContent,
   runEditorialReviewProviderConformance,
   runCollectionProviderConformance,
   runMediaProviderConformance,
@@ -311,6 +315,109 @@ if (
 }
 if (acmeHookRuns === 0) {
   throw new Error("The installed Acme feature-module hook did not execute.");
+}
+const acmeSdk = createCmsServerSdk(acmeRegistry, acmeProvider);
+const relatedAuthor = await acmeSdk
+  .collection(acmeArticles.slug)
+  .resolveRelationship({
+    field: "author",
+    id: "acme-author-1",
+    sourceLocale: "en-US",
+    view: "draft",
+  });
+if (relatedAuthor?.data.name !== "Ada Acme EN") {
+  throw new Error("The typed Acme SDK did not resolve the same-locale author.");
+}
+const acmeRest = createCmsRestResources({
+  provider: acmeProvider,
+  actorFor: () => ({ actorId: "acme-api", capabilities: [] }),
+});
+const acmeRestResponse = await acmeRest.handle(
+  new Request(
+    "https://acme.test/cms/collections/acme-articles/documents/acme-article-1?locale=en-US&view=published",
+  ),
+);
+if (
+  acmeRestResponse.status !== 200 ||
+  (await acmeRestResponse.json()).data.title !== "Acme launch in English"
+) {
+  throw new Error(
+    "The bounded Acme REST resource did not return published content.",
+  );
+}
+const acmeBundle = await exportCmsContent({
+  provider: acmeProvider,
+  actorId: "acme-exporter",
+});
+const acmeTargetDatabase = new LocalD1();
+await applyCloudflareCmsMigrations(acmeTargetDatabase);
+const acmeTarget = createCloudflareCmsCollectionProvider({
+  database: acmeTargetDatabase,
+  extensions: createCmsExtensionRegistry({ modules: [acmeModule] }),
+  createId: () => `acme-import-${++acmeSequence}`,
+});
+const acmeDryRun = await importCmsContent({
+  provider: acmeTarget,
+  bundle: acmeBundle,
+  actorId: "acme-importer",
+  dryRun: true,
+});
+if (acmeDryRun.applied || acmeDryRun.creates.length !== 4) {
+  throw new Error("The Acme import dry-run was not complete and write-free.");
+}
+const acmeImport = await importCmsContent({
+  provider: acmeTarget,
+  bundle: acmeBundle,
+  actorId: "acme-importer",
+});
+if (
+  !acmeImport.applied ||
+  (
+    await acmeTarget.getPublished({
+      collection: acmeArticles.slug,
+      id: "acme-article-1",
+      locale: "en-US",
+    })
+  )?.data.title !== "Acme launch in English"
+) {
+  throw new Error(
+    "The Acme portable import did not preserve publication state.",
+  );
+}
+const acmeRollbackDatabase = new LocalD1();
+await applyCloudflareCmsMigrations(acmeRollbackDatabase);
+const acmeRollback = createCloudflareCmsCollectionProvider({
+  database: acmeRollbackDatabase,
+  extensions: createCmsExtensionRegistry({ modules: [acmeModule] }),
+});
+const invalidAcmeBundle = {
+  ...acmeBundle,
+  documents: acmeBundle.documents.map((document) =>
+    document.collection === acmeArticles.slug && document.locale === "en-US"
+      ? {
+          ...document,
+          data: Object.fromEntries(
+            Object.entries(document.data).filter(([key]) => key !== "title"),
+          ),
+        }
+      : document,
+  ),
+};
+const acmeRejectedImport = await importCmsContent({
+  provider: acmeRollback,
+  bundle: invalidAcmeBundle,
+  actorId: "acme-importer",
+});
+if (
+  acmeRejectedImport.applied ||
+  acmeRejectedImport.validationFailures.length !== 1 ||
+  (await acmeRollback.getDraft({
+    collection: acmeAuthors.slug,
+    id: "acme-author-1",
+    locale: "vi-VN",
+  }))
+) {
+  throw new Error("An invalid Acme import partially persisted.");
 }
 const acmeDocuments = await acmeProvider.list({
   collection: acmeArticles.slug,
@@ -674,6 +781,13 @@ console.log(
     evidence: {
       ...evidence,
       acmeCollections: acmeEvidence,
+      acmePortability: {
+        sdk: true,
+        rest: true,
+        dryRun: true,
+        imported: true,
+        rollback: true,
+      },
       acmeAdmin: acmeAdminMarkup,
       review: reviewEvidence,
       reviewPresentation: reviewPresentation.kind,
@@ -698,3 +812,5 @@ console.log(
   }),
 );
 database.close();
+acmeTargetDatabase.close();
+acmeRollbackDatabase.close();

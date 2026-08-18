@@ -52,3 +52,13 @@ key. The provider keeps draft, schedule, published pointer, and immutable
 revisions independent for every locale. Shared fields are anchored to the
 default locale, localized fields remain per locale, fallback is opt-in, and
 relationship checks follow the schema's `same`, `default`, or `any` policy.
+
+The provider implements the runtime portability boundary with guarded SQL
+preconditions and one D1 batch. Authorization, lifecycle hooks, schema parsing,
+shared-field overlay, and relationship integrity all complete before that
+batch; hook failure or a concurrent-version guard aborts every document in the
+plan. Portable import owns the canonical generic collection tables. Applications
+that still maintain temporary legacy projection tables must continue using
+their application migration/backfill adapter for those projections; ordinary
+create/update/publish operations and their transaction contributions are
+unchanged.

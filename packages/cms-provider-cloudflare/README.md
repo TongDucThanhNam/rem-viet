@@ -36,3 +36,12 @@ Consumers can append prepared statements to every generic collection mutation.
 The statements share the provider's D1 batch, enabling atomic audit records,
 compatibility projections, redirects, and review publication events without a
 brand or collection switch inside the provider.
+
+Consumers with installable modules pass an instance-scoped
+`CmsExtensionRegistry` as `extensions`; passing the legacy `registry` option
+remains supported. Authorization runs before module hooks. For create, update,
+publish, restore, unpublish, and delete, validation and operation hooks complete
+before any D1 batch executes. Hook transforms are parsed again through the
+registered collection schema and relationship checks. Hook failure therefore
+leaves documents, revisions, compatibility projections, and audit statements
+unchanged.

@@ -4,7 +4,10 @@ import {
   CmsError,
   booleanField,
   createCollectionRegistry,
+  createCmsExtensionRegistry,
   defineCollection,
+  defineCmsLifecycleHook,
+  defineFeatureModule,
   relationshipField,
   textField,
 } from "@agency/cms-core";
@@ -377,6 +380,218 @@ describe("Cloudflare D1 page provider", () => {
         actorId: "editor",
       }),
     ).resolves.toMatchObject({ data: { name: "Permitted" } });
+  });
+
+  test("executes ordered module hooks before D1 batches and rolls failures back", async () => {
+    const db = database();
+    await applyCloudflareCmsMigrations(db);
+    const articles = defineCollection({
+      slug: "hooked-articles",
+      labels: { singular: "Article", plural: "Articles" },
+      schemaVersion: 1,
+      lifecycle: { drafts: true, revisions: true, scheduling: true },
+      access: {
+        read: [],
+        create: ["content.write"],
+        update: ["content.write"],
+        delete: ["content.delete"],
+        publish: ["content.publish"],
+      },
+      fields: [textField({ name: "title", label: "Title", required: true })],
+    });
+    const events: string[] = [];
+    const operationHooks = [
+      "create",
+      "update",
+      "publish",
+      "unpublish",
+      "restore",
+      "delete",
+    ].map((event) =>
+      defineCmsLifecycleHook({
+        id: `hook-conformance/${event}`,
+        event: event as
+          "create" | "update" | "publish" | "unpublish" | "restore" | "delete",
+        collection: articles.slug,
+        run(context) {
+          events.push(event);
+          if (event === "create") {
+            return {
+              data: {
+                ...context.data,
+                title: `${String(context.data?.title).trim()}!`,
+              },
+            };
+          }
+          if (event === "update" && context.data?.title === "Reject") {
+            throw new CmsError({
+              code: "VALIDATION_FAILED",
+              message: "Rejected by update policy.",
+              retryable: false,
+            });
+          }
+        },
+      }),
+    );
+    const extensions = createCmsExtensionRegistry({
+      modules: [
+        defineFeatureModule({
+          id: "hook-conformance",
+          collections: [articles],
+          hooks: [
+            defineCmsLifecycleHook({
+              id: "hook-conformance/validate",
+              event: "validate",
+              collection: articles.slug,
+              order: -10,
+              run(context) {
+                events.push(`validate:${context.operation}`);
+              },
+            }),
+            ...operationHooks,
+          ],
+          permissions: [
+            {
+              id: "hook-conformance/write",
+              capability: "content.write",
+              collection: articles.slug,
+              operations: ["create", "update", "restore"],
+            },
+          ],
+          migrations: [
+            {
+              id: "hook-conformance/v1",
+              from: 0,
+              to: 1,
+              migrate: (state) => state,
+            },
+          ],
+          admin: [
+            {
+              id: "hook-conformance/admin",
+              collection: articles.slug,
+              placement: "navigation",
+              label: "Hooked articles",
+            },
+          ],
+        }),
+      ],
+    });
+    let sequence = 0;
+    const provider = createCloudflareCmsCollectionProvider({
+      database: db,
+      extensions,
+      createId: () => `hook-id-${++sequence}`,
+      now: () => new Date("2026-08-18T00:00:00.000Z"),
+    });
+
+    let document = await provider.createDraft({
+      collection: articles.slug,
+      id: "article-1",
+      data: { title: "  Hello  " },
+      actorId: "editor",
+    });
+    expect(document.data).toEqual({ title: "Hello!" });
+    await expect(
+      provider.saveDraft({
+        collection: articles.slug,
+        id: document.id,
+        expectedVersion: document.version,
+        data: { title: "Reject" },
+        actorId: "editor",
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
+    await expect(
+      provider.getDraft({ collection: articles.slug, id: document.id }),
+    ).resolves.toMatchObject({ version: 1, data: { title: "Hello!" } });
+
+    document = await provider.saveDraft({
+      collection: articles.slug,
+      id: document.id,
+      expectedVersion: document.version,
+      data: { title: "Second" },
+      actorId: "editor",
+    });
+    const first = await provider.publish({
+      collection: articles.slug,
+      id: document.id,
+      expectedVersion: document.version,
+      actorId: "publisher",
+    });
+    document = await provider.saveDraft({
+      collection: articles.slug,
+      id: document.id,
+      expectedVersion: first.document.version,
+      data: { title: "Third" },
+      actorId: "editor",
+    });
+    const second = await provider.publish({
+      collection: articles.slug,
+      id: document.id,
+      expectedVersion: document.version,
+      actorId: "publisher",
+    });
+    document = await provider.restore({
+      collection: articles.slug,
+      id: document.id,
+      expectedVersion: second.document.version,
+      revisionId: first.revision.id,
+      actorId: "editor",
+    });
+    document = await provider.unpublish({
+      collection: articles.slug,
+      id: document.id,
+      expectedVersion: document.version,
+      actorId: "publisher",
+    });
+    await provider.delete({
+      collection: articles.slug,
+      id: document.id,
+      expectedVersion: document.version,
+      actorId: "owner",
+    });
+
+    expect(events).toEqual([
+      "validate:create",
+      "create",
+      "validate:update",
+      "update",
+      "validate:update",
+      "update",
+      "validate:publish",
+      "publish",
+      "validate:update",
+      "update",
+      "validate:publish",
+      "publish",
+      "validate:restore",
+      "restore",
+      "validate:unpublish",
+      "unpublish",
+      "validate:delete",
+      "delete",
+    ]);
+
+    const unauthorizedEvents = events.length;
+    const authorized = createCloudflareCmsCollectionProvider({
+      database: db,
+      extensions,
+      authorize: ({ action, collection, actorId }) =>
+        assertCmsCollectionAccess(
+          collection,
+          action,
+          actorId === "editor" ? ["content.write"] : [],
+        ),
+    });
+    await expect(
+      authorized.createDraft({
+        collection: articles.slug,
+        id: "forbidden",
+        data: { title: "Forbidden" },
+        actorId: "viewer",
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+    expect(events).toHaveLength(unauthorizedEvents);
   });
 
   test("migrates stored collection snapshots through the registered schema", async () => {

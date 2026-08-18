@@ -33,3 +33,21 @@ remain outside the core contract.
 versions, locales, brand inputs, feature flags, HTTPS production origin, and
 isolated infrastructure names. Provider- or template-specific fields belong in
 their own configuration rather than weakening this shared contract.
+
+## Feature modules and lifecycle hooks
+
+`defineFeatureModule()` packages collections, lifecycle hooks, permission
+metadata, one-step migrations, and provider-neutral admin contributions.
+`createCmsExtensionRegistry()` validates duplicate IDs, missing dependencies,
+dependency cycles, and unknown collection targets, then returns an isolated
+registry instance. There is no process-global module state.
+
+Hooks use `defineCmsLifecycleHook()` and cover `validate`, `create`, `update`,
+`publish`, `unpublish`, `restore`, and `delete`. Modules are topologically
+ordered by dependency and stable ID; hooks then run by module order, numeric
+`order`, and hook ID. A hook may return `{ data }` to transform the next hook's
+input. Reference adapters execute `validate` followed by the operation hook
+after authorization and optimistic-version checks but before assembling their
+transaction. A thrown error aborts the operation without a write; hooks do not
+provide post-commit side effects. Use an adapter's transaction contribution API
+for database effects that must commit atomically with the content mutation.

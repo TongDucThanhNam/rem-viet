@@ -6,7 +6,7 @@ import {
   type CloudflareD1Database,
   type CloudflareD1PreparedStatement,
 } from "@agency/cms-provider-cloudflare";
-import { createCollectionRegistry } from "@agency/cms-core";
+import { createCmsExtensionRegistry } from "@agency/cms-core";
 import {
   createCmsPageCollectionAdapter,
   type CmsPageContent,
@@ -14,6 +14,7 @@ import {
 import {
   fromRemVietStandardPageCollectionData,
   remVietStandardPagesCollection,
+  remVietStandardPagesModule,
   toRemVietStandardPageCollectionData,
   toLegacyRemVietStandardBlock,
   toRemVietStandardBlock,
@@ -123,9 +124,9 @@ export function encodeRemVietStandardPageRevision(
   };
 }
 
-const remVietCollectionRegistry = createCollectionRegistry([
-  remVietStandardPagesCollection,
-]);
+const remVietExtensions = createCmsExtensionRegistry({
+  modules: [remVietStandardPagesModule],
+});
 
 function legacyPageValues(content: RemVietStandardPageContent) {
   return [
@@ -341,7 +342,7 @@ export function createRemVietStandardPageProviderForDatabase(
   const reviews = createCloudflareCmsEditorialReviewProvider({ database });
   const provider = createCloudflareCmsCollectionProvider({
     database,
-    registry: remVietCollectionRegistry,
+    extensions: remVietExtensions,
     prepareMutationStatements: (collectionEvent) => {
       const event = pageMutationEvent(collectionEvent);
       return [

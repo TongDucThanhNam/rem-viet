@@ -16,8 +16,10 @@ import {
   runCmsWorkflowCommand,
 } from "@agency/cms-admin";
 import {
-  createCollectionRegistry,
+  createCmsExtensionRegistry,
   defineCollection,
+  defineCmsLifecycleHook,
+  defineFeatureModule,
   relationshipField,
   textField,
 } from "@agency/cms-core";
@@ -172,14 +174,51 @@ const acmeArticles = defineCollection({
   ],
   admin: { useAsTitle: "title", defaultColumns: ["title", "author"] },
 });
-const acmeRegistry = createCollectionRegistry([
-  acmeAuthors,
-  acmeArticles,
-] as const);
+let acmeHookRuns = 0;
+const acmeModule = defineFeatureModule({
+  id: "acme-content",
+  collections: [acmeAuthors, acmeArticles],
+  hooks: [
+    defineCmsLifecycleHook({
+      id: "acme-content/validate-articles",
+      event: "validate",
+      collection: acmeArticles.slug,
+      run() {
+        acmeHookRuns += 1;
+      },
+    }),
+  ],
+  permissions: [
+    {
+      id: "acme-content/edit",
+      capability: "content.write",
+      collection: acmeArticles.slug,
+      operations: ["create", "update", "restore"],
+    },
+  ],
+  migrations: [
+    {
+      id: "acme-content/v1",
+      from: 0,
+      to: 1,
+      migrate: (state) => state,
+    },
+  ],
+  admin: [
+    {
+      id: "acme-content/navigation",
+      collection: acmeArticles.slug,
+      placement: "navigation",
+      label: "Acme articles",
+    },
+  ],
+});
+const acmeExtensions = createCmsExtensionRegistry({ modules: [acmeModule] });
+const acmeRegistry = acmeExtensions.collections;
 let acmeSequence = 0;
 const acmeProvider = createCloudflareCmsCollectionProvider({
   database,
-  registry: acmeRegistry,
+  extensions: acmeExtensions,
   createId: () => `acme-${++acmeSequence}`,
   now: () => new Date("2026-08-17T00:00:00.000Z"),
 });
@@ -198,6 +237,9 @@ const acmeEvidence = await runCollectionProviderConformance({
   changed: { title: "Acme launch updated", author: "acme-author-1" },
   filter: { field: "title", operator: "equals", value: "Acme launch" },
 });
+if (acmeHookRuns === 0) {
+  throw new Error("The installed Acme feature-module hook did not execute.");
+}
 const acmeDocuments = await acmeProvider.list({
   collection: acmeArticles.slug,
   pagination: { limit: 10, offset: 0 },

@@ -1,7 +1,10 @@
 import {
   blocksField,
   booleanField,
+  CmsError,
   defineCollection,
+  defineCmsLifecycleHook,
+  defineFeatureModule,
   parseCmsCollectionData,
   selectField,
   textField,
@@ -109,6 +112,60 @@ export const remVietStandardPagesCollection = defineCollection({
     useAsTitle: "title",
     defaultColumns: ["title", "slug", "template"],
   },
+});
+
+/** Installable Rèm Việt collection surface, consumed through the same API as fixtures. */
+export const remVietStandardPagesModule = defineFeatureModule({
+  id: "rem-viet-standard-pages",
+  collections: [remVietStandardPagesCollection],
+  hooks: [
+    defineCmsLifecycleHook({
+      id: "rem-viet-standard-pages/validate-template",
+      event: "validate",
+      collection: REM_VIET_STANDARD_PAGES_COLLECTION,
+      order: -100,
+      run({ data }) {
+        if (data?.template !== "standard") {
+          throw new CmsError({
+            code: "VALIDATION_FAILED",
+            message: "Rèm Việt standard pages require the standard template.",
+            retryable: false,
+          });
+        }
+      },
+    }),
+  ],
+  permissions: [
+    {
+      id: "rem-viet-standard-pages/edit",
+      capability: "content.write",
+      collection: REM_VIET_STANDARD_PAGES_COLLECTION,
+      operations: ["create", "update", "restore"],
+      description: "Editors may author Rèm Việt standard pages.",
+    },
+    {
+      id: "rem-viet-standard-pages/publish",
+      capability: "content.publish",
+      collection: REM_VIET_STANDARD_PAGES_COLLECTION,
+      operations: ["publish", "unpublish"],
+    },
+  ],
+  migrations: [
+    {
+      id: "rem-viet-standard-pages/v1",
+      from: 0,
+      to: 1,
+      migrate: (state) => state,
+    },
+  ],
+  admin: [
+    {
+      id: "rem-viet-standard-pages/navigation",
+      collection: REM_VIET_STANDARD_PAGES_COLLECTION,
+      placement: "navigation",
+      label: "Standard pages",
+    },
+  ],
 });
 
 export type RemVietStandardPageCollectionData = CmsCollectionData<

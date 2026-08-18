@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { createCmsExtensionRegistry } from "@agency/cms-core";
 
 import faqFixture from "./fixtures/faq-v1.json";
 import heroFixture from "./fixtures/hero-v1.json";
@@ -24,6 +25,7 @@ import {
   remVietStandardBlockAuthoringCatalog,
   remVietStandardBlockLabels,
   remVietStandardPagesCollection,
+  remVietStandardPagesModule,
   remVietRichTextAuthoringByType,
   remVietRichTextAuthoringCatalog,
   remVietRichTextBlockLabels,
@@ -66,6 +68,15 @@ describe("Rem Viet flagship template contracts", () => {
       revisions: true,
       scheduling: true,
     });
+    const extensions = createCmsExtensionRegistry({
+      modules: [remVietStandardPagesModule],
+    });
+    expect(
+      extensions.collections.get(remVietStandardPagesCollection.slug),
+    ).toBe(remVietStandardPagesCollection);
+    expect(extensions.hooks.map(({ id }) => id)).toEqual([
+      "rem-viet-standard-pages/validate-template",
+    ]);
     expect(
       fromRemVietStandardPageCollectionData(
         toRemVietStandardPageCollectionData(content),

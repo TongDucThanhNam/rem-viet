@@ -8,6 +8,8 @@ import {
   type CmsBuiltInField,
   type CmsCollectionDefinition,
   type CmsCollectionRegistry,
+  type CmsExtensionRegistry,
+  type CmsLifecycleOperation,
 } from "@agency/cms-core";
 import type {
   CmsCollectionAction,
@@ -98,7 +100,10 @@ export type CloudflareCmsCollectionMutationEvent = {
 
 export type CloudflareCmsCollectionProviderOptions = {
   readonly database: CloudflareD1Database;
-  readonly registry: CmsCollectionRegistry;
+  /** Existing compatibility path for consumers without feature modules. */
+  readonly registry?: CmsCollectionRegistry;
+  /** Instance-scoped module registry; its collection registry becomes authoritative. */
+  readonly extensions?: CmsExtensionRegistry;
   readonly createId?: () => string;
   readonly now?: () => Date;
   readonly authorize?: (
@@ -264,11 +269,32 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
   readonly #createId: () => string;
   readonly #now: () => Date;
   readonly #authorize?: CloudflareCmsCollectionProviderOptions["authorize"];
+  readonly #extensions?: CmsExtensionRegistry;
   readonly #prepareMutationStatements?: CloudflareCmsCollectionProviderOptions["prepareMutationStatements"];
 
   constructor(options: CloudflareCmsCollectionProviderOptions) {
     this.#database = options.database;
-    this.registry = options.registry;
+    if (!options.registry && !options.extensions) {
+      throw new CmsError({
+        code: "VALIDATION_FAILED",
+        message: "A collection registry or extension registry is required.",
+        retryable: false,
+      });
+    }
+    if (
+      options.registry &&
+      options.extensions &&
+      options.registry !== options.extensions.collections
+    ) {
+      throw new CmsError({
+        code: "VALIDATION_FAILED",
+        message:
+          "Collection and extension registries must reference the same registry instance.",
+        retryable: false,
+      });
+    }
+    this.registry = options.extensions?.collections ?? options.registry!;
+    this.#extensions = options.extensions;
     this.#createId = options.createId ?? (() => crypto.randomUUID());
     this.#now = options.now ?? (() => new Date());
     this.#authorize = options.authorize;
@@ -281,6 +307,38 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     actorId: string | undefined,
   ) {
     await this.#authorize?.({ action, collection: definition, actorId });
+  }
+
+  async #runHooks(
+    operation: CmsLifecycleOperation,
+    definition: CmsCollectionDefinition,
+    input: {
+      readonly actorId: string;
+      readonly documentId: string;
+      readonly data: Record<string, unknown> | null;
+      readonly previousData: Record<string, unknown> | null;
+    },
+  ) {
+    if (!this.#extensions) return input.data;
+    let data = await this.#extensions.runHooks("validate", {
+      operation,
+      collection: definition,
+      ...input,
+    });
+    data = await this.#extensions.runHooks(operation, {
+      operation,
+      collection: definition,
+      ...input,
+      data,
+    });
+    if (input.data !== null && data === null) {
+      throw new CmsError({
+        code: "VALIDATION_FAILED",
+        message: `Lifecycle hooks cannot remove data during ${operation}.`,
+        retryable: false,
+      });
+    }
+    return data;
   }
 
   async #batch(statements: CloudflareD1PreparedStatement[]) {
@@ -463,9 +521,15 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
   async createDraft(input: CreateCmsCollectionDraftInput) {
     const definition = definitionFor(this.registry, input.collection);
     await this.#authorized("create", definition, input.actorId);
-    const data = parseCmsCollectionData(definition, input.data);
-    await this.#referencesValid(definition, data);
     const id = input.id ?? this.#createId();
+    const hookedData = await this.#runHooks("create", definition, {
+      actorId: input.actorId,
+      documentId: id,
+      data: input.data as Record<string, unknown>,
+      previousData: null,
+    });
+    const data = parseCmsCollectionData(definition, hookedData);
+    await this.#referencesValid(definition, data);
     const timestamp = this.#now();
     const now = timestamp.getTime();
     const insert = this.#database
@@ -514,9 +578,15 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     if (!current) documentNotFound(input.collection, input.id);
     if (current.version !== input.expectedVersion)
       versionConflict(input.expectedVersion, current.version);
-    const data = parseCmsCollectionData(definition, input.data);
-    await this.#referencesValid(definition, data);
     const before = decodeData(definition, current.data, current.schemaVersion);
+    const hookedData = await this.#runHooks("update", definition, {
+      actorId: input.actorId,
+      documentId: input.id,
+      data: input.data as Record<string, unknown>,
+      previousData: before,
+    });
+    const data = parseCmsCollectionData(definition, hookedData);
+    await this.#referencesValid(definition, data);
     const timestamp = this.#now();
     const now = timestamp.getTime();
     const update = this.#database
@@ -651,7 +721,14 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     if (!current) documentNotFound(input.collection, input.id);
     if (current.version !== input.expectedVersion)
       versionConflict(input.expectedVersion, current.version);
-    const data = decodeData(definition, current.data, current.schemaVersion);
+    const before = decodeData(definition, current.data, current.schemaVersion);
+    const hookedData = await this.#runHooks("publish", definition, {
+      actorId: input.actorId,
+      documentId: input.id,
+      data: before,
+      previousData: before,
+    });
+    const data = parseCmsCollectionData(definition, hookedData);
     await this.#referencesValid(definition, data);
     const version = current.version + 1;
     const revisionId = this.#createId();
@@ -702,7 +779,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         documentId: input.id,
         version,
         timestamp,
-        before: data,
+        before,
         after: data,
         revisionId,
         note: input.note,
@@ -737,6 +814,12 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     if (current.version !== input.expectedVersion)
       versionConflict(input.expectedVersion, current.version);
     const data = decodeData(definition, current.data, current.schemaVersion);
+    await this.#runHooks("unpublish", definition, {
+      actorId: input.actorId,
+      documentId: input.id,
+      data,
+      previousData: data,
+    });
     const timestamp = this.#now();
     const now = timestamp.getTime();
     const update = this.#database
@@ -812,9 +895,16 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       .bind(input.revisionId, input.collection, input.id)
       .first<CollectionRevisionRow>();
     if (!revision) documentNotFound(input.collection, input.revisionId);
-    const data = revisionFromRow(definition, revision).data;
-    await this.#referencesValid(definition, data);
     const before = decodeData(definition, current.data, current.schemaVersion);
+    const revisionData = revisionFromRow(definition, revision).data;
+    const hookedData = await this.#runHooks("restore", definition, {
+      actorId: input.actorId,
+      documentId: input.id,
+      data: revisionData,
+      previousData: before,
+    });
+    const data = parseCmsCollectionData(definition, hookedData);
+    await this.#referencesValid(definition, data);
     const timestamp = this.#now();
     const now = timestamp.getTime();
     const update = this.#database
@@ -867,6 +957,12 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     if (current.version !== input.expectedVersion)
       versionConflict(input.expectedVersion, current.version);
     const deletedDocument = documentFromRow(definition, current);
+    await this.#runHooks("delete", definition, {
+      actorId: input.actorId,
+      documentId: input.id,
+      data: deletedDocument.data,
+      previousData: deletedDocument.data,
+    });
 
     const allRows = await this.#database
       .prepare(`SELECT ${documentColumns} FROM cms_collection_documents`)

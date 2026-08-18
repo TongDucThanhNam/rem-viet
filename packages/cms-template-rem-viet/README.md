@@ -31,3 +31,7 @@ permissions, SEO defaults, admin columns, and the allowed standard blocks.
 `toRemVietStandardPageCollectionData()` and
 `fromRemVietStandardPageCollectionData()` are the compatibility boundary
 between the generic collection envelope and the existing public page shape.
+`remVietStandardPagesModule` installs that collection plus its validation hook,
+permission metadata, schema migration contribution, and admin navigation
+contribution through the public core extension API used by independent
+consumers.

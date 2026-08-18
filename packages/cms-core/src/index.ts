@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export * from "./collections.js";
+export * from "./extensions.js";
 export * from "./fields.js";
 export * from "./primitives.js";
 export * from "./relationships.js";

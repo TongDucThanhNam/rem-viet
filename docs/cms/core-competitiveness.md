@@ -1,7 +1,7 @@
 # Core CMS competitiveness execution evidence
 
 This ledger records the implementation evidence for the active `CMP-001`
-through `CMP-006` vertical slice. The scope is core product capability; external
+through `CMP-009` track. The scope is core product capability; external
 release, operations, registry, credential, and paid-adoption receipts are
 deliberately excluded.
 
@@ -185,4 +185,43 @@ Full track gate:
 ```text
 bun run quality # pass: audits, formatting, tests, 13 migrations, packed consumer/upgrade,
                 # typechecks, secure build, performance, Rèm Việt E2E, and Acme reuse E2E
+```
+
+## CMP-007 — typed lifecycle hooks and feature modules
+
+Status: **Complete (2026-08-18).**
+
+- `@agency/cms-core` exposes typed `validate`, `create`, `update`, `publish`,
+  `unpublish`, `restore`, and `delete` hooks. Hooks may validate or transform
+  data, and deterministic ordering is dependency order, explicit hook order,
+  then stable hook ID.
+- `defineFeatureModule()` registers collections, hooks, permission metadata,
+  executable one-version migrations, and provider-neutral admin contributions.
+  Registry construction rejects duplicate IDs/slugs, missing dependencies,
+  cycles, and unknown collection targets.
+- Every `createCmsExtensionRegistry()` call owns isolated state; tests prove an
+  installed module cannot leak hooks into another registry.
+- The Cloudflare provider authorizes before hooks and runs validation plus the
+  operation hook before assembling its D1 batch. Transformed data is parsed and
+  relationship-checked again. A hook error leaves the document and every
+  compatibility statement unchanged; the provider conformance test exercises
+  every event, transform ordering, failure rollback, and unauthorized calls.
+- Rèm Việt installs `remVietStandardPagesModule` in its live compatibility
+  adapter. The packed Acme consumer independently installs `acme-content`, runs
+  its hook, persists relationships, completes lifecycle conformance, and renders
+  the generated admin shell using the same public APIs.
+
+Decision record:
+`docs/adr/0032-instance-scoped-feature-modules-and-hooks.md`.
+
+Targeted verification:
+
+```text
+bun --cwd packages/cms-core test                         # 19 pass, 0 fail
+bun --cwd packages/cms-core check-types                  # pass
+bun --cwd packages/cms-provider-cloudflare test          # 14 pass, 0 fail
+bun --cwd packages/cms-provider-cloudflare check-types   # pass
+bun test packages/api/tests/standard-page-runtime.test.ts # 1 pass, 0 fail
+bun --cwd packages/cms-template-rem-viet test            # 15 pass, 0 fail
+bun run cms:kit:consumer                                 # packed install/typecheck/build/provider smoke pass
 ```

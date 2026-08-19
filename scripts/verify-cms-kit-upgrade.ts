@@ -23,6 +23,7 @@ const packageDirectories = [
   "cms-alchemy",
   "cms-cli",
   "cms-template-rem-viet",
+  "cms-visual-editor",
 ] as const;
 
 for (const directory of [

@@ -28,6 +28,7 @@ const packages = [
   ["cms-alchemy", "agency-cms-alchemy-0.1.0.tgz"],
   ["cms-cli", "agency-cms-cli-0.1.0.tgz"],
   ["cms-template-rem-viet", "agency-cms-template-rem-viet-0.1.0.tgz"],
+  ["cms-visual-editor", "agency-cms-visual-editor-0.1.0.tgz"],
 ] as const;
 
 function run(command: string[], cwd: string) {
@@ -102,6 +103,7 @@ writeFileSync(
         "@agency/cms-alchemy": artifactPath(packages[5][1]),
         "@agency/cms-cli": artifactPath(packages[6][1]),
         "@agency/cms-template-rem-viet": artifactPath(packages[7][1]),
+        "@agency/cms-visual-editor": artifactPath(packages[8][1]),
         "@libsql/client": "0.15.15",
         react: "^19.2.3",
         "react-dom": "^19.2.3",

@@ -54,11 +54,30 @@ import {
   toRemVietTemplateBlock,
   type RemVietTemplateBlock,
 } from "@agency/cms-template-rem-viet";
+import {
+  createCmsVisualComponentRegistry,
+  defineCmsVisualComponent,
+} from "@agency/cms-visual-editor";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { LocalD1 } from "./libsql-d1";
 
 type Content = CmsPageContent<RemVietTemplateBlock>;
+
+const visualKernelSmoke = createCmsVisualComponentRegistry([
+  defineCmsVisualComponent({
+    type: "smokeBlock",
+    schemaVersion: 1,
+    fields: [{ path: "title", label: "Title", kind: "text" }],
+    defaults: () => ({ title: "Independent consumer" }),
+    validate: (value) => value as { title: string },
+    renderer: "smoke-renderer",
+    editor: "smoke-editor",
+  }),
+]);
+if (visualKernelSmoke.require("smokeBlock").type !== "smokeBlock") {
+  throw new Error("Packed visual-authoring kernel could not register a block.");
+}
 
 function parseContent(value: unknown): Content {
   const input = value as Content;

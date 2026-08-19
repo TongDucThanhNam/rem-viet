@@ -19,14 +19,19 @@
   },
   "peerDependencies": {
     "@agency/cms-core": "0.1.0",
+    "@agency/cms-visual-editor": "0.1.0",
     "react": ">=18"
   },
   "peerDependenciesMeta": {
     "@agency/cms-core": {
       "optional": true
+    },
+    "@agency/cms-visual-editor": {
+      "optional": true
     }
   },
   "devDependencies": {
+    "@agency/cms-visual-editor": "workspace:*",
     "@types/react": "^19.2.14",
     "@types/react-dom": "catalog:",
     "react": "^19.2.3",

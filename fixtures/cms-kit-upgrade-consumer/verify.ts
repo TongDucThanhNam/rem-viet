@@ -20,6 +20,7 @@ const packageNames = [
   "cms-alchemy",
   "cms-cli",
   "cms-template-rem-viet",
+  "cms-visual-editor",
 ] as const;
 const installedVersions: Record<string, string> = {};
 for (const packageName of packageNames) {

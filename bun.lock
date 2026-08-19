@@ -49,6 +49,7 @@
         "@agency/cms-react": "0.1.0",
         "@agency/cms-runtime": "0.1.0",
         "@agency/cms-template-rem-viet": "0.1.0",
+        "@agency/cms-visual-editor": "0.1.0",
         "@fontsource/be-vietnam-pro": "5.3.0",
         "@fontsource/playfair-display": "5.3.0",
         "@gsap/react": "^2.1.2",
@@ -110,6 +111,7 @@
     "packages/api": {
       "name": "@rem-viet/api",
       "dependencies": {
+        "@agency/cms-core": "workspace:*",
         "@agency/cms-provider-cloudflare": "workspace:*",
         "@agency/cms-runtime": "workspace:*",
         "@agency/cms-template-rem-viet": "workspace:*",
@@ -159,6 +161,7 @@
       "name": "@agency/cms-admin",
       "version": "0.1.0",
       "devDependencies": {
+        "@agency/cms-visual-editor": "workspace:*",
         "@types/react": "^19.2.14",
         "@types/react-dom": "catalog:",
         "react": "^19.2.3",
@@ -167,10 +170,12 @@
       },
       "peerDependencies": {
         "@agency/cms-core": "0.1.0",
+        "@agency/cms-visual-editor": "0.1.0",
         "react": ">=18",
       },
       "optionalPeers": [
         "@agency/cms-core",
+        "@agency/cms-visual-editor",
       ],
     },
     "packages/cms-alchemy": {
@@ -308,6 +313,13 @@
         "@agency/cms-react",
       ],
     },
+    "packages/cms-visual-editor": {
+      "name": "@agency/cms-visual-editor",
+      "version": "0.1.0",
+      "devDependencies": {
+        "typescript": "catalog:",
+      },
+    },
     "packages/config": {
       "name": "@rem-viet/config",
       "version": "0.0.0",
@@ -443,6 +455,8 @@
     "@agency/cms-runtime": ["@agency/cms-runtime@workspace:packages/cms-runtime"],
 
     "@agency/cms-template-rem-viet": ["@agency/cms-template-rem-viet@workspace:packages/cms-template-rem-viet"],
+
+    "@agency/cms-visual-editor": ["@agency/cms-visual-editor@workspace:packages/cms-visual-editor"],
 
     "@alcalzone/ansi-tokenize": ["@alcalzone/ansi-tokenize@0.2.5", "", { "dependencies": { "ansi-styles": "^6.2.1", "is-fullwidth-code-point": "^5.0.0" } }, "sha512-3NX/MpTdroi0aKz134A6RC2Gb2iXVECN4QaAXnvCIxxIm3C3AVB1mkUe8NaaiyvOpDfsrqWhYtj+Q6a62RrTsw=="],
 

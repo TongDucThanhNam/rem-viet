@@ -17,7 +17,7 @@ describe("CMS Kit v1 evidence", () => {
   test("accepts exact coordinated publications, paid adoption upgrades, and approval", () => {
     expect(
       parseCmsKitPublicationReceipt(initialPublication).packages,
-    ).toHaveLength(8);
+    ).toHaveLength(cmsKitPackageNames.length);
     expect(
       parseCmsKitAdoptionReceipt(adoption("site-one", "d", "e")),
     ).toMatchObject({

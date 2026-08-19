@@ -19,12 +19,12 @@ evidence cover the same version.
 - Callable Alchemy resource planning and CLI init/add-block/migrate/verify APIs.
 - Exact-confirmation backup-before-apply migration orchestration and receipt-
   bound rollback.
-- Eight-artifact clean-consumer, N→N+1→N rehearsal, artifact allowlist/content
+- Nine-artifact clean-consumer, N→N+1→N rehearsal, artifact allowlist/content
   inspection, and fail-closed private-release provenance.
 
 ### Compatibility
 
-- This is a private `0.x` preview. Install all eight packages at exactly
+- This is a private `0.x` preview. Install all nine packages at exactly
   `0.1.0`; mixed versions are unsupported.
 - The validated toolchain and schema versions are recorded in
   `cms-kit-compatibility.json`.

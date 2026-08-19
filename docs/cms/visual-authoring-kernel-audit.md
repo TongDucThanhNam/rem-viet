@@ -1,0 +1,59 @@
+# Visual authoring kernel extraction audit
+
+Date: 2026-08-19
+Decision: ADR 0035
+
+## Existing editor inventory
+
+| Surface       | Primary route                                      | Canonical content                             | Current canvas protocol                         |
+| ------------- | -------------------------------------------------- | --------------------------------------------- | ----------------------------------------------- |
+| Homepage      | `apps/web/src/routes/admin/home.tsx`               | ten stable-ID flagship blocks                 | neutral v1 intents plus homepage state          |
+| Standard page | `apps/web/src/routes/admin/pages.tsx`              | stable-ID rich text/product grid/CTA blocks   | neutral v1 intents inside a page-scoped wrapper |
+| Post          | `apps/web/src/routes/admin/posts/$postId/edit.tsx` | post form plus stable-ID structured rich text | post-scoped selection/composition messages      |
+
+All three render the production component path in an authenticated responsive
+iframe, focus the real mounted inspector/form control, implement undo/redo,
+autosave, conflict recovery, private preview, and immutable revision workflows.
+
+## Duplicated state and behavior
+
+The audit found these repeated route-level shapes:
+
+1. Desktop/tablet/mobile profile definitions and preview chrome.
+2. Parent/iframe ready, state, selection, and composition message wrappers.
+3. `Ctrl/Cmd+Z`, `Ctrl/Cmd+Shift+Z`, and `Ctrl+Y` handlers.
+4. Draft-history installation, baseline reset, and selected-node clamping.
+5. Field-target metadata and control-focus routing.
+6. Drag source/target bookkeeping and command translation.
+7. Save/autosave/preview-flush orchestration around route-specific transports.
+8. Template-owned inspector/editor registrations and localized presentation.
+
+The underlying algorithms are less duplicated than the route size suggests.
+`@agency/cms-admin` already owns autosave/flush, command history, preview
+connection state, focus-workspace behavior, workflow actions/status/revision
+composition, catalog filtering, and the v1 visual intents. Homepage and standard
+pages already use the same intent vocabulary. Post composition is structurally
+similar but additionally binds every command to the exact rich-text snapshot,
+block ID, and index.
+
+## Extraction boundary
+
+Moved to `@agency/cms-visual-editor`:
+
+- pure registry, canonical identity, constraints, permissions, commands,
+  history, migrations, adapters, and preview security;
+- compatibility v1 message constructors/guards; and
+- v2 origin/session/document/version/replay enforcement.
+
+Retained in `@agency/cms-admin`:
+
+- React hooks and components, focus management, form/picker presentation,
+  autosave timing, and workflow slots.
+
+Retained in templates/app adapters:
+
+- concrete field controls, labels, production components, CSS/animation,
+  tRPC/TanStack routing, provider mutations, and document-specific codecs.
+
+This boundary allows incremental route adoption without a destructive content
+rewrite or a second canonical state source.

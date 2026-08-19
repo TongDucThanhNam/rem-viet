@@ -28,6 +28,7 @@ const packageDirectories = [
   "cms-alchemy",
   "cms-cli",
   "cms-template-rem-viet",
+  "cms-visual-editor",
 ] as const;
 const runRoot = join(
   repositoryRoot,

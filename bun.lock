@@ -289,6 +289,31 @@
         "@agency/cms-core",
       ],
     },
+    "packages/cms-template-atelier": {
+      "name": "@agency/cms-template-atelier",
+      "version": "0.1.0",
+      "dependencies": {
+        "zod": "catalog:",
+      },
+      "devDependencies": {
+        "@agency/cms-template-factory": "workspace:*",
+        "@agency/cms-visual-editor": "workspace:*",
+        "@types/react": "^19.2.14",
+        "react": "^19.2.3",
+        "react-dom": "^19.2.3",
+        "typescript": "catalog:",
+      },
+      "peerDependencies": {
+        "@agency/cms-template-factory": "0.1.0",
+        "@agency/cms-visual-editor": "0.1.0",
+        "react": ">=18",
+      },
+      "optionalPeers": [
+        "@agency/cms-template-factory",
+        "@agency/cms-visual-editor",
+        "react",
+      ],
+    },
     "packages/cms-template-factory": {
       "name": "@agency/cms-template-factory",
       "version": "0.1.0",
@@ -473,6 +498,8 @@
     "@agency/cms-react": ["@agency/cms-react@workspace:packages/cms-react"],
 
     "@agency/cms-runtime": ["@agency/cms-runtime@workspace:packages/cms-runtime"],
+
+    "@agency/cms-template-atelier": ["@agency/cms-template-atelier@workspace:packages/cms-template-atelier"],
 
     "@agency/cms-template-factory": ["@agency/cms-template-factory@workspace:packages/cms-template-factory"],
 

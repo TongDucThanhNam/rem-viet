@@ -38,6 +38,14 @@ import {
 } from "@agency/cms-cli";
 import { CmsBlockRenderer } from "@agency/cms-react";
 import {
+  AtelierDocument,
+  type AtelierPublicNode,
+} from "@agency/cms-template-atelier";
+import {
+  atelierTemplateFactory,
+  createAtelierDefaultDocument,
+} from "@agency/cms-template-atelier/visual-authoring";
+import {
   createCmsRestResources,
   createCmsServerSdk,
   exportCmsContent,
@@ -64,6 +72,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { LocalD1 } from "./libsql-d1";
 
 type Content = CmsPageContent<RemVietTemplateBlock>;
+type AtelierContent = CmsPageContent<AtelierPublicNode>;
 
 const visualKernelSmoke = createCmsVisualComponentRegistry([
   defineCmsVisualComponent({
@@ -156,8 +165,56 @@ function page(title: string, prefix: string, question: string): Content {
   };
 }
 
+function parseAtelierContent(value: unknown): AtelierContent {
+  const input = value as AtelierContent;
+  if (
+    !input ||
+    typeof input.title !== "string" ||
+    typeof input.slug !== "string" ||
+    !Array.isArray(input.blocks) ||
+    !input.seo
+  ) {
+    throw new Error("Invalid packed Atelier page content");
+  }
+  const document = atelierTemplateFactory.parseDocument({
+    id: "atelier-consumer-home",
+    siteId: "atelier-consumer",
+    schemaVersion: 1,
+    version: 1,
+    nodes: input.blocks,
+  });
+  return { ...input, blocks: [...document.nodes] as AtelierPublicNode[] };
+}
+
+function atelierPage(title: string, mastheadTitle: string): AtelierContent {
+  const document = createAtelierDefaultDocument("atelier-consumer");
+  const blocks = document.nodes.map((node): AtelierPublicNode => {
+    if (node.type !== "masthead") return node as AtelierPublicNode;
+    return {
+      ...node,
+      data: { ...(node.data as object), title: mastheadTitle },
+    } as AtelierPublicNode;
+  });
+  return {
+    title,
+    slug: "atelier-home",
+    template: "standard",
+    blocks,
+    seo: {
+      title,
+      description: `${title} description`,
+      canonicalUrl: "",
+      ogImage: "",
+      robotsIndex: true,
+      robotsFollow: true,
+    },
+  };
+}
+
 const database = new LocalD1();
 await applyCloudflareCmsMigrations(database);
+const atelierDatabase = new LocalD1();
+await applyCloudflareCmsMigrations(atelierDatabase);
 
 const acmeLifecycle = {
   drafts: true,
@@ -517,6 +574,31 @@ const evidence = await runPageProviderConformance({
   initial,
   changed,
 });
+let atelierSequence = 0;
+const atelierProvider = createCloudflareCmsPageProvider({
+  database: atelierDatabase,
+  parseContent: parseAtelierContent,
+  createId: () => `atelier-consumer-${++atelierSequence}`,
+  now: () => new Date("2026-08-16T00:00:00.000Z"),
+});
+const atelierInitial = atelierPage("Initial Atelier", "Atelier Index");
+const atelierChanged = atelierPage("Changed Atelier", "Atelier Assembly");
+const atelierEvidence = await runPageProviderConformance({
+  provider: atelierProvider,
+  initial: atelierInitial,
+  changed: atelierChanged,
+  documentId: "atelier-conformance-home",
+});
+const atelierHtml = renderToStaticMarkup(
+  <AtelierDocument nodes={atelierChanged.blocks} />,
+);
+if (
+  !atelierHtml.includes("Atelier Assembly") ||
+  !atelierHtml.includes("Assembly calendar") ||
+  atelierHtml.includes("Rèm Vina")
+) {
+  throw new Error(`Packed Atelier render was not independent: ${atelierHtml}`);
+}
 const mediaObjects = new Map<string, unknown>();
 const mediaEvidence = await runMediaProviderConformance({
   provider: createCloudflareCmsMediaProvider({
@@ -808,6 +890,7 @@ console.log(
     ok: true,
     evidence: {
       ...evidence,
+      atelier: atelierEvidence,
       acmeCollections: acmeEvidence,
       acmePortability: {
         sdk: true,
@@ -837,8 +920,10 @@ console.log(
       cliVerification,
     },
     html,
+    atelierHtml,
   }),
 );
 database.close();
+atelierDatabase.close();
 acmeTargetDatabase.close();
 acmeRollbackDatabase.close();

@@ -27,6 +27,7 @@ const packageDirectories = [
   "cms-admin",
   "cms-alchemy",
   "cms-cli",
+  "cms-template-atelier",
   "cms-template-factory",
   "cms-template-rem-viet",
   "cms-visual-editor",

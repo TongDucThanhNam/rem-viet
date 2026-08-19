@@ -105,6 +105,18 @@ describe("Platform Kit package boundaries", () => {
         manifest("cms-template-factory").peerDependencies ?? {},
       ).sort(),
     ).toEqual(["@agency/cms-core", "@agency/cms-visual-editor"]);
+    expect(
+      Object.keys(manifest("cms-template-atelier").dependencies ?? {}).sort(),
+    ).toEqual(["zod"]);
+    expect(
+      Object.keys(
+        manifest("cms-template-atelier").peerDependencies ?? {},
+      ).sort(),
+    ).toEqual([
+      "@agency/cms-template-factory",
+      "@agency/cms-visual-editor",
+      "react",
+    ]);
     expect(Object.keys(manifest("cms-cli").dependencies ?? {})).toEqual([]);
     expect(Object.keys(manifest("cms-cli").peerDependencies ?? {})).toEqual([
       "@agency/cms-core",
@@ -217,6 +229,25 @@ describe("Platform Kit package boundaries", () => {
     expect(publicEntry).not.toContain("remVietVisualComponentRegistry");
     expect(visualEntry).toContain("@agency/cms-visual-editor");
     expect(visualEntry).toContain("remVietCustomVisualEditorAdapter");
+
+    const atelierPublicEntry = readFileSync(
+      join(root, "packages", "cms-template-atelier", "src", "index.ts"),
+      "utf8",
+    );
+    const atelierVisualEntry = readFileSync(
+      join(
+        root,
+        "packages",
+        "cms-template-atelier",
+        "src",
+        "visual-authoring.ts",
+      ),
+      "utf8",
+    );
+    expect(atelierPublicEntry).not.toContain("@agency/cms-visual-editor");
+    expect(atelierPublicEntry).not.toContain("@agency/cms-template-factory");
+    expect(atelierVisualEntry).toContain("@agency/cms-visual-editor");
+    expect(atelierVisualEntry).toContain("@agency/cms-template-factory");
   });
 
   test("upgrade rehearsal installs coordinated artifacts and restores state", () => {

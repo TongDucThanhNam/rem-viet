@@ -22,7 +22,9 @@ describe("visual authoring public bundle boundary", () => {
 
     expect(inputs).not.toContain("packages/cms-admin/");
     expect(inputs).not.toContain("packages/cms-visual-editor/");
+    expect(inputs).not.toContain("packages/cms-template-factory/");
     expect(output).not.toContain("@agency/cms-visual-editor/preview/v2");
     expect(output).not.toContain("rem-viet-custom");
+    expect(output).not.toContain("content.compose.insert");
   });
 });

@@ -995,7 +995,13 @@ test.describe("authenticated CMS workflow", () => {
     const previewPromise = context.waitForEvent("page");
     await page.keyboard.press("Enter");
     const preview = await previewPromise;
-    await preview.waitForURL(/\/admin\/home-preview$/);
+    await preview.waitForURL(
+      (url) =>
+        url.pathname === "/admin/home-preview" &&
+        Boolean(url.searchParams.get("cmsBinding")) &&
+        Boolean(url.searchParams.get("cmsConflict")) &&
+        Boolean(url.searchParams.get("cmsSession")),
+    );
     await expect(preview.getByText(marker, { exact: true })).toBeVisible({
       timeout: 15_000,
     });
@@ -1050,7 +1056,13 @@ test.describe("authenticated CMS workflow", () => {
     const previewPromise = context.waitForEvent("page");
     await page.getByRole("link", { name: "Xem bản nháp", exact: true }).click();
     const preview = await previewPromise;
-    await preview.waitForURL(/\/admin\/home-preview$/);
+    await preview.waitForURL(
+      (url) =>
+        url.pathname === "/admin/home-preview" &&
+        Boolean(url.searchParams.get("cmsBinding")) &&
+        Boolean(url.searchParams.get("cmsConflict")) &&
+        Boolean(url.searchParams.get("cmsSession")),
+    );
     await expect(preview.getByText(previewMarker, { exact: true })).toBeVisible(
       {
         timeout: 15_000,

@@ -1106,7 +1106,7 @@ function AdminHomeRoute() {
               preview: (
                 <a
                   className={buttonVariants({ variant: "secondary" })}
-                  href="/admin/home-preview"
+                  href={previewUrl}
                   rel="noreferrer"
                   target="_blank"
                   onClick={(event) => {
@@ -1616,7 +1616,7 @@ function AdminHomeRoute() {
               onFrameLoad={() => {
                 markPreviewFrameLoaded();
               }}
-              onOpen={() => openHomePreview("/admin/home-preview")}
+              onOpen={() => openHomePreview(previewUrl)}
               onRedo={() => navigateDraftHistory("redo")}
               onRetry={retryPreview}
               onUndo={() => navigateDraftHistory("undo")}
@@ -2136,7 +2136,7 @@ function ResponsivePreview({
           <a
             aria-label="Mở canvas trong tab riêng"
             className="grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
-            href="/admin/home-preview"
+            href={previewUrl}
             rel="noreferrer"
             target="_blank"
             onClick={(event) => {

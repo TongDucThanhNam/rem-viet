@@ -33,6 +33,7 @@ export const cmsKitPackageNames = Object.freeze([
   "@agency/cms-provider-cloudflare",
   "@agency/cms-react",
   "@agency/cms-runtime",
+  "@agency/cms-template-factory",
   "@agency/cms-template-rem-viet",
   "@agency/cms-visual-editor",
 ] as const);
@@ -44,6 +45,7 @@ const neutralPackages = new Set([
   "@agency/cms-admin",
   "@agency/cms-alchemy",
   "@agency/cms-cli",
+  "@agency/cms-template-factory",
   "@agency/cms-visual-editor",
 ]);
 const privateBrandPattern = /@rem-viet|rem-viet|Rèm Việt|terasumi/i;
@@ -286,7 +288,7 @@ export function assertCmsKitPublishPackageSet(
     actual.length !== cmsKitPackageNames.length ||
     actual.some((name, index) => name !== cmsKitPackageNames[index])
   ) {
-    throw new Error("CMS Kit publication requires the exact nine-package set.");
+    throw new Error("CMS Kit publication requires the exact ten-package set.");
   }
   return packages;
 }

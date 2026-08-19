@@ -97,6 +97,14 @@ describe("Platform Kit package boundaries", () => {
     expect(
       Object.keys(manifest("cms-visual-editor").peerDependencies ?? {}),
     ).toEqual([]);
+    expect(
+      Object.keys(manifest("cms-template-factory").dependencies ?? {}),
+    ).toEqual([]);
+    expect(
+      Object.keys(
+        manifest("cms-template-factory").peerDependencies ?? {},
+      ).sort(),
+    ).toEqual(["@agency/cms-core", "@agency/cms-visual-editor"]);
     expect(Object.keys(manifest("cms-cli").dependencies ?? {})).toEqual([]);
     expect(Object.keys(manifest("cms-cli").peerDependencies ?? {})).toEqual([
       "@agency/cms-core",

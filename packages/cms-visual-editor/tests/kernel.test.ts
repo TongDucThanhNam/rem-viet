@@ -72,7 +72,12 @@ const registry = createCmsVisualComponentRegistry([
     },
     renderer: "layout-renderer",
     editor: "layout-editor",
-    constraints: { allowedChildren: ["textBlock"], max: 2 },
+    constraints: {
+      max: 2,
+      slots: {
+        content: { min: 1, max: 2, allowedChildren: ["textBlock"] },
+      },
+    },
   }),
   defineCmsVisualComponent({
     type: "textBlock",
@@ -149,6 +154,34 @@ describe("visual component registry", () => {
         editor: "e",
       }),
     ).toThrow("Duplicate visual field path");
+  });
+
+  test("fails closed for unknown slots and slot cardinality", () => {
+    const layout = document().nodes[1] as CmsVisualNode;
+    expect(() =>
+      parseCmsVisualDocument(
+        {
+          ...document(),
+          nodes: [
+            document().nodes[0] as CmsVisualNode,
+            { ...layout, slots: { sidebar: [] } },
+          ],
+        },
+        registry,
+      ),
+    ).toThrow("unknown slot");
+    expect(() =>
+      parseCmsVisualDocument(
+        {
+          ...document(),
+          nodes: [
+            document().nodes[0] as CmsVisualNode,
+            { ...layout, slots: { content: [] } },
+          ],
+        },
+        registry,
+      ),
+    ).toThrow("requires 1-2 children");
   });
 
   test("normalizes stale selections without coupling to a UI library", () => {

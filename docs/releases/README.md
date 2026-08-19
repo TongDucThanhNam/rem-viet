@@ -32,7 +32,7 @@ template.
 
 ## CMS Platform Kit private bundle
 
-Prepare the coordinated nine-package bundle from an exact clean commit with:
+Prepare the coordinated ten-package bundle from an exact clean commit with:
 
 ```bash
 bun run cms:kit:release:prepare --version=0.1.0
@@ -63,8 +63,8 @@ bun run cms:kit:release:publish \
 ```
 
 The publisher revalidates the commit, clean worktree, canonical provenance,
-exact nine-package plan, release-input hashes, and registry non-existence. It
-then rebuilds all nine tarballs from the clean source and requires matching
+exact ten-package plan, release-input hashes, and registry non-existence. It
+then rebuilds all ten tarballs from the clean source and requires matching
 digests and sizes before the first write. It publishes with lifecycle scripts
 disabled, verifies every package by exact version, and writes
 `publication-receipt.json`. If a later package or
@@ -263,7 +263,7 @@ restore drill, field evidence or security review actually exists.
 ## Optional Sanity promotion evidence
 
 The experimental Sanity adapter has an independent three-commit evidence chain;
-it is not part of the stable nine-package publication merely because local
+it is not part of the stable ten-package publication merely because local
 tests pass. From a clean source commit, run and commit the schema-v3 hosted
 receipt. From that next clean commit, run and commit the Presentation receipt,
 Playwright report, and screenshot. From the resulting clean evidence commit,

@@ -48,6 +48,16 @@ export type CmsVisualComponentConstraints = Readonly<{
   pinned?: "start" | "end";
   allowedChildren?: readonly string[];
   allowedParents?: readonly (string | null)[];
+  slots?: Readonly<
+    Record<
+      string,
+      Readonly<{
+        min?: number;
+        max?: number;
+        allowedChildren: readonly string[];
+      }>
+    >
+  >;
 }>;
 
 export type CmsVisualComponentDefinition<TData = unknown> = Readonly<{
@@ -92,6 +102,23 @@ function validateCapabilities(values: readonly string[] | undefined): void {
   }
 }
 
+function validateCardinality(
+  minValue: number | undefined,
+  maxValue: number | undefined,
+  label: string,
+): void {
+  const min = minValue ?? 0;
+  const max = maxValue ?? Number.MAX_SAFE_INTEGER;
+  if (
+    !Number.isSafeInteger(min) ||
+    min < 0 ||
+    !Number.isSafeInteger(max) ||
+    max < min
+  ) {
+    throw new Error(`Invalid visual component cardinality for ${label}.`);
+  }
+}
+
 export function defineCmsVisualComponent<TData>(
   definition: CmsVisualComponentDefinition<TData>,
 ): CmsVisualComponentDefinition<TData> {
@@ -132,18 +159,8 @@ export function defineCmsVisualComponent<TData>(
 
   const constraints = definition.constraints;
   if (constraints) {
-    const min = constraints.min ?? 0;
     const max = constraints.max ?? Number.MAX_SAFE_INTEGER;
-    if (
-      !Number.isSafeInteger(min) ||
-      min < 0 ||
-      !Number.isSafeInteger(max) ||
-      max < min
-    ) {
-      throw new Error(
-        `Invalid visual component cardinality for ${definition.type}.`,
-      );
-    }
+    validateCardinality(constraints.min, constraints.max, definition.type);
     if (constraints.pinned && max !== 1) {
       throw new Error(
         `Pinned visual component ${definition.type} must have max 1.`,
@@ -157,6 +174,23 @@ export function defineCmsVisualComponent<TData>(
         assertBoundedString(
           parent,
           "Allowed parent type",
+          CMS_VISUAL_TYPE_PATTERN,
+        );
+      }
+    }
+    for (const [slot, slotDefinition] of Object.entries(
+      constraints.slots ?? {},
+    )) {
+      assertBoundedString(slot, "Visual slot", CMS_VISUAL_TYPE_PATTERN);
+      validateCardinality(
+        slotDefinition.min,
+        slotDefinition.max,
+        `${definition.type}.${slot}`,
+      );
+      for (const child of slotDefinition.allowedChildren) {
+        assertBoundedString(
+          child,
+          "Allowed slot child type",
           CMS_VISUAL_TYPE_PATTERN,
         );
       }
@@ -194,6 +228,15 @@ export function createCmsVisualComponentRegistry(
         throw new Error(
           `Visual component ${definition.type} allows unknown parent ${parent}.`,
         );
+      }
+    }
+    for (const slot of Object.values(definition.constraints?.slots ?? {})) {
+      for (const child of slot.allowedChildren) {
+        if (!byType.has(child)) {
+          throw new Error(
+            `Visual component ${definition.type} slot allows unknown child ${child}.`,
+          );
+        }
       }
     }
   }
@@ -238,13 +281,34 @@ function validateNode(
   }
   counts.set(node.type, (counts.get(node.type) ?? 0) + 1);
 
+  const slotDefinitions = definition.constraints?.slots;
   for (const [slot, children] of Object.entries(node.slots ?? {})) {
     if (!CMS_VISUAL_TYPE_PATTERN.test(slot)) {
       throw new Error(
         `Visual node ${node.id} has an invalid slot name: ${slot}`,
       );
     }
-    const allowed = definition.constraints?.allowedChildren;
+    const slotDefinition = slotDefinitions?.[slot];
+    if (slotDefinitions && !slotDefinition) {
+      throw new Error(`Visual node ${node.id} has an unknown slot: ${slot}.`);
+    }
+    const allowed =
+      slotDefinition?.allowedChildren ??
+      definition.constraints?.allowedChildren;
+    if (slotDefinition) {
+      validateCardinality(
+        slotDefinition.min,
+        slotDefinition.max,
+        `${node.type}.${slot}`,
+      );
+      const min = slotDefinition.min ?? 0;
+      const max = slotDefinition.max ?? Number.MAX_SAFE_INTEGER;
+      if (children.length < min || children.length > max) {
+        throw new Error(
+          `Visual node ${node.id} slot ${slot} requires ${min}-${max} children.`,
+        );
+      }
+    }
     for (const child of children) {
       if (allowed && !allowed.includes(child.type)) {
         throw new Error(
@@ -252,6 +316,14 @@ function validateNode(
         );
       }
       validateNode(child, node.type, registry, ids, counts);
+    }
+  }
+  for (const [slot, slotDefinition] of Object.entries(slotDefinitions ?? {})) {
+    const count = node.slots?.[slot]?.length ?? 0;
+    if (count < (slotDefinition.min ?? 0)) {
+      throw new Error(
+        `Visual node ${node.id} slot ${slot} requires at least ${slotDefinition.min} children.`,
+      );
     }
   }
   return node;

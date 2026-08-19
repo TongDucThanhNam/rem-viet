@@ -296,12 +296,12 @@ describe("CMS Kit private release provenance", () => {
   test("treats prepared bundle provenance as untrusted input", () => {
     expect(() =>
       assertCmsKitPublishPackageSet([{ name: "@agency/cms-core" }]),
-    ).toThrow(/exact nine-package set/);
+    ).toThrow(/exact ten-package set/);
     expect(
       assertCmsKitPublishPackageSet(
         cmsKitPackageNames.map((name) => ({ name })),
       ),
-    ).toHaveLength(9);
+    ).toHaveLength(10);
     expect(() =>
       createCmsKitReleaseProvenance({
         version: "0.1.0",

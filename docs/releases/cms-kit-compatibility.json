@@ -31,6 +31,7 @@
         "@agency/cms-admin",
         "@agency/cms-alchemy",
         "@agency/cms-cli",
+        "@agency/cms-template-factory",
         "@agency/cms-template-rem-viet",
         "@agency/cms-visual-editor"
       ],

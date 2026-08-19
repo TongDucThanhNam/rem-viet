@@ -54,6 +54,7 @@ import {
   toRemVietTemplateBlock,
   type RemVietTemplateBlock,
 } from "@agency/cms-template-rem-viet";
+import { createCmsAgencyWorkflowPlan } from "@agency/cms-template-factory";
 import {
   createCmsVisualComponentRegistry,
   defineCmsVisualComponent,
@@ -75,6 +76,14 @@ const visualKernelSmoke = createCmsVisualComponentRegistry([
     editor: "smoke-editor",
   }),
 ]);
+if (
+  createCmsAgencyWorkflowPlan({
+    siteId: "consumer-site",
+    workflow: "check",
+  }).remoteMutation
+) {
+  throw new Error("Packed template-factory check workflow is unsafe.");
+}
 if (visualKernelSmoke.require("smokeBlock").type !== "smokeBlock") {
   throw new Error("Packed visual-authoring kernel could not register a block.");
 }

@@ -23,6 +23,19 @@
 > optimistic conflict protection are the baseline to preserve, not backlog to
 > rebuild.
 
+> **Visual-authoring productization checkpoint — 2026-08-20.** CMP-001 through
+> CMP-009 remain completed baselines. The framework-neutral
+> `@agency/cms-visual-editor`, Rèm compatibility adapter and
+> `@agency/cms-template-factory` are implemented. ADR 0035 retains the custom
+> adapter after bounded Puck/Craft spikes. The independent nine-block Atelier
+> template proves nested slots, generated artifacts, public-bundle isolation and
+> the same packed Cloudflare lifecycle. The coordinated private set now contains
+> eleven artifacts and passes clean-consumer plus N-to-N+1-to-N rehearsal. The
+> authenticated replay-safe v2 preview channel is adopted incrementally by the
+> homepage pair. Paid-client reuse, human usability, registry publication and
+> deployment remain external/open evidence; no remote change was made for this
+> milestone.
+
 > **Track A staging-readiness re-audit — 2026-08-18.** CMP-001 through CMP-009
 > and PK0 through PK5 remain completed baselines. The current candidate passes
 > the repository-local release gates: all 14 canonical migrations apply to both
@@ -572,17 +585,17 @@ Payload deployment option. The goal is to combine WordPress's practical content
 model extensibility with Payload's code-first type safety while keeping the
 visual, design-constrained authoring experience already proven by Rèm Việt.
 
-| Competitive surface                               | Core target for Platform Kit                                                                                          | Status                                  |
-| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| WordPress custom post types / Payload collections | A code-first collection registry with stable slugs, labels, access rules and versioned schemas                        | **Active next milestone**               |
-| Custom fields / Payload fields                    | Typed text, rich text, number, boolean, date, select, media, blocks and relationship contracts with shared validation | **Active next milestone**               |
-| Relationships and reusable data                   | Typed to-one/to-many references plus globals, integrity checks and authoring pickers                                  | **Active next milestone**               |
-| Gutenberg / Payload Live Preview                  | Bounded visual composition, responsive draft canvas, click-to-edit and exact inspector focus                          | Implemented                             |
-| Drafts, versions and publishing                   | Draft isolation, autosave, schedule, publish, immutable revisions, restore and conflict protection                    | Implemented                             |
-| Media and permissions                             | R2 media lifecycle, reference-safe delete, alt policy, owner/admin/editor enforcement and audit                       | Implemented                             |
-| WordPress plugins / Payload hooks                 | Safe, typed feature modules and lifecycle hooks; no arbitrary runtime code installed by editors                       | Planned after collection vertical slice |
-| Localization                                      | Locale-aware fields/documents, preview and independent publication state                                              | Planned                                 |
-| REST/Local API and portability                    | Typed server SDK, bounded REST resources and schema-aware import/export                                               | Planned                                 |
+| Competitive surface                               | Core target for Platform Kit                                                                                          | Status      |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------- |
+| WordPress custom post types / Payload collections | A code-first collection registry with stable slugs, labels, access rules and versioned schemas                        | Implemented |
+| Custom fields / Payload fields                    | Typed text, rich text, number, boolean, date, select, media, blocks and relationship contracts with shared validation | Implemented |
+| Relationships and reusable data                   | Typed to-one/to-many references plus globals, integrity checks and authoring pickers                                  | Implemented |
+| Gutenberg / Payload Live Preview                  | Bounded visual composition, responsive draft canvas, click-to-edit and exact inspector focus                          | Implemented |
+| Drafts, versions and publishing                   | Draft isolation, autosave, schedule, publish, immutable revisions, restore and conflict protection                    | Implemented |
+| Media and permissions                             | R2 media lifecycle, reference-safe delete, alt policy, owner/admin/editor enforcement and audit                       | Implemented |
+| WordPress plugins / Payload hooks                 | Safe, typed feature modules and lifecycle hooks; no arbitrary runtime code installed by editors                       | Implemented |
+| Localization                                      | Locale-aware fields/documents, preview and independent publication state                                              | Implemented |
+| REST/Local API and portability                    | Typed server SDK, bounded REST resources and schema-aware import/export                                               | Implemented |
 
 Explicit non-goals remain a public plugin marketplace, arbitrary PHP/JS/CSS,
 free-form Elementor-style layout editing, multi-tenant SaaS and automatic
@@ -1207,13 +1220,15 @@ Track này là critical path hiện tại. Track A/B bên dưới tiếp tục g
 release evidence nhưng không được chen các receipt bên ngoài vào backlog build
 core.
 
-| Milestone                       | Kết quả                                                                                       | Trạng thái  |
-| ------------------------------- | --------------------------------------------------------------------------------------------- | ----------- |
-| C0 — Premium authoring baseline | Visual canvas, composition, preview, workflow, revisions, media, roles and audit              | Implemented |
-| C1 — Content model registry     | Code-first collections, fields, relationships and schema versions                             | Implemented |
-| C2 — Generated collection admin | List/create/edit/filter forms generated from the registry and extensible by template field UX | Implemented |
-| C3 — Extension surface          | Typed hooks and feature modules without modifying core switches                               | Implemented |
-| C4 — Locale and portability     | Locale-aware lifecycle, typed content API and schema-aware import/export                      | Implemented |
+| Milestone                       | Kết quả                                                                                        | Trạng thái  |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- | ----------- |
+| C0 — Premium authoring baseline | Visual canvas, composition, preview, workflow, revisions, media, roles and audit               | Implemented |
+| C1 — Content model registry     | Code-first collections, fields, relationships and schema versions                              | Implemented |
+| C2 — Generated collection admin | List/create/edit/filter forms generated from the registry and extensible by template field UX  | Implemented |
+| C3 — Extension surface          | Typed hooks and feature modules without modifying core switches                                | Implemented |
+| C4 — Locale and portability     | Locale-aware lifecycle, typed content API and schema-aware import/export                       | Implemented |
+| C5 — Visual authoring kernel    | Canonical registry, constraints, permissions, history, migrations, adapters and secure preview | Implemented |
+| C6 — Agency template factory    | One-definition generation plus an independent nested-slot template and packed lifecycle proof  | Implemented |
 
 Track C exits when a new collection with a relationship can be registered in a
 consumer, persisted by the reference provider, edited in generated admin UI,
@@ -1931,6 +1946,15 @@ surface.
 | `CMP-007` | **Complete — 2026-08-18** | `docs/cms/core-competitiveness.md#cmp-007--typed-lifecycle-hooks-and-feature-modules`    |
 | `CMP-008` | **Complete — 2026-08-18** | `docs/cms/core-competitiveness.md#cmp-008--explicit-locale-lifecycle`                    |
 | `CMP-009` | **Complete — 2026-08-18** | `docs/cms/core-competitiveness.md#cmp-009--typed-server-api-and-atomic-portability`      |
+
+The 2026-08-20 visual-authoring productization milestone is complete for every
+locally actionable deliverable: kernel extraction, editor decision ADR, Rèm
+compatibility, template factory, Atelier reuse proof, secure homepage preview
+v2 adoption, public-bundle isolation, packed install and upgrade/rollback. Its
+architecture, extension, template-authoring and agency-operation guides live in
+`docs/cms/`. Standard-page/post v2 channel adoption may continue incrementally;
+paid reuse, a human pilot, publication and deployment remain evidence tracks,
+not unimplemented core code.
 
 ### Historical 14-day productization backlog
 

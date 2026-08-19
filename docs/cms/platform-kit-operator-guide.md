@@ -27,7 +27,10 @@ Install one coordinated version of the required packages. Do not mix versions:
 bun add @agency/cms-core@0.1.0 @agency/cms-runtime@0.1.0 \
   @agency/cms-provider-cloudflare@0.1.0 @agency/cms-react@0.1.0 \
   @agency/cms-admin@0.1.0 @agency/cms-alchemy@0.1.0 \
-  @agency/cms-cli@0.1.0 @agency/cms-template-rem-viet@0.1.0
+  @agency/cms-cli@0.1.0 @agency/cms-visual-editor@0.1.0 \
+  @agency/cms-template-factory@0.1.0 \
+  @agency/cms-template-atelier@0.1.0 \
+  @agency/cms-template-rem-viet@0.1.0
 ```
 
 The installed package exposes a real binary. A template owns the versioned init
@@ -163,6 +166,13 @@ showing deterministic deduplication; this is external evidence and is not
 created by the local test suite.
 
 ## 2. Template authoring
+
+For new bounded visual templates, prefer `defineCmsTemplateBlock()` and
+`createCmsTemplateFactory()` as described in
+`docs/cms/template-factory-guide.md`. One definition owns schema fields,
+defaults/seed, parser, renderer/editor keys, permissions, constraints and
+migrations. `@agency/cms-template-atelier` is the independent nine-block
+nested-slot example; it is not a Rèm component fork.
 
 Each editable block owns five explicit artifacts:
 

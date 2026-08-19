@@ -298,6 +298,7 @@
       "devDependencies": {
         "@agency/cms-template-factory": "workspace:*",
         "@agency/cms-visual-editor": "workspace:*",
+        "@playwright/test": "^1.62.1",
         "@types/react": "^19.2.14",
         "react": "^19.2.3",
         "react-dom": "^19.2.3",

@@ -1,3 +1,4 @@
+import { filterCmsBlockAuthoringCatalog } from "@agency/cms-admin";
 import {
   createCmsVisualEditorDuplicateMessage,
   createCmsVisualEditorInsertMessage,
@@ -5,10 +6,9 @@ import {
   createCmsVisualEditorReadyMessage,
   createCmsVisualEditorRemoveMessage,
   createCmsVisualEditorSelectionMessage,
-  filterCmsBlockAuthoringCatalog,
   isCmsVisualEditorMessage,
   type CmsVisualEditorStateMessage,
-} from "@agency/cms-admin";
+} from "@agency/cms-visual-editor";
 import {
   remVietStandardBlockAuthoringByType,
   remVietStandardBlockAuthoringCatalog,

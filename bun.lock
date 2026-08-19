@@ -296,6 +296,7 @@
         "zod": "catalog:",
       },
       "devDependencies": {
+        "@agency/cms-visual-editor": "workspace:*",
         "@rem-viet/config": "workspace:*",
         "@types/react": "^19.2.14",
         "react": "^19.2.3",
@@ -305,12 +306,14 @@
         "@agency/cms-admin": "0.1.0",
         "@agency/cms-core": "0.1.0",
         "@agency/cms-react": "0.1.0",
+        "@agency/cms-visual-editor": "0.1.0",
         "react": ">=18",
       },
       "optionalPeers": [
         "@agency/cms-admin",
         "@agency/cms-core",
         "@agency/cms-react",
+        "@agency/cms-visual-editor",
       ],
     },
     "packages/cms-visual-editor": {

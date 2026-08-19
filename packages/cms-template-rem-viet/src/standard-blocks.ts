@@ -3,11 +3,7 @@ import {
   safePublicLinkSchema,
   type CmsBlockMigration,
 } from "@agency/cms-core";
-import {
-  createBlockEditorRegistry,
-  type CmsBlockAuthoringDefinition,
-  type CmsBlockEditorProps,
-} from "@agency/cms-admin";
+import type { CmsBlockAuthoringDefinition } from "@agency/cms-admin";
 import {
   createBlockRegistry,
   type BlockRendererProps,
@@ -222,37 +218,6 @@ export function createRemVietStandardBlockRegistry<TContext>(
       schema: standardCtaBlockSchema,
       defaults: defaultStandardCtaBlock,
       Renderer: renderers.cta,
-    },
-  });
-}
-
-export type RemVietStandardEditors<TContext> = {
-  richText: ComponentType<
-    CmsBlockEditorProps<RichTextBlock> & { context: TContext }
-  >;
-  productGrid: ComponentType<
-    CmsBlockEditorProps<ProductGridBlock> & { context: TContext }
-  >;
-  cta: ComponentType<
-    CmsBlockEditorProps<StandardCtaBlock> & { context: TContext }
-  >;
-};
-
-export function createRemVietStandardBlockEditorRegistry<TContext>(
-  editors: RemVietStandardEditors<TContext>,
-) {
-  return createBlockEditorRegistry<RemVietStandardBlock, TContext>({
-    richText: {
-      label: "Rich text",
-      Editor: editors.richText,
-    },
-    productGrid: {
-      label: "Product grid",
-      Editor: editors.productGrid,
-    },
-    cta: {
-      label: "Call to action",
-      Editor: editors.cta,
     },
   });
 }

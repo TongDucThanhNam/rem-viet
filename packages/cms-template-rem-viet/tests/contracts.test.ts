@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createCmsExtensionRegistry } from "@agency/cms-core";
+import { assertCmsVisualAdapterRoundTrip } from "@agency/cms-visual-editor";
 
 import faqFixture from "./fixtures/faq-v1.json";
 import heroFixture from "./fixtures/hero-v1.json";
@@ -36,8 +37,46 @@ import {
   fromRemVietStandardPageCollectionData,
   toRemVietStandardPageCollectionData,
 } from "../src";
+import {
+  fromRemVietVisualDocument,
+  remVietCustomVisualEditorAdapter,
+  remVietVisualComponentRegistry,
+  toRemVietVisualDocument,
+} from "../src/visual-authoring";
 
 describe("Rem Viet flagship template contracts", () => {
+  test("adapts existing canonical content to the shared visual kernel without rewriting it", () => {
+    const existingBlocks = JSON.parse(
+      JSON.stringify(defaultRemVietTemplateBlocks),
+    );
+    const document = toRemVietVisualDocument({
+      id: "home",
+      siteId: "rem-viet",
+      version: 7,
+      blocks: existingBlocks,
+    });
+
+    expect(document.nodes).toEqual(defaultRemVietTemplateBlocks);
+    expect(fromRemVietVisualDocument(document)).toMatchObject({
+      id: "home",
+      siteId: "rem-viet",
+      version: 7,
+      blocks: defaultRemVietTemplateBlocks,
+    });
+    expect(remVietVisualComponentRegistry.definitions).toHaveLength(10);
+    expect(remVietVisualComponentRegistry.require("hero")).toMatchObject({
+      renderer: "@agency/cms-template-rem-viet/hero/renderer",
+      editor: "@agency/cms-template-rem-viet/hero/editor",
+      constraints: { min: 1, max: 1, pinned: "start" },
+    });
+    expect(() =>
+      assertCmsVisualAdapterRoundTrip({
+        adapter: remVietCustomVisualEditorAdapter,
+        document,
+      }),
+    ).not.toThrow();
+  });
+
   test("defines and round-trips the versioned standard-pages collection", () => {
     const content = {
       title: "About Rèm Việt",
@@ -136,6 +175,17 @@ describe("Rem Viet flagship template contracts", () => {
     );
     expect(canonical).toEqual(defaultRemVietTemplateBlocks);
     expect(canonical.map(toLegacyRemVietTemplateBlock)).toEqual(legacyBlocks);
+    const throughKernel = fromRemVietVisualDocument(
+      toRemVietVisualDocument({
+        id: "existing-home",
+        siteId: "rem-viet",
+        version: 1,
+        blocks: canonical,
+      }),
+    );
+    expect(throughKernel.blocks.map(toLegacyRemVietTemplateBlock)).toEqual(
+      legacyBlocks,
+    );
   });
 
   test("encodes the exact Hero + FAQ Studio slice with stable Sanity identities", () => {

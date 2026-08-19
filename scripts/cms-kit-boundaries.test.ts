@@ -116,6 +116,7 @@ describe("Platform Kit package boundaries", () => {
       "@agency/cms-admin",
       "@agency/cms-core",
       "@agency/cms-react",
+      "@agency/cms-visual-editor",
       "react",
     ]);
     expect(Object.keys(manifest("cms").dependencies ?? {}).sort()).toEqual([
@@ -169,6 +170,8 @@ describe("Platform Kit package boundaries", () => {
     expect(cliManifest.bin).toEqual({ "agency-cms": "./src/cli.ts" });
     expect(cliManifest.exports?.["./command"]).toBeDefined();
     expect(templateManifest.exports?.["./bootstrap"]).toBeDefined();
+    expect(templateManifest.exports?.["./admin"]).toBeDefined();
+    expect(templateManifest.exports?.["./visual-authoring"]).toBeDefined();
     expect(cliConsumer).toMatch(/"agency-cms",\s+"plan-init"/);
     expect(cliConsumer).toContain("@agency/cms-template-rem-viet/bootstrap");
     expect(cliConsumer).toMatch(/"agency-cms",\s+"init"/);
@@ -184,6 +187,28 @@ describe("Platform Kit package boundaries", () => {
     expect(cliConsumer).toContain("migrateTestimonialGridBlockData");
     expect(cliConsumer).toContain("testimonialGridBlockEditorDefinition");
     expect(cliConsumer).toContain("CmsBlockRenderer");
+  });
+
+  test("public template entry does not import the visual-authoring kernel", () => {
+    const publicEntry = readFileSync(
+      join(root, "packages", "cms-template-rem-viet", "src", "index.ts"),
+      "utf8",
+    );
+    const visualEntry = readFileSync(
+      join(
+        root,
+        "packages",
+        "cms-template-rem-viet",
+        "src",
+        "visual-authoring.ts",
+      ),
+      "utf8",
+    );
+
+    expect(publicEntry).not.toContain("@agency/cms-visual-editor");
+    expect(publicEntry).not.toContain("remVietVisualComponentRegistry");
+    expect(visualEntry).toContain("@agency/cms-visual-editor");
+    expect(visualEntry).toContain("remVietCustomVisualEditorAdapter");
   });
 
   test("upgrade rehearsal installs coordinated artifacts and restores state", () => {

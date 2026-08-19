@@ -1,17 +1,19 @@
 import {
   CmsDraftStatusSlots,
   areCmsRevisionValuesEqual,
-  commitCmsDraftHistory,
   compareCmsRevisionFieldDetails,
-  createCmsDraftHistory,
-  redoCmsDraftHistory,
-  undoCmsDraftHistory,
   useCmsAutosave,
   useCmsFocusWorkspace,
   useCmsPreviewConnection,
   type CmsDraftSaveState,
   type CmsRevisionFieldDefinition,
 } from "@agency/cms-admin";
+import {
+  commitCmsDraftHistory,
+  createCmsDraftHistory,
+  redoCmsDraftHistory,
+  undoCmsDraftHistory,
+} from "@agency/cms-visual-editor";
 import { remVietRichTextBlockLabels } from "@agency/cms-template-rem-viet";
 import {
   parseRichTextDocument,

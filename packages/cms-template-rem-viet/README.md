@@ -7,6 +7,18 @@ renderer-registry factories. The package contains content contracts; concrete
 React components, CSS, assets, GSAP behavior, and field controls remain consumer
 injections.
 
+The root export is safe for public rendering and does not import admin or visual
+editor code. Authoring consumers opt into two isolated subpaths:
+
+- `./admin` contains React editor-registry factories.
+- `./visual-authoring` contains the ten-component kernel registry and the custom
+  editor compatibility adapter.
+
+`toRemVietVisualDocument()` and `fromRemVietVisualDocument()` preserve the
+existing block envelopes exactly. The established flattened homepage seed still
+passes through `toRemVietTemplateBlock()` and `toLegacyRemVietTemplateBlock()`;
+no database rewrite is required.
+
 `remVietTemplateComposition` is the authoritative bounded-composition policy.
 It publishes minimum/maximum instance counts and pinned start/end regions for
 every flagship block type, allowing an admin or provider adapter to expose only

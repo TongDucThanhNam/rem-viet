@@ -2,17 +2,11 @@ import {
   CmsDraftStatusSlots,
   CmsRevisionList,
   CmsWorkflowActionSlots,
-  commitCmsDraftHistory,
   compareCmsBlockRevisions,
   compareCmsRevisionFieldDetails,
-  createCmsDraftHistory,
-  createCmsVisualEditorStateMessage,
   filterCmsBlockAuthoringCatalog,
-  isCmsVisualEditorMessage,
-  redoCmsDraftHistory,
   resolveCmsAdminWorkflow,
   runCmsWorkflowCommand,
-  undoCmsDraftHistory,
   useCmsAutosave,
   useCmsFocusWorkspace,
   useCmsPreviewConnection,
@@ -20,6 +14,14 @@ import {
   type CmsPreviewConnectionStatus,
   type CmsRevisionFieldDefinition,
 } from "@agency/cms-admin";
+import {
+  commitCmsDraftHistory,
+  createCmsDraftHistory,
+  createCmsVisualEditorStateMessage,
+  isCmsVisualEditorMessage,
+  redoCmsDraftHistory,
+  undoCmsDraftHistory,
+} from "@agency/cms-visual-editor";
 import {
   remVietTemplateAuthoringCatalog,
   remVietTemplateBlockLabels as homeBlockLabels,

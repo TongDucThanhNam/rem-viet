@@ -4,16 +4,10 @@ import {
   CmsRevisionList,
   CmsWorkflowActionSlots,
   areCmsRevisionValuesEqual,
-  commitCmsDraftHistory,
-  createCmsDraftHistory,
   compareCmsRevisionFieldDetails,
-  createCmsVisualEditorStateMessage,
   filterCmsBlockAuthoringCatalog,
-  isCmsVisualEditorMessage,
   resolveCmsAdminWorkflow,
-  redoCmsDraftHistory,
   runCmsWorkflowCommand,
-  undoCmsDraftHistory,
   useCmsAutosave,
   useCmsFocusWorkspace,
   useCmsPreviewConnection,
@@ -22,7 +16,15 @@ import {
   type CmsRevisionFieldDefinition,
 } from "@agency/cms-admin";
 import {
-  createRemVietStandardBlockEditorRegistry,
+  commitCmsDraftHistory,
+  createCmsDraftHistory,
+  createCmsVisualEditorStateMessage,
+  isCmsVisualEditorMessage,
+  redoCmsDraftHistory,
+  undoCmsDraftHistory,
+} from "@agency/cms-visual-editor";
+import { createRemVietStandardBlockEditorRegistry } from "@agency/cms-template-rem-viet/admin";
+import {
   isRemVietStandardBlockType,
   remVietStandardBlockAuthoringCatalog,
   remVietStandardBlockLabels as standardBlockLabels,

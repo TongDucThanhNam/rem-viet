@@ -1,11 +1,10 @@
+import { areCmsRevisionValuesEqual, CmsRevisionList } from "@agency/cms-admin";
 import {
-  areCmsRevisionValuesEqual,
-  CmsRevisionList,
   commitCmsDraftHistory,
   createCmsDraftHistory,
   redoCmsDraftHistory,
   undoCmsDraftHistory,
-} from "@agency/cms-admin";
+} from "@agency/cms-visual-editor";
 import {
   roleHasCapability,
   type HomepageSection,

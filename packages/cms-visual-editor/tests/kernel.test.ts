@@ -453,6 +453,16 @@ describe("preview security", () => {
       "Referrer-Policy": "same-origin",
       "X-Robots-Tag": "noindex, nofollow, noarchive",
     });
+    expect(
+      createCmsVisualPreviewResponseHeaders({ frameAncestors: ["'self'"] }),
+    ).toMatchObject({
+      "Content-Security-Policy": "frame-ancestors 'self'",
+    });
+    expect(() =>
+      createCmsVisualPreviewResponseHeaders({
+        frameAncestors: ["http://admin.example.test"],
+      }),
+    ).toThrow(/explicit HTTPS/);
   });
 
   test("keeps the established v1 protocol available through the compatibility export", () => {

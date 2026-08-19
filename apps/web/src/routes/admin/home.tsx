@@ -18,9 +18,13 @@ import {
   commitCmsDraftHistory,
   createCmsDraftHistory,
   createCmsVisualEditorStateMessage,
+  createCmsVisualPreviewEnvelope,
+  initialCmsVisualPreviewReplayState,
   isCmsVisualEditorMessage,
   redoCmsDraftHistory,
   undoCmsDraftHistory,
+  validateCmsVisualPreviewEnvelope,
+  type CmsVisualPreviewIdentity,
 } from "@agency/cms-visual-editor";
 import {
   remVietTemplateAuthoringCatalog,
@@ -100,7 +104,7 @@ import {
   removeHomeVisualBlock,
   type HomeCompositionResult,
 } from "@/lib/home-visual-order";
-import { siteConfig } from "@/lib/site-config";
+import { siteConfig, siteManifest } from "@/lib/site-config";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/admin/home")({
@@ -307,6 +311,23 @@ function AdminHomeRoute() {
   const reloadAtVersion = useRef<number | null>(null);
   const saving = useRef(false);
   const previewFrameRef = useRef<HTMLIFrameElement>(null);
+  const previewHostSequence = useRef(0);
+  const previewChannelReady = useRef(false);
+  const previewReplay = useRef(initialCmsVisualPreviewReplayState());
+  const previewIdentity = useRef<CmsVisualPreviewIdentity>({
+    siteId: siteManifest.id,
+    documentId: "home",
+    documentType: "homepage",
+    sessionId: session!.previewChannel.sessionId,
+    sessionBinding: session!.previewChannel.sessionBinding,
+    documentVersion: 0,
+    conflictToken: session!.previewChannel.conflictToken,
+  });
+  const previewUrl = `/admin/home-preview?${new URLSearchParams({
+    cmsBinding: previewIdentity.current.sessionBinding,
+    cmsConflict: previewIdentity.current.conflictToken,
+    cmsSession: previewIdentity.current.sessionId,
+  })}`;
   const {
     onKeyDown: handleFocusedWorkspaceKeyDown,
     triggerRef: workspaceFocusTriggerRef,
@@ -322,6 +343,16 @@ function AdminHomeRoute() {
     retry: retryPreview,
     status: previewConnectionStatus,
   } = useCmsPreviewConnection();
+
+  useEffect(() => {
+    previewChannelReady.current = false;
+    previewHostSequence.current = 0;
+    previewReplay.current = initialCmsVisualPreviewReplayState();
+    previewIdentity.current = {
+      ...previewIdentity.current,
+      documentVersion: 0,
+    };
+  }, [previewReloadKey]);
 
   const markDraftDirty = useCallback(() => {
     editGeneration.current += 1;
@@ -414,16 +445,29 @@ function AdminHomeRoute() {
   );
 
   const syncVisualPreview = useCallback(() => {
+    if (!previewChannelReady.current) return;
+    const state = createCmsVisualEditorStateMessage({
+      blocks,
+      selectedBlockId: selectedBlock?.id ?? null,
+      selectedFieldPath,
+      selectionRevision: visualSelectionRevision,
+      revision: workingVersion,
+    });
+    const sequence = ++previewHostSequence.current;
     previewFrameRef.current?.contentWindow?.postMessage(
-      createCmsVisualEditorStateMessage({
-        blocks,
-        selectedBlockId: selectedBlock?.id ?? null,
-        selectedFieldPath,
-        selectionRevision: visualSelectionRevision,
-        revision: workingVersion,
+      createCmsVisualPreviewEnvelope({
+        source: "host",
+        messageId: `${previewIdentity.current.sessionId}:host:${sequence}`,
+        sequence,
+        identity: previewIdentity.current,
+        payload: { type: "state", state },
       }),
       window.location.origin,
     );
+    previewIdentity.current = {
+      ...previewIdentity.current,
+      documentVersion: workingVersion,
+    };
   }, [
     blocks,
     selectedBlock?.id,
@@ -438,15 +482,32 @@ function AdminHomeRoute() {
     const receivePreviewMessage = (event: MessageEvent<unknown>) => {
       if (
         event.origin !== window.location.origin ||
-        event.source !== previewFrameRef.current?.contentWindow ||
-        !isCmsVisualEditorMessage(event.data)
+        event.source !== previewFrameRef.current?.contentWindow
       )
         return;
-      const message = event.data;
-      if (message.type === "ready") {
+      const validation = validateCmsVisualPreviewEnvelope({
+        value: event.data,
+        origin: event.origin,
+        allowedOrigins: new Set([window.location.origin]),
+        expectedSource: "preview",
+        expectedIdentity: previewIdentity.current,
+        replay: previewReplay.current,
+      });
+      if (!validation.accepted) return;
+      previewReplay.current = validation.replay;
+      const payload = validation.envelope.payload;
+      if (payload.type === "ready") {
+        previewChannelReady.current = true;
         markPreviewConnected();
         syncVisualPreview();
+        return;
       }
+      if (
+        payload.type !== "command" ||
+        !isCmsVisualEditorMessage(payload.command)
+      )
+        return;
+      const message = payload.command;
       if (message.type === "move") {
         const nextBlocks = moveHomeVisualBlock(blocks, message);
         if (!nextBlocks) return;
@@ -1549,11 +1610,11 @@ function AdminHomeRoute() {
               canUndo={canUndoDraft}
               device={previewDevice}
               frameRef={previewFrameRef}
+              previewUrl={previewUrl}
               reloadKey={previewReloadKey}
               status={previewConnectionStatus}
               onFrameLoad={() => {
                 markPreviewFrameLoaded();
-                syncVisualPreview();
               }}
               onOpen={() => openHomePreview("/admin/home-preview")}
               onRedo={() => navigateDraftHistory("redo")}
@@ -1942,6 +2003,7 @@ function ResponsivePreview({
   onRetry,
   onUndo,
   reloadKey,
+  previewUrl,
   status,
   version,
   workspaceFocusTriggerRef,
@@ -1959,6 +2021,7 @@ function ResponsivePreview({
   onRetry: () => void;
   onUndo: () => void;
   reloadKey: number;
+  previewUrl: string;
   status: CmsPreviewConnectionStatus;
   version: number;
   workspaceFocusTriggerRef: RefObject<HTMLButtonElement | null>;
@@ -2105,7 +2168,7 @@ function ResponsivePreview({
             key={reloadKey}
             onLoad={onFrameLoad}
             ref={frameRef}
-            src="/admin/home-preview"
+            src={previewUrl}
             style={{
               height: profile.height,
               transform: `scale(${scale})`,

@@ -4,10 +4,16 @@ import {
   createCmsVisualEditorDuplicateMessage,
   createCmsVisualEditorInsertMessage,
   createCmsVisualEditorMoveMessage,
-  createCmsVisualEditorReadyMessage,
   createCmsVisualEditorRemoveMessage,
   createCmsVisualEditorSelectionMessage,
+  createCmsVisualPreviewEnvelope,
+  createCmsVisualPreviewResponseHeaders,
+  initialCmsVisualPreviewReplayState,
   isCmsVisualEditorMessage,
+  validateCmsVisualPreviewEnvelope,
+  type CmsVisualEditorMessage,
+  type CmsVisualPreviewIdentity,
+  type CmsVisualPreviewPayload,
 } from "@agency/cms-visual-editor";
 import {
   remVietTemplateAuthoringCatalog,
@@ -27,6 +33,7 @@ import {
 } from "lucide-react";
 import {
   useEffect,
+  useCallback,
   useMemo,
   useRef,
   useState,
@@ -41,15 +48,35 @@ import {
   getInsertableHomeBlockTypes,
   isPinnedHomeBlock,
 } from "@/lib/home-visual-order";
-import { siteConfig } from "@/lib/site-config";
+import { siteConfig, siteManifest } from "@/lib/site-config";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/admin/home-preview")({
-  headers: () => ({
-    "Cache-Control": "private, no-store, max-age=0",
-    "X-Robots-Tag": "noindex, nofollow, noarchive",
+  validateSearch: (search: Record<string, unknown>) => ({
+    cmsBinding: typeof search.cmsBinding === "string" ? search.cmsBinding : "",
+    cmsConflict:
+      typeof search.cmsConflict === "string" ? search.cmsConflict : "",
+    cmsSession: typeof search.cmsSession === "string" ? search.cmsSession : "",
   }),
-  beforeLoad: async () => ({ session: await getPreviewAdminUser() }),
+  headers: () =>
+    createCmsVisualPreviewResponseHeaders({ frameAncestors: ["'self'"] }),
+  beforeLoad: async ({ search }) => {
+    const session = await getPreviewAdminUser();
+    if (!session) throw redirect({ to: "/dang-nhap" });
+    const hasChannel = Boolean(
+      search.cmsBinding || search.cmsConflict || search.cmsSession,
+    );
+    if (
+      hasChannel &&
+      (!search.cmsBinding ||
+        !search.cmsConflict ||
+        !search.cmsSession ||
+        search.cmsBinding !== session.previewSessionBinding)
+    ) {
+      throw redirect({ to: "/admin/home" });
+    }
+    return { session };
+  },
   loader: async ({ context }) => {
     if (!context.session) throw redirect({ to: "/dang-nhap" });
   },
@@ -82,6 +109,7 @@ function previewBlocks(page?: PreviewPage) {
 }
 
 function HomePreviewRoute() {
+  const search = Route.useSearch();
   const trpc = useTRPC();
   const pagesQuery = useQuery(trpc.content.pages.adminList.queryOptions({}));
   const pages = (pagesQuery.data ?? []) as PreviewPage[];
@@ -102,6 +130,42 @@ function HomePreviewRoute() {
   } | null>(null);
   const fieldHintRef = useRef<HTMLDivElement>(null);
   const draggedBlockIdRef = useRef<string | null>(null);
+  const previewSequence = useRef(0);
+  const previewReplay = useRef(initialCmsVisualPreviewReplayState());
+  const previewIdentity = useRef<CmsVisualPreviewIdentity>({
+    siteId: siteManifest.id,
+    documentId: "home",
+    documentType: "homepage",
+    sessionId: search.cmsSession,
+    sessionBinding: search.cmsBinding,
+    documentVersion: 0,
+    conflictToken: search.cmsConflict,
+  });
+  const channelActive = Boolean(
+    search.cmsBinding && search.cmsConflict && search.cmsSession,
+  );
+  const postPreviewPayload = useCallback(
+    (payload: CmsVisualPreviewPayload) => {
+      if (!channelActive || window.parent === window) return;
+      const sequence = ++previewSequence.current;
+      window.parent.postMessage(
+        createCmsVisualPreviewEnvelope({
+          source: "preview",
+          messageId: `${previewIdentity.current.sessionId}:preview:${sequence}`,
+          sequence,
+          identity: previewIdentity.current,
+          payload,
+        }),
+        window.location.origin,
+      );
+    },
+    [channelActive],
+  );
+  const postPreviewCommand = useCallback(
+    (command: CmsVisualEditorMessage) =>
+      postPreviewPayload({ type: "command", command }),
+    [postPreviewPayload],
+  );
   const displayedBlocks = useMemo(
     () => liveBlocks ?? previewBlocks(page),
     [liveBlocks, page],
@@ -134,14 +198,33 @@ function HomePreviewRoute() {
     const receiveState = (event: MessageEvent<unknown>) => {
       if (
         event.origin !== window.location.origin ||
-        event.source !== window.parent ||
-        !isCmsVisualEditorMessage(event.data) ||
-        event.data.type !== "state"
+        event.source !== window.parent
       )
         return;
-      const message = event.data;
+      const validation = validateCmsVisualPreviewEnvelope({
+        value: event.data,
+        origin: event.origin,
+        allowedOrigins: new Set([window.location.origin]),
+        expectedSource: "host",
+        expectedIdentity: previewIdentity.current,
+        replay: previewReplay.current,
+      });
+      if (!validation.accepted) return;
+      previewReplay.current = validation.replay;
+      const payload = validation.envelope.payload;
+      if (
+        payload.type !== "state" ||
+        !isCmsVisualEditorMessage(payload.state) ||
+        payload.state.type !== "state"
+      )
+        return;
+      const message = payload.state;
       const parsed = homeBlockSchema.array().safeParse(message.blocks);
       if (!parsed.success) return;
+      previewIdentity.current = {
+        ...previewIdentity.current,
+        documentVersion: message.revision,
+      };
       setLiveBlocks(parsed.data);
       setSelectedBlockId(
         parsed.data.some((block) => block.id === message.selectedBlockId)
@@ -167,9 +250,8 @@ function HomePreviewRoute() {
       event.stopPropagation();
       setSelectedBlockId(blockId);
       setSelectedFieldPath(fieldPath ?? null);
-      window.parent.postMessage(
+      postPreviewCommand(
         createCmsVisualEditorSelectionMessage(blockId, fieldPath),
-        window.location.origin,
       );
     };
     const selectBlockWithPointer = (event: PointerEvent) => {
@@ -281,9 +363,8 @@ function HomePreviewRoute() {
       ) {
         event.preventDefault();
         event.stopPropagation();
-        window.parent.postMessage(
+        postPreviewCommand(
           createCmsVisualEditorMoveMessage(sourceId, targetId, placement),
-          window.location.origin,
         );
         setSelectedBlockId(sourceId);
         setSelectedFieldPath(null);
@@ -300,10 +381,7 @@ function HomePreviewRoute() {
     window.addEventListener("pointermove", updateFieldHint, true);
     window.addEventListener("pointerleave", hideFieldHint);
     if (window.parent !== window) {
-      window.parent.postMessage(
-        createCmsVisualEditorReadyMessage(),
-        window.location.origin,
-      );
+      postPreviewPayload({ type: "ready" });
     }
     return () => {
       window.removeEventListener("message", receiveState);
@@ -315,7 +393,7 @@ function HomePreviewRoute() {
       window.removeEventListener("pointermove", updateFieldHint, true);
       window.removeEventListener("pointerleave", hideFieldHint);
     };
-  }, []);
+  }, [postPreviewCommand, postPreviewPayload]);
 
   useEffect(() => {
     if (!selectedBlockId) {
@@ -356,26 +434,24 @@ function HomePreviewRoute() {
 
   const postMove = (targetBlockId: string, placement: "before" | "after") => {
     if (!selectedBlock || window.parent === window) return;
-    window.parent.postMessage(
+    postPreviewCommand(
       createCmsVisualEditorMoveMessage(
         selectedBlock.id,
         targetBlockId,
         placement,
       ),
-      window.location.origin,
     );
     setSelectedFieldPath(null);
   };
 
   const postInsert = (blockType: HomeBlock["type"]) => {
     if (!selectedBlock || window.parent === window) return;
-    window.parent.postMessage(
+    postPreviewCommand(
       createCmsVisualEditorInsertMessage(
         blockType,
         selectedBlock.id,
         selectedBlock.type === "footerCta" ? "before" : "after",
       ),
-      window.location.origin,
     );
     setComposerOpen(false);
     setCatalogQuery("");
@@ -385,20 +461,14 @@ function HomePreviewRoute() {
   const postDuplicate = () => {
     if (!selectedBlock || !selectedBlockDuplicable || window.parent === window)
       return;
-    window.parent.postMessage(
-      createCmsVisualEditorDuplicateMessage(selectedBlock.id),
-      window.location.origin,
-    );
+    postPreviewCommand(createCmsVisualEditorDuplicateMessage(selectedBlock.id));
     setSelectedFieldPath(null);
   };
 
   const postRemove = () => {
     if (!selectedBlock || !selectedBlockRemovable || window.parent === window)
       return;
-    window.parent.postMessage(
-      createCmsVisualEditorRemoveMessage(selectedBlock.id),
-      window.location.origin,
-    );
+    postPreviewCommand(createCmsVisualEditorRemoveMessage(selectedBlock.id));
     setComposerOpen(false);
     setCatalogQuery("");
     setSelectedFieldPath(null);

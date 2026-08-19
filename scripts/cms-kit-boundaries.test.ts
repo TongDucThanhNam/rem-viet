@@ -673,6 +673,38 @@ describe("Platform Kit package boundaries", () => {
     expect(navigation).not.toContain("for (let attempt");
   });
 
+  test("homepage preview adopts the authenticated replay-safe v2 channel", () => {
+    const host = readFileSync(
+      join(root, "apps", "web", "src", "routes", "admin", "home.tsx"),
+      "utf8",
+    );
+    const preview = readFileSync(
+      join(root, "apps", "web", "src", "routes", "admin", "home-preview.tsx"),
+      "utf8",
+    );
+    const session = readFileSync(
+      join(
+        root,
+        "apps",
+        "web",
+        "src",
+        "functions",
+        "get-preview-admin-user.ts",
+      ),
+      "utf8",
+    );
+
+    for (const source of [host, preview]) {
+      expect(source).toContain("createCmsVisualPreviewEnvelope");
+      expect(source).toContain("validateCmsVisualPreviewEnvelope");
+      expect(source).toContain("initialCmsVisualPreviewReplayState");
+      expect(source).toContain("expectedIdentity");
+    }
+    expect(preview).toContain("createCmsVisualPreviewResponseHeaders");
+    expect(preview).toContain("previewSessionBinding");
+    expect(session).toContain("createPreviewSessionBinding");
+  });
+
   test("editorial review is a neutral runtime/provider/admin capability", () => {
     const core = readFileSync(
       join(root, "packages", "cms-core", "src", "index.ts"),

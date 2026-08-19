@@ -5,6 +5,7 @@ import {
 import { createServerFn } from "@tanstack/react-start";
 
 import { authMiddleware } from "@/middleware/auth";
+import { createPreviewSessionBinding } from "@/lib/preview-session-binding.server";
 
 export const getAdminUser = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
@@ -15,9 +16,18 @@ export const getAdminUser = createServerFn({ method: "GET" })
       return null;
     }
 
+    const previewSessionBinding = await createPreviewSessionBinding(
+      context.session!.session.id,
+    );
+
     return {
       ...context.session,
       capabilities: capabilitiesForRole(role),
+      previewChannel: {
+        conflictToken: crypto.randomUUID(),
+        sessionBinding: previewSessionBinding,
+        sessionId: crypto.randomUUID(),
+      },
       staffRole: role,
     };
   });

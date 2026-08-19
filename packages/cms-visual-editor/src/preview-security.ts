@@ -221,10 +221,12 @@ export function createCmsVisualPreviewResponseHeaders(input: {
 }): Readonly<Record<string, string>> {
   if (
     input.frameAncestors.length === 0 ||
-    input.frameAncestors.some((value) => !/^https:\/\//.test(value))
+    input.frameAncestors.some(
+      (value) => value !== "'self'" && !/^https:\/\//.test(value),
+    )
   ) {
     throw new Error(
-      "Visual preview requires an explicit HTTPS frame-ancestor allowlist.",
+      "Visual preview requires self or an explicit HTTPS frame-ancestor allowlist.",
     );
   }
   return Object.freeze({

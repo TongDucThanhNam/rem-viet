@@ -41,7 +41,7 @@
     }
   },
   "scripts": {
-    "dev": "turbo run dev",
+    "dev": "bun run dev:web",
     "build": "turbo run build",
     "check-types": "turbo run check-types",
     "audit:migration-parity": "bun scripts/audit-migration-parity.ts",

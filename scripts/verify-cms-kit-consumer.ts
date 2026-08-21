@@ -7,7 +7,6 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
-import { createServer } from "node:net";
 import { basename, join, relative, resolve } from "node:path";
 
 const repositoryRoot = resolve(import.meta.dir, "..");
@@ -307,63 +306,170 @@ function verifyTanStackIntegrationFixture(input: {
   run(["bun", "run", "check-types"], directory);
 }
 
-async function waitForServer(
-  url: string,
-  server: ReturnType<typeof Bun.spawn>,
+const serverOutputLimit = 16_384;
+
+type LocalDevServer = {
+  process: ReturnType<typeof Bun.spawn>;
+  output: () => string;
+  outputDrained: Promise<void>;
+  stopOutputMirroring: () => void;
+};
+
+function appendServerOutput(current: string, chunk: string) {
+  const combined = current + chunk;
+  return combined.length <= serverOutputLimit
+    ? combined
+    : combined.slice(-serverOutputLimit);
+}
+
+function serverDiagnostics(server: LocalDevServer) {
+  const output = server.output().trim();
+  return output || "<the Vite process emitted no output>";
+}
+
+async function mirrorServerOutput(
+  stream: ReadableStream<Uint8Array>,
+  destination: NodeJS.WriteStream,
+  capture: (chunk: string) => void,
+  shouldMirror: () => boolean,
 ) {
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  while (true) {
+    const result = await reader.read();
+    if (result.done) break;
+    const chunk = decoder.decode(result.value, { stream: true });
+    if (shouldMirror()) destination.write(chunk);
+    capture(chunk);
+  }
+  const remainder = decoder.decode();
+  if (remainder) {
+    if (shouldMirror()) destination.write(remainder);
+    capture(remainder);
+  }
+}
+
+function startLocalServer(directory: string, token: string): LocalDevServer {
+  let output = "";
+  let mirrorOutput = true;
+  const server = Bun.spawn(
+    [
+      "bun",
+      "node_modules/vite/bin/vite.js",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "0",
+      "--strictPort",
+    ],
+    {
+      cwd: directory,
+      env: {
+        ...process.env,
+        CMS_ADMIN_TOKEN: token,
+        CMS_LOCAL_DATABASE_URL: "file:.agency-cms/content.db",
+      },
+      stdout: "pipe",
+      stderr: "pipe",
+    },
+  );
+  const capture = (chunk: string) => {
+    output = appendServerOutput(output, chunk);
+  };
+  const shouldMirror = () => mirrorOutput;
+  const outputDrained = Promise.all([
+    mirrorServerOutput(server.stdout, process.stdout, capture, shouldMirror),
+    mirrorServerOutput(server.stderr, process.stderr, capture, shouldMirror),
+  ]).then(() => undefined);
+  return {
+    process: server,
+    output: () => output,
+    outputDrained,
+    stopOutputMirroring: () => {
+      mirrorOutput = false;
+    },
+  };
+}
+
+async function waitForServer(server: LocalDevServer) {
   const deadline = Date.now() + 30_000;
+  let healthUrl: string | undefined;
   let lastError: unknown;
   while (Date.now() < deadline) {
-    if (server.exitCode !== null) {
+    if (server.process.exitCode !== null) {
+      await server.outputDrained;
       throw new Error(
-        `Local TanStack dev server exited with ${server.exitCode}.`,
+        `Local TanStack dev server exited with ${server.process.exitCode}.\n${serverDiagnostics(server)}`,
       );
     }
+    const port = server.output().match(/http:\/\/127\.0\.0\.1:(\d+)\//)?.[1];
+    healthUrl ??= port ? `http://127.0.0.1:${port}/api/cms/health` : undefined;
+    if (!healthUrl) {
+      await Bun.sleep(100);
+      continue;
+    }
     try {
-      const response = await fetch(url, {
+      const response = await fetch(healthUrl, {
         signal: AbortSignal.timeout(2_000),
       });
-      if (response.ok) return;
+      if (response.ok) return healthUrl.slice(0, -"/api/cms/health".length);
+      lastError = new Error(`Health endpoint returned ${response.status}.`);
     } catch (error) {
       lastError = error;
       // Vite has not opened the listener yet.
     }
     await Bun.sleep(100);
   }
-  throw new Error(`Timed out waiting for ${url}.`, { cause: lastError });
-}
-
-async function stopServer(server: ReturnType<typeof Bun.spawn>) {
-  server.kill();
-  await Promise.race([server.exited, Bun.sleep(5_000)]);
-  if (server.exitCode === null) {
-    if (process.platform === "win32") {
-      Bun.spawnSync(["taskkill", "/PID", String(server.pid), "/T", "/F"], {
-        stdout: "ignore",
-        stderr: "ignore",
-      });
-    } else {
-      server.kill(9);
-    }
-    await Promise.race([server.exited, Bun.sleep(1_000)]);
-  }
-  server.unref();
-}
-
-async function availableLoopbackPort() {
-  const listener = createServer();
-  await new Promise<void>((resolve, reject) => {
-    listener.once("error", reject);
-    listener.listen(0, "127.0.0.1", resolve);
-  });
-  const address = listener.address();
-  await new Promise<void>((resolve, reject) =>
-    listener.close((error) => (error ? reject(error) : resolve())),
+  throw new Error(
+    `Timed out waiting for the local TanStack dev server.\n${serverDiagnostics(server)}`,
+    { cause: lastError },
   );
-  if (!address || typeof address === "string") {
-    throw new Error("Could not reserve a loopback port for the CMS fixture.");
+}
+
+async function stopServer(server: LocalDevServer) {
+  server.stopOutputMirroring();
+  server.process.kill();
+  await Promise.race([server.process.exited, Bun.sleep(5_000)]);
+  if (server.process.exitCode === null) {
+    if (process.platform === "win32") {
+      Bun.spawnSync(
+        ["taskkill", "/PID", String(server.process.pid), "/T", "/F"],
+        {
+          stdout: "ignore",
+          stderr: "ignore",
+        },
+      );
+    } else {
+      server.process.kill(9);
+    }
+    await Promise.race([server.process.exited, Bun.sleep(1_000)]);
   }
-  return address.port;
+  await Promise.race([server.outputDrained, Bun.sleep(1_000)]);
+  server.process.unref();
+}
+
+async function startReadyLocalServer(directory: string, token: string) {
+  const failures: string[] = [];
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    const server = startLocalServer(directory, token);
+    try {
+      const origin = await waitForServer(server);
+      return { origin, server };
+    } catch (error) {
+      failures.push(
+        `Attempt ${attempt}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      await stopServer(server);
+      if (attempt < 2) {
+        process.stderr.write(
+          `[cms-kit] Local fixture server attempt ${attempt} failed; retrying once.\n`,
+        );
+      }
+    }
+  }
+  throw new Error(
+    `Local TanStack dev server failed after two bounded attempts.\n${failures.join("\n")}`,
+  );
 }
 
 async function cmsJson(
@@ -441,31 +547,8 @@ async function verifyLocalTanStackLifecycle() {
   assertPackedBundleBoundary(directory, ["cloudflare", "postgres"]);
   run(["bun", "run", "check-types"], directory);
 
-  const port = await availableLoopbackPort();
-  const origin = `http://127.0.0.1:${port}`;
-  const server = Bun.spawn(
-    [
-      "bun",
-      "node_modules/vite/bin/vite.js",
-      "--host",
-      "127.0.0.1",
-      "--port",
-      String(port),
-      "--strictPort",
-    ],
-    {
-      cwd: directory,
-      env: {
-        ...process.env,
-        CMS_ADMIN_TOKEN: token,
-        CMS_LOCAL_DATABASE_URL: "file:.agency-cms/content.db",
-      },
-      stdout: "inherit",
-      stderr: "inherit",
-    },
-  );
+  const { origin, server } = await startReadyLocalServer(directory, token);
   try {
-    await waitForServer(`${origin}/api/cms/health`, server);
     const created = await cmsJson(
       origin,
       "/api/cms/collections/pages/documents",

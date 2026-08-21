@@ -48,9 +48,6 @@
     },
     "@agency/cms-visual-editor": {
       "optional": true
-    },
-    "react": {
-      "optional": true
     }
   },
   "devDependencies": {

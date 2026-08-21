@@ -54,6 +54,9 @@
     }
   },
   "devDependencies": {
+    "@agency/cms-admin": "workspace:*",
+    "@agency/cms-core": "workspace:*",
+    "@agency/cms-react": "workspace:*",
     "@rem-viet/config": "workspace:*",
     "@agency/cms-visual-editor": "workspace:*",
     "@types/react": "^19.2.14",

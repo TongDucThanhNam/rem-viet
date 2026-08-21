@@ -524,7 +524,6 @@
         "@agency/cms-admin",
         "@agency/cms-template-factory",
         "@agency/cms-visual-editor",
-        "react",
       ],
     },
     "packages/cms-template-factory": {
@@ -551,6 +550,9 @@
         "zod": "catalog:",
       },
       "devDependencies": {
+        "@agency/cms-admin": "workspace:*",
+        "@agency/cms-core": "workspace:*",
+        "@agency/cms-react": "workspace:*",
         "@agency/cms-visual-editor": "workspace:*",
         "@rem-viet/config": "workspace:*",
         "@types/react": "^19.2.14",

@@ -1,0 +1,51 @@
+{
+  "name": "@agency/cms-provider-postgres",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./s3": {
+      "types": "./src/s3.ts",
+      "default": "./src/s3.ts"
+    },
+    "./integration": {
+      "types": "./src/integration.ts",
+      "default": "./src/integration.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test tests"
+  },
+  "dependencies": {
+    "@types/pg": "catalog:",
+    "pg": "catalog:",
+    "@aws-sdk/client-s3": "catalog:",
+    "@aws-sdk/s3-request-presigner": "catalog:"
+  },
+  "peerDependencies": {
+    "@agency/cms-core": "0.1.0",
+    "@agency/cms-runtime": "0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@agency/cms-core": {
+      "optional": true
+    },
+    "@agency/cms-runtime": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@agency/cms-core": "workspace:*",
+    "@agency/cms-runtime": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

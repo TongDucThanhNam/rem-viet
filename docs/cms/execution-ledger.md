@@ -1,6 +1,6 @@
 # Agency CMS execution ledger
 
-Last updated: 2026-08-18
+Last updated: 2026-08-21
 
 This ledger records evidence against `docs/agency-cms-master-plan.md`. “Complete”
 below means the implementation and local/reproducible gates are complete. It
@@ -11,7 +11,7 @@ does not replace the external release gates at the end of this document.
 Status: **technical release candidate**. Do not tag
 `v1.0.0-client-ready` yet.
 
-The current repository candidate has 14 canonical migrations and passes empty/
+The current repository candidate has 26 canonical migrations and passes empty/
 upgraded migration verification, the packed clean-consumer gate, and the
 N-to-N+1 upgrade/rollback rehearsal. The 2026-08-17 clean flagship deployment
 below remains historical evidence for its exact commit; it has 12 migrations
@@ -1044,7 +1044,7 @@ uses deterministic SHA-256 document IDs for arbitrary portable keys, maps native
 create/update/conflict/history/restore conformance as the D1 provider. Hosted
 receipt schema v2 first added that neutral scenario after the disposable page and
 Content Source Map lifecycle, exposes every global check independently, and
-withholds a receipt unless the current global document plus all three proof
+withholds a receipt unless the current global document plus all five proof
 revisions are deleted. Focused Sanity tests pass 15/15, the repository unit suite
 passes, all 17 monorepo typecheck tasks pass, boundary tests protect the optional
 package and hosted gate, and the full formatting check passes. This is local
@@ -1873,3 +1873,534 @@ The release record template is
 recorded in its completed counterpart and `bun run release:verify` passes on the
 exact clean commit, the correct product label is **technical release candidate**,
 not “client ready”.
+
+## CMS plugin Field v2 independent-template browser gate — 2026-08-21
+
+The packaged Atelier template now owns a second, independent browser fixture
+for the complete generated Field v2 collection form. It renders scalar,
+structured, relationship, polymorphic relationship, media, block, computed,
+virtual, and join controls through `CmsCollectionAdminShell`; it does not copy
+the Admin form algorithm into the template.
+
+The first real-browser run exposed two shared accessibility/data-integrity gaps.
+Tabs did not implement arrow/Home/End navigation, and a required single-value
+relationship without state visually displayed its first option, allowing a
+keyboard user to submit an apparently selected value that remained absent from
+React state. The shared Admin package now uses roving tab focus with the WAI-ARIA
+keyboard pattern and renders disabled, explicit placeholders for required
+single-value select, relationship, and polymorphic relationship controls.
+
+Current executable evidence:
+
+```text
+@agency/cms-admin test                         PASS (34 / 190 expectations)
+@agency/cms-template-atelier test              PASS (4 unit + 9 browser)
+  browser projects                             desktop + tablet + mobile
+  generated Field v2                           keyboard create + responsive + axe
+scripts/cms-kit-boundaries.test.ts             PASS (28 / 423 expectations)
+root bun run check-types                       PASS (34/34 tasks)
+bun install --frozen-lockfile                  PASS (Bun 1.4.0)
+```
+
+The conformance workflow and repository package-manager declaration now share
+the Bun 1.4.0 pin. A boundary test requires packed consumers on both Windows and
+Linux plus the PostgreSQL 17 and pinned MinIO integration wiring. This is a
+mechanical CI contract, not a substitute for the still-missing external Linux
+run URL.
+
+## CMS plugin clean-checkout operations gate — 2026-08-21
+
+The import/export/backup/restore/upgrade/rollback Definition-of-Done row now has
+one reproducible local command: `bun run cms:kit:clean-checkout`. The verifier
+enumerates tracked plus non-ignored untracked regular files, rejects unsafe or
+ambiguous paths, copies them into a fresh repository, creates one synthetic
+commit, requires clean Git status, and installs the frozen root lockfile. It
+then runs the packed independent consumers, provider-neutral portability,
+receipt-bound CLI migration/rollback, a bounded local SQLite backup and
+isolated restore, and the coordinated 24-package upgrade/rollback rehearsal.
+The same snapshot must remain clean after all operations.
+
+The passing receipt records:
+
+```text
+source kind                 assembled-current-source-snapshot
+source files                2,938
+source SHA-256              44b0f59646886195981e61dfb2be52f0c2019b945f4286ed0faa1e07c8154403
+synthetic commit            49f96146c040b9d39faf1feca4634c2374040270
+synthetic tree              74bfe94f3356d6022db3fa08ec13d0bc6cba95cb
+clean before / after        true / true
+restore integrity           ok; isolated; 7 tables; all critical fixture counts = 1
+backup SHA-256              3653423f4e4d1dfd6bdb57f8cc2a2a3bb6d976b36d40777de786d8d9927012d3
+package schemas             1 -> 2 -> 1 across 24 packages
+upgrade backup SHA-256      3df929d82e8eda933d5bbeaae8c093c93b83f0529558c7ea3d823c57c4a7e4ea
+receipt SHA-256             32b7247767cd862f00e8f3074c37e98433bbc4c01d862762705ddc01c37593b0
+```
+
+The first attempt also exposed a Windows fixture-harness weakness: Vite child
+startup output was hidden and failed teardown could keep the Bun process alive.
+Health probes now have bounded request timeouts, startup diagnostics are
+visible, and Windows process-tree cleanup is explicit. The independent packed
+consumer and the complete clean-checkout rehearsal both pass with the hardened
+harness.
+
+This receipt is deliberately labeled as an assembled current-source snapshot.
+It is local executable evidence, not an original clean release commit, registry
+publication, authenticated staging run, or immutable external backup. Those
+release proofs remain open.
+
+## CMS workflow task governance slice — 2026-08-21
+
+The version-bound editorial handoff now carries a provider-neutral task instead
+of only a note. Requests normalize assignee IDs and roles, mentions,
+notification intent, due date, and required or optional checklist items.
+Decisions carry completed checklist IDs. The runtime derives those fields from
+immutable events and exposes shared assignment and checklist checks; both the
+application service and Cloudflare provider fail closed when a reviewer is not
+assigned or an approval omits required evidence. Exact retries are idempotent,
+while a divergent request for the same version conflicts.
+
+The application stores this metadata in the new
+`0021_wooden_screwball.sql` migration, validates referenced staff and eligible
+Owner/Admin assignees, atomically emits a deduplicated
+`content.<type>.review_requested` outbox event, and provides due/assignee/overdue
+queue filters with deterministic due-first ordering. The editor exposes due
+date, role/person assignment, mentions, request notes, and line-based required
+checklists. The dashboard renders pending work as a review calendar when due
+dates exist. Approval is disabled until every required item is selected;
+requesting changes remains available for incomplete work.
+
+The Cloudflare reference provider adds
+`0009_editorial_review_tasks`, preserves task and decision evidence in bounded
+JSON metadata, and passes the strengthened real-provider conformance scenario.
+The first browser reruns caught two presentation defects without weakening the
+contract: a role-order assertion assumed display order, and the checklist gate
+was attached to the request-changes button instead of approval. The assertion
+is now order-independent and the gate is attached to approval.
+
+Current executable evidence:
+
+```text
+bun test packages/api/tests/editorial-review-tasks.test.ts
+         packages/cms-provider-cloudflare/tests/provider.test.ts
+                                                         PASS (19 / 85 expectations)
+focused core/runtime/API review suites                  PASS (49 / 131 expectations)
+bun run cms:migrations:verify                           PASS (22 migrations)
+cms-core/runtime/cloudflare/api/web typechecks          PASS
+bun scripts/test-e2e-local.ts --project=desktop-chrome
+  --grep "editorial review stays bound"                PASS (1 / 16.2s)
+```
+
+The browser journey creates a versioned page, requests review with Owner/Admin
+assignment, a due date and two required checklist items, verifies the due-aware
+dashboard queue, reopens the document, proves approval is gated until both
+items are checked, approves, runs the accessibility scan, verifies queue
+removal, and deletes the fixture.
+
+This is a truthful partial closure of `CMS-P1-03`, not completion of that item.
+Folder-scoped workflow policy, arbitrary-collection review policy, release
+membership for globals and real locales, and the external scheduled-campaign/
+staging receipts remain open. A signed-in in-app Browser visit was also blocked by the
+existing fail-closed Owner TOTP enrollment requirement; security state was not
+changed, so it produced no live authenticated UI evidence.
+
+## CMS unified operations calendar slice — 2026-08-21
+
+The operations workspace now exposes one bounded monthly agenda for scheduled
+pages, posts, generic localized collection documents, multi-document releases,
+and editorial review due dates. The API accepts an explicit half-open UTC range,
+rejects reversed or windows longer than 366 days, supports kind filters and a
+bounded limit, orders every database source before limiting, then de-duplicates,
+sorts, and marks overdue scheduled/review work deterministically. The generic
+standard-page compatibility projection is excluded so a scheduled standard page
+appears only once.
+
+The admin route groups entries by UTC day, provides previous/next-month controls,
+links page and post work back to their editors, surfaces type/status/locale and
+overdue state, and refreshes the calendar after release mutations. Its region,
+controls, responsive overflow contract, loading/error/empty states, and axe scan
+are covered by the authenticated operations journey on both configured browser
+projects.
+
+Current executable evidence:
+
+```text
+bun test packages/api/tests/calendar.test.ts            PASS (3 / 9 expectations)
+calendar + review/release/workflow focused suites        PASS (21 / 71 expectations)
+bun --cwd packages/api check-types                       PASS
+bun --cwd apps/web check-types                           PASS
+bun scripts/test-e2e-local.ts --grep
+  "operations modules are available to admin"           PASS (desktop + mobile)
+```
+
+This closes the local unified-calendar gap within `CMS-P1-03`; it does not close
+the broader item or replace authenticated deployed-staging and real scheduled
+campaign receipts.
+
+## CMS localized collection release slice — 2026-08-21
+
+Release membership now has an explicit collection dimension in addition to
+document type, document ID, locale, and expected version. Migration
+`0022_common_puppet_master.sql` preserves existing page/post rows with an empty
+collection and extends the uniqueness key so the same collection document may
+participate once per locale. Input validation accepts non-localized collection
+members with an empty locale or a canonical CMS locale, rejects duplicate
+collection/document/locale identities, and requires standard pages to continue
+through the page release path so their legacy projection is not bypassed.
+
+The production adapter publishes installed collection definitions through the
+real Cloudflare collection provider, retaining its schema, hook, relationship,
+revision, and optimistic-version boundaries. Collection publication records a
+locale-qualified audit identity and a reliable content-free
+`content.collection.published` outbox event inside the provider batch. Release
+preview and receipts expose collection and locale. If a later member fails,
+compensation verifies the exact published revision, restores the earlier locale,
+deletes the release-created revision and pending outbox event, records the
+rollback, and leaves the failed release receipt inspectable. Replay recognizes
+the release marker and does not publish or emit twice.
+
+The operations form accepts:
+
+```text
+page,page-id,3
+post,post-id,7
+collection,collection-slug,document-id,vi-VN,3
+```
+
+Its release list exposes each member's collection/document/locale, expected
+version, and status. The existing authenticated operations journey verifies the
+format guidance, responsive overflow contract, and axe-clean shell on desktop
+and mobile.
+
+Current executable evidence:
+
+```text
+bun test packages/api/tests/releases.test.ts             PASS (9 tests)
+  real D1 collection provider                            two-locale publish/replay
+  reliable outbox                                        one event per locale
+  later-locale failure                                   reverse compensation PASS
+bun --cwd packages/cms-provider-cloudflare test           PASS (21 / 103 expectations)
+bun run cms:migrations:verify                             PASS (23 migrations)
+bun scripts/test-e2e-local.ts --grep
+  "operations modules are available to admin"            PASS (desktop + mobile)
+```
+
+Global release membership remains open for a concrete reason: the current
+provider-neutral global API exposes immediate versioned `save`/`restore`, not a
+private draft and explicit publish boundary. Re-saving already-live content as a
+release would manufacture a receipt without changing visibility. `CMS-P1-03`
+therefore remains partial until global draft/publication semantics, arbitrary-
+collection review policy, folder targeting, and the external scheduled-campaign/
+staging proof exist.
+
+## CMS persistent editorial comment slice — 2026-08-21
+
+Page and post editors now use the collaboration contract through a durable app
+implementation rather than only its in-memory reference model. Migration
+`0023_previous_leper_queen.sql` adds document/field/block-anchored threads,
+ordered replies, optimistic thread versions, resolution actor/time, and an
+append-only operation ledger. Targets and anchors are normalized through
+`@agency/cms-collaboration`; comment bodies are bounded, mentions are
+de-duplicated and restricted to active staff, and a block anchor requires its
+field path.
+
+Create, reply, resolve, and reopen are serialized through D1 batches. Every
+mutation takes a UUID operation ID, hashes its semantic payload, returns the
+prior result for an exact retry, rejects a divergent reuse, and records audit
+evidence. Reply and resolution transitions require the current thread version;
+resolved threads reject new replies. Notification outbox events contain target,
+anchor, actor, and recipient identifiers but never the comment or reply body.
+Reading requires `content.readDraft`, writing requires `content.write`, and only
+`content.review.decide` can resolve or reopen a thread.
+
+The shared editor panel exposes create, participant mentions, nested replies,
+open counts, resolve/reopen controls, loading/error/empty states, and stable
+operation IDs for safe UI retries. It is mounted for homepage, standard-page,
+and post editing. A monotonic client-side version snapshot prevents an older
+in-flight query response from causing the next mutation to submit a stale
+version. The authenticated desktop journey creates a thread with a mention,
+replies, observes version 2, resolves it, verifies persistence after navigation,
+completes the surrounding review decision, and passes axe. The mobile authoring
+journey verifies that the discussion surface is present inside the zero-overflow,
+axe-clean editor shell.
+
+Current executable evidence:
+
+```text
+bun test packages/api/tests/editorial-comments.test.ts
+         packages/api/tests/authorization.test.ts       PASS (33 / 69 expectations)
+bun run cms:migrations:verify                            PASS (24 migrations)
+bun --cwd packages/db check-types                        PASS
+bun --cwd packages/api check-types                       PASS
+bun --cwd apps/web check-types                           PASS
+bun scripts/test-e2e-local.ts --project=desktop-chrome
+  --grep "editorial review stays bound"                 PASS (1 / 14.4s)
+bun scripts/test-e2e-local.ts --project=mobile-chrome
+  --grep "mobile home visual authoring keeps canvas"    PASS (1 / 9.5s)
+```
+
+This closes the local persistent-threaded-comment gap in `CMS-P1-03`. It does
+not prove simultaneous multi-user behavior on deployed staging, and it does not
+close folder-scoped workflow policy, arbitrary-collection review policy, global
+draft/publication semantics, or the scheduled-campaign and other external
+release gates.
+
+## CMS folder-scoped workflow policy slice — 2026-08-21
+
+Workflow policies now target the normalized tuple `collection/folder/locale`.
+Folder input accepts slash or backslash separators, removes duplicate and edge
+separators, lowercases every segment, and rejects malformed paths. Resolution
+walks from the document's nearest folder through each ancestor to the collection
+root; at every level an exact locale precedes that level's default locale. This
+makes a closer folder policy intentionally outrank a more specific locale policy
+at a more distant scope.
+
+Migration `0024_daffy_mac_gargan.sql` adds indexed folders to page/post working
+documents, expands the workflow-policy unique target, and migrates existing
+`standard-pages` collection documents and revisions from schema 1 to schema 2
+with an empty root folder. The Rèm collection publishes the matching schema
+migration. Cloudflare provider migration `0010_page_workflow_folders` handles
+both fresh and upgraded legacy page tables idempotently.
+
+Page and post create/update forms persist the folder. Page/post snapshots,
+revision comparison, restore, scheduled publication, editorial reviewer gates,
+direct publication, and release preflight all carry that scope. The operations
+workspace exposes folder and locale targeting, renders the normalized scope, and
+deactivates the exact tuple. Focused browser coverage enters a mixed-case Windows
+path, observes `campaigns/summer · vi-VN`, deactivates that exact policy, and
+passes the existing overflow and axe checks after transient notification state.
+
+Current executable evidence:
+
+```text
+bun test packages/api/tests/standard-page-runtime.test.ts
+         packages/api/tests/workflow-policies.test.ts    PASS (8 / 43 expectations)
+bun test packages/cms-provider-cloudflare/tests/provider.test.ts
+         packages/cms-template-rem-viet/tests/contracts.test.ts
+                                                         PASS (29 / 310 expectations)
+bun test packages/api/tests                              PASS (86 / 293 expectations)
+bun run cms:migrations:verify                            PASS (25 migrations)
+bun run db:migration:verify:fixture                      PASS
+bun --cwd packages/cms check-types                       PASS
+bun --cwd packages/cms-provider-cloudflare check-types   PASS
+bun --cwd packages/api check-types                       PASS
+bun --cwd apps/web check-types                           PASS
+bun scripts/test-e2e-local.ts --project=desktop-chrome
+  --grep "operations modules are available to admin"   PASS (1 / 15.9s)
+```
+
+This closes the local folder-scoped page/post workflow gap in `CMS-P1-03`.
+Arbitrary-collection review policy, global draft/publication and release
+semantics, authenticated deployed-staging concurrency, a real scheduled
+campaign, and the other external release gates remain open.
+
+## CMS global publication and release slice — 2026-08-21
+
+The provider-neutral keyed-global contract now separates the working draft from
+the immutable public snapshot. Each document exposes draft/published status and
+the exact published revision ID. Draft saves and revision restores advance the
+working version without changing public reads; explicit publication snapshots
+the working content as a new revision; exact compensation restores the prior
+version/publication pointer and removes the release-created revision. The shared
+conformance suite proves create, draft isolation, publish, compensation,
+optimistic conflict, newest-first history, restore-as-new-version, and update.
+
+Cloudflare provider migration `0011_global_publication_boundary` adds and
+backfills the publication pointer for legacy provider databases. The D1 adapter
+performs every save, publish, restore, compensation, audit mutation, and
+content-free publication outbox mutation in its provider batch. Sanity stores
+the same pointer on `agencyGlobal`, retains immutable `agencyGlobalRevision`
+documents, and runs the expanded neutral scenario locally and in the guarded
+hosted verifier. The hosted receipt still requires a real named Sanity dataset;
+the local verifier does not manufacture that external evidence.
+
+The Rèm compatibility service bootstraps legacy navigation and site settings as
+an immediately published baseline. Public layout/site-chrome queries now use
+only `getPublished`, while protected admin queries read the working draft. Admin
+settings saves and restores are explicitly labeled as drafts and direct the
+operator to release `site-settings`, `navigation:header`, or
+`navigation:footer`. Migration `0025_mushy_ricochet.sql` adds and backfills the
+application-owned `cms_globals.published_revision_id` column.
+
+Release membership accepts `global,<key>,<version>` with a null locale. Preview
+and validation inspect the exact working version. Publication uses the
+actor-bound provider audit hook, emits one content-free
+`content.global.published` outbox event, and remains exact-replay safe. If any
+later release member fails, reverse compensation restores the exact prior
+global public revision/version, preserves the newer working draft, removes the
+release-created revision and outbox event, and keeps the failed release receipt
+inspectable.
+
+The first fresh-D1 browser smoke exposed a genuine SSR bootstrap race: root and
+page loaders could both publish version 1, and the losing D1 unique-index write
+escaped as a native error even though the winner completed version 2. The
+Cloudflare adapter now maps that constraint to the portable `CONFLICT` contract,
+allowing the existing bootstrap winner-read path to complete. A focused provider
+regression test covers the mapping, and the rebuilt isolated Worker returned 200
+on its first public render before the authenticated browser cases ran.
+
+Current executable evidence:
+
+```text
+bun test packages/cms-provider-cloudflare/tests/provider.test.ts
+                                                         PASS (16 / 82 expectations)
+bun test packages/cms-provider-sanity/tests/provider.test.ts
+                                                         PASS (24 / 80 expectations)
+bun test packages/api/tests/releases.test.ts             PASS (11 / 59 expectations)
+  global draft remains private                           PASS
+  exact replay + one content-free outbox event            PASS
+  later localized-member failure                          exact global compensation PASS
+bun test packages/api/tests                              PASS (88 / 306 expectations)
+bun run db:migration:verify:fixture                       PASS
+bun scripts/test-e2e-local.ts --project=desktop-chrome
+  --grep "site settings and navigation never require client JSON|
+          operations modules are available to admin"     PASS (2 / 43.1s)
+```
+
+This closes the local global draft/publication and release-membership gap in
+`CMS-P1-03`. Arbitrary-collection review policy remains an implementation gap.
+Authenticated deployed-staging concurrency, a real scheduled campaign, hosted
+provider/CI receipts, and the other independent release gates remain external.
+
+## CMS arbitrary-collection review-policy slice — 2026-08-21
+
+Workflow policy collection targets now accept any registered-style CMS
+collection slug instead of only the page/post compatibility types. Page and post
+audit identities remain unchanged; arbitrary collection reviews use
+`cms_collection_document` plus the same
+`collection/document/locale-or-default` identity as provider publication. The
+approval resolver, self-approval gate, queue, notification outbox, calendar, and
+release preflight therefore cannot confuse two locales of one collection
+document.
+
+The editorial review API accepts an explicit collection target carrying
+collection slug, document ID, locale, and expected version. It loads the real
+provider draft, derives a bounded display title without placing content in the
+outbox, retains assignee/role/due/mention/checklist behavior, records immutable
+collection review events, and reconstructs current collection work in the
+due-first queue. Release validation no longer skips collection members and uses
+the injected release database, so preview and execution both fail closed on an
+incomplete policy. Standard pages still reject the generic collection review
+path and keep their atomic page compatibility projection.
+
+The production-D1 release test now creates a localized campaign draft and exact
+locale policy, observes failed preview/execution before approval, requests
+review with a required checklist, verifies the locale-qualified queue and
+content-free outbox, approves as a different Owner, and publishes the unchanged
+release successfully. A separate policy test proves the Vietnamese approval
+does not unlock the English document. The operations UI accepts arbitrary
+collection slugs through a discoverable text input, persists the normalized
+collection/folder/locale tuple, and deactivates that exact policy.
+
+Current executable evidence:
+
+```text
+bun test packages/api/tests/workflow-policies.test.ts
+         packages/api/tests/releases.test.ts
+         packages/api/tests/editorial-review-tasks.test.ts
+         packages/api/tests/authorization.test.ts
+         packages/api/tests/calendar.test.ts              PASS (56 / 146 expectations)
+bun --cwd packages/api check-types                        PASS
+bun --cwd apps/web check-types                            PASS
+bun scripts/test-e2e-local.ts --project=desktop-chrome
+  --grep "operations modules are available to admin"    PASS (1 / 22.4s)
+root bun run check-types                                  PASS (34 / 34 tasks)
+root bun run test                                         PASS (full aggregate; API 90 / 320 expectations)
+bun run build:web:secure                                  PASS (230 files / 0 exposures)
+bun run audit:security                                    PASS (0 high vulnerabilities)
+bun run audit:performance                                 PASS
+bun run audit:migration-parity                            PASS (89 checks)
+bun run cms:migrations:verify                             PASS (26 migrations)
+```
+
+This closes the remaining local arbitrary-collection review-policy gap in
+`CMS-P1-03`. Authenticated deployed-staging concurrency, a real scheduled
+campaign, hosted Linux provider/CI receipts, independent security/documentation
+review, registry receipts, and real pilot/client handover evidence remain
+external and are not replaced by this local slice.
+
+## Hosted CMS conformance receipt — 2026-08-21
+
+The repository's CMS conformance workflow existed in local history but was not
+present on GitHub's default branch, so it had no remote workflow identity or
+run receipt. Existing commits were published without the uncommitted working
+tree to draft PR [#1](https://github.com/TongDucThanhNam/rem-viet/pull/1), which
+caused GitHub to execute the workflow on real hosted runners.
+
+The first Ubuntu run exposed that the public-template bundle proof depended on
+stale Windows package links: a clean Linux install could not resolve the
+templates' declared runtime peers. The package manifests now carry the missing
+development peers, Atelier treats its unconditional React runtime as required,
+and the bundle proof explicitly externalizes declared runtime peers while
+asserting that both template source graphs are traversed and that admin,
+visual-editor, and factory sources remain absent.
+
+A later Ubuntu rerun exposed two readiness-harness defects rather than a CMS
+package failure. First, the verifier preselected and released a loopback port
+before Vite bound it. The harness now lets Vite request port `0`, captures a
+bounded output tail, retries one failed launch, and reports process diagnostics.
+Second, Vite bolded only the selected port with ANSI control sequences on the
+hosted runner, so the raw origin parser could not recognize an otherwise-ready
+server. The parser now strips terminal control characters before extracting the
+origin, and the boundary suite preserves that contract. The next exact-SHA run
+passed on both operating systems.
+
+Authoritative receipt:
+
+```text
+draft PR                                                    https://github.com/TongDucThanhNam/rem-viet/pull/1
+receipt commit                                              c4b7c2f
+GitHub Actions run                                          https://github.com/TongDucThanhNam/rem-viet/actions/runs/32494308357
+PostgreSQL provider conformance (Ubuntu/PostgreSQL 17/MinIO) PASS (35s)
+Packed consumer + clean checkout (Ubuntu)                   PASS (1m26s)
+Packed consumer + clean checkout (Windows)                  PASS (4m56s)
+```
+
+The PostgreSQL job ran the provider tests and typecheck against the PostgreSQL
+17 service and pinned MinIO image. Both packed-consumer jobs ran the boundary,
+collaboration/privacy, frozen-install, packed-artifact portability,
+export/import, CLI migration/rollback, isolated backup/restore, and 24-package
+upgrade/rollback rehearsal. This closes the missing hosted Linux
+PostgreSQL/MinIO execution receipt for commit `c4b7c2f`.
+
+At that checkpoint it was deliberately not treated as final release provenance:
+the working tree contained later uncommitted CMS changes, so the same workflow
+still had to pass on the exact release commit before publication.
+
+## Exact CMS release-candidate receipt — 2026-08-21
+
+The complete candidate delta was committed as
+`35ff024162366e9616d26d89c836acbf9007cab1` after the sequential root
+`bun run quality` gate passed. That local gate included the full unit/provider
+aggregate, 26 CMS migrations, secure production build, performance budgets,
+the nine-case Atelier desktop/tablet/mobile browser matrix, the isolated
+authenticated desktop/mobile CMS matrix, and the `acme-demo` second-site
+portability slice. The worktree was clean before release preparation.
+
+The guarded `0.1.0` preparer emitted 24 deterministic artifacts with clean,
+publish-eligible provenance. A deliberate publisher invocation with both
+private-registry inputs removed rebuilt and revalidated the source artifacts,
+then failed before any publication with the required HTTPS-registry error. This
+proves the fail-closed boundary; it is not a registry publication receipt.
+
+Authoritative exact-source hosted receipt:
+
+```text
+release-source commit                                      35ff024162366e9616d26d89c836acbf9007cab1
+draft PR                                                   https://github.com/TongDucThanhNam/rem-viet/pull/1
+GitHub Actions run                                         https://github.com/TongDucThanhNam/rem-viet/actions/runs/32504935724
+PostgreSQL provider conformance (Ubuntu/PostgreSQL 17/MinIO) PASS (36s)
+Packed consumer + clean checkout (Ubuntu)                  PASS (1m24s)
+Packed consumer + clean checkout (Windows)                 PASS (4m19s)
+```
+
+The live flagship readiness audit still returns nonzero truthfully. Staging
+reports a clean provenance contract but a commit different from the release
+source; operational alert delivery lacks a retained dispatch receipt and
+recipient; notification email configuration is absent; the scheduled-backup
+configuration/manual/weekly receipts are absent; representative 28-day field
+samples are below the 75-per-metric gate; and the schema-v3 client-ready release
+record does not exist. Local `CMS_PRIVATE_REGISTRY_URL` and
+`CMS_PRIVATE_REGISTRY_TOKEN` are also absent. Registry publication/reinstall,
+exact deployed staging, independent security/documentation review, the
+non-developer pilot, and paid-client handover therefore remain external and are
+not inferred from the green candidate checks.

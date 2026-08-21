@@ -1,10 +1,22 @@
 import { describe, expect, test } from "bun:test";
 import {
+  arrayField,
+  codeField,
+  colorField,
+  computedField,
   createCollectionRegistry,
   defineCollection,
+  emailField,
+  groupField,
+  jsonField,
+  pointField,
+  polymorphicRelationshipField,
   relationshipField,
   selectField,
+  slugField,
   textField,
+  urlField,
+  virtualField,
 } from "@agency/cms-core";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -31,6 +43,11 @@ const authors = defineCollection({
   access,
   fields: [textField({ name: "name", label: "Name", required: true })],
   admin: { useAsTitle: "name", defaultColumns: ["name"] },
+});
+const topics = defineCollection({
+  ...authors,
+  slug: "admin-topics",
+  labels: { singular: "Topic", plural: "Topics" },
 });
 const articles = defineCollection({
   slug: "admin-articles",
@@ -69,13 +86,21 @@ const articles = defineCollection({
       required: true,
       onDelete: "restrict",
     }),
+    polymorphicRelationshipField({
+      name: "relatedContent",
+      label: "Related content",
+      relationTo: [authors.slug, topics.slug],
+      hasMany: true,
+      onDelete: "nullify",
+      defaultValue: [],
+    }),
   ],
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "audience", "author"],
   },
 });
-const registry = createCollectionRegistry([authors, articles] as const);
+const registry = createCollectionRegistry([authors, topics, articles] as const);
 
 const localizedArticles = defineCollection({
   ...articles,
@@ -98,6 +123,97 @@ const localizedArticles = defineCollection({
 });
 const localizedRegistry = createCollectionRegistry([localizedArticles]);
 
+const scalarRecords = defineCollection({
+  slug: "scalar-records",
+  labels: { singular: "Scalar record", plural: "Scalar records" },
+  schemaVersion: 1,
+  lifecycle,
+  access,
+  fields: [
+    emailField({ name: "email", label: "Email", required: true }),
+    urlField({ name: "website", label: "Website" }),
+    slugField({ name: "slug", label: "Slug", required: true }),
+    codeField({ name: "snippet", label: "Snippet", language: "typescript" }),
+    jsonField({ name: "metadata", label: "Metadata" }),
+    colorField({ name: "color", label: "Color" }),
+    pointField({ name: "location", label: "Location" }),
+    computedField({
+      name: "displayLabel",
+      label: "Display label",
+      valueKind: "text",
+      compute: async ({ data }) => String(data.slug ?? ""),
+    }),
+    virtualField({
+      name: "liveStatus",
+      label: "Live status",
+      valueKind: "text",
+      resolve: async () => "Ready",
+    }),
+  ],
+  admin: {
+    useAsTitle: "slug",
+    defaultColumns: ["slug", "email"],
+    layout: [
+      {
+        id: "identity",
+        type: "tab",
+        label: "Identity",
+        fields: ["email", "website", "slug"],
+      },
+      {
+        id: "data",
+        type: "tab",
+        label: "Structured data",
+        fields: ["snippet", "metadata"],
+      },
+      {
+        id: "coordinates",
+        type: "row",
+        label: "Coordinates",
+        fields: ["location"],
+      },
+      {
+        id: "appearance",
+        type: "collapsible",
+        label: "Appearance",
+        fields: ["color"],
+        collapsed: true,
+      },
+    ],
+  },
+});
+const scalarRegistry = createCollectionRegistry([scalarRecords]);
+
+const structuredRecords = defineCollection({
+  slug: "structured-records",
+  labels: { singular: "Structured record", plural: "Structured records" },
+  schemaVersion: 1,
+  lifecycle,
+  access,
+  fields: [
+    groupField({
+      name: "address",
+      label: "Address",
+      required: true,
+      fields: [
+        textField({ name: "street", label: "Street", required: true }),
+        textField({ name: "city", label: "City", required: true }),
+      ],
+    }),
+    arrayField({
+      name: "contributors",
+      label: "Contributors",
+      validation: { maxItems: 3 },
+      fields: [
+        textField({ name: "name", label: "Name", required: true }),
+        emailField({ name: "email", label: "Email" }),
+      ],
+    }),
+  ],
+  admin: { useAsTitle: "address", defaultColumns: ["address"] },
+});
+const structuredRegistry = createCollectionRegistry([structuredRecords]);
+
 const shellBase = {
   registry,
   collection: articles.slug,
@@ -108,6 +224,81 @@ const shellBase = {
 } as const;
 
 describe("generated collection admin", () => {
+  test("renders nested group and repeatable array controls with stable paths", () => {
+    function StreetOverride({ controlId }: CmsCollectionFieldControlProps) {
+      return <input id={controlId} aria-label="Street override" />;
+    }
+    const html = renderToStaticMarkup(
+      <CmsCollectionAdminShell
+        registry={structuredRegistry}
+        collection={structuredRecords.slug}
+        collectionHref={(slug) => `/admin/collections/${slug}`}
+        createHref="/admin/collections/structured-records/create"
+        editHref={(id) => `/admin/collections/structured-records/${id}`}
+        cancelHref="/admin/collections/structured-records"
+        mode="create"
+        controls={createCollectionFieldControlRegistry({
+          byField: {
+            "structured-records.address.street": StreetOverride,
+          },
+        })}
+        data={{
+          address: { street: "1 Nguyễn Huệ", city: "Hồ Chí Minh" },
+          contributors: [{ name: "Nam", email: "nam@example.com" }],
+        }}
+      />,
+    );
+    expect(html).toContain('data-cms-field-path="address.street"');
+    expect(html).toContain('aria-label="Street override"');
+    expect(html).toContain('for="cms-structured-records-address-city"');
+    expect(html).toContain("<legend>Contributors 1</legend>");
+    expect(html).toContain('data-cms-field-path="contributors.0.email"');
+    expect(html).toContain('aria-label="Remove Contributors row 1"');
+    expect(html).toContain("Add Contributors row");
+  });
+
+  test("renders accessible controls for scalar field v2", () => {
+    const html = renderToStaticMarkup(
+      <CmsCollectionAdminShell
+        registry={scalarRegistry}
+        collection={scalarRecords.slug}
+        collectionHref={(slug) => `/admin/collections/${slug}`}
+        createHref="/admin/collections/scalar-records/create"
+        editHref={(id) => `/admin/collections/scalar-records/${id}`}
+        cancelHref="/admin/collections/scalar-records"
+        mode="create"
+        data={{
+          email: "editor@example.com",
+          slug: "launch",
+          color: "#c8a96b",
+          location: { latitude: 10, longitude: 106 },
+          displayLabel: "launch",
+          liveStatus: "Ready",
+        }}
+      />,
+    );
+    expect(html).toContain('type="email"');
+    expect(html).toContain('type="url"');
+    expect(html).toContain('pattern="[a-z0-9]+(?:-[a-z0-9]+)*"');
+    expect(html).toContain('data-language="typescript"');
+    expect(html).toContain("Structured JSON value");
+    expect(html).toContain('type="color"');
+    expect(html).toContain("<legend>Location</legend>");
+    expect(html).toContain('for="cms-scalar-records-location-latitude"');
+    expect(html).toContain('for="cms-scalar-records-location-longitude"');
+    expect(html).toContain('role="tablist"');
+    expect(html).toContain('aria-selected="true"');
+    expect(html).toContain('role="tabpanel"');
+    expect(html).toContain(
+      'aria-labelledby="cms-scalar-records-tab-data" hidden=""',
+    );
+    expect(html).toContain('data-cms-layout="row"');
+    expect(html).toContain('data-cms-layout="collapsible"');
+    expect(html).toContain("<summary>Appearance</summary>");
+    expect(html).toContain('data-cms-derived="computed">launch</output>');
+    expect(html).toContain('data-cms-derived="virtual">Ready</output>');
+  });
+
   test("renders semantic navigation, filters, list columns, and edit links", () => {
     const html = renderToStaticMarkup(
       <CmsCollectionAdminShell
@@ -148,6 +339,7 @@ describe("generated collection admin", () => {
         data={{ title: "Draft", audience: "public", author: "author-1" }}
         relationshipOptions={{
           "admin-authors": [{ id: "author-1", label: "Ada" }],
+          "admin-topics": [{ id: "topic-1", label: "Launch" }],
         }}
         errors={{ title: "Title is required" }}
       />,
@@ -158,6 +350,13 @@ describe("generated collection admin", () => {
     expect(publicHtml).toContain('aria-invalid="true"');
     expect(publicHtml).toContain(
       '<option value="author-1" selected="">Ada</option>',
+    );
+    expect(publicHtml).toContain(
+      '<option value="" disabled="">Select a related document</option>',
+    );
+    expect(publicHtml).toContain('<optgroup label="admin-authors">');
+    expect(publicHtml).toContain(
+      '<option value="admin-topics:topic-1">Launch</option>',
     );
     expect(publicHtml).not.toContain("Member note");
 

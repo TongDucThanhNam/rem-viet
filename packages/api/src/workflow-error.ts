@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { CmsError, type OperationalIncidentInput } from "@rem-viet/cms";
 
 import { reportOperationalIncident } from "./services/incidents";
-import { ContentWorkflowError } from "./services/content-revisions";
+import { ContentWorkflowError } from "./services/content-workflow-error";
 
 export async function runCmsWorkflow<T>(
   operation: () => Promise<T>,

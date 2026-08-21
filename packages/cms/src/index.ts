@@ -145,9 +145,34 @@ export function ensureStandardPageBlockIds(
  * published. Public renderers must validate this payload and never fall back to
  * mutable fields from `pages` when it is invalid.
  */
+const cmsContentFolderPattern =
+  /^[a-z0-9][a-z0-9._-]*(?:\/[a-z0-9][a-z0-9._-]*)*$/;
+
+export function normalizeCmsContentFolder(value: string) {
+  return value
+    .trim()
+    .replaceAll("\\", "/")
+    .replace(/^\/+|\/+$/g, "")
+    .replace(/\/{2,}/g, "/")
+    .toLowerCase();
+}
+
+export const cmsContentFolderValueSchema = z
+  .string()
+  .trim()
+  .max(256)
+  .transform(normalizeCmsContentFolder)
+  .refine(
+    (value) => !value || cmsContentFolderPattern.test(value),
+    "Content folder must be a slash-separated path of lowercase IDs",
+  );
+
+export const cmsContentFolderSchema = cmsContentFolderValueSchema.default("");
+
 export const pageRevisionSnapshotSchema = z.object({
   title: z.string().min(1),
   slug: z.string().min(1),
+  folder: cmsContentFolderSchema,
   template: z.enum(["landing", "standard"]).default("standard"),
   blocks: pageBlocksSchema,
   seoTitle: z.string().default(""),
@@ -164,6 +189,7 @@ export type PageRevisionSnapshot = z.infer<typeof pageRevisionSnapshotSchema>;
 export const postRevisionSnapshotSchema = z.object({
   title: z.string().min(1),
   slug: z.string().min(1),
+  folder: cmsContentFolderSchema,
   description: z.string().default(""),
   coverImage: z.string().default(""),
   tags: z.array(z.string()).default([]),

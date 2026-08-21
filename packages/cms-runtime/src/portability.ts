@@ -3,6 +3,7 @@ import {
   collectCmsRelationshipReferences,
   migrateCollectionData,
   parseCmsCollectionData,
+  toCmsCanonicalCollectionData,
   type CmsBuiltInField,
   type CmsCollectionDefinition,
   type CmsCollectionRegistry,
@@ -189,6 +190,10 @@ export async function exportCmsContent(input: {
   const documents: CmsPortableDocument[] = [];
   for (const entry of registry) {
     const definition = definitionFor(input.provider.registry, entry.slug);
+    const builtInDefinition = definition as CmsCollectionDefinition<
+      string,
+      readonly CmsBuiltInField[]
+    >;
     const locales = definition.localization
       ? definition.localization.locales
       : [undefined];
@@ -211,9 +216,13 @@ export async function exportCmsContent(input: {
           locale: draft.locale,
           schemaVersion: draft.schemaVersion,
           expectedVersion: null,
-          data: stableValue(draft.data) as Record<string, unknown>,
+          data: stableValue(
+            toCmsCanonicalCollectionData(builtInDefinition, draft.data),
+          ) as Record<string, unknown>,
           publishedData: published
-            ? (stableValue(published.data) as Record<string, unknown>)
+            ? (stableValue(
+                toCmsCanonicalCollectionData(builtInDefinition, published.data),
+              ) as Record<string, unknown>)
             : null,
           scheduledAt: draft.scheduledAt,
         });
@@ -376,12 +385,16 @@ export async function importCmsContent(input: {
       continue;
     }
     let definition: CmsCollectionDefinition;
+    let builtInDefinition: CmsCollectionDefinition<
+      string,
+      readonly CmsBuiltInField[]
+    >;
     let locale: string | undefined;
     let data: Record<string, unknown>;
     let publishedData: Record<string, unknown> | null;
     try {
       definition = definitionFor(input.provider.registry, document.collection);
-      const builtInDefinition = definition as CmsCollectionDefinition<
+      builtInDefinition = definition as CmsCollectionDefinition<
         string,
         readonly CmsBuiltInField[]
       >;
@@ -405,21 +418,27 @@ export async function importCmsContent(input: {
           to: definition.schemaVersion,
         });
       }
-      data = parseCmsCollectionData(
+      data = toCmsCanonicalCollectionData(
         builtInDefinition,
-        migrateCollectionData(
+        parseCmsCollectionData(
           builtInDefinition,
-          document.data,
-          document.schemaVersion,
+          migrateCollectionData(
+            builtInDefinition,
+            document.data,
+            document.schemaVersion,
+          ),
         ),
       );
       publishedData = document.publishedData
-        ? parseCmsCollectionData(
+        ? toCmsCanonicalCollectionData(
             builtInDefinition,
-            migrateCollectionData(
+            parseCmsCollectionData(
               builtInDefinition,
-              document.publishedData,
-              document.schemaVersion,
+              migrateCollectionData(
+                builtInDefinition,
+                document.publishedData,
+                document.schemaVersion,
+              ),
             ),
           )
         : null;
@@ -500,18 +519,27 @@ export async function importCmsContent(input: {
       locale,
       actorId: input.actorId,
     });
+    const existingPublished = existing
+      ? await input.provider.getPublished({
+          collection: document.collection,
+          id: document.id,
+          locale,
+          actorId: input.actorId,
+        })
+      : null;
     if (
       existing &&
-      equal(existing.data, data) &&
       equal(
-        (
-          await input.provider.getPublished({
-            collection: document.collection,
-            id: document.id,
-            locale,
-            actorId: input.actorId,
-          })
-        )?.data ?? null,
+        toCmsCanonicalCollectionData(builtInDefinition, existing.data),
+        data,
+      ) &&
+      equal(
+        existingPublished
+          ? toCmsCanonicalCollectionData(
+              builtInDefinition,
+              existingPublished.data,
+            )
+          : null,
         publishedData,
       ) &&
       existing.scheduledAt === document.scheduledAt

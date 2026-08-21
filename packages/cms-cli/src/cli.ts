@@ -1,7 +1,8 @@
 #!/usr/bin/env bun
 
 import { lstatSync, realpathSync } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { spawn } from "node:child_process";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -26,6 +27,29 @@ try {
       await mkdir(dirname(target), { recursive: true });
       await writeFile(target, content, { flag: "wx" });
     },
+    replace: async (path, content) => {
+      const target = targetPath(path);
+      await writeFile(target, content, { flag: "w" });
+    },
+    remove: async (path) => {
+      await unlink(targetPath(path));
+    },
+    install: () =>
+      new Promise<void>((resolveInstall, rejectInstall) => {
+        const child = spawn("bun", ["install"], {
+          cwd: root,
+          stdio: ["ignore", "ignore", "inherit"],
+          windowsHide: true,
+        });
+        child.once("error", rejectInstall);
+        child.once("exit", (code) => {
+          if (code === 0) resolveInstall();
+          else
+            rejectInstall(new Error(`bun install exited with code ${code}.`));
+        });
+      }),
+    importIntegrationProvider: async (provider) =>
+      import(integrationProviderModule(provider)),
     importTemplateInitializer: async (specifier) =>
       import(templateModuleUrl(specifier)),
     importMigrationDriver: async (path) =>
@@ -52,6 +76,13 @@ function templateModuleUrl(specifier: string) {
     );
   }
   return specifier;
+}
+
+function integrationProviderModule(provider: string) {
+  if (!/^[a-z][a-z0-9-]{1,62}$/.test(provider)) {
+    throw new Error("CMS provider id must be a safe package suffix.");
+  }
+  return `@agency/cms-provider-${provider}/integration`;
 }
 
 function targetPath(path: string) {

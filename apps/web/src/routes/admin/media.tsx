@@ -72,7 +72,7 @@ type MediaRow = {
   size: number;
   mimeType: string;
   createdAt: string;
-  usageReferences: Array<{ type: string; id: string }>;
+  usageReferences: readonly { type: string; id: string }[];
 };
 
 type UploadState = "pending" | "uploading" | "done" | "error";

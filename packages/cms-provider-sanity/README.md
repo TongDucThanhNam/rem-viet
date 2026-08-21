@@ -13,13 +13,16 @@ real hosted-dataset exercise before those ports are advertised.
 
 The package also implements the keyed global-content contract for settings and
 navigation. Unlike page history, this adapter owns explicit immutable
-`agencyGlobalRevision` documents and therefore proves save, newest-first
-history, optimistic `_rev` conflicts, and restore-as-new-version locally through
-the same runtime conformance suite as Cloudflare. Document IDs use a SHA-256
-digest of the portable key, so arbitrary Unicode/URL-like keys remain valid
-Sanity IDs without leaking or truncating the original key. This global path has
-structural/local evidence, and the hosted verifier now runs the same neutral
-conformance against its real dataset before a receipt can be emitted.
+`agencyGlobalRevision` documents and a referenced published revision. Draft
+saves and restores cannot change public reads; explicit publication advances an
+immutable public snapshot, and failed multi-document releases can compensate
+that publication to the exact prior revision. The shared conformance suite also
+proves newest-first history, optimistic `_rev` conflicts, and
+restore-as-new-version. Document IDs use a SHA-256 digest of the portable key,
+so arbitrary Unicode/URL-like keys remain valid Sanity IDs without leaking or
+truncating the original key. This global path has structural/local evidence,
+and the hosted verifier runs the same neutral conformance against its real
+dataset before a receipt can be emitted.
 
 Preview helpers return safe published/draft client overlays for Sanity's current
 perspective + stega model. Tokens are intentionally absent from all returned
@@ -107,12 +110,13 @@ The gate is staging-only unless both `--allow-production` and the confirmation
 suffix `PRODUCTION` are supplied. It creates a disposable two-block draft,
 checks a stable-`_key` Content Source Map, proves optimistic conflict handling,
 publishes, unpublishes, and deletes. It also runs the neutral global-content
-create, optimistic-conflict, immutable-history, and restore-as-new-version
-scenario. Both the page documents and all global proof revisions must be
-deleted before a complete receipt is created with exclusive-write semantics
-below `docs/releases/evidence/`. Tokens are never included in output. The gate
-is implemented locally; hosted global-content evidence exists only after this
-command passes against the named real dataset and its receipt is retained.
+create, draft-isolation, publish, compensating-rollback, optimistic-conflict,
+immutable-history, and restore-as-new-version scenario. The current global
+document and all five proof revisions must be deleted before a complete receipt
+is created with exclusive-write semantics below `docs/releases/evidence/`.
+Tokens are never included in output. The gate is implemented locally; hosted
+global-content evidence exists only after this command passes against the named
+real dataset and its receipt is retained.
 
 ## Presentation receipt gate
 

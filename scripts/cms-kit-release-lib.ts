@@ -27,10 +27,23 @@ const semverPattern = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 const digestPattern = /^[0-9a-f]{64}$/;
 export const cmsKitPackageNames = Object.freeze([
   "@agency/cms-admin",
+  "@agency/cms-agency",
   "@agency/cms-alchemy",
   "@agency/cms-cli",
+  "@agency/cms-collaboration",
   "@agency/cms-core",
+  "@agency/cms-module-cache-cloudflare",
+  "@agency/cms-module-forms",
+  "@agency/cms-module-import",
+  "@agency/cms-module-observability",
+  "@agency/cms-module-privacy",
+  "@agency/cms-module-redirects",
+  "@agency/cms-module-search",
+  "@agency/cms-module-seo",
+  "@agency/cms-module-taxonomy",
   "@agency/cms-provider-cloudflare",
+  "@agency/cms-provider-local",
+  "@agency/cms-provider-postgres",
   "@agency/cms-react",
   "@agency/cms-runtime",
   "@agency/cms-template-atelier",
@@ -39,9 +52,22 @@ export const cmsKitPackageNames = Object.freeze([
   "@agency/cms-visual-editor",
 ] as const);
 const neutralPackages = new Set([
+  "@agency/cms-agency",
+  "@agency/cms-collaboration",
   "@agency/cms-core",
   "@agency/cms-runtime",
+  "@agency/cms-module-cache-cloudflare",
+  "@agency/cms-module-forms",
+  "@agency/cms-module-import",
+  "@agency/cms-module-observability",
+  "@agency/cms-module-privacy",
+  "@agency/cms-module-redirects",
+  "@agency/cms-module-search",
+  "@agency/cms-module-seo",
+  "@agency/cms-module-taxonomy",
   "@agency/cms-provider-cloudflare",
+  "@agency/cms-provider-local",
+  "@agency/cms-provider-postgres",
   "@agency/cms-react",
   "@agency/cms-admin",
   "@agency/cms-alchemy",
@@ -81,6 +107,8 @@ export function assertCmsKitCompatibilityMatrix(
     matrix.current !== releaseVersion ||
     matrix.schemas?.remVietBlock !== 1 ||
     matrix.schemas?.cloudflareProvider !== 1 ||
+    matrix.schemas?.localProvider !== 1 ||
+    matrix.schemas?.postgresProvider !== 1 ||
     typeof matrix.schemas?.cloudflareMigrationsThrough !== "string" ||
     !Array.isArray(matrix.rehearsals) ||
     !requiredVersions.every(
@@ -291,7 +319,7 @@ export function assertCmsKitPublishPackageSet(
     actual.some((name, index) => name !== cmsKitPackageNames[index])
   ) {
     throw new Error(
-      "CMS Kit publication requires the exact eleven-package set.",
+      `CMS Kit publication requires the exact ${cmsKitPackageNames.length}-package set.`,
     );
   }
   return packages;

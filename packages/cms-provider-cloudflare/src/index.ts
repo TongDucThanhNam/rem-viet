@@ -1,5 +1,6 @@
 import {
   CmsError,
+  cmsEditorialReviewTaskSchema,
   decideCmsEditorialReviewInputSchema,
   requestCmsEditorialReviewInputSchema,
   type CmsBlock,
@@ -30,7 +31,11 @@ import type {
   UnscheduleDraftInput,
   UnpublishDraftInput,
 } from "@agency/cms-runtime";
-import { deriveCmsEditorialReviewState } from "@agency/cms-runtime";
+import {
+  deriveCmsEditorialReviewState,
+  isCmsEditorialReviewActorAssigned,
+  missingRequiredCmsEditorialReviewChecklistItems,
+} from "@agency/cms-runtime";
 
 export type D1Value = string | number | null | ArrayBuffer;
 
@@ -62,6 +67,7 @@ CREATE TABLE IF NOT EXISTS pages (
   id TEXT PRIMARY KEY,
   slug TEXT NOT NULL UNIQUE,
   title TEXT NOT NULL,
+  folder TEXT NOT NULL DEFAULT '',
   template TEXT NOT NULL DEFAULT 'standard',
   blocks TEXT NOT NULL DEFAULT '[]',
   status TEXT NOT NULL DEFAULT 'draft',
@@ -264,6 +270,73 @@ CREATE UNIQUE INDEX cms_collection_revisions_version_unique
   ON cms_collection_revisions(collection_slug, document_id, locale, version);
 PRAGMA foreign_keys = ON;`,
   },
+  {
+    id: "0008_dam_v2",
+    sql: `
+ALTER TABLE media ADD COLUMN folder_id TEXT;
+ALTER TABLE media ADD COLUMN tags TEXT NOT NULL DEFAULT '[]';
+ALTER TABLE media ADD COLUMN content_hash TEXT;
+ALTER TABLE media ADD COLUMN visibility TEXT NOT NULL DEFAULT 'public'
+  CHECK (visibility IN ('public', 'private'));
+ALTER TABLE media ADD COLUMN asset_status TEXT NOT NULL DEFAULT 'active'
+  CHECK (asset_status IN ('active', 'trashed'));
+ALTER TABLE media ADD COLUMN focal_x REAL;
+ALTER TABLE media ADD COLUMN focal_y REAL;
+ALTER TABLE media ADD COLUMN custom_metadata TEXT NOT NULL DEFAULT '{}';
+ALTER TABLE media ADD COLUMN localized_metadata TEXT NOT NULL DEFAULT '{}';
+ALTER TABLE media ADD COLUMN copyright TEXT NOT NULL DEFAULT '';
+ALTER TABLE media ADD COLUMN license TEXT NOT NULL DEFAULT '';
+ALTER TABLE media ADD COLUMN expires_at INTEGER;
+ALTER TABLE media ADD COLUMN trashed_at INTEGER;
+ALTER TABLE media ADD COLUMN purge_at INTEGER;
+CREATE UNIQUE INDEX IF NOT EXISTS media_content_hash_unique
+  ON media(content_hash) WHERE content_hash IS NOT NULL;
+CREATE INDEX IF NOT EXISTS media_folder_status_idx
+  ON media(folder_id, asset_status, updated_at DESC);
+CREATE TABLE IF NOT EXISTS cms_media_folders (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  parent_id TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  FOREIGN KEY (parent_id) REFERENCES cms_media_folders(id) ON DELETE RESTRICT
+);
+CREATE UNIQUE INDEX IF NOT EXISTS cms_media_folder_name_unique
+  ON cms_media_folders(COALESCE(parent_id, ''), name);
+CREATE TABLE IF NOT EXISTS cms_media_variants (
+  id TEXT PRIMARY KEY,
+  asset_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  width INTEGER,
+  height INTEGER,
+  format TEXT NOT NULL CHECK (format IN ('avif', 'webp', 'jpeg', 'png')),
+  fit TEXT NOT NULL CHECK (fit IN ('cover', 'contain', 'crop')),
+  status TEXT NOT NULL CHECK (status IN ('pending', 'ready', 'failed')),
+  object_key TEXT,
+  url TEXT,
+  error TEXT,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  FOREIGN KEY (asset_id) REFERENCES media(id) ON DELETE CASCADE,
+  UNIQUE (asset_id, name)
+);
+CREATE INDEX IF NOT EXISTS cms_media_variants_asset_idx
+  ON cms_media_variants(asset_id, created_at);`,
+  },
+  {
+    id: "0009_editorial_review_tasks",
+    sql: `
+ALTER TABLE cms_review_events
+  ADD COLUMN metadata TEXT NOT NULL DEFAULT '{}';`,
+  },
+  {
+    id: "0010_page_workflow_folders",
+    sql: "",
+  },
+  {
+    id: "0011_global_publication_boundary",
+    sql: "",
+  },
 ] as const;
 
 async function ensureColumn(
@@ -321,6 +394,34 @@ export async function applyCloudflareCmsMigrations(
         "schedule_note",
         "TEXT NOT NULL DEFAULT ''",
       );
+    }
+    if (migration.id === "0010_page_workflow_folders") {
+      await ensureColumn(
+        database,
+        "pages",
+        "folder",
+        "TEXT NOT NULL DEFAULT ''",
+      );
+    }
+    if (migration.id === "0011_global_publication_boundary") {
+      await ensureColumn(
+        database,
+        "cms_globals",
+        "published_revision_id",
+        "TEXT",
+      );
+      await database
+        .prepare(
+          `UPDATE cms_globals
+           SET published_revision_id = (
+             SELECT id FROM cms_global_revisions
+             WHERE global_key = cms_globals.key
+               AND version = cms_globals.version
+             ORDER BY created_at DESC LIMIT 1
+           )
+           WHERE published_revision_id IS NULL`,
+        )
+        .run();
     }
     await database
       .prepare(
@@ -516,19 +617,43 @@ type ReviewEventRow = {
   actorId: string;
   documentId: string;
   documentType: string;
+  metadata: string;
   note: string;
   occurredAt: number;
   version: number;
 };
 
+function reviewEventMetadata(value: string) {
+  try {
+    const parsed = JSON.parse(value) as {
+      completedChecklistItemIds?: unknown;
+      task?: unknown;
+    };
+    const task = cmsEditorialReviewTaskSchema.safeParse(parsed.task);
+    return {
+      completedChecklistItemIds: Array.isArray(parsed.completedChecklistItemIds)
+        ? parsed.completedChecklistItemIds.filter(
+            (item): item is string => typeof item === "string",
+          )
+        : [],
+      task: task.success ? task.data : undefined,
+    };
+  } catch {
+    return { completedChecklistItemIds: [], task: undefined };
+  }
+}
+
 function reviewEventFromRow(row: ReviewEventRow): CmsEditorialReviewEvent {
+  const metadata = reviewEventMetadata(row.metadata);
   return {
     action: row.action,
     actorId: row.actorId,
+    completedChecklistItemIds: metadata.completedChecklistItemIds,
     documentId: row.documentId,
     documentType: row.documentType,
     note: row.note,
     occurredAt: new Date(Number(row.occurredAt)).toISOString(),
+    task: metadata.task,
     version: Number(row.version),
   };
 }
@@ -543,6 +668,35 @@ function reviewValidation(message: string): never {
 
 function reviewConflict(message: string): never {
   throw new CmsError({ code: "CONFLICT", message, retryable: false });
+}
+
+function reviewForbidden(message: string): never {
+  throw new CmsError({ code: "FORBIDDEN", message, retryable: false });
+}
+
+function reviewTaskFromRequest(input: RequestCmsEditorialReviewInput) {
+  return cmsEditorialReviewTaskSchema.parse(input);
+}
+
+function sameReviewRequest(
+  state: CmsEditorialReviewState,
+  input: RequestCmsEditorialReviewInput,
+) {
+  const task = reviewTaskFromRequest(input);
+  return (
+    state.actorId === input.actorId &&
+    state.note === input.note &&
+    JSON.stringify({
+      assigneeIds: state.assigneeIds,
+      assigneeRoles: state.assigneeRoles,
+      mentionIds: state.mentionIds,
+      dueAt: state.dueAt,
+      checklist: state.checklist.map(
+        ({ completed: _completed, ...item }) => item,
+      ),
+      notify: state.notify,
+    }) === JSON.stringify(task)
+  );
 }
 
 /** D1-backed, immutable editorial review workflow for the page provider. */
@@ -595,7 +749,8 @@ export class CloudflareCmsEditorialReviewProvider implements CmsEditorialReviewW
     const { results } = await this.#database
       .prepare(
         `SELECT document_type AS documentType, document_id AS documentId,
-          action, version, note, actor_id AS actorId, occurred_at AS occurredAt
+          action, version, note, actor_id AS actorId, occurred_at AS occurredAt,
+          metadata
          FROM cms_review_events
          WHERE document_type = ? AND document_id = ?
          ORDER BY occurred_at DESC, rowid DESC`,
@@ -629,7 +784,10 @@ export class CloudflareCmsEditorialReviewProvider implements CmsEditorialReviewW
       current.status === "requested" &&
       current.reviewVersion === document.version
     ) {
-      return current;
+      if (sameReviewRequest(current, value)) return current;
+      reviewConflict(
+        "This version already has a different editorial review request.",
+      );
     }
     if (current.reviewVersion === document.version) {
       reviewConflict(
@@ -644,8 +802,9 @@ export class CloudflareCmsEditorialReviewProvider implements CmsEditorialReviewW
       result = await this.#database
         .prepare(
           `INSERT INTO cms_review_events
-            (id, document_type, document_id, action, version, note, actor_id, occurred_at)
-           SELECT ?, 'page', id, 'requested', version, ?, ?, ? FROM pages
+            (id, document_type, document_id, action, version, note, actor_id,
+             occurred_at, metadata)
+           SELECT ?, 'page', id, 'requested', version, ?, ?, ?, ? FROM pages
            WHERE id = ? AND version = ?
              AND NOT EXISTS (
                SELECT 1 FROM cms_review_events
@@ -659,6 +818,7 @@ export class CloudflareCmsEditorialReviewProvider implements CmsEditorialReviewW
           value.note,
           value.actorId,
           this.#now().getTime(),
+          JSON.stringify({ task: reviewTaskFromRequest(value) }),
           value.documentId,
           value.expectedVersion,
         )
@@ -669,7 +829,10 @@ export class CloudflareCmsEditorialReviewProvider implements CmsEditorialReviewW
         latest.status === "requested" &&
         latest.reviewVersion === value.expectedVersion
       ) {
-        return latest;
+        if (sameReviewRequest(latest, value)) return latest;
+        reviewConflict(
+          "This version already has a different editorial review request.",
+        );
       }
       throw error;
     }
@@ -683,7 +846,10 @@ export class CloudflareCmsEditorialReviewProvider implements CmsEditorialReviewW
         latest.status === "requested" &&
         latest.reviewVersion === value.expectedVersion
       ) {
-        return latest;
+        if (sameReviewRequest(latest, value)) return latest;
+        reviewConflict(
+          "This version already has a different editorial review request.",
+        );
       }
       reviewConflict("This version can no longer be sent for review.");
     }
@@ -708,12 +874,44 @@ export class CloudflareCmsEditorialReviewProvider implements CmsEditorialReviewW
     ) {
       reviewConflict("Only the current requested version can be reviewed.");
     }
+    if (
+      !isCmsEditorialReviewActorAssigned(
+        current,
+        value.actorId,
+        value.actorRole,
+      )
+    ) {
+      reviewForbidden("This review is assigned to another reviewer or role.");
+    }
+    const knownChecklistIds = new Set(current.checklist.map((item) => item.id));
+    if (
+      value.completedChecklistItemIds.some(
+        (itemId) => !knownChecklistIds.has(itemId),
+      )
+    ) {
+      reviewValidation(
+        "The review decision contains an unknown checklist item.",
+      );
+    }
+    const missingChecklistItems =
+      missingRequiredCmsEditorialReviewChecklistItems(
+        current,
+        value.completedChecklistItemIds,
+      );
+    if (value.decision === "approved" && missingChecklistItems.length) {
+      reviewValidation(
+        `Complete the required review checklist: ${missingChecklistItems
+          .map((item) => item.label)
+          .join(", ")}.`,
+      );
+    }
 
     const result = await this.#database
       .prepare(
         `INSERT INTO cms_review_events
-          (id, document_type, document_id, action, version, note, actor_id, occurred_at)
-         SELECT ?, 'page', id, ?, version, ?, ?, ? FROM pages
+          (id, document_type, document_id, action, version, note, actor_id,
+           occurred_at, metadata)
+         SELECT ?, 'page', id, ?, version, ?, ?, ?, ? FROM pages
          WHERE id = ? AND version = ?
            AND (
              SELECT action FROM cms_review_events
@@ -734,6 +932,9 @@ export class CloudflareCmsEditorialReviewProvider implements CmsEditorialReviewW
         value.note,
         value.actorId,
         this.#now().getTime(),
+        JSON.stringify({
+          completedChecklistItemIds: value.completedChecklistItemIds,
+        }),
         value.documentId,
         value.expectedVersion,
       )
@@ -756,6 +957,7 @@ export class CloudflareCmsEditorialReviewProvider implements CmsEditorialReviewW
         `WITH ranked_reviews AS (
           SELECT document_type AS documentType, document_id AS documentId,
             action, version, note, actor_id AS actorId, occurred_at AS occurredAt,
+            metadata,
             row_number() OVER (
               PARTITION BY document_type, document_id
               ORDER BY occurred_at DESC, rowid DESC
@@ -763,7 +965,8 @@ export class CloudflareCmsEditorialReviewProvider implements CmsEditorialReviewW
           FROM cms_review_events
           WHERE action IN ('requested', 'changes_requested', 'approved')
         )
-        SELECT documentType, documentId, action, version, note, actorId, occurredAt
+        SELECT documentType, documentId, action, version, note, actorId,
+          occurredAt, metadata
         FROM ranked_reviews
         WHERE reviewRank = 1 AND action = 'requested'
         ORDER BY occurredAt DESC`,
@@ -1374,6 +1577,7 @@ type GlobalRow = {
   key: string;
   content: string;
   version: number;
+  publishedRevisionId: string | null;
   updatedBy: string;
   createdAt: number;
   updatedAt: number;
@@ -1390,7 +1594,8 @@ type GlobalRevisionRow = {
 };
 
 const globalColumns = `
-  key, content, version, updated_by AS updatedBy,
+  key, content, version, published_revision_id AS publishedRevisionId,
+  updated_by AS updatedBy,
   created_at AS createdAt, updated_at AS updatedAt
 `;
 
@@ -1407,25 +1612,52 @@ export type CloudflareCmsGlobalProviderOptions<TContent> = {
   parseContent: (value: unknown) => TContent;
   createId?: () => string;
   now?: () => Date;
+  prepareMutationStatements?: (
+    event: CloudflareCmsGlobalMutationEvent<TContent>,
+  ) =>
+    | CloudflareD1PreparedStatement
+    | readonly CloudflareD1PreparedStatement[]
+    | null;
+};
+
+export type CloudflareCmsGlobalMutationEvent<TContent = unknown> = {
+  action: "save" | "publish" | "restore" | "rollback";
+  actorId: string;
+  key: string;
+  version: number;
+  timestamp: Date;
+  before: TContent | null;
+  after: TContent;
+  note: string;
+  previousPublishedRevisionId: string | null;
+  revisionId: string;
+  restoredVersion?: number;
 };
 
 export class CloudflareCmsGlobalContentProvider<
   TContent,
 > implements CmsGlobalContentProvider<TContent> {
   readonly capabilities: CmsProviderCapabilities = {
-    supported: ["content.readDraft", "content.write", "content.restore"],
+    supported: [
+      "content.readDraft",
+      "content.write",
+      "content.publish",
+      "content.restore",
+    ],
   };
 
   readonly #database: CloudflareD1Database;
   readonly #parseContent: (value: unknown) => TContent;
   readonly #createId: () => string;
   readonly #now: () => Date;
+  readonly #prepareMutationStatements?: CloudflareCmsGlobalProviderOptions<TContent>["prepareMutationStatements"];
 
   constructor(options: CloudflareCmsGlobalProviderOptions<TContent>) {
     this.#database = options.database;
     this.#parseContent = options.parseContent;
     this.#createId = options.createId ?? (() => crypto.randomUUID());
     this.#now = options.now ?? (() => new Date());
+    this.#prepareMutationStatements = options.prepareMutationStatements;
   }
 
   #document(row: GlobalRow): CmsGlobalDocument<TContent> {
@@ -1433,6 +1665,8 @@ export class CloudflareCmsGlobalContentProvider<
       key: row.key,
       content: this.#parseContent(decodeJson(row.content)),
       version: Number(row.version),
+      status: row.publishedRevisionId ? "published" : "draft",
+      publishedRevisionId: row.publishedRevisionId,
       createdAt: new Date(Number(row.createdAt)).toISOString(),
       updatedAt: new Date(Number(row.updatedAt)).toISOString(),
       updatedBy: row.updatedBy,
@@ -1457,6 +1691,40 @@ export class CloudflareCmsGlobalContentProvider<
       .bind(input.key)
       .first<GlobalRow>();
     return row ? this.#document(row) : null;
+  }
+
+  async getPublished(input: { key: string }) {
+    const row = await this.#database
+      .prepare(
+        `SELECT r.id, r.global_key AS globalKey, r.version, r.snapshot, r.note,
+          r.created_by AS createdBy, r.created_at AS createdAt
+         FROM cms_globals g
+         INNER JOIN cms_global_revisions r ON r.id = g.published_revision_id
+         WHERE g.key = ? LIMIT 1`,
+      )
+      .bind(input.key)
+      .first<GlobalRevisionRow>();
+    if (!row) return null;
+    const revision = this.#revision(row);
+    return {
+      key: revision.key,
+      content: revision.content,
+      version: revision.version,
+      status: "published" as const,
+      publishedRevisionId: revision.id,
+      createdAt: revision.createdAt,
+      updatedAt: revision.createdAt,
+      updatedBy: revision.createdBy,
+    };
+  }
+
+  #mutationStatements(event: CloudflareCmsGlobalMutationEvent<TContent>) {
+    const prepared = this.#prepareMutationStatements?.(event);
+    return prepared
+      ? Array.isArray(prepared)
+        ? [...prepared]
+        : [prepared]
+      : [];
   }
 
   async save(input: {
@@ -1485,7 +1753,9 @@ export class CloudflareCmsGlobalContentProvider<
     const content = this.#parseContent(input.content);
     const snapshot = JSON.stringify(content);
     const version = (current?.version ?? 0) + 1;
-    const timestamp = this.#now().getTime();
+    const occurredAt = this.#now();
+    const timestamp = occurredAt.getTime();
+    const revisionId = this.#createId();
     const documentStatement = current
       ? this.#database
           .prepare(
@@ -1515,7 +1785,7 @@ export class CloudflareCmsGlobalContentProvider<
         ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
-        this.#createId(),
+        revisionId,
         key,
         version,
         snapshot,
@@ -1529,6 +1799,18 @@ export class CloudflareCmsGlobalContentProvider<
       results = await this.#database.batch([
         documentStatement,
         revisionStatement,
+        ...this.#mutationStatements({
+          action: "save",
+          actorId: input.actorId,
+          key,
+          version,
+          timestamp: occurredAt,
+          before: current?.content ?? null,
+          after: content,
+          note: input.note ?? "",
+          previousPublishedRevisionId: current?.publishedRevisionId ?? null,
+          revisionId,
+        }),
       ]);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -1543,6 +1825,164 @@ export class CloudflareCmsGlobalContentProvider<
       conflict(input.expectedVersion ?? 0, latest?.version ?? 0);
     }
     return (await this.get({ key }))!;
+  }
+
+  async publish(input: {
+    key: string;
+    expectedVersion: number;
+    actorId: string;
+    note?: string;
+  }) {
+    const current = await this.get({ key: input.key });
+    if (!current) globalNotFound(input.key);
+    if (current.version !== input.expectedVersion) {
+      conflict(input.expectedVersion, current.version);
+    }
+    const content = this.#parseContent(current.content);
+    const snapshot = JSON.stringify(content);
+    const version = current.version + 1;
+    const revisionId = this.#createId();
+    const occurredAt = this.#now();
+    const timestamp = occurredAt.getTime();
+    let results: D1RunResult[];
+    try {
+      results = await this.#database.batch([
+        this.#database
+          .prepare(
+            `INSERT INTO cms_global_revisions (
+              id, global_key, version, snapshot, note, created_by, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          )
+          .bind(
+            revisionId,
+            current.key,
+            version,
+            snapshot,
+            input.note ?? "",
+            input.actorId,
+            timestamp,
+          ),
+        this.#database
+          .prepare(
+            `UPDATE cms_globals
+             SET version = ?, published_revision_id = ?, updated_by = ?, updated_at = ?
+             WHERE key = ? AND version = ?`,
+          )
+          .bind(
+            version,
+            revisionId,
+            input.actorId,
+            timestamp,
+            current.key,
+            input.expectedVersion,
+          ),
+        ...this.#mutationStatements({
+          action: "publish",
+          actorId: input.actorId,
+          key: current.key,
+          version,
+          timestamp: occurredAt,
+          before: current.content,
+          after: content,
+          note: input.note ?? "",
+          previousPublishedRevisionId: current.publishedRevisionId,
+          revisionId,
+        }),
+      ]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (/unique constraint|constraint failed.*cms_global/i.test(message)) {
+        const latest = await this.get({ key: current.key });
+        conflict(input.expectedVersion, latest?.version ?? 0);
+      }
+      throw error;
+    }
+    if ((results[1]?.meta?.changes ?? 0) !== 1) {
+      const latest = await this.get({ key: current.key });
+      conflict(input.expectedVersion, latest?.version ?? 0);
+    }
+    const document = (await this.get({ key: current.key }))!;
+    const row = await this.#database
+      .prepare(
+        `SELECT id, global_key AS globalKey, version, snapshot, note,
+          created_by AS createdBy, created_at AS createdAt
+         FROM cms_global_revisions WHERE id = ? LIMIT 1`,
+      )
+      .bind(revisionId)
+      .first<GlobalRevisionRow>();
+    if (!row) globalNotFound(revisionId);
+    return { document, revision: this.#revision(row) };
+  }
+
+  async rollbackPublication(input: {
+    key: string;
+    expectedVersion: number;
+    restoreVersion: number;
+    restorePublishedRevisionId: string | null;
+    publicationRevisionId: string;
+    actorId: string;
+  }) {
+    const current = await this.get({ key: input.key });
+    if (!current) globalNotFound(input.key);
+    if (
+      current.version !== input.expectedVersion ||
+      current.publishedRevisionId !== input.publicationRevisionId
+    ) {
+      conflict(input.expectedVersion, current.version);
+    }
+    if (
+      input.restoreVersion < 1 ||
+      input.restoreVersion >= input.expectedVersion
+    ) {
+      throw new CmsError({
+        code: "VALIDATION_FAILED",
+        message: "Global publication rollback versions are invalid.",
+        retryable: false,
+      });
+    }
+    const occurredAt = this.#now();
+    const timestamp = occurredAt.getTime();
+    const results = await this.#database.batch([
+      this.#database
+        .prepare(
+          `UPDATE cms_globals
+           SET version = ?, published_revision_id = ?, updated_by = ?, updated_at = ?
+           WHERE key = ? AND version = ? AND published_revision_id = ?`,
+        )
+        .bind(
+          input.restoreVersion,
+          input.restorePublishedRevisionId,
+          input.actorId,
+          timestamp,
+          input.key,
+          input.expectedVersion,
+          input.publicationRevisionId,
+        ),
+      this.#database
+        .prepare(
+          `DELETE FROM cms_global_revisions
+           WHERE id = ? AND global_key = ? AND version = ?`,
+        )
+        .bind(input.publicationRevisionId, input.key, input.expectedVersion),
+      ...this.#mutationStatements({
+        action: "rollback",
+        actorId: input.actorId,
+        key: input.key,
+        version: input.expectedVersion,
+        restoredVersion: input.restoreVersion,
+        timestamp: occurredAt,
+        before: current.content,
+        after: current.content,
+        note: "Compensate global publication",
+        previousPublishedRevisionId: current.publishedRevisionId,
+        revisionId: input.publicationRevisionId,
+      }),
+    ]);
+    if ((results[0]?.meta?.changes ?? 0) !== 1) {
+      const latest = await this.get({ key: input.key });
+      conflict(input.expectedVersion, latest?.version ?? 0);
+    }
+    return (await this.get({ key: input.key }))!;
   }
 
   async listRevisions(key: string) {
@@ -1580,13 +2020,60 @@ export class CloudflareCmsGlobalContentProvider<
       .bind(input.revisionId, input.key)
       .first<GlobalRevisionRow>();
     if (!row) globalNotFound(input.revisionId);
-    return this.save({
-      key: input.key,
-      expectedVersion: input.expectedVersion,
-      content: this.#revision(row).content,
-      actorId: input.actorId,
-      note: input.note ?? `Restore ${input.revisionId}`,
-    });
+    const revision = this.#revision(row);
+    const content = this.#parseContent(revision.content);
+    const snapshot = JSON.stringify(content);
+    const version = current.version + 1;
+    const revisionId = this.#createId();
+    const occurredAt = this.#now();
+    const timestamp = occurredAt.getTime();
+    const results = await this.#database.batch([
+      this.#database
+        .prepare(
+          `UPDATE cms_globals SET content = ?, version = ?, updated_by = ?, updated_at = ?
+           WHERE key = ? AND version = ?`,
+        )
+        .bind(
+          snapshot,
+          version,
+          input.actorId,
+          timestamp,
+          input.key,
+          input.expectedVersion,
+        ),
+      this.#database
+        .prepare(
+          `INSERT INTO cms_global_revisions (
+            id, global_key, version, snapshot, note, created_by, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .bind(
+          revisionId,
+          input.key,
+          version,
+          snapshot,
+          input.note ?? `Restore ${input.revisionId}`,
+          input.actorId,
+          timestamp,
+        ),
+      ...this.#mutationStatements({
+        action: "restore",
+        actorId: input.actorId,
+        key: input.key,
+        version,
+        timestamp: occurredAt,
+        before: current.content,
+        after: content,
+        note: input.note ?? `Restore ${input.revisionId}`,
+        previousPublishedRevisionId: current.publishedRevisionId,
+        revisionId,
+      }),
+    ]);
+    if ((results[0]?.meta?.changes ?? 0) !== 1) {
+      const latest = await this.get({ key: input.key });
+      conflict(input.expectedVersion, latest?.version ?? 0);
+    }
+    return (await this.get({ key: input.key }))!;
   }
 }
 
@@ -1597,3 +2084,4 @@ export function createCloudflareCmsGlobalContentProvider<TContent>(
 }
 
 export * from "./media";
+export * from "./imgix";

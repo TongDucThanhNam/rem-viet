@@ -46,6 +46,14 @@ async function database() {
       status_code INTEGER NOT NULL, active INTEGER NOT NULL, created_by TEXT NOT NULL,
       created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
     );
+    CREATE TABLE cms_outbox_events (
+      id TEXT PRIMARY KEY, topic TEXT NOT NULL, aggregate_type TEXT NOT NULL,
+      aggregate_id TEXT NOT NULL, aggregate_version INTEGER NOT NULL,
+      payload TEXT NOT NULL, idempotency_key TEXT NOT NULL UNIQUE,
+      status TEXT NOT NULL, attempts INTEGER NOT NULL, max_attempts INTEGER NOT NULL,
+      available_at INTEGER NOT NULL, locked_until INTEGER, last_error TEXT NOT NULL,
+      occurred_at INTEGER NOT NULL, dispatched_at INTEGER, retention_until INTEGER NOT NULL
+    );
   `);
   return value;
 }
@@ -54,6 +62,7 @@ function page(title: string, slug: string) {
   return {
     title,
     slug,
+    folder: "campaigns/summer",
     template: "standard" as const,
     blocks: [
       {
@@ -297,7 +306,11 @@ describe("Rèm Việt standard-page collection runtime", () => {
 
     expect(await provider.getPublished({ slug: "new-page" })).toMatchObject({
       id: created.id,
-      content: { title: "New page", slug: "new-page" },
+      content: {
+        title: "New page",
+        slug: "new-page",
+        folder: "campaigns/summer",
+      },
       publishedRevisionId: published.revision.id,
     });
     expect(await provider.listRevisions(created.id)).toEqual([
@@ -316,13 +329,14 @@ describe("Rèm Việt standard-page collection runtime", () => {
 
     const legacy = await db
       .prepare(
-        `SELECT slug, title, blocks, version, published_revision_id AS revisionId,
+        `SELECT slug, title, folder, blocks, version, published_revision_id AS revisionId,
           scheduled_at AS scheduledAt FROM pages WHERE id = ?`,
       )
       .bind(created.id)
       .first<{
         slug: string;
         title: string;
+        folder: string;
         blocks: string;
         version: number;
         revisionId: string | null;
@@ -331,6 +345,7 @@ describe("Rèm Việt standard-page collection runtime", () => {
     expect(legacy).toMatchObject({
       slug: "new-page",
       title: "New page",
+      folder: "campaigns/summer",
       version: published.document.version,
       revisionId: published.revision.id,
       scheduledAt: null,
@@ -369,6 +384,20 @@ describe("Rèm Việt standard-page collection runtime", () => {
       "page.unschedule",
       "page.publish",
     ]);
+    expect(
+      await db
+        .prepare(
+          `SELECT topic, aggregate_id AS aggregateId,
+            aggregate_version AS aggregateVersion, idempotency_key AS idempotencyKey
+          FROM cms_outbox_events`,
+        )
+        .first(),
+    ).toEqual({
+      topic: "content.page.published",
+      aggregateId: created.id,
+      aggregateVersion: published.document.version,
+      idempotencyKey: `content.page.published:${created.id}:v${published.document.version}`,
+    });
 
     await expect(
       provider.saveDraft({

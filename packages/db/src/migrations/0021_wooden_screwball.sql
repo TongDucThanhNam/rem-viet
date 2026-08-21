@@ -1,0 +1,1 @@
+ALTER TABLE `cms_review_events` ADD `metadata` text DEFAULT '{}' NOT NULL;

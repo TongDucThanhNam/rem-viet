@@ -1,3 +1,7 @@
+import {
+  createCmsVisualPreviewResponseHeaders,
+  createCmsVisualPreviewSession,
+} from "@agency/cms-visual-editor";
 import { parseRichTextDocument } from "@rem-viet/cms";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
@@ -24,20 +28,50 @@ import PostContent from "@/components/post-content";
 import { getPreviewAdminUser } from "@/functions/get-preview-admin-user";
 import {
   isPostPreviewField,
-  isPostPreviewMessage,
+  isPostPreviewState,
   type PostPreviewField,
-  type PostPreviewMessage,
+  type PostPreviewCommand,
+  type PostPreviewState,
 } from "@/lib/post-preview";
 import type { PostRichTextCompositionCommand } from "@/lib/post-rich-text-composition";
-import { cloudflareImageUrl, siteConfig } from "@/lib/site-config";
+import {
+  cloudflareImageUrl,
+  siteConfig,
+  siteManifest,
+} from "@/lib/site-config";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/admin/posts/$postId/preview")({
-  headers: () => ({
-    "Cache-Control": "private, no-store, max-age=0",
-    "X-Robots-Tag": "noindex, nofollow, noarchive",
+  validateSearch: (search: Record<string, unknown>) => ({
+    ...(typeof search.cmsBinding === "string" && search.cmsBinding
+      ? { cmsBinding: search.cmsBinding }
+      : {}),
+    ...(typeof search.cmsConflict === "string" && search.cmsConflict
+      ? { cmsConflict: search.cmsConflict }
+      : {}),
+    ...(typeof search.cmsSession === "string" && search.cmsSession
+      ? { cmsSession: search.cmsSession }
+      : {}),
   }),
-  beforeLoad: async () => ({ session: await getPreviewAdminUser() }),
+  headers: () =>
+    createCmsVisualPreviewResponseHeaders({ frameAncestors: ["'self'"] }),
+  beforeLoad: async ({ search }) => {
+    const session = await getPreviewAdminUser();
+    if (!session) throw redirect({ to: "/dang-nhap" });
+    const hasChannel = Boolean(
+      search.cmsBinding || search.cmsConflict || search.cmsSession,
+    );
+    if (
+      hasChannel &&
+      (!search.cmsBinding ||
+        !search.cmsConflict ||
+        !search.cmsSession ||
+        search.cmsBinding !== session.previewSessionBinding)
+    ) {
+      throw redirect({ to: "/admin/posts" });
+    }
+    return { session };
+  },
   loader: async ({ context }) => {
     if (!context.session) throw redirect({ to: "/dang-nhap" });
   },
@@ -86,34 +120,67 @@ function postBlockLabel(type: string) {
 
 function PostPreviewRoute() {
   const { postId } = Route.useParams();
+  const search = Route.useSearch();
   const trpc = useTRPC();
   const postQuery = useQuery(trpc.content.posts.byId.queryOptions({ postId }));
   const post = postQuery.data?.data;
-  const [workingCopy, setWorkingCopy] = useState<PostPreviewMessage | null>(
-    null,
-  );
+  const [workingCopy, setWorkingCopy] = useState<PostPreviewState | null>(null);
+  const workingCopyRef = useRef(workingCopy);
   const fieldHintRef = useRef<HTMLDivElement>(null);
   const draggedPostBlockRef = useRef<{ id: string; index: number } | null>(
     null,
   );
+  const previewSessionRef = useRef<ReturnType<
+    typeof createCmsVisualPreviewSession
+  > | null>(null);
+  const channelActive = Boolean(
+    search.cmsBinding && search.cmsConflict && search.cmsSession,
+  );
+  const getPreviewSession = useCallback(() => {
+    if (!previewSessionRef.current) {
+      previewSessionRef.current = createCmsVisualPreviewSession({
+        source: "preview",
+        expectedSource: "host",
+        identity: {
+          siteId: siteManifest.id,
+          documentId: postId,
+          documentType: "post",
+          sessionId: search.cmsSession ?? "",
+          sessionBinding: search.cmsBinding ?? "",
+          documentVersion: 0,
+          conflictToken: search.cmsConflict ?? "",
+        },
+        allowedOrigins: new Set([window.location.origin]),
+      });
+    }
+    return previewSessionRef.current;
+  }, [postId, search.cmsBinding, search.cmsConflict, search.cmsSession]);
+  const postPreviewCommand = useCallback(
+    (command: PostPreviewCommand) => {
+      if (!channelActive || window.parent === window) return;
+      window.parent.postMessage(
+        getPreviewSession().create({ type: "command", command }),
+        window.location.origin,
+      );
+    },
+    [channelActive, getPreviewSession],
+  );
   const previewPost = workingCopy?.values ?? post;
+  workingCopyRef.current = workingCopy;
   const coverImage = previewPost?.coverImage
     ? cloudflareImageUrl(previewPost.coverImage)
     : "";
   const sendComposition = useCallback(
     (command: PostRichTextCompositionCommand) => {
-      if (!workingCopy) return;
-      window.parent.postMessage(
-        {
-          type: "cms:post-preview-compose",
-          postId,
-          content: workingCopy.values.content,
-          command,
-        },
-        window.location.origin,
-      );
+      const currentWorkingCopy = workingCopyRef.current;
+      if (!currentWorkingCopy) return;
+      postPreviewCommand({
+        type: "compose",
+        content: currentWorkingCopy.values.content,
+        command,
+      });
     },
-    [postId, workingCopy],
+    [postPreviewCommand],
   );
 
   useEffect(() => {
@@ -121,22 +188,45 @@ function PostPreviewRoute() {
       if (
         event.origin !== window.location.origin ||
         event.source !== window.parent ||
-        !isPostPreviewMessage(event.data, postId)
+        !channelActive
       )
         return;
-      setWorkingCopy(event.data);
+      const validation = getPreviewSession().receive({
+        value: event.data,
+        origin: event.origin,
+      });
+      if (!validation.accepted || validation.envelope.payload.type !== "state")
+        return;
+      const state = validation.envelope.payload.state;
+      if (!isPostPreviewState(state, postId)) return;
+      const session = getPreviewSession();
+      const versionChanged =
+        session.snapshot().identity.documentVersion !== state.revision;
+      if (versionChanged) {
+        window.parent.postMessage(
+          session.acknowledgeDocumentVersion(
+            validation.envelope.messageId,
+            state.revision,
+          ),
+          window.location.origin,
+        );
+      }
+      setWorkingCopy(state);
     };
     window.addEventListener("message", receiveWorkingCopy);
-    window.parent.postMessage(
-      { type: "cms:post-preview-ready", postId },
-      window.location.origin,
-    );
+    if (channelActive && window.parent !== window) {
+      window.parent.postMessage(
+        getPreviewSession().create({ type: "ready" }),
+        window.location.origin,
+      );
+    }
     return () => window.removeEventListener("message", receiveWorkingCopy);
-  }, [postId]);
+  }, [channelActive, getPreviewSession, postId]);
 
   useEffect(() => {
-    if (!workingCopy) return;
     const selectField = (event: MouseEvent | KeyboardEvent) => {
+      const currentWorkingCopy = workingCopyRef.current;
+      if (!currentWorkingCopy) return;
       const target = event.target;
       if (!(target instanceof Element)) return;
       if (
@@ -158,10 +248,9 @@ function PostPreviewRoute() {
             type: "move",
             sourceId: targetId,
             sourceIndex: targetIndex,
-            targetId: workingCopy.values.content
-              ? (parseRichTextDocument(workingCopy.values.content)?.blocks[
-                  targetIndex - 1
-                ]?.id ?? "")
+            targetId: currentWorkingCopy.values.content
+              ? (parseRichTextDocument(currentWorkingCopy.values.content)
+                  ?.blocks[targetIndex - 1]?.id ?? "")
               : "",
             targetIndex: targetIndex - 1,
             placement: "before",
@@ -172,7 +261,7 @@ function PostPreviewRoute() {
             sourceId: targetId,
             sourceIndex: targetIndex,
             targetId:
-              parseRichTextDocument(workingCopy.values.content)?.blocks[
+              parseRichTextDocument(currentWorkingCopy.values.content)?.blocks[
                 targetIndex + 1
               ]?.id ?? "",
             targetIndex: targetIndex + 1,
@@ -215,17 +304,17 @@ function PostPreviewRoute() {
             }
           : current,
       );
-      window.parent.postMessage(
-        {
-          type: "cms:post-preview-select",
-          postId,
-          field: fieldName,
-          ...(Number.isInteger(blockIndex) && blockId && fieldName === "content"
-            ? { blockId, blockIndex, content: workingCopy.values.content }
-            : {}),
-        },
-        window.location.origin,
-      );
+      postPreviewCommand({
+        type: "select",
+        field: fieldName,
+        ...(Number.isInteger(blockIndex) && blockId && fieldName === "content"
+          ? {
+              blockId,
+              blockIndex,
+              content: currentWorkingCopy.values.content,
+            }
+          : {}),
+      });
     };
     const updateFieldHint = (event: PointerEvent) => {
       const hint = fieldHintRef.current;
@@ -265,10 +354,9 @@ function PostPreviewRoute() {
       document.removeEventListener("pointermove", updateFieldHint, true);
       document.removeEventListener("pointerleave", hideFieldHint, true);
     };
-  }, [postId, sendComposition, workingCopy]);
+  }, [postPreviewCommand, sendComposition]);
 
   useEffect(() => {
-    if (!workingCopy) return;
     const clearDropEdges = () =>
       document
         .querySelectorAll("[data-cms-drop-active]")
@@ -352,7 +440,7 @@ function PostPreviewRoute() {
       window.removeEventListener("drop", dropBlock, true);
       window.removeEventListener("dragend", finishDrag, true);
     };
-  }, [sendComposition, workingCopy]);
+  }, [sendComposition]);
 
   const authoringFieldProps = (field: PostPreviewField, label: string) =>
     workingCopy

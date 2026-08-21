@@ -8,6 +8,8 @@ import type { CmsGlobalDocument, CmsMediaRecord } from "@agency/cms-runtime";
 import {
   CmsError,
   allowedMediaTypeSchema,
+  cmsContentFolderSchema,
+  cmsContentFolderValueSchema,
   menuLocationSchema,
   parseRichTextDocument,
   pageBlockListSchema,
@@ -63,6 +65,7 @@ import {
   unpublishPost,
   type CmsActor,
 } from "./content-revisions";
+import { assertCmsWorkflowInitialPublishAllowed } from "./workflow-policies";
 
 const defaultSettingsId = "default";
 
@@ -138,6 +141,7 @@ export const postIdInputSchema = z.object({
 export const createPostInputSchema = z.object({
   title: z.string().min(1),
   slug: z.preprocess(blankToUndefined, z.string().optional()),
+  folder: cmsContentFolderSchema,
   description: z.string().optional().default(""),
   coverImage: z.string().optional().default(""),
   tags: z.array(z.string()).optional().default([]),
@@ -158,6 +162,7 @@ export const updatePostInputSchema = z.object({
   postId: z.string().min(1),
   title: z.string().min(1).optional(),
   slug: z.preprocess(blankToUndefined, z.string().optional()),
+  folder: cmsContentFolderValueSchema.optional(),
   description: z.string().optional(),
   coverImage: z.string().optional(),
   tags: z.array(z.string()).optional(),
@@ -198,6 +203,7 @@ export const deletePageInputSchema = pageIdInputSchema.extend({
 export const createPageInputSchema = z.object({
   title: z.string().min(1),
   slug: z.preprocess(blankToUndefined, z.string().optional()),
+  folder: cmsContentFolderSchema,
   template: z.enum(["landing", "standard"]).optional().default("standard"),
   blocks: pageBlocksSchema.optional().default([]),
   status: postStatusSchema.optional().default("draft"),
@@ -213,6 +219,7 @@ export const updatePageInputSchema = z.object({
   pageId: z.string().min(1),
   title: z.string().min(1).optional(),
   slug: z.preprocess(blankToUndefined, z.string().optional()),
+  folder: cmsContentFolderValueSchema.optional(),
   template: z.enum(["landing", "standard"]).optional(),
   blocks: pageBlockListSchema.optional(),
   status: postStatusSchema.optional(),
@@ -301,6 +308,7 @@ function toLegacyPost(row: typeof posts.$inferSelect) {
     _id: row.id,
     title: row.title,
     slug: row.slug,
+    folder: row.folder,
     description: row.description,
     cover: row.coverImage,
     coverImage: row.coverImage,
@@ -339,6 +347,7 @@ function toPublishedLegacyPost(
     _id: row.id,
     title: snapshot.title,
     slug: snapshot.slug,
+    folder: snapshot.folder,
     description: snapshot.description,
     cover: snapshot.coverImage,
     coverImage: snapshot.coverImage,
@@ -563,6 +572,13 @@ export async function createPost(
   const slug = normalizeSlug(input.slug, input.title);
   const shouldPublish = input.status === "published";
 
+  if (shouldPublish) {
+    await assertCmsWorkflowInitialPublishAllowed({
+      collection: "post",
+      folder: input.folder,
+    });
+  }
+
   await assertUniquePostSlug(slug);
 
   const [createdPost] = await db
@@ -570,6 +586,7 @@ export async function createPost(
     .values({
       id: postId,
       slug,
+      folder: input.folder,
       title: input.title,
       description: input.description,
       coverImage: input.coverImage,
@@ -662,6 +679,7 @@ export async function updatePost(
     .update(posts)
     .set({
       ...(nextSlug !== undefined && { slug: nextSlug }),
+      ...(input.folder !== undefined && { folder: input.folder }),
       ...(input.title !== undefined && { title: input.title }),
       ...(input.description !== undefined && {
         description: input.description,
@@ -849,6 +867,13 @@ export async function createPage(
   const slug = normalizeSlug(input.slug, input.title);
   const shouldPublish = input.status === "published";
 
+  if (shouldPublish) {
+    await assertCmsWorkflowInitialPublishAllowed({
+      collection: "page",
+      folder: input.folder,
+    });
+  }
+
   await assertUniquePageSlug(slug);
 
   const [createdPage] = await db
@@ -856,6 +881,7 @@ export async function createPage(
     .values({
       id: pageId,
       slug,
+      folder: input.folder,
       title: input.title,
       template: input.template,
       blocks: input.blocks,
@@ -939,6 +965,7 @@ export async function updatePage(
     .update(pages)
     .set({
       ...(nextSlug !== undefined && { slug: nextSlug }),
+      ...(input.folder !== undefined && { folder: input.folder }),
       ...(input.title !== undefined && { title: input.title }),
       ...(input.template !== undefined && { template: input.template }),
       ...(input.blocks !== undefined && { blocks: input.blocks }),
@@ -1397,17 +1424,47 @@ async function saveBootstrapGlobal(content: RemVietNavigationGlobal) {
   const provider = createRemVietGlobalContentProvider();
   const key = navigationGlobalKey(content.location);
   try {
-    return await provider.save({
+    const saved = await provider.save({
       key,
       expectedVersion: null,
       content,
       actorId: "legacy-bootstrap",
       note: "Import legacy navigation",
     });
+    return (
+      await provider.publish({
+        key,
+        expectedVersion: saved.version,
+        actorId: "legacy-bootstrap",
+        note: "Publish imported legacy navigation",
+      })
+    ).document;
   } catch (error) {
     if (!(error instanceof CmsError) || error.code !== "CONFLICT") throw error;
     const current = await provider.get({ key });
     if (!current) throw error;
+    if (!current.publishedRevisionId) {
+      try {
+        return (
+          await provider.publish({
+            key,
+            expectedVersion: current.version,
+            actorId: "legacy-bootstrap",
+            note: "Publish imported legacy navigation",
+          })
+        ).document;
+      } catch (publishError) {
+        if (
+          !(publishError instanceof CmsError) ||
+          publishError.code !== "CONFLICT"
+        ) {
+          throw publishError;
+        }
+        const winner = await provider.get({ key });
+        if (!winner) throw publishError;
+        return winner;
+      }
+    }
     return current;
   }
 }
@@ -1478,13 +1535,21 @@ async function getSiteSettingsGlobal() {
     homepageSections: parsed.homepageSections,
   });
   try {
-    const imported = await provider.save({
+    const saved = await provider.save({
       key: SITE_SETTINGS_GLOBAL_KEY,
       expectedVersion: null,
       content,
       actorId: "legacy-bootstrap",
       note: "Import legacy site settings",
     });
+    const imported = (
+      await provider.publish({
+        key: SITE_SETTINGS_GLOBAL_KEY,
+        expectedVersion: saved.version,
+        actorId: "legacy-bootstrap",
+        note: "Publish imported legacy site settings",
+      })
+    ).document;
     return {
       ...imported,
       content: remVietSiteSettingsGlobalSchema.parse(imported.content),
@@ -1493,6 +1558,37 @@ async function getSiteSettingsGlobal() {
     if (!(error instanceof CmsError) || error.code !== "CONFLICT") throw error;
     const winner = await provider.get({ key: SITE_SETTINGS_GLOBAL_KEY });
     if (!winner) throw error;
+    if (!winner.publishedRevisionId) {
+      try {
+        const published = (
+          await provider.publish({
+            key: SITE_SETTINGS_GLOBAL_KEY,
+            expectedVersion: winner.version,
+            actorId: "legacy-bootstrap",
+            note: "Publish imported legacy site settings",
+          })
+        ).document;
+        return {
+          ...published,
+          content: remVietSiteSettingsGlobalSchema.parse(published.content),
+        };
+      } catch (publishError) {
+        if (
+          !(publishError instanceof CmsError) ||
+          publishError.code !== "CONFLICT"
+        ) {
+          throw publishError;
+        }
+        const published = await provider.getPublished({
+          key: SITE_SETTINGS_GLOBAL_KEY,
+        });
+        if (!published) throw publishError;
+        return {
+          ...published,
+          content: remVietSiteSettingsGlobalSchema.parse(published.content),
+        };
+      }
+    }
     return {
       ...winner,
       content: remVietSiteSettingsGlobalSchema.parse(winner.content),
@@ -1500,7 +1596,7 @@ async function getSiteSettingsGlobal() {
   }
 }
 
-export async function listMenus() {
+export async function listMenuDrafts() {
   const documents = await Promise.all([
     getMenuGlobal("footer"),
     getMenuGlobal("header"),
@@ -1513,11 +1609,46 @@ export async function listMenus() {
     .sort((left, right) => left.location.localeCompare(right.location));
 }
 
-export async function getMenuByLocation(
+export async function listMenus() {
+  await Promise.all([getMenuGlobal("footer"), getMenuGlobal("header")]);
+  const provider = createRemVietGlobalContentProvider();
+  const documents = await Promise.all([
+    provider.getPublished({ key: navigationGlobalKey("footer") }),
+    provider.getPublished({ key: navigationGlobalKey("header") }),
+  ]);
+  return documents
+    .filter((document): document is NonNullable<typeof document> =>
+      Boolean(document),
+    )
+    .map((document) =>
+      globalMenuToLegacy({
+        ...document,
+        content: remVietNavigationGlobalSchema.parse(document.content),
+      }),
+    )
+    .sort((left, right) => left.location.localeCompare(right.location));
+}
+
+export async function getMenuDraftByLocation(
   input: z.infer<typeof menuLocationInputSchema>,
 ) {
   const document = await getMenuGlobal(input.location);
   return document ? globalMenuToLegacy(document) : null;
+}
+
+export async function getMenuByLocation(
+  input: z.infer<typeof menuLocationInputSchema>,
+) {
+  await getMenuGlobal(input.location);
+  const document = await createRemVietGlobalContentProvider().getPublished({
+    key: navigationGlobalKey(input.location),
+  });
+  return document
+    ? globalMenuToLegacy({
+        ...document,
+        content: remVietNavigationGlobalSchema.parse(document.content),
+      })
+    : null;
 }
 
 export async function listMenuRevisions(
@@ -1565,7 +1696,7 @@ export async function updateMenu(
     entityType: "menu",
   });
   return response(
-    current ? "Menu updated" : "Menu created",
+    current ? "Menu draft updated" : "Menu draft created",
     current ? 200 : 201,
     after,
   );
@@ -1599,10 +1730,22 @@ export async function restoreMenuRevision(
     entityId: document.key,
     entityType: "menu",
   });
-  return response("Menu revision restored", 200, after);
+  return response("Menu revision restored as a draft", 200, after);
 }
 
 export async function getSiteSettings() {
+  await getSiteSettingsGlobal();
+  const published = await createRemVietGlobalContentProvider().getPublished({
+    key: SITE_SETTINGS_GLOBAL_KEY,
+  });
+  if (!published) throw new Error("Published site settings are unavailable");
+  return globalSettingsToLegacy({
+    ...published,
+    content: remVietSiteSettingsGlobalSchema.parse(published.content),
+  });
+}
+
+export async function getSiteSettingsDraft() {
   return globalSettingsToLegacy(await getSiteSettingsGlobal());
 }
 
@@ -1651,7 +1794,7 @@ export async function updateSiteSettings(
     entityId: document.key,
     entityType: "site_settings",
   });
-  return response("Site settings updated", 200, after);
+  return response("Site settings draft updated", 200, after);
 }
 
 export async function restoreSiteSettingsRevision(
@@ -1680,5 +1823,5 @@ export async function restoreSiteSettingsRevision(
     entityId: document.key,
     entityType: "site_settings",
   });
-  return response("Site settings revision restored", 200, after);
+  return response("Site settings revision restored as a draft", 200, after);
 }

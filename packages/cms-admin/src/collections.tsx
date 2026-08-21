@@ -2,8 +2,10 @@ import {
   Fragment,
   type ComponentType,
   type FormEvent,
+  type KeyboardEvent,
   type ReactElement,
   type ReactNode,
+  useState,
 } from "react";
 import {
   CmsError,
@@ -39,6 +41,11 @@ export type CmsCollectionFieldControlProps = {
   readonly disabled: boolean;
   readonly error: string | undefined;
   readonly relationshipOptions: readonly CmsRelationshipOption[];
+  readonly relationshipOptionsByCollection?: Readonly<
+    Record<string, readonly CmsRelationshipOption[]>
+  >;
+  readonly controls?: CmsCollectionFieldControlRegistry;
+  readonly fieldPath?: string;
   readonly setValue: (value: unknown) => void;
 };
 
@@ -219,7 +226,8 @@ export function CmsCollectionList({
       field.indexed ||
       field.kind === "text" ||
       field.kind === "select" ||
-      field.kind === "relationship",
+      field.kind === "relationship" ||
+      field.kind === "polymorphic-relationship",
   );
   const columns = defaultColumns(collection);
   return (
@@ -388,6 +396,52 @@ function jsonControl(props: CmsCollectionFieldControlProps, label: string) {
   );
 }
 
+function nestedFieldControls(input: {
+  props: CmsCollectionFieldControlProps;
+  fields: readonly CmsBuiltInField[];
+  record: Readonly<Record<string, unknown>>;
+  path: string;
+  setRecord: (record: Readonly<Record<string, unknown>>) => void;
+}) {
+  return input.fields.map((field) => {
+    if (!isCmsFieldVisible(field, input.record)) return null;
+    const fieldPath = `${input.path}.${field.name}`;
+    const controlId = `${input.props.controlId}-${field.name}`;
+    const Control =
+      input.props.controls?.byField?.[
+        `${input.props.collection.slug}.${fieldPath}`
+      ] ??
+      input.props.controls?.byKind?.[field.kind] ??
+      BuiltInCollectionFieldControl;
+    return (
+      <div key={field.name} data-cms-field-path={fieldPath}>
+        <Control
+          {...input.props}
+          field={field}
+          fieldPath={fieldPath}
+          controlId={controlId}
+          data={input.record}
+          value={input.record[field.name] ?? field.defaultValue}
+          error={undefined}
+          relationshipOptions={
+            field.kind === "relationship"
+              ? (input.props.relationshipOptionsByCollection?.[
+                  field.relationTo
+                ] ?? [])
+              : []
+          }
+          setValue={(value) => {
+            const next = { ...input.record };
+            if (value === undefined) delete next[field.name];
+            else next[field.name] = value;
+            input.setRecord(next);
+          }}
+        />
+      </div>
+    );
+  });
+}
+
 function BuiltInCollectionFieldControl(
   props: CmsCollectionFieldControlProps,
 ): ReactElement {
@@ -470,6 +524,221 @@ function BuiltInCollectionFieldControl(
         />
       );
       break;
+    case "email":
+      control = (
+        <input
+          {...common}
+          type="email"
+          value={typeof value === "string" ? value : ""}
+          minLength={field.validation?.minLength}
+          maxLength={field.validation?.maxLength}
+          onChange={(event) => setValue(event.currentTarget.value)}
+        />
+      );
+      break;
+    case "url":
+      control = (
+        <input
+          {...common}
+          type="url"
+          value={typeof value === "string" ? value : ""}
+          minLength={field.validation?.minLength}
+          maxLength={field.validation?.maxLength}
+          onChange={(event) => setValue(event.currentTarget.value)}
+        />
+      );
+      break;
+    case "slug":
+      control = (
+        <input
+          {...common}
+          type="text"
+          autoCapitalize="none"
+          autoCorrect="off"
+          pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+          value={typeof value === "string" ? value : ""}
+          minLength={field.validation?.minLength}
+          maxLength={field.validation?.maxLength}
+          onChange={(event) => setValue(event.currentTarget.value)}
+        />
+      );
+      break;
+    case "code":
+      control = (
+        <textarea
+          {...common}
+          data-language={field.language}
+          spellCheck={false}
+          value={typeof value === "string" ? value : ""}
+          minLength={field.validation?.minLength}
+          maxLength={field.validation?.maxLength}
+          onChange={(event) => setValue(event.currentTarget.value)}
+        />
+      );
+      break;
+    case "json":
+      return jsonControl(props, "Structured JSON value");
+    case "color":
+      control = (
+        <input
+          {...common}
+          type={field.alpha ? "text" : "color"}
+          pattern={field.alpha ? "#[0-9a-fA-F]{8}" : undefined}
+          value={
+            typeof value === "string" ? value : field.alpha ? "" : "#000000"
+          }
+          onChange={(event) => setValue(event.currentTarget.value)}
+        />
+      );
+      break;
+    case "point": {
+      const point =
+        value && typeof value === "object" && !Array.isArray(value)
+          ? (value as { latitude?: unknown; longitude?: unknown })
+          : {};
+      const setCoordinate = (
+        coordinate: "latitude" | "longitude",
+        next?: number,
+      ) =>
+        setValue({
+          latitude:
+            coordinate === "latitude"
+              ? next
+              : typeof point.latitude === "number"
+                ? point.latitude
+                : 0,
+          longitude:
+            coordinate === "longitude"
+              ? next
+              : typeof point.longitude === "number"
+                ? point.longitude
+                : 0,
+        });
+      return (
+        <fieldset
+          aria-describedby={common["aria-describedby"]}
+          aria-invalid={common["aria-invalid"]}
+          disabled={disabled}
+        >
+          <legend>{field.label}</legend>
+          {field.admin?.description ? (
+            <p id={`${controlId}-description`}>{field.admin.description}</p>
+          ) : null}
+          <label htmlFor={`${controlId}-latitude`}>Latitude</label>
+          <input
+            id={`${controlId}-latitude`}
+            name={`${field.name}.latitude`}
+            type="number"
+            min={-90}
+            max={90}
+            step="any"
+            required={field.required}
+            value={typeof point.latitude === "number" ? point.latitude : ""}
+            onChange={(event) =>
+              setCoordinate(
+                "latitude",
+                event.currentTarget.value === ""
+                  ? undefined
+                  : event.currentTarget.valueAsNumber,
+              )
+            }
+          />
+          <label htmlFor={`${controlId}-longitude`}>Longitude</label>
+          <input
+            id={`${controlId}-longitude`}
+            name={`${field.name}.longitude`}
+            type="number"
+            min={-180}
+            max={180}
+            step="any"
+            required={field.required}
+            value={typeof point.longitude === "number" ? point.longitude : ""}
+            onChange={(event) =>
+              setCoordinate(
+                "longitude",
+                event.currentTarget.value === ""
+                  ? undefined
+                  : event.currentTarget.valueAsNumber,
+              )
+            }
+          />
+          {props.error ? (
+            <p id={`${controlId}-error`} role="alert">
+              {props.error}
+            </p>
+          ) : null}
+        </fieldset>
+      );
+    }
+    case "group": {
+      const record =
+        value && typeof value === "object" && !Array.isArray(value)
+          ? (value as Readonly<Record<string, unknown>>)
+          : {};
+      return (
+        <div aria-label={`${field.label} fields`} role="group">
+          {nestedFieldControls({
+            props,
+            fields: field.fields as readonly CmsBuiltInField[],
+            record,
+            path: props.fieldPath ?? field.name,
+            setRecord: setValue,
+          })}
+        </div>
+      );
+    }
+    case "array": {
+      const rows = Array.isArray(value)
+        ? value.filter(
+            (row): row is Readonly<Record<string, unknown>> =>
+              Boolean(row) && typeof row === "object" && !Array.isArray(row),
+          )
+        : [];
+      return (
+        <div aria-label={`${field.label} rows`} role="group">
+          {rows.map((row, index) => (
+            <fieldset key={index}>
+              <legend>
+                {field.label} {index + 1}
+              </legend>
+              {nestedFieldControls({
+                props,
+                fields: field.fields as readonly CmsBuiltInField[],
+                record: row,
+                path: `${props.fieldPath ?? field.name}.${index}`,
+                setRecord: (record) =>
+                  setValue(
+                    rows.map((candidate, candidateIndex) =>
+                      candidateIndex === index ? record : candidate,
+                    ),
+                  ),
+              })}
+              <button
+                type="button"
+                disabled={disabled}
+                aria-label={`Remove ${field.label} row ${index + 1}`}
+                onClick={() =>
+                  setValue(rows.filter((_, candidate) => candidate !== index))
+                }
+              >
+                Remove row
+              </button>
+            </fieldset>
+          ))}
+          <button
+            type="button"
+            disabled={
+              disabled ||
+              (field.validation?.maxItems !== undefined &&
+                rows.length >= field.validation.maxItems)
+            }
+            onClick={() => setValue([...rows, {}])}
+          >
+            Add {field.label} row
+          </button>
+        </div>
+      );
+    }
     case "select": {
       const values = Array.isArray(value) ? value.map(String) : [];
       control = (
@@ -490,8 +759,10 @@ function BuiltInCollectionFieldControl(
             )
           }
         >
-          {!field.multiple && !field.required ? (
-            <option value="">None</option>
+          {!field.multiple ? (
+            <option value="" disabled={field.required}>
+              {field.required ? "Select an option" : "None"}
+            </option>
           ) : null}
           {field.options.map((option) => (
             <option key={option.value} value={option.value}>
@@ -522,8 +793,10 @@ function BuiltInCollectionFieldControl(
             )
           }
         >
-          {!field.hasMany && !field.required ? (
-            <option value="">None</option>
+          {!field.hasMany ? (
+            <option value="" disabled={field.required}>
+              {field.required ? "Select a related document" : "None"}
+            </option>
           ) : null}
           {props.relationshipOptions.map((option) => (
             <option key={option.id} value={option.id}>
@@ -534,6 +807,101 @@ function BuiltInCollectionFieldControl(
       );
       break;
     }
+    case "polymorphic-relationship": {
+      const encode = (relation: { relationTo: string; id: string }) =>
+        `${relation.relationTo}:${relation.id}`;
+      const decode = (encoded: string) => {
+        const separator = encoded.indexOf(":");
+        return separator < 1
+          ? undefined
+          : {
+              relationTo: encoded.slice(0, separator),
+              id: encoded.slice(separator + 1),
+            };
+      };
+      const values = Array.isArray(value)
+        ? value
+            .filter(
+              (relation): relation is { relationTo: string; id: string } =>
+                Boolean(
+                  relation &&
+                  typeof relation === "object" &&
+                  "relationTo" in relation &&
+                  typeof relation.relationTo === "string" &&
+                  "id" in relation &&
+                  typeof relation.id === "string",
+                ),
+            )
+            .map(encode)
+        : [];
+      const single =
+        value &&
+        typeof value === "object" &&
+        !Array.isArray(value) &&
+        "relationTo" in value &&
+        typeof value.relationTo === "string" &&
+        "id" in value &&
+        typeof value.id === "string"
+          ? encode({ relationTo: value.relationTo, id: value.id })
+          : "";
+      control = (
+        <select
+          {...common}
+          multiple={field.hasMany}
+          value={field.hasMany ? values : single}
+          onChange={(event) => {
+            if (field.hasMany) {
+              setValue(
+                Array.from(event.currentTarget.selectedOptions)
+                  .map((option) => decode(option.value))
+                  .filter(
+                    (
+                      relation,
+                    ): relation is { relationTo: string; id: string } =>
+                      relation !== undefined,
+                  ),
+              );
+              return;
+            }
+            setValue(
+              event.currentTarget.value
+                ? decode(event.currentTarget.value)
+                : undefined,
+            );
+          }}
+        >
+          {!field.hasMany ? (
+            <option value="" disabled={field.required}>
+              {field.required ? "Select a related document" : "None"}
+            </option>
+          ) : null}
+          {field.relationTo.map((target) => (
+            <optgroup key={target} label={target}>
+              {(props.relationshipOptionsByCollection?.[target] ?? []).map(
+                (option) => (
+                  <option
+                    key={`${target}:${option.id}`}
+                    value={encode({ relationTo: target, id: option.id })}
+                  >
+                    {option.label}
+                  </option>
+                ),
+              )}
+            </optgroup>
+          ))}
+        </select>
+      );
+      break;
+    }
+    case "computed":
+    case "virtual":
+    case "join":
+      control = (
+        <output id={controlId} data-cms-derived={field.kind}>
+          {displayValue(value)}
+        </output>
+      );
+      break;
     case "media": {
       const text = Array.isArray(value)
         ? value.join("\n")
@@ -594,6 +962,65 @@ export type CmsCollectionFormProps = {
   readonly previewHref?: string;
 };
 
+function CollectionFormField(input: {
+  collection: CmsCollectionDefinition;
+  field: CmsBuiltInField;
+  data: Readonly<Record<string, unknown>>;
+  errors: Readonly<Record<string, string>>;
+  saving: boolean;
+  controls?: CmsCollectionFieldControlRegistry;
+  relationshipOptions: Readonly<
+    Record<string, readonly CmsRelationshipOption[]>
+  >;
+  onChange: (data: Readonly<Record<string, unknown>>) => void;
+}) {
+  const { collection, field, data, errors, saving, controls } = input;
+  if (!isCmsFieldVisible(field, data)) return null;
+  const controlId = `cms-${collection.slug}-${field.name}`;
+  const Control =
+    controls?.byField?.[`${collection.slug}.${field.name}`] ??
+    controls?.byKind?.[field.kind] ??
+    BuiltInCollectionFieldControl;
+  return (
+    <fieldset disabled={saving || field.admin?.readOnly}>
+      <legend>
+        {field.label}
+        {collection.localization
+          ? field.localized
+            ? " (localized)"
+            : " (shared)"
+          : ""}
+      </legend>
+      <Control
+        collection={collection}
+        field={field}
+        fieldPath={field.name}
+        controls={controls}
+        controlId={controlId}
+        value={data[field.name]}
+        data={data}
+        disabled={saving || Boolean(field.admin?.readOnly)}
+        error={errors[field.name]}
+        relationshipOptions={
+          field.kind === "relationship"
+            ? (input.relationshipOptions[field.relationTo] ?? [])
+            : []
+        }
+        relationshipOptionsByCollection={input.relationshipOptions}
+        setValue={(value) => {
+          const next = { ...data };
+          if (value === undefined) delete next[field.name];
+          else next[field.name] = value;
+          input.onChange(next);
+        }}
+      />
+      {errors[field.name] ? (
+        <p id={`${controlId}-error`}>{errors[field.name]}</p>
+      ) : null}
+    </fieldset>
+  );
+}
+
 export function CmsCollectionForm({
   collection,
   mode,
@@ -612,6 +1039,52 @@ export function CmsCollectionForm({
 }: CmsCollectionFormProps): ReactElement {
   const headingId = `cms-${collection.slug}-${mode}-heading`;
   const errorEntries = Object.entries(errors);
+  const layout = collection.admin?.layout ?? [];
+  const tabGroups = layout.filter((group) => group.type === "tab");
+  const [activeTab, setActiveTab] = useState(tabGroups[0]?.id ?? "");
+  const fieldByName = new Map(
+    collection.fields.map((field) => [field.name, field as CmsBuiltInField]),
+  );
+  const groupedFields = new Set(layout.flatMap((group) => group.fields));
+  const activateTabFromKeyboard = (
+    event: KeyboardEvent<HTMLButtonElement>,
+    currentIndex: number,
+  ) => {
+    let nextIndex: number | undefined;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      nextIndex = (currentIndex + 1) % tabGroups.length;
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      nextIndex = (currentIndex - 1 + tabGroups.length) % tabGroups.length;
+    } else if (event.key === "Home") {
+      nextIndex = 0;
+    } else if (event.key === "End") {
+      nextIndex = tabGroups.length - 1;
+    }
+    if (nextIndex === undefined) return;
+    event.preventDefault();
+    const next = tabGroups[nextIndex];
+    if (!next) return;
+    setActiveTab(next.id);
+    document.getElementById(`cms-${collection.slug}-tab-${next.id}`)?.focus();
+  };
+  const renderField = (field: CmsBuiltInField) => (
+    <CollectionFormField
+      key={field.name}
+      collection={collection}
+      field={field}
+      data={data}
+      errors={errors}
+      saving={saving}
+      controls={controls}
+      relationshipOptions={relationshipOptions}
+      onChange={onChange}
+    />
+  );
+  const renderGroupFields = (names: readonly string[]) =>
+    names
+      .map((name) => fieldByName.get(name))
+      .filter((field): field is CmsBuiltInField => field !== undefined)
+      .map(renderField);
   const submit = (event: FormEvent) => {
     event.preventDefault();
     const validation = validateCmsCollectionAdminData(collection, data);
@@ -657,59 +1130,75 @@ export function CmsCollectionForm({
         </div>
       ) : null}
       <form onSubmit={submit} noValidate>
-        {collection.fields.map((field) => {
-          if (!isCmsFieldVisible(field, data)) return null;
-          const controlId = `cms-${collection.slug}-${field.name}`;
-          const Control =
-            controls?.byField?.[`${collection.slug}.${field.name}`] ??
-            controls?.byKind?.[field.kind] ??
-            BuiltInCollectionFieldControl;
-          return (
-            <fieldset
-              key={field.name}
-              disabled={saving || field.admin?.readOnly}
+        {tabGroups.length ? (
+          <div data-cms-layout="tabs">
+            <div
+              aria-label={`${collection.labels.singular} sections`}
+              role="tablist"
             >
-              <legend>
-                {field.label}
-                {collection.localization
-                  ? field.localized
-                    ? " (localized)"
-                    : " (shared)"
-                  : ""}
-              </legend>
-              <Control
-                collection={collection}
-                field={field as CmsBuiltInField}
-                controlId={controlId}
-                value={data[field.name]}
-                data={data}
-                disabled={saving || Boolean(field.admin?.readOnly)}
-                error={errors[field.name]}
-                relationshipOptions={
-                  field.kind === "relationship"
-                    ? (relationshipOptions[
-                        (
-                          field as Extract<
-                            CmsBuiltInField,
-                            { kind: "relationship" }
-                          >
-                        ).relationTo
-                      ] ?? [])
-                    : []
-                }
-                setValue={(value) => {
-                  const next = { ...data };
-                  if (value === undefined) delete next[field.name];
-                  else next[field.name] = value;
-                  onChange(next);
-                }}
-              />
-              {errors[field.name] ? (
-                <p id={`${controlId}-error`}>{errors[field.name]}</p>
-              ) : null}
-            </fieldset>
-          );
-        })}
+              {tabGroups.map((group) => (
+                <button
+                  key={group.id}
+                  id={`cms-${collection.slug}-tab-${group.id}`}
+                  type="button"
+                  role="tab"
+                  tabIndex={activeTab === group.id ? 0 : -1}
+                  aria-controls={`cms-${collection.slug}-panel-${group.id}`}
+                  aria-selected={activeTab === group.id}
+                  onClick={() => setActiveTab(group.id)}
+                  onKeyDown={(event) =>
+                    activateTabFromKeyboard(event, tabGroups.indexOf(group))
+                  }
+                >
+                  {group.label}
+                </button>
+              ))}
+            </div>
+            {tabGroups.map((group) => (
+              <section
+                key={group.id}
+                id={`cms-${collection.slug}-panel-${group.id}`}
+                role="tabpanel"
+                aria-labelledby={`cms-${collection.slug}-tab-${group.id}`}
+                hidden={activeTab !== group.id}
+              >
+                {renderGroupFields(group.fields)}
+              </section>
+            ))}
+          </div>
+        ) : null}
+        {layout
+          .filter((group) => group.type !== "tab")
+          .map((group) => {
+            const id = `cms-${collection.slug}-layout-${group.id}`;
+            if (group.type === "collapsible") {
+              return (
+                <details
+                  key={group.id}
+                  open={!group.collapsed}
+                  data-cms-layout="collapsible"
+                >
+                  <summary>{group.label}</summary>
+                  {renderGroupFields(group.fields)}
+                </details>
+              );
+            }
+            return (
+              <section
+                key={group.id}
+                aria-labelledby={id}
+                data-cms-layout="row"
+              >
+                <h2 id={id}>{group.label}</h2>
+                <div role="group" aria-labelledby={id}>
+                  {renderGroupFields(group.fields)}
+                </div>
+              </section>
+            );
+          })}
+        {collection.fields
+          .filter((field) => !groupedFields.has(field.name))
+          .map((field) => renderField(field as CmsBuiltInField))}
         <button type="submit" disabled={saving}>
           {saving ? "Saving…" : mode === "create" ? "Create" : "Save changes"}
         </button>

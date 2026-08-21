@@ -11,6 +11,8 @@ import {
   type StandardCtaBlock,
 } from "./standard-blocks.js";
 
+export * from "./editor-shell.js";
+
 export type RemVietStandardEditors<TContext> = {
   richText: ComponentType<
     CmsBlockEditorProps<RichTextBlock> & { context: TContext }

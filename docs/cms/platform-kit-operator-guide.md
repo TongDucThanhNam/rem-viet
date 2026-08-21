@@ -21,17 +21,81 @@ local rehearsal into registry, staging, or production evidence.
 - Retain the registry publication receipt and the artifact SHA-256 values from
   `provenance.json`.
 
-Install one coordinated version of the required packages. Do not mix versions:
+Install one coordinated version of the required packages. The stable release
+set contains 24 artifacts; a site normally installs one provider, the neutral
+runtime/admin packages, the modules it enables, and its selected template. Do
+not mix versions:
 
 ```bash
 bun add @agency/cms-core@0.1.0 @agency/cms-runtime@0.1.0 \
   @agency/cms-provider-cloudflare@0.1.0 @agency/cms-react@0.1.0 \
   @agency/cms-admin@0.1.0 @agency/cms-alchemy@0.1.0 \
   @agency/cms-cli@0.1.0 @agency/cms-visual-editor@0.1.0 \
+  @agency/cms-collaboration@0.1.0 \
+  @agency/cms-module-seo@0.1.0 @agency/cms-module-redirects@0.1.0 \
+  @agency/cms-module-search@0.1.0 @agency/cms-module-forms@0.1.0 \
+  @agency/cms-module-taxonomy@0.1.0 @agency/cms-module-import@0.1.0 \
+  @agency/cms-module-observability@0.1.0 \
+  @agency/cms-module-privacy@0.1.0 \
+  @agency/cms-module-cache-cloudflare@0.1.0 \
   @agency/cms-template-factory@0.1.0 \
   @agency/cms-template-atelier@0.1.0 \
   @agency/cms-template-rem-viet@0.1.0
 ```
+
+The coordinated release also contains the alternative
+`@agency/cms-provider-local` and `@agency/cms-provider-postgres` artifacts. Do
+not install more than one provider unless the application is an explicit
+migration harness.
+
+The release also contains `@agency/cms-agency` for a separate operator-owned
+control-plane application. Do not install it in every client site and do not
+centralize client content, secrets, backup locations, or raw logs. Feed it only
+host-trusted signed site receipts and dispatch one reviewed site/stage plan at a
+time.
+
+Install only the official modules the site uses. Taxonomy retains canonical
+trees; import retains imported content and receipts until explicit export/purge;
+search, observability, and cache receipts are derived and deletable. Configure
+Sentry/OpenTelemetry exporters and Cloudflare credentials only in the server
+environment. WordPress WXR import must be dry-run and reviewed before applying
+its checkpointed plan.
+
+Collaboration presence and locks are ephemeral; comments and activity are
+personal/editorial records and must be exported before uninstall. Configure a
+site-owned realtime transport only at the adapter boundary—the collaboration
+kernel works without it. Privacy exports and erasure execution are server-only.
+Review the exact subject and policy version, retention result, and active legal
+holds before dispatching an erasure plan. Keep exported personal data outside
+repository and release evidence.
+
+For an existing TanStack Start application, use the packaged integration
+command before template initialization:
+
+```bash
+bunx --bun agency-cms add \
+  --framework=tanstack-start --provider=cloudflare --dry-run
+bunx --bun agency-cms add \
+  --framework=tanstack-start --provider=cloudflare
+bunx --bun agency-cms diagnose
+```
+
+Valid provider IDs are `cloudflare`, `local`, and `postgres`. `add` creates only
+CMS-owned files and missing package entries, installs dependencies, and writes
+`.agency-cms/integration.receipt.json`. Re-running the same command is
+idempotent. A divergent managed file or script fails closed. Use
+`--skip-install` only for a reviewed offline workflow. Removal follows the same
+receipt and preserves consumer-owned changes:
+
+```bash
+bunx --bun agency-cms remove --dry-run
+bunx --bun agency-cms remove
+```
+
+The clean-room packed verifier exercises add, repeated add, diagnose, build,
+typecheck, remove, post-remove build, and public-bundle provider isolation for
+all three providers. This is local package evidence; repeat the chosen path in
+the client repository and target operating system.
 
 The installed package exposes a real binary. A template owns the versioned init
 plan and verification spec; the neutral CLI validates and applies them:
@@ -83,10 +147,41 @@ Then:
    provider conformance function through the authenticated deployed API; route
    smoke alone is not equivalent provider evidence.
    If the template adopts global content, also run the keyed global-provider
-   conformance and retain a browser receipt that edits, renders, and restores
-   site settings plus every registered navigation location.
+   conformance and retain a browser receipt that saves a private draft, confirms
+   the public snapshot is unchanged, releases and renders it, then restores and
+   releases the recovery for site settings plus every registered navigation
+   location.
 6. Provision staging, migrate, seed, create the initial owner, and remove the
    bootstrap credential before any handover.
+
+### PostgreSQL and S3-compatible deployment
+
+Choose `--provider=postgres` for deployments outside the Cloudflare D1/R2
+runtime. The generated `.env.cms.example` lists the server-only contract:
+
+- `CMS_POSTGRES_URL` for PostgreSQL;
+- `CMS_S3_REGION`, `CMS_S3_BUCKET`, `CMS_S3_ACCESS_KEY_ID`, and
+  `CMS_S3_SECRET_ACCESS_KEY` for object storage;
+- optional `CMS_S3_ENDPOINT` for MinIO, R2's S3 API, or another compatible
+  service; and
+- a random 32+ character `CMS_ADMIN_TOKEN` for the generated example API
+  boundary. Replace that example bearer boundary with the application's real
+  actor/session resolver before client handover.
+
+Run `applyPostgresCmsMigrations(pool)` as a deployment step before shifting
+traffic. Reuse the same `pg.Pool` for the collection and media providers.
+PostgreSQL mutations use serializable transactions and advisory transaction
+locks; the current provider stores collection state and DAM metadata in
+separate JSONB state tables per namespace. This is a transactional portability
+baseline, not a claim of fully normalized per-document scale. Load-test the
+client's expected collection and DAM volume before approval.
+
+Keep the S3 bucket private. Serve assets through the DAM delivery adapter's
+bounded presigned URLs, apply bucket lifecycle/retention rules deliberately,
+and verify object versioning or backup recovery with the client's storage
+service. The local conformance suite covers collection and DAM behavior, and a
+live MinIO test covers signed put/get/exists/delete behavior. A real target
+PostgreSQL/S3 staging rehearsal is still required.
 
 For a provider migration, keep the driver in the client repository and export
 only `inspectVersion`, `createBackup`, `applyStep`, and `restoreBackup`. Run the
@@ -100,6 +195,13 @@ receipt chain.
 Never copy package source into the client repository or import a package's
 `src/*` path. A missing public export is a Platform Kit issue, not permission to
 create a privileged deep import.
+
+Extension packages follow the separate signed lifecycle in
+`docs/cms/extension-sdk-guide.md`. Verify provenance and compatibility before
+loading code, run the compatibility kit only against disposable storage, and
+retain its receipt. Normal installation cannot downgrade an extension; use the
+exact upgrade receipt for a reviewed rollback. Never let an editor install
+arbitrary extension code.
 
 ### Experimental Sanity visual tier
 
@@ -209,6 +311,16 @@ statement. Verify:
 - animation/layout behavior in the client app, including reduced motion and
   mobile static paths.
 
+When a collection needs mandatory review, create the workflow policy against
+its registered collection slug, normalized folder, and locale—not the generic
+word `collection`. Review requests for provider documents use the explicit
+`collection` target with collection slug, document ID, locale, and exact
+version. Approval audit identity includes all three collection dimensions, so
+approval of one locale cannot release another. Keep review notification outbox
+payloads content-free, require every checklist gate, and use release preview as
+the final fail-closed policy check before publishing. Standard pages continue
+through the `page` target because their compatibility projection is atomic.
+
 A client-only layout or field component may stay in the client repository. Move
 it into a neutral package only after a second real template proves reuse.
 
@@ -233,7 +345,7 @@ bun run cms:kit:release:publish \
 ```
 
 The publisher accepts only the unchanged clean prepared checkout, restricted
-access, and all eight hash-matching artifacts. Keep the final publication
+access, and all 24 hash-matching artifacts. Keep the final publication
 receipt outside the ephemeral checkout. If a partial receipt remains, stop and
 reconcile registry state package by package before preparing a new version;
 published package versions are immutable and must not be overwritten.
@@ -242,7 +354,10 @@ Before staging or production:
 
 1. Verify the release provenance, artifact policy, compatibility matrix,
    changelog, schema notes, and rollback boundary.
-2. Run `cms:kit:consumer` and `cms:kit:upgrade` for the exact source commit.
+2. Run `bun run cms:kit:clean-checkout` from the exact source commit. Retain its
+   receipt; it covers the frozen install, packed consumers, portability,
+   receipt-bound migration rollback, isolated local backup/restore, and the
+   coordinated 24-package upgrade/rollback rehearsal.
 3. Build a `createCmsMigrationPlan` with the actual site, stage, target, current
    version, target version, and contiguous migration IDs.
 4. Present the plan and its generated apply/rollback confirmation strings to the

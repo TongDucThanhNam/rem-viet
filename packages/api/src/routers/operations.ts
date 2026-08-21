@@ -30,24 +30,64 @@ import {
   upsertFormDefinitionInputSchema,
 } from "../services/operations";
 import {
+  cancelCmsJob,
+  cmsJobIdInputSchema,
+  listCmsJobs,
+  listCmsJobsInputSchema,
+  retryCmsJob,
+} from "../services/jobs";
+import {
+  listCmsCalendar,
+  listCmsCalendarInputSchema,
+} from "../services/calendar";
+import {
+  cancelCmsRelease,
+  cmsReleaseIdInputSchema,
+  createCmsRelease,
+  createCmsReleaseInputSchema,
+  listCmsReleases,
+  listCmsReleasesInputSchema,
+  previewCmsRelease,
+  publishCmsReleaseNow,
+  scheduleCmsRelease,
+  scheduleCmsReleaseInputSchema,
+} from "../services/releases";
+import {
+  createWebhookEndpoint,
+  createWebhookEndpointInputSchema,
+  listWebhookDeliveries,
+  listWebhookDeliveriesInputSchema,
+  listWebhookEndpoints,
+  replayWebhookDelivery,
+  replayWebhookDeliveryInputSchema,
+  revokeWebhookEndpoint,
+  rotateWebhookSecret,
+  webhookEndpointIdInputSchema,
+} from "../services/webhooks";
+import {
+  cmsWorkflowPolicyTargetSchema,
+  deactivateCmsWorkflowPolicy,
+  listCmsWorkflowPolicies,
+  upsertCmsWorkflowPolicy,
+  upsertCmsWorkflowPolicyInputSchema,
+} from "../services/workflow-policies";
+import {
   getWebVitalSummary,
   webVitalSummaryInputSchema,
 } from "../services/vitals";
 import { capabilityProcedure, publicProcedure, router } from "../index";
 
 type StaffContext = {
+  actor: {
+    userId: string;
+    email: string;
+    role: "owner" | "admin" | "editor" | "system";
+  };
   requestId: string;
-  session: { user: { id: string; email?: string | null } };
-  staffRole: "owner" | "admin" | "editor";
 };
 
 function actorFromContext(ctx: StaffContext) {
-  return {
-    userId: ctx.session.user.id,
-    email: ctx.session.user.email ?? "",
-    role: ctx.staffRole,
-    requestId: ctx.requestId,
-  };
+  return { ...ctx.actor, requestId: ctx.requestId };
 }
 
 export const operationsRouter = router({
@@ -63,6 +103,97 @@ export const operationsRouter = router({
     summary: capabilityProcedure("audit.read")
       .input(webVitalSummaryInputSchema)
       .query(({ input }) => getWebVitalSummary(input)),
+  }),
+  calendar: router({
+    list: capabilityProcedure("audit.read")
+      .input(listCmsCalendarInputSchema)
+      .query(({ input }) => listCmsCalendar(input)),
+  }),
+  jobs: router({
+    list: capabilityProcedure("audit.read")
+      .input(listCmsJobsInputSchema)
+      .query(({ input }) => listCmsJobs(input)),
+    cancel: capabilityProcedure("settings.manage")
+      .input(cmsJobIdInputSchema)
+      .mutation(({ ctx, input }) =>
+        cancelCmsJob(input.jobId, undefined, actorFromContext(ctx)),
+      ),
+    retry: capabilityProcedure("settings.manage")
+      .input(cmsJobIdInputSchema)
+      .mutation(({ ctx, input }) =>
+        retryCmsJob(input.jobId, undefined, actorFromContext(ctx)),
+      ),
+  }),
+  releases: router({
+    list: capabilityProcedure("audit.read")
+      .input(listCmsReleasesInputSchema)
+      .query(({ input }) => listCmsReleases(input)),
+    create: capabilityProcedure("content.schedule")
+      .input(createCmsReleaseInputSchema)
+      .mutation(({ ctx, input }) =>
+        createCmsRelease(input, actorFromContext(ctx)),
+      ),
+    preview: capabilityProcedure("audit.read")
+      .input(cmsReleaseIdInputSchema)
+      .mutation(({ input }) => previewCmsRelease(input)),
+    schedule: capabilityProcedure("content.schedule")
+      .input(scheduleCmsReleaseInputSchema)
+      .mutation(({ ctx, input }) =>
+        scheduleCmsRelease(input, actorFromContext(ctx)),
+      ),
+    publishNow: capabilityProcedure("content.publish")
+      .input(cmsReleaseIdInputSchema)
+      .mutation(({ ctx, input }) =>
+        publishCmsReleaseNow(input, actorFromContext(ctx)),
+      ),
+    cancel: capabilityProcedure("content.schedule")
+      .input(cmsReleaseIdInputSchema)
+      .mutation(({ ctx, input }) =>
+        cancelCmsRelease(input, actorFromContext(ctx)),
+      ),
+  }),
+  workflows: router({
+    list: capabilityProcedure("audit.read").query(() =>
+      listCmsWorkflowPolicies(),
+    ),
+    upsert: capabilityProcedure("settings.manage")
+      .input(upsertCmsWorkflowPolicyInputSchema)
+      .mutation(({ ctx, input }) =>
+        upsertCmsWorkflowPolicy(input, actorFromContext(ctx)),
+      ),
+    deactivate: capabilityProcedure("settings.manage")
+      .input(cmsWorkflowPolicyTargetSchema)
+      .mutation(({ ctx, input }) =>
+        deactivateCmsWorkflowPolicy(input, actorFromContext(ctx)),
+      ),
+  }),
+  webhooks: router({
+    listEndpoints: capabilityProcedure("audit.read").query(() =>
+      listWebhookEndpoints(),
+    ),
+    createEndpoint: capabilityProcedure("settings.manage")
+      .input(createWebhookEndpointInputSchema)
+      .mutation(({ ctx, input }) =>
+        createWebhookEndpoint(input, actorFromContext(ctx)),
+      ),
+    rotateSecret: capabilityProcedure("settings.manage")
+      .input(webhookEndpointIdInputSchema)
+      .mutation(({ ctx, input }) =>
+        rotateWebhookSecret(input, actorFromContext(ctx)),
+      ),
+    revokeEndpoint: capabilityProcedure("settings.manage")
+      .input(webhookEndpointIdInputSchema)
+      .mutation(({ ctx, input }) =>
+        revokeWebhookEndpoint(input, actorFromContext(ctx)),
+      ),
+    listDeliveries: capabilityProcedure("audit.read")
+      .input(listWebhookDeliveriesInputSchema)
+      .query(({ input }) => listWebhookDeliveries(input.limit)),
+    replayDelivery: capabilityProcedure("settings.manage")
+      .input(replayWebhookDeliveryInputSchema)
+      .mutation(({ ctx, input }) =>
+        replayWebhookDelivery(input, actorFromContext(ctx)),
+      ),
   }),
   redirects: router({
     resolve: publicProcedure

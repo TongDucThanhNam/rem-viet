@@ -3,6 +3,7 @@ import {
   type CmsBlock,
   CmsError,
   booleanField,
+  computedField,
   createCollectionRegistry,
   createCmsExtensionRegistry,
   defineCollection,
@@ -10,6 +11,7 @@ import {
   defineFeatureModule,
   relationshipField,
   textField,
+  virtualField,
 } from "@agency/cms-core";
 import {
   assertCmsCollectionAccess,
@@ -157,7 +159,29 @@ describe("Cloudflare D1 page provider", () => {
     const migrationCount = await empty
       .prepare("SELECT COUNT(*) AS count FROM cms_provider_migrations")
       .first<{ count: number }>();
-    expect(Number(migrationCount?.count)).toBe(7);
+    expect(Number(migrationCount?.count)).toBe(11);
+    await empty.exec(`
+      INSERT INTO cms_globals (
+        key, content, version, updated_by, created_at, updated_at
+      ) VALUES ('legacy-global', '{"label":"Legacy","links":[]}', 1, 'legacy', 1, 1);
+      INSERT INTO cms_global_revisions (
+        id, global_key, version, snapshot, note, created_by, created_at
+      ) VALUES (
+        'legacy-global-revision', 'legacy-global', 1,
+        '{"label":"Legacy","links":[]}', '', 'legacy', 1
+      );
+      DELETE FROM cms_provider_migrations
+      WHERE id = '0011_global_publication_boundary';
+    `);
+    await applyCloudflareCmsMigrations(empty);
+    await expect(
+      empty
+        .prepare(
+          `SELECT published_revision_id AS publishedRevisionId
+           FROM cms_globals WHERE key = 'legacy-global'`,
+        )
+        .first(),
+    ).resolves.toEqual({ publishedRevisionId: "legacy-global-revision" });
 
     const upgraded = database();
     await upgraded.exec(`
@@ -190,6 +214,16 @@ describe("Cloudflare D1 page provider", () => {
     await expect(
       upgraded.prepare("SELECT id FROM cms_review_events").all(),
     ).resolves.toEqual({ results: [] });
+    const reviewColumns = await upgraded
+      .prepare("PRAGMA table_info(cms_review_events)")
+      .all<{ name: string }>();
+    expect(reviewColumns.results.map(({ name }) => name)).toContain("metadata");
+    const globalColumns = await upgraded
+      .prepare("PRAGMA table_info(cms_globals)")
+      .all<{ name: string }>();
+    expect(globalColumns.results.map(({ name }) => name)).toContain(
+      "published_revision_id",
+    );
     await expect(
       upgraded.prepare("SELECT id FROM cms_collection_documents").all(),
     ).resolves.toEqual({ results: [] });
@@ -202,6 +236,7 @@ describe("Cloudflare D1 page provider", () => {
         "scheduled_at",
         "scheduled_by",
         "schedule_note",
+        "folder",
       ]),
     );
   });
@@ -386,6 +421,116 @@ describe("Cloudflare D1 page provider", () => {
         actorId: "editor",
       }),
     ).resolves.toMatchObject({ data: { name: "Permitted" } });
+  });
+
+  test("enforces async field lifecycle and read access in D1", async () => {
+    const db = database();
+    await applyCloudflareCmsMigrations(db);
+    const secured = defineCollection({
+      slug: "secured-records",
+      labels: { singular: "Secured record", plural: "Secured records" },
+      schemaVersion: 1,
+      lifecycle: { drafts: true, revisions: true, scheduling: false },
+      access: { read: [], create: [], update: [], delete: [], publish: [] },
+      fields: [
+        textField({
+          name: "title",
+          label: "Title",
+          required: true,
+          hooks: {
+            beforeValidate: async (value) => String(value).trim(),
+          },
+          validateAsync: async (value) =>
+            value === "Rejected" ? "Title is reserved." : true,
+        }),
+        textField({
+          name: "privateNote",
+          label: "Private note",
+          access: {
+            read: ({ actorId }) => actorId === "administrator",
+            create: ({ actorId }) => actorId === "administrator",
+            update: ({ actorId }) => actorId === "administrator",
+          },
+        }),
+        computedField({
+          name: "titleLength",
+          label: "Title length",
+          valueKind: "number",
+          compute: async ({ data }) => String(data.title ?? "").trim().length,
+        }),
+        virtualField({
+          name: "viewer",
+          label: "Viewer",
+          valueKind: "text",
+          resolve: async ({ actorId }) => actorId ?? "anonymous",
+        }),
+      ],
+    });
+    const provider = createCloudflareCmsCollectionProvider({
+      database: db,
+      registry: createCollectionRegistry([secured]),
+    });
+
+    await expect(
+      provider.createDraft({
+        collection: secured.slug,
+        id: "rejected",
+        data: { title: "Rejected" },
+        actorId: "administrator",
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
+    const created = await provider.createDraft({
+      collection: secured.slug,
+      id: "home",
+      data: { title: "  Home  ", privateNote: "secret" },
+      actorId: "administrator",
+    });
+    expect(created.data).toEqual({
+      title: "Home",
+      privateNote: "secret",
+      titleLength: 4,
+      viewer: "administrator",
+    });
+    expect(
+      (
+        await provider.getDraft({
+          collection: secured.slug,
+          id: "home",
+          actorId: "editor",
+        })
+      )?.data,
+    ).toEqual({ title: "Home", titleLength: 4, viewer: "editor" });
+    await expect(
+      provider.list({
+        collection: secured.slug,
+        actorId: "editor",
+        filters: [
+          { field: "privateNote", operator: "equals", value: "secret" },
+        ],
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+
+    await provider.saveDraft({
+      collection: secured.slug,
+      id: "home",
+      expectedVersion: created.version,
+      data: { title: "Updated" },
+      actorId: "editor",
+    });
+    expect(
+      (
+        await provider.getDraft({
+          collection: secured.slug,
+          id: "home",
+          actorId: "administrator",
+        })
+      )?.data,
+    ).toEqual({
+      title: "Updated",
+      privateNote: "secret",
+      titleLength: 7,
+      viewer: "administrator",
+    });
   });
 
   test("keeps localized drafts, publication, schedules, revisions, and relationships independent", async () => {
@@ -669,7 +814,15 @@ describe("Cloudflare D1 page provider", () => {
       schemaVersion: 1,
       lifecycle,
       access,
-      fields: [textField({ name: "name", label: "Name", required: true })],
+      fields: [
+        textField({ name: "name", label: "Name", required: true }),
+        virtualField({
+          name: "displayLabel",
+          label: "Display label",
+          valueKind: "text",
+          resolve: ({ data }) => `Author: ${String(data.name)}`,
+        }),
+      ],
     });
     const articles = defineCollection({
       slug: "portable-articles",
@@ -753,6 +906,19 @@ describe("Cloudflare D1 page provider", () => {
     );
     expect(allowed.status).toBe(200);
     await expect(allowed.json()).resolves.toMatchObject({ total: 1, limit: 1 });
+    const derivedRestResponse = await rest.handle(
+      new Request(
+        "https://cms.test/cms/collections/portable-authors/documents/author-1?view=published",
+        { headers: { authorization: "allowed" } },
+      ),
+    );
+    expect(derivedRestResponse.status).toBe(200);
+    await expect(derivedRestResponse.json()).resolves.toMatchObject({
+      data: {
+        name: "Portable author",
+        displayLabel: "Author: Portable author",
+      },
+    });
     const forbidden = await rest.handle(
       new Request(
         "https://cms.test/cms/collections/portable-articles/documents",
@@ -775,6 +941,11 @@ describe("Cloudflare D1 page provider", () => {
     });
     expect(stableJson(firstExport)).toBe(stableJson(secondExport));
     expect(stableJson(firstExport)).not.toContain("password");
+    expect(
+      firstExport.documents.find(
+        (document) => document.collection === authors.slug,
+      )?.data,
+    ).toEqual({ name: "Portable author" });
 
     const target = createCloudflareCmsCollectionProvider({
       database: targetDb,
@@ -1227,11 +1398,69 @@ describe("Cloudflare D1 page provider", () => {
         changed: { label: "Primary", links: ["/", "/journal"] },
       }),
     ).resolves.toEqual({
+      compensatingRollback: true,
       create: true,
+      draftIsolation: true,
       optimisticConflict: true,
+      publish: true,
       revisionHistory: true,
       restore: true,
       update: true,
+    });
+  });
+
+  test("maps a concurrent global publication constraint to a portable conflict", async () => {
+    const db = database();
+    await applyCloudflareCmsMigrations(db);
+    let rejectNextBatch = false;
+    const concurrentDatabase: CloudflareD1Database = {
+      prepare: (query) => db.prepare(query),
+      exec: (query) => db.exec(query),
+      batch: (statements) => {
+        if (rejectNextBatch) {
+          rejectNextBatch = false;
+          return Promise.reject(
+            new Error(
+              "D1_ERROR: UNIQUE constraint failed: cms_global_revisions.global_key, cms_global_revisions.version: SQLITE_CONSTRAINT",
+            ),
+          );
+        }
+        return db.batch(statements);
+      },
+    };
+    let sequence = 0;
+    const provider = createCloudflareCmsGlobalContentProvider({
+      database: concurrentDatabase,
+      parseContent(value) {
+        return value as { label: string; links: string[] };
+      },
+      createId: () => `global-conflict-revision-${++sequence}`,
+      now: () => new Date("2026-08-21T00:00:00.000Z"),
+    });
+    const saved = await provider.save({
+      key: "site-settings",
+      expectedVersion: null,
+      content: { label: "Settings", links: [] },
+      actorId: "author-1",
+    });
+
+    rejectNextBatch = true;
+    await expect(
+      provider.publish({
+        key: saved.key,
+        expectedVersion: saved.version,
+        actorId: "publisher-1",
+      }),
+    ).rejects.toMatchObject({ code: "CONFLICT", retryable: false });
+    await expect(
+      provider.publish({
+        key: saved.key,
+        expectedVersion: saved.version,
+        actorId: "publisher-1",
+      }),
+    ).resolves.toMatchObject({
+      document: { version: 2, status: "published" },
+      revision: { version: 2 },
     });
   });
 
@@ -1312,6 +1541,7 @@ describe("Cloudflare D1 page provider", () => {
       idempotentRequest: true,
       pendingQueue: true,
       staleProtection: true,
+      taskGovernance: true,
       versionBound: true,
     });
   });
@@ -1538,5 +1768,5 @@ describe("Cloudflare D1 page provider", () => {
     } finally {
       await miniflare.dispose();
     }
-  });
+  }, 15_000);
 });

@@ -166,11 +166,12 @@ export function createStagingPageProvider(input: {
   baseUrl: string;
   cookie: string;
 }): StagingPageProvider {
+  const origin = new URL(input.baseUrl).origin;
   const trpc = createTRPCClient<AppRouter>({
     links: [
       httpBatchLink({
         url: `${input.baseUrl.replace(/\/$/, "")}/api/trpc`,
-        headers: { Cookie: input.cookie },
+        headers: { Cookie: input.cookie, Origin: origin },
       }),
     ],
   });

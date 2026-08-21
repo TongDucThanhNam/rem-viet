@@ -19,11 +19,15 @@ import {
   commitCmsDraftHistory,
   createCmsDraftHistory,
   createCmsVisualEditorStateMessage,
+  createCmsVisualPreviewSession,
   isCmsVisualEditorMessage,
   redoCmsDraftHistory,
   undoCmsDraftHistory,
 } from "@agency/cms-visual-editor";
-import { createRemVietStandardBlockEditorRegistry } from "@agency/cms-template-rem-viet/admin";
+import {
+  RemVietEditorShell,
+  createRemVietStandardBlockEditorRegistry,
+} from "@agency/cms-template-rem-viet/admin";
 import {
   isRemVietStandardBlockType,
   remVietStandardBlockAuthoringCatalog,
@@ -118,6 +122,7 @@ import {
   isUnsavedStandardPagePreviewId,
   unsavedStandardPagePreviewId,
 } from "@/lib/standard-page-preview";
+import { siteManifest } from "@/lib/site-config";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/admin/pages")({
@@ -137,6 +142,7 @@ type PageRow = {
   _id: string;
   title: string;
   slug: string;
+  folder: string;
   template: "landing" | "standard";
   blocks: PageBlock[];
   status: "draft" | "published";
@@ -168,6 +174,7 @@ type StandardBlock = IdentifiedStandardPageBlock;
 type StandardPageDraft = {
   title: string;
   slug: string;
+  folder: string;
   blocks: StandardBlock[];
   seoTitle: string;
   seoDescription: string;
@@ -254,6 +261,12 @@ const standardPageRevisionFields = [
     summarize: (value) => `/${value.slug}`,
   },
   {
+    key: "folder",
+    label: "Thư mục workflow",
+    read: (value) => value.folder,
+    summarize: (value) => value.folder || "Thư mục gốc",
+  },
+  {
     key: "blocks",
     label: "Nội dung và cấu trúc block",
     read: (value) => value.blocks,
@@ -310,6 +323,7 @@ function emptyStandardPageDraft(): StandardPageDraft {
   return {
     title: "",
     slug: "",
+    folder: "",
     blocks: [newRichTextBlock()],
     seoTitle: "",
     seoDescription: "",
@@ -325,6 +339,7 @@ function standardPageDraftFromRow(page: PageRow): StandardPageDraft {
   return {
     title: page.title,
     slug: page.slug,
+    folder: page.folder,
     blocks: blocks.length ? blocks : [newRichTextBlock()],
     seoTitle: page.seoTitle,
     seoDescription: page.seoDescription,
@@ -378,6 +393,7 @@ function StandardPageResponsivePreview({
   selectedIndex,
   title,
   version,
+  previewChannel,
   workspaceFocusTriggerRef,
   workspaceFocused,
 }: {
@@ -401,6 +417,11 @@ function StandardPageResponsivePreview({
   selectedIndex: number;
   title: string;
   version: number;
+  previewChannel: Readonly<{
+    conflictToken: string;
+    sessionBinding: string;
+    sessionId: string;
+  }>;
   workspaceFocusTriggerRef: RefObject<HTMLButtonElement | null>;
   workspaceFocused: boolean;
 }) {
@@ -411,14 +432,60 @@ function StandardPageResponsivePreview({
   const frameRef = useRef<HTMLIFrameElement>(null);
   const {
     markConnected,
+    markFrameLoading,
     markFrameLoaded,
     reloadKey,
     retry,
     status: connectionStatus,
   } = useCmsPreviewConnection();
   const profile = standardPagePreviewProfiles[device];
-  const previewUrl = `/admin/pages/${encodeURIComponent(pageId)}/preview`;
+  const standalonePreviewUrl = `/admin/pages/${encodeURIComponent(pageId)}/preview`;
+  const previewUrl = `${standalonePreviewUrl}?${new URLSearchParams({
+    cmsBinding: previewChannel.sessionBinding,
+    cmsConflict: previewChannel.conflictToken,
+    cmsSession: previewChannel.sessionId,
+  })}`;
   const isUnsavedPreview = isUnsavedStandardPagePreviewId(pageId);
+  const channelReadyRef = useRef(false);
+  const previewSessionRef = useRef<{
+    key: string;
+    session: ReturnType<typeof createCmsVisualPreviewSession>;
+  } | null>(null);
+  const getPreviewSession = useCallback(() => {
+    const key = [
+      pageId,
+      previewChannel.sessionId,
+      previewChannel.sessionBinding,
+      previewChannel.conflictToken,
+      reloadKey,
+    ].join(":");
+    if (previewSessionRef.current?.key !== key) {
+      previewSessionRef.current = {
+        key,
+        session: createCmsVisualPreviewSession({
+          source: "host",
+          expectedSource: "preview",
+          identity: {
+            siteId: siteManifest.id,
+            documentId: pageId,
+            documentType: "standardPage",
+            sessionId: previewChannel.sessionId,
+            sessionBinding: previewChannel.sessionBinding,
+            documentVersion: 0,
+            conflictToken: previewChannel.conflictToken,
+          },
+          allowedOrigins: new Set([window.location.origin]),
+        }),
+      };
+    }
+    return previewSessionRef.current.session;
+  }, [
+    pageId,
+    previewChannel.conflictToken,
+    previewChannel.sessionBinding,
+    previewChannel.sessionId,
+    reloadKey,
+  ]);
   const visualBlocks = useMemo(
     () =>
       blocks.flatMap((block, index) => {
@@ -429,28 +496,31 @@ function StandardPageResponsivePreview({
   );
 
   const sendWorkingCopy = useCallback(() => {
+    if (!channelReadyRef.current) return;
     const target = frameRef.current?.contentWindow;
-    target?.postMessage(
+    if (!target) return;
+    const session = getPreviewSession();
+    const visualState = createCmsVisualEditorStateMessage({
+      blocks: visualBlocks,
+      selectedBlockId: visualBlocks[selectedIndex]?.id ?? null,
+      selectedFieldPath,
+      selectionRevision: 0,
+      revision: version,
+    });
+    const envelope = session.createVersionedState(
       {
-        type: "cms:standard-page-preview",
         pageId,
         title,
         blocks,
+        visualState,
       },
-      window.location.origin,
+      version,
     );
-    target?.postMessage(
-      createCmsVisualEditorStateMessage({
-        blocks: visualBlocks,
-        selectedBlockId: visualBlocks[selectedIndex]?.id ?? null,
-        selectedFieldPath,
-        selectionRevision: 0,
-        revision: version,
-      }),
-      window.location.origin,
-    );
+    if (!envelope) return;
+    target.postMessage(envelope, window.location.origin);
   }, [
     blocks,
+    getPreviewSession,
     pageId,
     selectedFieldPath,
     selectedIndex,
@@ -478,38 +548,44 @@ function StandardPageResponsivePreview({
   };
 
   useEffect(() => {
-    sendWorkingCopy();
-  }, [sendWorkingCopy]);
+    channelReadyRef.current = false;
+    markFrameLoading();
+  }, [getPreviewSession, markFrameLoading]);
+
+  useEffect(() => sendWorkingCopy(), [sendWorkingCopy]);
 
   useEffect(() => {
     const receiveReady = (event: MessageEvent<unknown>) => {
       if (
         event.origin !== window.location.origin ||
         event.source !== frameRef.current?.contentWindow ||
-        !event.data ||
-        typeof event.data !== "object"
+        !event.data
       )
         return;
-      const message = event.data as Record<string, unknown>;
+      const validation = getPreviewSession().receive({
+        value: event.data,
+        origin: event.origin,
+      });
+      if (!validation.accepted) return;
+      const payload = validation.envelope.payload;
       const runtime = visualRuntimeRef.current;
+      if (payload.type === "ready") {
+        channelReadyRef.current = true;
+        markConnected();
+        runtime.sendWorkingCopy();
+        return;
+      }
+      if (payload.type === "ack") {
+        runtime.sendWorkingCopy();
+        return;
+      }
       if (
-        message.type === "cms:standard-page-preview-ready" &&
-        message.pageId === pageId
-      ) {
-        markConnected();
-        runtime.sendWorkingCopy();
-      }
-      const isPageScopedIntent =
-        message.type === "cms:standard-page-preview-intent" &&
-        message.pageId === pageId;
-      const visualMessage = isPageScopedIntent ? message.intent : event.data;
-      if (!isCmsVisualEditorMessage(visualMessage)) return;
-      if (!isPageScopedIntent && visualMessage.type !== "ready") return;
+        payload.type !== "command" ||
+        !isCmsVisualEditorMessage(payload.command)
+      )
+        return;
+      const visualMessage = payload.command;
       setLastCanvasIntent(visualMessage.type);
-      if (visualMessage.type === "ready") {
-        markConnected();
-        runtime.sendWorkingCopy();
-      }
       if (visualMessage.type === "select") {
         const index = runtime.visualBlocks.findIndex(
           (block) => block.id === visualMessage.blockId,
@@ -555,7 +631,7 @@ function StandardPageResponsivePreview({
     };
     window.addEventListener("message", receiveReady);
     return () => window.removeEventListener("message", receiveReady);
-  }, [markConnected, pageId]);
+  }, [getPreviewSession, markConnected]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -688,7 +764,7 @@ function StandardPageResponsivePreview({
               <a
                 aria-label="Mở bản nháp đã lưu trong tab riêng"
                 className="grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
-                href={previewUrl}
+                href={standalonePreviewUrl}
                 rel="noreferrer"
                 target="_blank"
                 title="Mở bản nháp đã lưu"
@@ -744,6 +820,7 @@ function StandardPageResponsivePreview({
           <CmsPreviewConnectionLabel
             connectedLabel={<>Bản nháp v{version} · riêng tư · trực tiếp</>}
             status={connectionStatus}
+            tone="light"
           />
         </div>
       </CardContent>
@@ -889,6 +966,7 @@ function AdminPagesRoute() {
     seoDescription,
     seoTitle,
     slug,
+    folder,
     title,
   } = draft;
   const baselineDraftRef = useRef(draft);
@@ -1306,6 +1384,7 @@ function AdminPagesRoute() {
         const payload = {
           title: title.trim(),
           slug: normalizedSlug,
+          folder,
           template: "standard" as const,
           blocks: parsed.data,
           seoTitle,
@@ -1866,6 +1945,9 @@ function AdminPagesRoute() {
           ) : null}
           {editingPage && workingVersion !== null ? (
             <EditorialReviewPanel
+              commentGranted={
+                session?.capabilities.includes("content.write") ?? false
+              }
               currentVersion={workingVersion}
               decisionGranted={
                 session?.capabilities.includes("content.review.decide") ?? false
@@ -1930,6 +2012,24 @@ function AdminPagesRoute() {
                     }
                   />
                 </div>
+                <div className="grid gap-2 sm:col-span-2">
+                  <Label htmlFor="page-folder">Thư mục workflow</Label>
+                  <Input
+                    id="page-folder"
+                    placeholder="campaigns/summer"
+                    value={folder}
+                    onChange={(e) =>
+                      commitDraft(
+                        { ...draft, folder: e.target.value },
+                        "page-field:folder",
+                      )
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Dùng đường dẫn ID phân cấp để chọn workflow theo thư mục; để
+                    trống cho chính sách cấp collection.
+                  </p>
+                </div>
               </div>
               {shouldOfferRedirect ? (
                 <label className="flex items-start gap-2 rounded-md border p-3 text-sm">
@@ -1960,13 +2060,7 @@ function AdminPagesRoute() {
             </CardContent>
           </Card>
 
-          <div
-            aria-label={
-              workspaceFocused
-                ? "Không gian biên tập trang trực quan tập trung"
-                : undefined
-            }
-            aria-modal={workspaceFocused || undefined}
+          <RemVietEditorShell
             className={
               workspaceFocused
                 ? "fixed inset-3 z-[100] grid h-[calc(100dvh-1.5rem)] min-h-0 grid-cols-[minmax(0,1fr)_26rem] gap-0 overflow-hidden rounded-xl bg-background shadow-[0_30px_120px_rgba(0,0,0,0.45)] ring-1 ring-black/10"
@@ -1975,8 +2069,11 @@ function AdminPagesRoute() {
             data-cms-standard-workspace-mode={
               workspaceFocused ? "focused" : "standard"
             }
+            documentId={editingPage?._id ?? unsavedStandardPagePreviewId}
+            documentType="standardPage"
+            label="Không gian biên tập trang trực quan"
+            mode={workspaceFocused ? "focused" : "standard"}
             ref={workspaceRef}
-            role={workspaceFocused ? "dialog" : undefined}
             onKeyDown={handleFocusedWorkspaceKeyDown}
           >
             <Card
@@ -2167,6 +2264,7 @@ function AdminPagesRoute() {
                   onUndo={() => navigateDraftHistory("undo")}
                   onWorkspaceFocusChange={setWorkspaceFocused}
                   pageId={editingPage?._id ?? unsavedStandardPagePreviewId}
+                  previewChannel={session!.previewChannel}
                   selectedFieldPath={selectedCanvasFieldPath}
                   selectedIndex={selectedIndex}
                   title={title}
@@ -2176,7 +2274,7 @@ function AdminPagesRoute() {
                 />
               ) : null}
             </div>
-          </div>
+          </RemVietEditorShell>
 
           <Card className="rounded-md">
             <CardContent className="grid gap-4">
@@ -2346,6 +2444,7 @@ function AdminPagesRoute() {
                     const currentSnapshot: PageRevisionSnapshot = {
                       title,
                       slug,
+                      folder,
                       template: "standard",
                       blocks,
                       seoTitle,

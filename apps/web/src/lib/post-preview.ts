@@ -17,29 +17,30 @@ export const postPreviewFields = [
   "content",
 ] as const satisfies readonly PostPreviewField[];
 
-export type PostPreviewMessage = {
-  type: "cms:post-preview";
+export type PostPreviewState = {
   postId: string;
+  revision: number;
   selectedField: PostPreviewField | null;
   selectedBlockIndex: number | null;
   values: CmsPostFormValues;
 };
 
-export type PostPreviewSelectMessage = {
-  type: "cms:post-preview-select";
-  postId: string;
+export type PostPreviewSelectCommand = {
+  type: "select";
   field: PostPreviewField;
   blockId?: string;
   blockIndex?: number;
   content?: string;
 };
 
-export type PostPreviewCompositionMessage = {
-  type: "cms:post-preview-compose";
-  postId: string;
+export type PostPreviewCompositionCommand = {
+  type: "compose";
   content: string;
   command: PostRichTextCompositionCommand;
 };
+
+export type PostPreviewCommand =
+  PostPreviewSelectCommand | PostPreviewCompositionCommand;
 
 const postPreviewStringFields = [
   "content",
@@ -57,15 +58,16 @@ export function isPostPreviewField(value: unknown): value is PostPreviewField {
   return postPreviewFields.includes(value as PostPreviewField);
 }
 
-export function isPostPreviewMessage(
+export function isPostPreviewState(
   value: unknown,
   postId: string,
-): value is PostPreviewMessage {
+): value is PostPreviewState {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Record<string, unknown>;
   if (
-    candidate.type !== "cms:post-preview" ||
     candidate.postId !== postId ||
+    !Number.isSafeInteger(candidate.revision) ||
+    Number(candidate.revision) < 0 ||
     !candidate.values ||
     typeof candidate.values !== "object"
   )
@@ -90,10 +92,9 @@ export function isPostPreviewMessage(
   );
 }
 
-export function isPostPreviewSelectMessage(
+export function isPostPreviewSelectCommand(
   value: unknown,
-  postId: string,
-): value is PostPreviewSelectMessage {
+): value is PostPreviewSelectCommand {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Record<string, unknown>;
   const hasBlockSelection =
@@ -101,8 +102,7 @@ export function isPostPreviewSelectMessage(
     candidate.blockIndex !== undefined ||
     candidate.content !== undefined;
   return (
-    candidate.type === "cms:post-preview-select" &&
-    candidate.postId === postId &&
+    candidate.type === "select" &&
     isPostPreviewField(candidate.field) &&
     (!hasBlockSelection ||
       (candidate.field === "content" &&
@@ -117,16 +117,22 @@ export function isPostPreviewSelectMessage(
   );
 }
 
-export function isPostPreviewCompositionMessage(
+export function isPostPreviewCompositionCommand(
   value: unknown,
-  postId: string,
-): value is PostPreviewCompositionMessage {
+): value is PostPreviewCompositionCommand {
   if (!value || typeof value !== "object") return false;
   const candidate = value as Record<string, unknown>;
   return (
-    candidate.type === "cms:post-preview-compose" &&
-    candidate.postId === postId &&
+    candidate.type === "compose" &&
     typeof candidate.content === "string" &&
     isPostRichTextCompositionCommand(candidate.command)
+  );
+}
+
+export function isPostPreviewCommand(
+  value: unknown,
+): value is PostPreviewCommand {
+  return (
+    isPostPreviewSelectCommand(value) || isPostPreviewCompositionCommand(value)
   );
 }

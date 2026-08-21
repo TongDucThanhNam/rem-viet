@@ -221,6 +221,8 @@ function HomePreviewRoute() {
       const message = payload.state;
       const parsed = homeBlockSchema.array().safeParse(message.blocks);
       if (!parsed.success) return;
+      const versionChanged =
+        previewIdentity.current.documentVersion !== message.revision;
       previewIdentity.current = {
         ...previewIdentity.current,
         documentVersion: message.revision,
@@ -236,6 +238,12 @@ function HomePreviewRoute() {
       setComposerOpen(false);
       setCatalogQuery("");
       setStudioConnected(true);
+      if (versionChanged) {
+        postPreviewPayload({
+          type: "ack",
+          acknowledgedMessageId: validation.envelope.messageId,
+        });
+      }
     };
     const selectPreviewTarget = (event: MouseEvent | PointerEvent) => {
       if (window.parent === window) return;

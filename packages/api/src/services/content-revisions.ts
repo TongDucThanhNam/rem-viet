@@ -14,10 +14,16 @@ import {
   posts,
 } from "@rem-viet/db/schema/content";
 import { auditEvents } from "@rem-viet/db/schema/governance";
+import { cmsOutboxEvents } from "@rem-viet/db/schema/automation";
 import { and, desc, eq, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { reportOperationalIncident } from "./incidents";
+import { contentPublishedOutboxValues } from "./outbox";
+import { assertCmsWorkflowPublishAllowed } from "./workflow-policies";
+import { ContentWorkflowError } from "./content-workflow-error";
+
+export { ContentWorkflowError } from "./content-workflow-error";
 
 export type CmsActor = {
   userId: string;
@@ -98,16 +104,6 @@ export const unschedulePostInputSchema = z.object({
   expectedVersion: z.coerce.number().int().positive().optional(),
 });
 
-export class ContentWorkflowError extends Error {
-  constructor(
-    readonly code: "CONFLICT" | "NOT_FOUND" | "INVALID_REVISION" | "FORBIDDEN",
-    message: string,
-  ) {
-    super(message);
-    this.name = "ContentWorkflowError";
-  }
-}
-
 function assertVersion(actual: number, expected?: number) {
   if (expected !== undefined && actual !== expected) {
     throw new ContentWorkflowError(
@@ -121,6 +117,7 @@ function pageSnapshot(row: typeof pages.$inferSelect): PageRevisionSnapshot {
   return pageRevisionSnapshotSchema.parse({
     title: row.title,
     slug: row.slug,
+    folder: row.folder,
     template: row.template,
     blocks: row.blocks,
     seoTitle: row.seoTitle,
@@ -139,6 +136,7 @@ function postSnapshot(
   return postRevisionSnapshotSchema.parse({
     title: row.title,
     slug: row.slug,
+    folder: row.folder,
     description: row.description,
     coverImage: row.coverImage,
     tags: row.tags,
@@ -309,6 +307,12 @@ export async function publishPage(
   }
 
   assertVersion(document.version, input.expectedVersion);
+  await assertCmsWorkflowPublishAllowed({
+    collection: "page",
+    documentId: document.id,
+    version: document.version,
+    folder: document.folder,
+  });
 
   const snapshot = pageSnapshot(document);
   const revisionId = crypto.randomUUID();
@@ -356,6 +360,15 @@ export async function publishPage(
         entityType: "page",
       }),
     ),
+    db.insert(cmsOutboxEvents).values(
+      contentPublishedOutboxValues({
+        documentType: "page",
+        documentId: document.id,
+        version: nextVersion,
+        revisionId,
+        occurredAt: now,
+      }),
+    ),
   ]);
 
   return { publishedRevisionId: revisionId, snapshot, version: nextVersion };
@@ -375,6 +388,12 @@ export async function publishPost(
   }
 
   assertVersion(document.version, input.expectedVersion);
+  await assertCmsWorkflowPublishAllowed({
+    collection: "post",
+    documentId: document.id,
+    version: document.version,
+    folder: document.folder,
+  });
 
   const now = new Date();
   const publishDate = document.publishDate || now.toISOString();
@@ -422,6 +441,15 @@ export async function publishPost(
         },
         entityId: document.id,
         entityType: "post",
+      }),
+    ),
+    db.insert(cmsOutboxEvents).values(
+      contentPublishedOutboxValues({
+        documentType: "post",
+        documentId: document.id,
+        version: nextVersion,
+        revisionId,
+        occurredAt: now,
       }),
     ),
   ]);
@@ -546,6 +574,7 @@ export async function restorePostRevision(
       .set({
         title: parsed.data.title,
         slug: parsed.data.slug,
+        folder: parsed.data.folder,
         description: parsed.data.description,
         coverImage: parsed.data.coverImage,
         tags: parsed.data.tags,
@@ -825,7 +854,12 @@ export async function publishDueContent(now = new Date()) {
   const db = createDb();
   const [duePages, duePosts] = await Promise.all([
     db
-      .select({ id: pages.id, template: pages.template })
+      .select({
+        id: pages.id,
+        template: pages.template,
+        folder: pages.folder,
+        version: pages.version,
+      })
       .from(pages)
       .where(lte(pages.scheduledAt, now)),
     db.select({ id: posts.id }).from(posts).where(lte(posts.scheduledAt, now)),
@@ -839,6 +873,14 @@ export async function publishDueContent(now = new Date()) {
   for (const item of duePages) {
     try {
       if (item.template === "standard") {
+        const { assertCmsWorkflowPublishAllowed } =
+          await import("./workflow-policies");
+        await assertCmsWorkflowPublishAllowed({
+          collection: "page",
+          documentId: item.id,
+          version: item.version,
+          folder: item.folder,
+        });
         const { publishRemVietStandardPage } =
           await import("./standard-page-runtime");
         await publishRemVietStandardPage(

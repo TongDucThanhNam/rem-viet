@@ -1,4 +1,5 @@
 import { staffRoleSchema, type StaffRole } from "@rem-viet/cms";
+import { createAuth, isAuthEmailDeliveryConfigured } from "@rem-viet/auth";
 import { createDb } from "@rem-viet/db";
 import { account, session, user } from "@rem-viet/db/schema/auth";
 import { auditEvents, staffRoles } from "@rem-viet/db/schema/governance";
@@ -11,7 +12,7 @@ import { z } from "zod";
 export type GovernanceActor = {
   userId: string;
   email: string;
-  role: StaffRole;
+  role: StaffRole | "system";
   requestId: string;
 };
 
@@ -27,6 +28,10 @@ export const createStaffInputSchema = z.object({
   email: normalizedEmailSchema,
   password: z.string().min(12).max(128),
   role: staffRoleSchema,
+});
+
+export const inviteStaffInputSchema = createStaffInputSchema.omit({
+  password: true,
 });
 
 export const updateStaffRoleInputSchema = z.object({
@@ -207,6 +212,60 @@ export async function createStaff(
     ),
   ]);
   return { id: userId, name: input.name, email: input.email, role: input.role };
+}
+
+export async function inviteStaff(
+  input: z.infer<typeof inviteStaffInputSchema>,
+  actor: GovernanceActor,
+) {
+  const values = env as unknown as Record<string, string | undefined>;
+  if (!isAuthEmailDeliveryConfigured(values)) {
+    throw new TRPCError({
+      code: "PRECONDITION_FAILED",
+      message:
+        "Chưa cấu hình RESEND_API_KEY và EMAIL_FROM để gửi lời mời an toàn.",
+    });
+  }
+  const randomPassword = `${crypto.randomUUID()}-${crypto.randomUUID()}`;
+  const created = await createStaff(
+    { ...input, password: randomPassword },
+    actor,
+  );
+  try {
+    await createAuth().api.requestPasswordReset({
+      body: {
+        email: input.email,
+        redirectTo: new URL("/dat-lai-mat-khau", env.BETTER_AUTH_URL).href,
+      },
+    });
+  } catch {
+    await createDb().delete(user).where(eq(user.id, created.id));
+    await createDb()
+      .insert(auditEvents)
+      .values(
+        auditRow({
+          action: "staff.invite_failed",
+          actor,
+          entityId: created.id,
+          after: { email: created.email, role: created.role, rolledBack: true },
+        }),
+      );
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Không thể gửi lời mời. Tài khoản chưa được tạo.",
+    });
+  }
+  await createDb()
+    .insert(auditEvents)
+    .values(
+      auditRow({
+        action: "staff.invite_sent",
+        actor,
+        entityId: created.id,
+        after: { email: created.email, role: created.role },
+      }),
+    );
+  return { ...created, invited: true as const };
 }
 
 export async function updateStaffRole(

@@ -1,6 +1,7 @@
 import { describe, expect, mock, spyOn, test } from "bun:test";
 
 import type { Context } from "../src/context";
+import { roleCapabilities } from "@rem-viet/cms";
 
 let duplicateContentKind: "page" | "post" | null = null;
 
@@ -28,6 +29,7 @@ mock.module("cloudflare:workers", () => ({
   },
 }));
 
+const { capabilityProcedure, router } = await import("../src/index");
 const { appRouter } = await import("../src/routers");
 const {
   assertMediaDeletionAllowed,
@@ -68,6 +70,7 @@ function context(role: "owner" | "admin" | "editor" | null): Context {
           name: "Test Editor",
           email: "editor@example.com",
           emailVerified: true,
+          twoFactorEnabled: true,
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -75,12 +78,42 @@ function context(role: "owner" | "admin" | "editor" | null): Context {
     : null;
 
   return {
+    actor: role
+      ? {
+          userId: "user-1",
+          email: "editor@example.com",
+          role,
+          requestId: "request-1",
+        }
+      : null,
+    apiKeyPrincipal: null,
+    authType: role ? "session" : null,
     auth: null,
-    capabilities: [],
+    capabilities: role ? [...roleCapabilities[role]] : [],
     isAdmin: Boolean(role),
     requestId: "request-1",
     session,
     staffRole: role,
+  };
+}
+
+function apiKeyContext(scopes: Context["capabilities"]): Context {
+  return {
+    ...context(null),
+    actor: {
+      userId: "service-account:sync",
+      email: "api-key:Content sync",
+      role: "system",
+      requestId: "request-1",
+    },
+    apiKeyPrincipal: {
+      apiKeyId: "key-1",
+      serviceAccountId: "sync",
+      serviceAccountName: "Content sync",
+      capabilities: scopes,
+    },
+    authType: "apiKey",
+    capabilities: scopes,
   };
 }
 
@@ -96,6 +129,13 @@ describe("operations input schemas", () => {
 });
 
 describe("content capability procedures", () => {
+  const apiKeyProbe = router({
+    readDraft: capabilityProcedure("content.readDraft").query(({ ctx }) => ({
+      actor: ctx.actor,
+      authType: ctx.authType,
+    })),
+  });
+
   test("an editor receives FORBIDDEN from the publish API", async () => {
     const caller = appRouter.createCaller(context("editor"));
 
@@ -145,6 +185,17 @@ describe("content capability procedures", () => {
       code: "FORBIDDEN",
       message: "Missing capability: content.review.decide",
     });
+    await expect(
+      caller.content.comments.setResolved({
+        expectedVersion: 1,
+        operationId: "00000000-0000-4000-8000-000000000001",
+        resolved: true,
+        threadId: "00000000-0000-4000-8000-000000000002",
+      }),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "Missing capability: content.review.decide",
+    });
   });
 
   test("an unauthenticated draft read receives UNAUTHORIZED", async () => {
@@ -156,6 +207,59 @@ describe("content capability procedures", () => {
     } catch (error) {
       expect(error).toMatchObject({ code: "UNAUTHORIZED" });
     }
+    await expect(
+      caller.content.comments.list({
+        documentId: "page-1",
+        documentType: "page",
+      }),
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  });
+
+  test("an owner without MFA receives FORBIDDEN before CMS authority", async () => {
+    const ownerContext = context("owner");
+    if (!ownerContext.session) throw new Error("Expected owner session");
+    ownerContext.session.user.twoFactorEnabled = false;
+    const caller = appRouter.createCaller(ownerContext);
+
+    await expect(caller.content.pages.adminList({})).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "Two-factor authentication required",
+    });
+  });
+
+  test("an editor is not forced to enroll MFA", async () => {
+    const editorContext = context("editor");
+    if (!editorContext.session) throw new Error("Expected editor session");
+    editorContext.session.user.twoFactorEnabled = false;
+    const caller = appRouter.createCaller(editorContext);
+
+    await expect(caller.privateData()).resolves.toMatchObject({
+      message: "This is private",
+      user: { id: "user-1" },
+    });
+  });
+
+  test("an API key receives only its explicit scope", async () => {
+    const allowed = apiKeyProbe.createCaller(
+      apiKeyContext(["content.readDraft"]),
+    );
+    await expect(allowed.readDraft()).resolves.toMatchObject({
+      authType: "apiKey",
+      actor: { role: "system", userId: "service-account:sync" },
+    });
+
+    const denied = apiKeyProbe.createCaller(apiKeyContext(["media.manage"]));
+    await expect(denied.readDraft()).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "Missing API key scope: content.readDraft",
+    });
+  });
+
+  test("an API key cannot enter legacy session-only procedures", async () => {
+    const caller = appRouter.createCaller(apiKeyContext(["content.readDraft"]));
+    await expect(caller.privateData()).rejects.toMatchObject({
+      code: "UNAUTHORIZED",
+    });
   });
 
   test("an admin cannot manage owner/staff accounts", async () => {
@@ -186,6 +290,34 @@ describe("content capability procedures", () => {
     await expect(caller.operations.readiness.runtime()).rejects.toMatchObject({
       code: "FORBIDDEN",
       message: "Missing capability: audit.read",
+    });
+  });
+
+  test("an editor cannot inspect durable jobs or workflow policy", async () => {
+    const caller = appRouter.createCaller(context("editor"));
+    await expect(
+      caller.operations.jobs.list({ limit: 10 }),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "Missing capability: audit.read",
+    });
+    await expect(caller.operations.workflows.list()).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "Missing capability: audit.read",
+    });
+  });
+
+  test("an audit-only API key cannot mutate webhook configuration", async () => {
+    const caller = appRouter.createCaller(apiKeyContext(["audit.read"]));
+    await expect(
+      caller.operations.webhooks.createEndpoint({
+        name: "Sink",
+        url: "https://hooks.example.com/cms",
+        topics: ["*"],
+      }),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "Missing API key scope: settings.manage",
     });
   });
 });

@@ -1,5 +1,7 @@
 import { cmsSiteManifestSchema, type CmsSiteManifest } from "@agency/cms-core";
 
+export * from "./integration.js";
+
 const siteIdPattern = /^[a-z][a-z0-9-]{1,62}$/;
 const blockTypePattern = /^[a-z][a-zA-Z0-9]{1,63}$/;
 const resourceNamePattern = /^[a-z][a-z0-9-]{1,127}$/;

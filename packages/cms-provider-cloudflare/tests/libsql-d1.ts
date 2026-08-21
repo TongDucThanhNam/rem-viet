@@ -32,6 +32,14 @@ class LibsqlPreparedStatement implements CloudflareD1PreparedStatement {
     return { results: result.rows as unknown as T[] };
   }
 
+  async raw<T = unknown[][]>(options?: { columnNames?: boolean }) {
+    const result = await this.client.execute(this.statement());
+    const rows = result.rows.map((row) =>
+      result.columns.map((column) => row[column]),
+    );
+    return (options?.columnNames ? [result.columns, ...rows] : rows) as T;
+  }
+
   async run(): Promise<D1RunResult> {
     const result = await this.client.execute(this.statement());
     return { success: true, meta: { changes: result.rowsAffected } };

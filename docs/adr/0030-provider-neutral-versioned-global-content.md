@@ -2,7 +2,8 @@
 
 - Status: Accepted
 - Date: 2026-08-16
-- Scope: Site settings, navigation, runtime ports, and Cloudflare persistence
+- Amended: 2026-08-21 (explicit publication and release compensation)
+- Scope: Site settings, navigation, runtime ports, Cloudflare, and Sanity persistence
 
 ## Context
 
@@ -15,15 +16,19 @@ revision recovery.
 
 ## Decision
 
-The runtime exports a generic keyed `CmsGlobalContentProvider` with read, save,
-newest-first immutable revision list, and restore operations. Saves require an
+The runtime exports a generic keyed `CmsGlobalContentProvider` with working and
+published reads, save, explicit publish, newest-first immutable revision list,
+restore, and exact publication-compensation operations. Saves require an
 explicit expected version (or `null` for creation); stale writes use the same
-portable conflict semantics as page content. Restore copies an old snapshot
-into a new version and never mutates or deletes history.
+portable conflict semantics as page content. Save and restore change only the
+working draft. Publish appends an immutable public snapshot. Compensation is a
+bounded release primitive that restores the exact prior version/publication
+pointer and deletes only the release-created revision.
 
 The Cloudflare provider implements the contract over `cms_globals` and
-`cms_global_revisions`, with document and revision writes in one D1 batch. A
-neutral conformance scenario proves empty reads, create/update versioning,
+`cms_global_revisions`, with document, revision, audit, and publication-outbox
+writes in one D1 batch. A neutral conformance scenario proves empty reads,
+create/update versioning, draft isolation, publication, exact compensation,
 conflicts, immutable history, and restore.
 
 The experimental Sanity adapter implements the same contract with a current
@@ -37,15 +42,17 @@ and binds the run to a clean full Git commit; the real-dataset run itself remain
 external evidence.
 
 Rèm Việt owns the concrete Zod schemas and maps the neutral documents back to
-the existing public API shapes. Existing `site_settings` and `menus` rows are
-read only for concurrency-safe lazy bootstrap; all subsequent writes use the
-provider. The public site continues to read the same settings/navigation API,
-so no renderer imports storage details.
+the existing API shapes. Existing `site_settings` and `menus` rows are read only
+for concurrency-safe lazy bootstrap into a published baseline; all subsequent
+writes use the provider. Public APIs read only the referenced published
+revision, while protected admin APIs read the working draft, so no renderer
+imports storage details and an admin save cannot leak before release.
 
 The settings admin sends expected versions, exposes the three histories (site
-settings, header navigation, footer navigation), and confirms restore actions.
-Every save and restore retains the existing application audit event in addition
-to the immutable provider revision.
+settings, header navigation, footer navigation), labels save/restore as draft
+operations, and directs publication through multi-document releases. Every
+mutation retains application audit evidence; publication additionally emits a
+content-free reliable outbox event.
 
 ## Consequences
 
@@ -54,9 +61,11 @@ to the immutable provider revision.
 - A client can recover a broken header, footer, logo, or contact configuration
   from the admin; recovery appends history instead of rewriting it.
 - Fresh/default navigation becomes versioned on its first explicit save. Legacy
-  persisted navigation is imported automatically on first read.
-- The authenticated Worker browser test proves human-field edits, public
-  propagation, history, restore, exact recovery, and cleanup.
+  persisted navigation is imported and published automatically on first read.
+- Provider and release tests prove private drafts, publication, exact replay,
+  history, restore, content-free outbox delivery, and reverse compensation. The
+  authenticated Worker browser test proves a human-field draft cannot alter the
+  public site before release.
 - Footer and broader reusable-content schemas can adopt the same keyed contract;
   provider-neutral SEO/redirect primitives remain separate future decisions.
 - Independent staging and the hosted alternate-provider v3 receipt are still

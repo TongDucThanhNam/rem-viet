@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Shuffle,
   Users,
+  Workflow,
   type LucideIcon,
 } from "lucide-react";
 
@@ -215,6 +216,15 @@ export const adminNavigationSections = [
     icon: ListFilter,
     items: [
       {
+        label: "Tự động hóa và release",
+        pageTitle: "Tự động hóa và release",
+        description:
+          "Theo dõi công việc nền, release nhiều nội dung và webhook đã ký.",
+        to: "/admin/operations",
+        icon: Workflow,
+        requiredCapability: "audit.read",
+      },
+      {
         label: "Hiệu năng thực tế",
         pageTitle: "Hiệu năng thực tế",
         description: "Theo dõi Web Vitals từ lưu lượng trang công khai.",
@@ -238,6 +248,13 @@ export const adminNavigationSections = [
         to: "/admin/audit",
         icon: ShieldCheck,
         requiredCapability: "audit.read",
+      },
+      {
+        label: "Bảo mật tài khoản",
+        pageTitle: "Bảo mật tài khoản",
+        description: "Xác minh email và quản lý các thiết bị đang đăng nhập.",
+        to: "/admin/security",
+        icon: ShieldCheck,
       },
       {
         label: "Nhân sự và phân quyền",

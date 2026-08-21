@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { runMediaProviderConformance } from "@agency/cms-runtime";
+import {
+  runDamProviderConformance,
+  runMediaProviderConformance,
+} from "@agency/cms-runtime";
 
 import {
   applyCloudflareCmsMigrations,
@@ -35,6 +38,49 @@ function database() {
 }
 
 describe("Cloudflare D1/R2 media provider", () => {
+  test("passes DAM v2 folders, deduplication, metadata, variants, delivery, replace, and trash conformance", async () => {
+    const db = database();
+    const bucket = new MemoryMediaBucket();
+    await applyCloudflareCmsMigrations(db);
+    const queued: string[] = [];
+    const replacements: string[] = [];
+    let sequence = 0;
+    const provider = createCloudflareCmsMediaProvider({
+      database: db,
+      bucket,
+      createId: () => `dam-generated-${++sequence}`,
+      now: () => new Date("2026-08-21T00:00:00.000Z"),
+      resolveUsage: (record) =>
+        record.id === "dam-primary" ? [{ type: "page", id: "home" }] : [],
+      replaceUsage: ({ from, to }) => {
+        replacements.push(`${from.id}:${to.id}`);
+        return 1;
+      },
+      enqueueVariant: ({ variant }) => {
+        queued.push(variant.id);
+      },
+      deliveryAdapter: {
+        sign: ({ url, expiresAt }) =>
+          `${url}?signature=test&expires=${expiresAt.toISOString()}`,
+      },
+    });
+
+    await expect(runDamProviderConformance({ provider })).resolves.toEqual({
+      foldersAndFilters: true,
+      duplicateDetection: true,
+      metadataAndFocalPoint: true,
+      privateDelivery: true,
+      asyncVariants: true,
+      trashRestoreRetention: true,
+      usageAndReplace: true,
+    });
+    expect(queued).toEqual(["dam-generated-1"]);
+    expect(replacements).toEqual(["dam-primary:dam-replacement"]);
+    expect(bucket.objects.has("media/dam-primary.png")).toBe(true);
+    expect(bucket.objects.has("media/dam-duplicate.png")).toBe(false);
+    expect(bucket.objects.has("media/dam-replacement.png")).toBe(false);
+  });
+
   test("passes upload, metadata, usage, and safe-delete conformance", async () => {
     const db = database();
     const bucket = new MemoryMediaBucket();

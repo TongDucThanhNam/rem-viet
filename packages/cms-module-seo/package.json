@@ -1,0 +1,32 @@
+{
+  "name": "@agency/cms-module-seo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "src",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test tests"
+  },
+  "peerDependencies": {
+    "@agency/cms-core": "0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@agency/cms-core": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@agency/cms-core": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

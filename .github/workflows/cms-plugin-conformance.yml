@@ -1,0 +1,113 @@
+name: CMS plugin conformance
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/cms-plugin-conformance.yml"
+      - "fixtures/cms-plugin-*/**"
+      - "packages/cms-admin/**"
+      - "packages/cms-cli/**"
+      - "packages/cms-collaboration/**"
+      - "packages/cms-core/**"
+      - "packages/cms-module-*/**"
+      - "packages/cms-provider-cloudflare/**"
+      - "packages/cms-provider-local/**"
+      - "packages/cms-provider-postgres/**"
+      - "packages/cms-runtime/**"
+      - "packages/cms-visual-editor/**"
+      - "scripts/cms-kit-boundaries.test.ts"
+      - "scripts/verify-cms-kit-consumer.ts"
+      - "bun.lock"
+      - "package.json"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/cms-plugin-conformance.yml"
+      - "fixtures/cms-plugin-*/**"
+      - "packages/cms-*/**"
+      - "scripts/cms-kit-boundaries.test.ts"
+      - "scripts/verify-cms-kit-consumer.ts"
+      - "bun.lock"
+      - "package.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  packed-consumer:
+    name: Packed consumer (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+      - name: Provider and package boundaries
+        run: >-
+          bun test packages/cms-cli/tests/integration.test.ts
+          packages/cms-provider-cloudflare/tests/integration.test.ts
+          packages/cms-provider-local/tests
+          scripts/cms-kit-boundaries.test.ts
+          scripts/visual-authoring-public-bundle.test.ts
+      - name: Collaboration and privacy contracts
+        run: >-
+          bun --cwd packages/cms-collaboration check-types &&
+          bun --cwd packages/cms-collaboration test &&
+          bun --cwd packages/cms-module-privacy check-types &&
+          bun --cwd packages/cms-module-privacy test
+      - name: Clean checkout portability and upgrade rehearsal
+        run: bun run cms:kit:clean-checkout
+
+  postgres-provider:
+    name: PostgreSQL provider conformance
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: agency_cms
+          POSTGRES_PASSWORD: agency_cms_test
+          POSTGRES_DB: agency_cms_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U agency_cms -d agency_cms_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CMS_POSTGRES_TEST_URL: postgresql://agency_cms:agency_cms_test@127.0.0.1:5432/agency_cms_test
+      CMS_S3_TEST_ENDPOINT: http://127.0.0.1:9000
+      CMS_S3_TEST_ACCESS_KEY_ID: agency_cms_minio
+      CMS_S3_TEST_SECRET_ACCESS_KEY: agency_cms_minio_secret
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+      - name: Start pinned MinIO S3-compatible server
+        run: |
+          docker run --detach --name cms-minio --publish 9000:9000 \
+            --env MINIO_ROOT_USER="$CMS_S3_TEST_ACCESS_KEY_ID" \
+            --env MINIO_ROOT_PASSWORD="$CMS_S3_TEST_SECRET_ACCESS_KEY" \
+            quay.io/minio/minio:RELEASE.2025-06-13T11-33-47Z \
+            server /data
+          for attempt in {1..30}; do
+            if curl --silent --fail http://127.0.0.1:9000/minio/health/live; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs cms-minio
+          exit 1
+      - run: bun --cwd packages/cms-provider-postgres test
+      - run: bun --cwd packages/cms-provider-postgres check-types

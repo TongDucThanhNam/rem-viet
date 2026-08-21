@@ -84,9 +84,39 @@ describe("neutral CMS contracts", () => {
       expectedVersion: 2,
       note: "Please check the hero",
     };
-    expect(requestCmsEditorialReviewInputSchema.parse(request)).toEqual(
-      request,
-    );
+    expect(requestCmsEditorialReviewInputSchema.parse(request)).toEqual({
+      ...request,
+      assigneeIds: [],
+      assigneeRoles: [],
+      checklist: [],
+      dueAt: null,
+      mentionIds: [],
+      notify: true,
+    });
+    expect(
+      requestCmsEditorialReviewInputSchema.parse({
+        ...request,
+        assigneeIds: ["reviewer-2", "reviewer-1", "reviewer-2"],
+        assigneeRoles: ["legal", "legal"],
+        checklist: [{ id: "legal-copy", label: "Legal copy", required: true }],
+        dueAt: "2026-08-22T09:00:00.000+07:00",
+        mentionIds: ["editor-2", "editor-2"],
+      }),
+    ).toMatchObject({
+      assigneeIds: ["reviewer-1", "reviewer-2"],
+      assigneeRoles: ["legal"],
+      mentionIds: ["editor-2"],
+      notify: true,
+    });
+    expect(
+      requestCmsEditorialReviewInputSchema.safeParse({
+        ...request,
+        checklist: [
+          { id: "legal-copy", label: "Legal copy" },
+          { id: "legal-copy", label: "Duplicate" },
+        ],
+      }).success,
+    ).toBe(false);
     expect(
       decideCmsEditorialReviewInputSchema.safeParse({
         ...request,
@@ -279,6 +309,59 @@ describe("code-first collection contracts", () => {
         admin: { useAsTitle: "missing", defaultColumns: ["title"] },
       }),
     ).toThrow("admin metadata references an unknown field");
+    expect(() =>
+      defineCollection({
+        ...articles,
+        admin: {
+          useAsTitle: "title",
+          defaultColumns: ["title"],
+          layout: [
+            { id: "main", type: "tab", label: "Main", fields: ["title"] },
+            {
+              id: "main",
+              type: "row",
+              label: "Duplicate",
+              fields: ["featured"],
+            },
+          ],
+        },
+      }),
+    ).toThrow("Duplicate admin layout id");
+    expect(() =>
+      defineCollection({
+        ...articles,
+        admin: {
+          useAsTitle: "title",
+          defaultColumns: ["title"],
+          layout: [
+            { id: "main", type: "tab", label: "Main", fields: ["title"] },
+            {
+              id: "summary",
+              type: "collapsible",
+              label: "Summary",
+              fields: ["title"],
+            },
+          ],
+        },
+      }),
+    ).toThrow("Duplicate admin layout field");
+    expect(() =>
+      defineCollection({
+        ...articles,
+        admin: {
+          useAsTitle: "title",
+          defaultColumns: ["title"],
+          layout: [
+            {
+              id: "missing",
+              type: "row",
+              label: "Missing",
+              fields: ["missing"],
+            },
+          ],
+        },
+      }),
+    ).toThrow('admin layout references unknown field "missing"');
   });
 
   test("declares opt-in collection localization with shared and localized fields", () => {

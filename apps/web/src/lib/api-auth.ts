@@ -1,4 +1,5 @@
 import { getAdminUser } from "@/functions/get-admin-user";
+import { rejectCrossSiteMutation } from "@/lib/mutation-request-security";
 
 export async function discardRequestBody(request: Request) {
   if (!request.body || request.bodyUsed) {
@@ -18,19 +19,29 @@ export async function discardRequestBody(request: Request) {
   }
 }
 
-export async function requireApiSession(request?: Request) {
+export async function requireApiSession(request: Request) {
+  const crossSite = rejectCrossSiteMutation(request);
+  if (crossSite) {
+    await discardRequestBody(request);
+    return crossSite;
+  }
+
   const session = await getAdminUser();
 
-  if (session) {
+  if (session && !session.mfaRequired) {
     return null;
   }
 
-  if (request) {
-    await discardRequestBody(request);
-  }
+  await discardRequestBody(request);
 
+  const status = session?.mfaRequired ? 403 : 401;
   return Response.json(
-    { message: "Admin authentication required", statusCode: 401 },
-    { status: 401 },
+    {
+      message: session?.mfaRequired
+        ? "Two-factor authentication required"
+        : "Admin authentication required",
+      statusCode: status,
+    },
+    { status },
   );
 }

@@ -32,6 +32,7 @@
     "LEAD_NOTIFICATION_EMAIL": "",
     "EMAIL_FROM": "",
     "JSONLINK_API_KEY": "",
+    "CMS_WEBHOOK_ALLOWED_HOSTS": "hooks.example.com",
     "RUM_SAMPLE_RATE": "1",
     "NOTIFICATIONS_REQUIRED": "0",
     "RELEASE_SITE_ID": "rem-viet",

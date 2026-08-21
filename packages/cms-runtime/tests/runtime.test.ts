@@ -5,6 +5,8 @@ import {
   assertCmsCollectionAccess,
   createCmsPageRuntime,
   deriveCmsEditorialReviewState,
+  isCmsEditorialReviewActorAssigned,
+  missingRequiredCmsEditorialReviewChecklistItems,
   type CmsPageContent,
   type CmsPageProvider,
 } from "../src";
@@ -69,6 +71,71 @@ describe("CMS page runtime", () => {
         ],
       ),
     ).toMatchObject({ status: "approved", stale: false, published: true });
+  });
+
+  test("preserves request task metadata and accumulates checklist evidence", () => {
+    const target = { documentId: "home", documentType: "page" };
+    const state = deriveCmsEditorialReviewState(
+      {
+        ...target,
+        publishedRevisionId: null,
+        status: "draft",
+        version: 3,
+      },
+      [
+        {
+          ...target,
+          action: "approved",
+          actorId: "reviewer-1",
+          completedChecklistItemIds: ["brand"],
+          note: "Legal approved",
+          occurredAt: "2026-08-21T03:00:00.000Z",
+          version: 3,
+        },
+        {
+          ...target,
+          action: "requested",
+          actorId: "editor-1",
+          note: "Please review",
+          occurredAt: "2026-08-21T01:00:00.000Z",
+          task: {
+            assigneeIds: ["reviewer-1"],
+            assigneeRoles: ["legal"],
+            mentionIds: ["owner-1"],
+            dueAt: "2026-08-22T01:00:00.000Z",
+            checklist: [
+              { id: "brand", label: "Brand", required: true },
+              { id: "seo", label: "SEO", required: true },
+            ],
+            notify: true,
+          },
+          version: 3,
+        },
+      ],
+    );
+
+    expect(state).toMatchObject({
+      assigneeIds: ["reviewer-1"],
+      assigneeRoles: ["legal"],
+      mentionIds: ["owner-1"],
+      requestedAt: "2026-08-21T01:00:00.000Z",
+      checklist: [
+        { id: "brand", completed: true },
+        { id: "seo", completed: false },
+      ],
+    });
+    expect(isCmsEditorialReviewActorAssigned(state, "other", "legal")).toBe(
+      true,
+    );
+    expect(isCmsEditorialReviewActorAssigned(state, "other", "design")).toBe(
+      false,
+    );
+    expect(
+      missingRequiredCmsEditorialReviewChecklistItems(state, []),
+    ).toMatchObject([{ id: "seo" }]);
+    expect(
+      missingRequiredCmsEditorialReviewChecklistItems(state, ["seo"]),
+    ).toEqual([]);
   });
 });
 

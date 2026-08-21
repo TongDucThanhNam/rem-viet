@@ -3,6 +3,8 @@ import {
   auditListInputSchema,
   createStaff,
   createStaffInputSchema,
+  inviteStaff,
+  inviteStaffInputSchema,
   listAuditEvents,
   listStaff,
   revokeStaff,
@@ -11,20 +13,26 @@ import {
   updateStaffRoleInputSchema,
   type GovernanceActor,
 } from "../services/governance";
+import {
+  apiKeyIdInputSchema,
+  apiKeyPermissionMatrix,
+  createServiceAccountInputSchema,
+  createServiceAccountWithKey,
+  listServiceAccounts,
+  revokeApiKey,
+  revokeServiceAccount,
+  rotateApiKey,
+  rotateApiKeyInputSchema,
+  serviceAccountIdInputSchema,
+} from "../services/api-keys";
 
 type StaffContext = {
+  actor: GovernanceActor;
   requestId: string;
-  session: { user: { id: string; email?: string | null } };
-  staffRole: "owner" | "admin" | "editor";
 };
 
 function actorFromContext(ctx: StaffContext): GovernanceActor {
-  return {
-    userId: ctx.session.user.id,
-    email: ctx.session.user.email ?? "",
-    role: ctx.staffRole,
-    requestId: ctx.requestId,
-  };
+  return { ...ctx.actor, requestId: ctx.requestId };
 }
 
 export const governanceRouter = router({
@@ -33,6 +41,9 @@ export const governanceRouter = router({
     create: capabilityProcedure("staff.manage")
       .input(createStaffInputSchema)
       .mutation(({ ctx, input }) => createStaff(input, actorFromContext(ctx))),
+    invite: capabilityProcedure("staff.manage")
+      .input(inviteStaffInputSchema)
+      .mutation(({ ctx, input }) => inviteStaff(input, actorFromContext(ctx))),
     updateRole: capabilityProcedure("staff.manage")
       .input(updateStaffRoleInputSchema)
       .mutation(({ ctx, input }) =>
@@ -46,5 +57,29 @@ export const governanceRouter = router({
     list: capabilityProcedure("audit.read")
       .input(auditListInputSchema)
       .query(({ input }) => listAuditEvents(input)),
+  }),
+  serviceAccounts: router({
+    permissions: capabilityProcedure("staff.manage").query(
+      () => apiKeyPermissionMatrix,
+    ),
+    list: capabilityProcedure("staff.manage").query(() =>
+      listServiceAccounts(),
+    ),
+    create: capabilityProcedure("staff.manage")
+      .input(createServiceAccountInputSchema)
+      .mutation(({ ctx, input }) =>
+        createServiceAccountWithKey(input, actorFromContext(ctx)),
+      ),
+    rotateKey: capabilityProcedure("staff.manage")
+      .input(rotateApiKeyInputSchema)
+      .mutation(({ ctx, input }) => rotateApiKey(input, actorFromContext(ctx))),
+    revokeKey: capabilityProcedure("staff.manage")
+      .input(apiKeyIdInputSchema)
+      .mutation(({ ctx, input }) => revokeApiKey(input, actorFromContext(ctx))),
+    revoke: capabilityProcedure("staff.manage")
+      .input(serviceAccountIdInputSchema)
+      .mutation(({ ctx, input }) =>
+        revokeServiceAccount(input, actorFromContext(ctx)),
+      ),
   }),
 });

@@ -39,7 +39,7 @@ draft/                 landing migration reference assets/code
 
 ## Prerequisites
 
-- Bun 1.3.14 for package management, Turbo, and local scripts.
+- Bun 1.4.0 for package management, Turbo, and local scripts.
 - A Cloudflare account connected through Alchemy's provider login.
 - Wrangler is installed through the web app dependencies; no global install is
   required. It is retained for local D1 migration and E2E tooling, not for

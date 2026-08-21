@@ -1,10 +1,12 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  assertCmsFeatureModuleCompatibility,
   createCmsExtensionRegistry,
   defineCollection,
   defineCmsLifecycleHook,
   defineFeatureModule,
+  defineCmsFeatureModuleManifest,
   textField,
 } from "../src";
 
@@ -24,6 +26,35 @@ const collection = defineCollection({
 });
 
 describe("CMS extension registry", () => {
+  test("validates compatibility and explicit uninstall data policy", () => {
+    const module = defineFeatureModule({
+      id: "official-seo",
+      manifest: defineCmsFeatureModuleManifest({
+        schemaVersion: 1,
+        packageName: "@agency/cms-module-seo",
+        version: "0.1.0",
+        cmsCompatibility: { minimum: "0.1.0", maximumExclusive: "1.0.0" },
+        uninstall: {
+          dataPolicy: "retain",
+          description: "Retain SEO fields until an explicit purge migration.",
+        },
+      }),
+    });
+    expect(assertCmsFeatureModuleCompatibility(module, "0.1.0")).toBe(true);
+    expect(() => assertCmsFeatureModuleCompatibility(module, "1.0.0")).toThrow(
+      "incompatible",
+    );
+    expect(() =>
+      defineCmsFeatureModuleManifest({
+        ...module.manifest!,
+        cmsCompatibility: {
+          minimum: "2.0.0",
+          maximumExclusive: "1.0.0",
+        },
+      }),
+    ).toThrow("maximum must exceed");
+  });
+
   test("orders dependencies and hooks deterministically while transforming data", async () => {
     const execution: string[] = [];
     const base = defineFeatureModule({

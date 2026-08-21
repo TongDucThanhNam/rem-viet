@@ -32,18 +32,12 @@ import { capabilityProcedure, publicProcedure, router } from "../index";
 import { runCmsWorkflow } from "../workflow-error";
 
 type StaffContext = {
+  actor: CmsActor;
   requestId: string;
-  session: { user: { id: string; email?: string | null } };
-  staffRole: "owner" | "admin" | "editor";
 };
 
 function actorFromContext(ctx: StaffContext): CmsActor {
-  return {
-    userId: ctx.session.user.id,
-    email: ctx.session.user.email ?? "",
-    role: ctx.staffRole,
-    requestId: ctx.requestId,
-  };
+  return { ...ctx.actor, requestId: ctx.requestId };
 }
 
 export const postsRouter = router({

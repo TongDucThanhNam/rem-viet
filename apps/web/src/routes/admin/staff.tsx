@@ -19,12 +19,13 @@ import {
 } from "@rem-viet/ui/components/table";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { Plus, ShieldCheck, UserX } from "lucide-react";
+import { MailPlus, Plus, ShieldCheck, UserX } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
 import AdminShell from "@/components/admin-shell";
 import { AsyncState, ConfirmDestructiveAction } from "@/components/admin-ui";
+import { ServiceAccountManager } from "@/components/service-account-manager";
 import { getAdminUser } from "@/functions/get-admin-user";
 import { useTRPC } from "@/utils/trpc";
 
@@ -54,6 +55,9 @@ function StaffAdminRoute() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<StaffRole>("editor");
+  const [inviteName, setInviteName] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<StaffRole>("editor");
   const refresh = () =>
     queryClient.invalidateQueries(trpc.governance.staff.list.queryFilter());
   const create = useMutation(
@@ -65,6 +69,18 @@ function StaffAdminRoute() {
         setRole("editor");
         void refresh();
         toast.success("Đã tạo tài khoản nhân sự.");
+      },
+      onError: (error) => toast.error(error.message),
+    }),
+  );
+  const invite = useMutation(
+    trpc.governance.staff.invite.mutationOptions({
+      onSuccess: () => {
+        setInviteName("");
+        setInviteEmail("");
+        setInviteRole("editor");
+        void refresh();
+        toast.success("Đã gửi lời mời thiết lập tài khoản.");
       },
       onError: (error) => toast.error(error.message),
     }),
@@ -93,12 +109,74 @@ function StaffAdminRoute() {
     create.mutate({ name, email, password, role });
   }
 
+  function submitInvite(event: FormEvent) {
+    event.preventDefault();
+    invite.mutate({ name: inviteName, email: inviteEmail, role: inviteRole });
+  }
+
   return (
     <AdminShell>
       <div className="mx-auto grid w-full max-w-6xl gap-5">
         <Card className="rounded-md">
           <CardHeader>
-            <CardTitle>Tạo tài khoản nhân sự</CardTitle>
+            <CardTitle>Mời nhân sự</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form
+              className="grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1.2fr_10rem_auto] xl:items-end"
+              onSubmit={submitInvite}
+            >
+              <div className="grid gap-2">
+                <Label htmlFor="invite-name">Tên</Label>
+                <Input
+                  id="invite-name"
+                  required
+                  value={inviteName}
+                  onChange={(event) => setInviteName(event.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="invite-email">Email</Label>
+                <Input
+                  id="invite-email"
+                  required
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(event) => setInviteEmail(event.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="invite-role">Vai trò</Label>
+                <select
+                  className="h-9 rounded-md border bg-background px-3 text-sm"
+                  id="invite-role"
+                  value={inviteRole}
+                  onChange={(event) =>
+                    setInviteRole(event.target.value as StaffRole)
+                  }
+                >
+                  {roles.map((item) => (
+                    <option key={item} value={item}>
+                      {roleLabel[item]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <Button disabled={invite.isPending} type="submit">
+                <MailPlus aria-hidden />
+                {invite.isPending ? "Đang gửi…" : "Gửi lời mời"}
+              </Button>
+            </form>
+            <p className="mt-3 text-xs text-muted-foreground">
+              Người nhận đặt mật khẩu qua liên kết một lần trong 30 phút. Token
+              không được trả về giao diện hoặc ghi vào nhật ký kiểm toán.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-md">
+          <CardHeader>
+            <CardTitle>Tạo tài khoản trực tiếp (khẩn cấp)</CardTitle>
           </CardHeader>
           <CardContent>
             <form
@@ -298,6 +376,8 @@ function StaffAdminRoute() {
             )}
           </CardContent>
         </Card>
+
+        <ServiceAccountManager />
       </div>
     </AdminShell>
   );

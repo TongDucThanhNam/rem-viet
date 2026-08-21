@@ -21,8 +21,8 @@ function unwrapBody(value: unknown) {
 export const Route = createFileRoute("/api/logs/$logId")({
   server: {
     handlers: {
-      GET: async ({ params }) => {
-        const unauthorized = await requireApiSession();
+      GET: async ({ params, request }) => {
+        const unauthorized = await requireApiSession(request);
 
         if (unauthorized) {
           return unauthorized;
@@ -50,8 +50,8 @@ export const Route = createFileRoute("/api/logs/$logId")({
 
         return Response.json(result, { status: legacyHttpStatus(result) });
       },
-      DELETE: async ({ params }) => {
-        const unauthorized = await requireApiSession();
+      DELETE: async ({ params, request }) => {
+        const unauthorized = await requireApiSession(request);
 
         if (unauthorized) {
           return unauthorized;

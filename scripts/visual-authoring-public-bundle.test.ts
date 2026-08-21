@@ -12,6 +12,13 @@ describe("visual authoring public bundle boundary", () => {
       target: "browser",
       format: "esm",
       minify: true,
+      external: [
+        "@agency/cms-core",
+        "@agency/cms-react",
+        "react",
+        "react/jsx-runtime",
+        "react/jsx-dev-runtime",
+      ],
       write: false,
       metafile: true,
     });
@@ -20,6 +27,8 @@ describe("visual authoring public bundle boundary", () => {
     const inputs = Object.keys(result.metafile?.inputs ?? {}).join("\n");
     const output = await result.outputs[0]?.text();
 
+    expect(inputs).toContain("packages/cms-template-atelier/src/");
+    expect(inputs).toContain("packages/cms-template-rem-viet/src/");
     expect(inputs).not.toContain("packages/cms-admin/");
     expect(inputs).not.toContain("packages/cms-visual-editor/");
     expect(inputs).not.toContain("packages/cms-template-factory/");

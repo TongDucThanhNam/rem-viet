@@ -52,7 +52,7 @@ export const remVietLocalizedCampaignsCollection = defineCollection({
 export const remVietStandardPagesCollection = defineCollection({
   slug: REM_VIET_STANDARD_PAGES_COLLECTION,
   labels: { singular: "Standard page", plural: "Standard pages" },
-  schemaVersion: 1,
+  schemaVersion: 2,
   fields: [
     textField({
       name: "title",
@@ -71,6 +71,17 @@ export const remVietStandardPagesCollection = defineCollection({
         minLength: 1,
         maxLength: 200,
         pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      },
+    }),
+    textField({
+      name: "folder",
+      label: "Workflow folder",
+      required: true,
+      indexed: true,
+      defaultValue: "",
+      validation: {
+        maxLength: 256,
+        pattern: "^(?:[a-z0-9][a-z0-9._-]*(?:/[a-z0-9][a-z0-9._-]*)*)?$",
       },
     }),
     selectField({
@@ -132,6 +143,13 @@ export const remVietStandardPagesCollection = defineCollection({
     }),
   ],
   lifecycle: { drafts: true, revisions: true, scheduling: true },
+  migrations: [
+    {
+      from: 1,
+      to: 2,
+      migrate: (value) => ({ ...(value as object), folder: "" }),
+    },
+  ],
   access: {
     read: ["content.readDraft"],
     create: ["content.write"],
@@ -141,7 +159,7 @@ export const remVietStandardPagesCollection = defineCollection({
   },
   admin: {
     useAsTitle: "title",
-    defaultColumns: ["title", "slug", "template"],
+    defaultColumns: ["title", "slug", "folder", "template"],
   },
 });
 
@@ -209,6 +227,7 @@ export type RemVietStandardPageCollectionData = CmsCollectionData<
 export type RemVietStandardPageCollectionContent = {
   readonly title: string;
   readonly slug: string;
+  readonly folder?: string;
   readonly template: "standard";
   readonly blocks: RemVietStandardBlock[];
   readonly seo: {
@@ -227,6 +246,7 @@ export function toRemVietStandardPageCollectionData(
   return parseCmsCollectionData(remVietStandardPagesCollection, {
     title: content.title,
     slug: content.slug,
+    folder: content.folder ?? "",
     template: content.template,
     blocks: content.blocks,
     seoTitle: content.seo.title,
@@ -250,6 +270,7 @@ export function fromRemVietStandardPageCollectionData(
   return {
     title: data.title,
     slug: data.slug,
+    folder: data.folder,
     template: "standard",
     blocks,
     seo: {

@@ -41,8 +41,8 @@ export const Route = createFileRoute("/api/categories/$categoryId")({
           status: legacyHttpStatus(result),
         });
       },
-      DELETE: async ({ params }) => {
-        const unauthorized = await requireApiSession();
+      DELETE: async ({ params, request }) => {
+        const unauthorized = await requireApiSession(request);
 
         if (unauthorized) {
           return unauthorized;

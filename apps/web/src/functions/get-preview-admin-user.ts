@@ -1,5 +1,6 @@
 import {
   capabilitiesForRole,
+  isStaffMfaRequired,
   resolveStaffRole,
 } from "@rem-viet/api/services/staff";
 import { createServerFn } from "@tanstack/react-start";
@@ -20,6 +21,7 @@ export const getPreviewAdminUser = createServerFn({ method: "GET" })
     if (!role) {
       return null;
     }
+    const mfaRequired = isStaffMfaRequired(role, context.session?.user);
 
     const previewSessionBinding = await createPreviewSessionBinding(
       context.session!.session.id,
@@ -27,7 +29,8 @@ export const getPreviewAdminUser = createServerFn({ method: "GET" })
 
     return {
       ...context.session,
-      capabilities: capabilitiesForRole(role),
+      capabilities: mfaRequired ? [] : capabilitiesForRole(role),
+      mfaRequired,
       previewSessionBinding,
       staffRole: role,
     };

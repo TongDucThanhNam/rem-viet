@@ -387,6 +387,10 @@ describe("Platform Kit package boundaries", () => {
       join(root, "scripts", "publish-cms-kit-release.ts"),
       "utf8",
     );
+    const releaseWorkflow = readFileSync(
+      join(root, ".github", "workflows", "cms-kit-private-release.yml"),
+      "utf8",
+    );
     const rootManifest = JSON.parse(
       readFileSync(join(root, "package.json"), "utf8"),
     ) as { scripts?: Record<string, string> };
@@ -419,6 +423,19 @@ describe("Platform Kit package boundaries", () => {
     expect(publisher).toContain("publication-receipt.partial.json");
     expect(publisher).toContain("already contains publication state");
     expect(publisher).toContain('"--ignore-scripts"');
+    expect(releaseWorkflow).toContain("workflow_dispatch:");
+    expect(releaseWorkflow).toContain("environment: cms-kit-release");
+    expect(releaseWorkflow).toContain("persist-credentials: false");
+    expect(releaseWorkflow).toContain("bun-version: 1.4.0");
+    expect(releaseWorkflow).toContain(
+      "bun install --frozen-lockfile --ignore-scripts",
+    );
+    expect(releaseWorkflow).toContain("cancel-in-progress: false");
+    expect(releaseWorkflow).toContain("CMS_PRIVATE_REGISTRY_URL");
+    expect(releaseWorkflow).toContain("CMS_PRIVATE_REGISTRY_TOKEN");
+    expect(releaseWorkflow).toContain("prepare-cms-kit-release.ts");
+    expect(releaseWorkflow).toContain("publish-cms-kit-release.ts");
+    expect(releaseWorkflow).toContain("publication-receipt.partial.json");
     expect(rootManifest.scripts?.["cms:kit:release:publish"]).toBe(
       "bun scripts/publish-cms-kit-release.ts",
     );

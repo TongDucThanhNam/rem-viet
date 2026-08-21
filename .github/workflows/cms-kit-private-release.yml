@@ -1,0 +1,79 @@
+name: CMS Kit private release
+
+run-name: CMS Kit ${{ inputs.version }} private release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Coordinated package semver from the compatibility matrix
+        required: true
+        type: string
+      confirmation:
+        description: Exact PUBLISH CMS KIT <version> <full-git-commit> confirmation
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cms-kit-private-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Guarded private publication
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: cms-kit-release
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+      RELEASE_CONFIRMATION: ${{ inputs.confirmation }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+      - name: Install frozen dependencies without lifecycle scripts
+        run: bun install --frozen-lockfile --ignore-scripts
+      - name: Verify release contracts
+        run: >-
+          bun test
+          scripts/cms-kit-release-lib.test.ts
+          scripts/cms-kit-boundaries.test.ts
+      - name: Prepare clean coordinated bundle
+        id: prepare
+        shell: bash
+        run: |
+          set -euo pipefail
+          prepare_output="$(bun scripts/prepare-cms-kit-release.ts --version="$RELEASE_VERSION")"
+          printf '%s\n' "$prepare_output"
+          bundle="$(PREPARE_OUTPUT="$prepare_output" bun -e 'const parsed = JSON.parse(process.env.PREPARE_OUTPUT ?? ""); if (parsed.ok !== true || typeof parsed.bundle !== "string") process.exit(1); console.log(parsed.bundle)')"
+          case "$bundle" in
+            .tmp/cms-kit-release/*) ;;
+            *) echo "Prepared bundle escaped the release root." >&2; exit 1 ;;
+          esac
+          printf 'bundle=%s\n' "$bundle" >> "$GITHUB_OUTPUT"
+      - name: Publish and verify every coordinated package
+        env:
+          CMS_PRIVATE_REGISTRY_URL: ${{ vars.CMS_PRIVATE_REGISTRY_URL }}
+          CMS_PRIVATE_REGISTRY_TOKEN: ${{ secrets.CMS_PRIVATE_REGISTRY_TOKEN }}
+          RELEASE_BUNDLE: ${{ steps.prepare.outputs.bundle }}
+        run: >-
+          bun scripts/publish-cms-kit-release.ts
+          --bundle="$RELEASE_BUNDLE"
+          --confirm="$RELEASE_CONFIRMATION"
+      - name: Retain complete or partial publication receipt
+        if: ${{ always() && steps.prepare.outputs.bundle != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: cms-kit-publication-${{ inputs.version }}-${{ github.run_id }}
+          path: |
+            ${{ steps.prepare.outputs.bundle }}/publication-receipt.json
+            ${{ steps.prepare.outputs.bundle }}/publication-receipt.partial.json
+          if-no-files-found: warn
+          retention-days: 90

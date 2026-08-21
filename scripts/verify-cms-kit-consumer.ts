@@ -8,6 +8,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { basename, join, relative, resolve } from "node:path";
+import { stripVTControlCharacters } from "node:util";
 
 const repositoryRoot = resolve(import.meta.dir, "..");
 const runRoot = join(repositoryRoot, ".tmp", `cms-kit-consumer-${Date.now()}`);
@@ -323,8 +324,15 @@ function appendServerOutput(current: string, chunk: string) {
 }
 
 function serverDiagnostics(server: LocalDevServer) {
-  const output = server.output().trim();
+  const output = stripVTControlCharacters(server.output()).trim();
   return output || "<the Vite process emitted no output>";
+}
+
+function healthUrlFromServerOutput(output: string) {
+  const port = stripVTControlCharacters(output).match(
+    /http:\/\/127\.0\.0\.1:(\d+)\//,
+  )?.[1];
+  return port ? `http://127.0.0.1:${port}/api/cms/health` : undefined;
 }
 
 async function mirrorServerOutput(
@@ -402,8 +410,7 @@ async function waitForServer(server: LocalDevServer) {
         `Local TanStack dev server exited with ${server.process.exitCode}.\n${serverDiagnostics(server)}`,
       );
     }
-    const port = server.output().match(/http:\/\/127\.0\.0\.1:(\d+)\//)?.[1];
-    healthUrl ??= port ? `http://127.0.0.1:${port}/api/cms/health` : undefined;
+    healthUrl ??= healthUrlFromServerOutput(server.output());
     if (!healthUrl) {
       await Bun.sleep(100);
       continue;
@@ -420,8 +427,11 @@ async function waitForServer(server: LocalDevServer) {
     }
     await Bun.sleep(100);
   }
+  const probeDiagnostic = healthUrl
+    ? `Last health probe: ${lastError instanceof Error ? lastError.message : String(lastError)}`
+    : "Vite reported ready, but its loopback origin could not be parsed.";
   throw new Error(
-    `Timed out waiting for the local TanStack dev server.\n${serverDiagnostics(server)}`,
+    `Timed out waiting for the local TanStack dev server.\n${probeDiagnostic}\n${serverDiagnostics(server)}`,
     { cause: lastError },
   );
 }

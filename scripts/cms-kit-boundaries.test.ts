@@ -291,6 +291,9 @@ describe("Platform Kit package boundaries", () => {
     expect(cliConsumer).toContain("migrateTestimonialGridBlockData");
     expect(cliConsumer).toContain("testimonialGridBlockEditorDefinition");
     expect(cliConsumer).toContain("CmsBlockRenderer");
+    expect(cliConsumer).toContain("stripVTControlCharacters");
+    expect(cliConsumer).toMatch(/"--port",\s+"0"/);
+    expect(cliConsumer).toContain("failed after two bounded attempts");
   });
 
   test("public template entry does not import the visual-authoring kernel", () => {

@@ -71,6 +71,25 @@ export default function EditorialComments({
   >({});
   const operationIds = useRef(new Map<string, string>());
   const threads = commentsQuery.data ?? [];
+  const latestThreads = useRef({
+    targetKey: `${documentType}:${documentId}`,
+    value: threads,
+  });
+  const targetKey = `${documentType}:${documentId}`;
+  if (latestThreads.current.targetKey !== targetKey) {
+    latestThreads.current = { targetKey, value: threads };
+  } else {
+    const latestById = new Map(
+      latestThreads.current.value.map((thread) => [thread.id, thread]),
+    );
+    for (const thread of threads) {
+      const current = latestById.get(thread.id);
+      if (!current || thread.version >= current.version) {
+        latestById.set(thread.id, thread);
+      }
+    }
+    latestThreads.current.value = [...latestById.values()];
+  }
   const participantById = useMemo(
     () =>
       new Map(participants.map((participant) => [participant.id, participant])),
@@ -96,12 +115,16 @@ export default function EditorialComments({
     }
     const operationKey = "create";
     try {
-      await createComment.mutateAsync({
+      const createdThread = await createComment.mutateAsync({
         ...target,
         body,
         mentionIds,
         operationId: operationIdFor(operationKey),
       });
+      latestThreads.current.value = [
+        createdThread,
+        ...latestThreads.current.value,
+      ];
       clearOperation(operationKey);
       setBody("");
       setMentionIds([]);
@@ -116,6 +139,10 @@ export default function EditorialComments({
   };
 
   const handleReply = async (thread: (typeof threads)[number]) => {
+    const latestThread =
+      latestThreads.current.value.find(
+        (candidate) => candidate.id === thread.id,
+      ) ?? thread;
     const replyBody = replyBodies[thread.id] ?? "";
     if (!replyBody.trim()) {
       toast.error("Hãy nhập nội dung phản hồi.");
@@ -123,13 +150,17 @@ export default function EditorialComments({
     }
     const operationKey = `reply:${thread.id}`;
     try {
-      await replyComment.mutateAsync({
+      const updatedThread = await replyComment.mutateAsync({
         threadId: thread.id,
-        expectedVersion: thread.version,
+        expectedVersion: latestThread.version,
         body: replyBody,
         mentionIds: replyMentionIds[thread.id] ?? [],
         operationId: operationIdFor(operationKey),
       });
+      latestThreads.current.value = latestThreads.current.value.map(
+        (candidate) =>
+          candidate.id === updatedThread.id ? updatedThread : candidate,
+      );
       clearOperation(operationKey);
       setReplyBodies((current) => ({ ...current, [thread.id]: "" }));
       setReplyMentionIds((current) => ({ ...current, [thread.id]: [] }));
@@ -147,14 +178,22 @@ export default function EditorialComments({
     thread: (typeof threads)[number],
     resolved: boolean,
   ) => {
+    const latestThread =
+      latestThreads.current.value.find(
+        (candidate) => candidate.id === thread.id,
+      ) ?? thread;
     const operationKey = `resolved:${thread.id}:${String(resolved)}`;
     try {
-      await setResolved.mutateAsync({
+      const updatedThread = await setResolved.mutateAsync({
         threadId: thread.id,
-        expectedVersion: thread.version,
+        expectedVersion: latestThread.version,
         resolved,
         operationId: operationIdFor(operationKey),
       });
+      latestThreads.current.value = latestThreads.current.value.map(
+        (candidate) =>
+          candidate.id === updatedThread.id ? updatedThread : candidate,
+      );
       clearOperation(operationKey);
       await commentsQuery.refetch();
       toast.success(resolved ? "Đã xử lý bình luận." : "Đã mở lại bình luận.");
@@ -292,7 +331,7 @@ export default function EditorialComments({
                       className={
                         open
                           ? "rounded-full bg-amber-500/10 px-2 py-1 text-[10px] font-medium text-amber-700 dark:text-amber-300"
-                          : "rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-medium text-emerald-700 dark:text-emerald-300"
+                          : "rounded-full bg-emerald-500/10 px-2 py-1 text-[10px] font-medium text-emerald-800 dark:text-emerald-300"
                       }
                     >
                       {open ? "Đang mở" : "Đã xử lý"}

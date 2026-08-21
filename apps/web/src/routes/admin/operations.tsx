@@ -162,9 +162,9 @@ function CmsOperationsAdmin() {
   const [releaseName, setReleaseName] = useState("");
   const [releaseItems, setReleaseItems] = useState("");
   const [releaseSchedule, setReleaseSchedule] = useState("");
-  const [workflowCollection, setWorkflowCollection] = useState<"page" | "post">(
-    "page",
-  );
+  const [workflowCollection, setWorkflowCollection] = useState("page");
+  const [workflowFolder, setWorkflowFolder] = useState("");
+  const [workflowLocale, setWorkflowLocale] = useState("");
   const [workflowLabel, setWorkflowLabel] = useState("Phê duyệt xuất bản");
   const [workflowApprovals, setWorkflowApprovals] = useState(1);
   const [workflowSelfApproval, setWorkflowSelfApproval] = useState(false);
@@ -369,6 +369,23 @@ function CmsOperationsAdmin() {
               expectedVersion: Number(rawVersion),
             } as const;
           }
+          if (documentType === "global") {
+            const [, documentId, rawVersion] = values;
+            if (
+              values.length !== 3 ||
+              !documentId ||
+              !rawVersion ||
+              !Number.isInteger(Number(rawVersion))
+            ) {
+              throw new Error("Global release rows use global,key,version.");
+            }
+            return {
+              documentType,
+              documentId,
+              expectedVersion: Number(rawVersion),
+              locale: null,
+            } as const;
+          }
           const [, documentId, rawVersion] = values;
           if (
             values.length !== 3 ||
@@ -378,7 +395,7 @@ function CmsOperationsAdmin() {
             !Number.isInteger(Number(rawVersion))
           ) {
             throw new Error(
-              `Dòng không hợp lệ: ${line}. Dùng định dạng page,page-id,3 hoặc collection,collection-slug,document-id,vi-VN,3.`,
+              `Dòng không hợp lệ: ${line}. Dùng page,page-id,3; global,key,3; hoặc collection,collection-slug,document-id,vi-VN,3.`,
             );
           }
           return {
@@ -416,7 +433,8 @@ function CmsOperationsAdmin() {
     event.preventDefault();
     upsertWorkflow.mutate({
       collection: workflowCollection,
-      locale: "",
+      folder: workflowFolder,
+      locale: workflowLocale,
       active: true,
       stages: [
         {
@@ -695,7 +713,7 @@ function CmsOperationsAdmin() {
           <CardHeader>
             <CardTitle>Release nhiều nội dung</CardTitle>
             <CardDescription>
-              Mỗi dòng dùng page,page-id,3; post,post-id,7; hoặc
+              Mỗi dòng dùng page,page-id,3; post,post-id,7; global,key,3; hoặc
               collection,collection-slug,document-id,vi-VN,3. Version là khóa
               chống ghi đè nội dung mới hơn.
             </CardDescription>
@@ -731,7 +749,7 @@ function CmsOperationsAdmin() {
                   id="release-items"
                   className="min-h-24 font-mono text-xs"
                   placeholder={
-                    "page,home-page-id,12\npost,launch-post-id,4\ncollection,rem-viet-localized-campaigns,campaign-id,vi-VN,3"
+                    "page,home-page-id,12\npost,launch-post-id,4\nglobal,site-settings,3\ncollection,rem-viet-localized-campaigns,campaign-id,vi-VN,3"
                   }
                   required
                   value={releaseItems}
@@ -801,9 +819,11 @@ function CmsOperationsAdmin() {
                                       item.collection + "/" + item.documentId,
                                       item.locale || "default",
                                     ].join(" · ")
-                                  : item.documentType +
-                                    "/" +
-                                    item.documentId}{" "}
+                                  : item.documentType === "global"
+                                    ? `global/${item.documentId}`
+                                    : item.documentType +
+                                      "/" +
+                                      item.documentId}{" "}
                                 · v{item.expectedVersion} · {item.status}
                               </li>
                             ))}
@@ -910,22 +930,46 @@ function CmsOperationsAdmin() {
           </CardHeader>
           <CardContent className="grid gap-5">
             <form
-              className="grid gap-4 md:grid-cols-[10rem_1fr_9rem_auto] md:items-end"
+              className="grid gap-4 md:grid-cols-2 xl:grid-cols-[10rem_1fr_10rem_1fr_9rem_auto] xl:items-end"
               onSubmit={submitWorkflow}
             >
               <div className="grid gap-2">
-                <Label htmlFor="workflow-collection">Loại nội dung</Label>
-                <select
-                  className="h-9 rounded-md border bg-background px-3 text-sm"
+                <Label htmlFor="workflow-collection">Collection</Label>
+                <Input
+                  list="workflow-collection-options"
                   id="workflow-collection"
+                  placeholder="collection-slug"
+                  required
                   value={workflowCollection}
                   onChange={(event) =>
-                    setWorkflowCollection(event.target.value as "page" | "post")
+                    setWorkflowCollection(event.target.value)
                   }
-                >
+                />
+                <datalist id="workflow-collection-options">
                   <option value="page">Page</option>
                   <option value="post">Post</option>
-                </select>
+                  <option value="rem-viet-localized-campaigns">
+                    Localized campaigns
+                  </option>
+                </datalist>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="workflow-folder">Thư mục</Label>
+                <Input
+                  id="workflow-folder"
+                  placeholder="campaigns/summer"
+                  value={workflowFolder}
+                  onChange={(event) => setWorkflowFolder(event.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="workflow-locale">Locale</Label>
+                <Input
+                  id="workflow-locale"
+                  placeholder="vi-VN"
+                  value={workflowLocale}
+                  onChange={(event) => setWorkflowLocale(event.target.value)}
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="workflow-label">Tên bước</Label>
@@ -952,7 +996,7 @@ function CmsOperationsAdmin() {
               <Button disabled={upsertWorkflow.isPending} type="submit">
                 Lưu workflow
               </Button>
-              <label className="flex items-center gap-2 text-xs md:col-span-4">
+              <label className="flex items-center gap-2 text-xs md:col-span-2 xl:col-span-6">
                 <input
                   checked={workflowSelfApproval}
                   type="checkbox"
@@ -988,6 +1032,11 @@ function CmsOperationsAdmin() {
                         </StatusBadge>
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">
+                        {policy.folder || "Thư mục gốc"}
+                        {policy.locale
+                          ? ` · ${policy.locale}`
+                          : " · mọi locale"}
+                        {" · "}
                         {policy.stages
                           .map(
                             (stage) =>
@@ -1004,7 +1053,8 @@ function CmsOperationsAdmin() {
                         variant="outline"
                         onClick={() =>
                           deactivateWorkflow.mutate({
-                            collection: policy.collection as "page" | "post",
+                            collection: policy.collection,
+                            folder: policy.folder,
                             locale: policy.locale,
                           })
                         }

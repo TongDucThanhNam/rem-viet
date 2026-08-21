@@ -680,8 +680,10 @@ function GlobalSettingsPreview({ chrome }: GlobalSettingsPreviewProps) {
 function AdminSettingsRoute() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const settingsQuery = useQuery(trpc.content.siteSettings.get.queryOptions());
-  const menusQuery = useQuery(trpc.content.menus.list.queryOptions());
+  const settingsQuery = useQuery(
+    trpc.content.siteSettings.draft.queryOptions(),
+  );
+  const menusQuery = useQuery(trpc.content.menus.drafts.queryOptions());
   const settingsRevisionsQuery = useQuery(
     trpc.content.siteSettings.revisions.queryOptions(),
   );
@@ -713,7 +715,7 @@ function AdminSettingsRoute() {
       onSuccess: async () => {
         await Promise.all([
           queryClient.invalidateQueries(
-            trpc.content.siteSettings.get.queryFilter(),
+            trpc.content.siteSettings.draft.queryFilter(),
           ),
           queryClient.invalidateQueries(
             trpc.content.siteSettings.revisions.queryFilter(),
@@ -728,7 +730,9 @@ function AdminSettingsRoute() {
     trpc.content.menus.restore.mutationOptions({
       onSuccess: async (_result, variables) => {
         await Promise.all([
-          queryClient.invalidateQueries(trpc.content.menus.list.queryFilter()),
+          queryClient.invalidateQueries(
+            trpc.content.menus.drafts.queryFilter(),
+          ),
           queryClient.invalidateQueries(
             trpc.content.menus.revisions.queryFilter({
               location: variables.location,
@@ -928,13 +932,13 @@ function AdminSettingsRoute() {
         );
         await Promise.all([
           queryClient.invalidateQueries(
-            trpc.content.siteSettings.get.queryFilter(),
+            trpc.content.siteSettings.draft.queryFilter(),
           ),
           queryClient.invalidateQueries(
             trpc.content.siteSettings.revisions.queryFilter(),
           ),
         ]);
-        if (announce) toast.success("Đã lưu cài đặt website.");
+        if (announce) toast.success("Đã lưu bản nháp cài đặt website.");
         return result.data;
       } catch (error) {
         const message =
@@ -1009,9 +1013,9 @@ function AdminSettingsRoute() {
           );
         }
         await queryClient.invalidateQueries(
-          trpc.content.menus.list.queryFilter(),
+          trpc.content.menus.drafts.queryFilter(),
         );
-        if (announce) toast.success("Đã lưu điều hướng.");
+        if (announce) toast.success("Đã lưu bản nháp điều hướng.");
         return true;
       } catch (error) {
         const message =
@@ -1251,6 +1255,10 @@ function AdminSettingsRoute() {
                 <CardTitle>
                   <h2>Thông tin website</h2>
                 </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Lưu tạo bản nháp riêng. Thêm khóa <code>site-settings</code>
+                  vào release trong Vận hành để xuất bản.
+                </p>
               </CardHeader>
               <CardContent className="grid gap-5">
                 {settingsQuery.isLoading ? (
@@ -1583,7 +1591,7 @@ function AdminSettingsRoute() {
                       <Save aria-hidden />
                       {updateSettings.isPending
                         ? "Đang lưu…"
-                        : "Lưu cài đặt website"}
+                        : "Lưu bản nháp cài đặt"}
                     </Button>
                   </>
                 )}
@@ -1597,6 +1605,11 @@ function AdminSettingsRoute() {
                 <CardTitle>
                   <h2>Điều hướng website</h2>
                 </CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Lưu tạo bản nháp riêng. Xuất bản các khóa
+                  <code> navigation:header</code> và
+                  <code> navigation:footer</code> qua release.
+                </p>
               </CardHeader>
               <CardContent className="grid gap-5">
                 {menusQuery.isLoading ? (
@@ -1649,7 +1662,9 @@ function AdminSettingsRoute() {
                     ) : null}
                     <Button disabled={updateMenu.isPending} type="submit">
                       <Save aria-hidden />
-                      {updateMenu.isPending ? "Đang lưu…" : "Lưu điều hướng"}
+                      {updateMenu.isPending
+                        ? "Đang lưu…"
+                        : "Lưu bản nháp điều hướng"}
                     </Button>
                   </>
                 )}

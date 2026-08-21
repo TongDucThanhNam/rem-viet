@@ -142,6 +142,7 @@ type PageRow = {
   _id: string;
   title: string;
   slug: string;
+  folder: string;
   template: "landing" | "standard";
   blocks: PageBlock[];
   status: "draft" | "published";
@@ -173,6 +174,7 @@ type StandardBlock = IdentifiedStandardPageBlock;
 type StandardPageDraft = {
   title: string;
   slug: string;
+  folder: string;
   blocks: StandardBlock[];
   seoTitle: string;
   seoDescription: string;
@@ -259,6 +261,12 @@ const standardPageRevisionFields = [
     summarize: (value) => `/${value.slug}`,
   },
   {
+    key: "folder",
+    label: "Thư mục workflow",
+    read: (value) => value.folder,
+    summarize: (value) => value.folder || "Thư mục gốc",
+  },
+  {
     key: "blocks",
     label: "Nội dung và cấu trúc block",
     read: (value) => value.blocks,
@@ -315,6 +323,7 @@ function emptyStandardPageDraft(): StandardPageDraft {
   return {
     title: "",
     slug: "",
+    folder: "",
     blocks: [newRichTextBlock()],
     seoTitle: "",
     seoDescription: "",
@@ -330,6 +339,7 @@ function standardPageDraftFromRow(page: PageRow): StandardPageDraft {
   return {
     title: page.title,
     slug: page.slug,
+    folder: page.folder,
     blocks: blocks.length ? blocks : [newRichTextBlock()],
     seoTitle: page.seoTitle,
     seoDescription: page.seoDescription,
@@ -956,6 +966,7 @@ function AdminPagesRoute() {
     seoDescription,
     seoTitle,
     slug,
+    folder,
     title,
   } = draft;
   const baselineDraftRef = useRef(draft);
@@ -1373,6 +1384,7 @@ function AdminPagesRoute() {
         const payload = {
           title: title.trim(),
           slug: normalizedSlug,
+          folder,
           template: "standard" as const,
           blocks: parsed.data,
           seoTitle,
@@ -2000,6 +2012,24 @@ function AdminPagesRoute() {
                     }
                   />
                 </div>
+                <div className="grid gap-2 sm:col-span-2">
+                  <Label htmlFor="page-folder">Thư mục workflow</Label>
+                  <Input
+                    id="page-folder"
+                    placeholder="campaigns/summer"
+                    value={folder}
+                    onChange={(e) =>
+                      commitDraft(
+                        { ...draft, folder: e.target.value },
+                        "page-field:folder",
+                      )
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Dùng đường dẫn ID phân cấp để chọn workflow theo thư mục; để
+                    trống cho chính sách cấp collection.
+                  </p>
+                </div>
               </div>
               {shouldOfferRedirect ? (
                 <label className="flex items-start gap-2 rounded-md border p-3 text-sm">
@@ -2414,6 +2444,7 @@ function AdminPagesRoute() {
                     const currentSnapshot: PageRevisionSnapshot = {
                       title,
                       slug,
+                      folder,
                       template: "standard",
                       blocks,
                       seoTitle,

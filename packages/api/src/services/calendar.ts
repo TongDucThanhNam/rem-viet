@@ -308,15 +308,21 @@ export async function listCmsCalendar(
         row.dueAt
           ? [
               {
-                id: `review:${row.documentType}:${row.documentId}`,
+                id: [
+                  "review",
+                  row.documentType,
+                  row.collection ?? "",
+                  row.documentId,
+                  row.locale ?? "",
+                ].join(":"),
                 kind: "review_due" as const,
                 startsAt: row.dueAt,
                 title: row.title,
                 status: "requested",
                 entityType: row.documentType,
                 entityId: row.documentId,
-                collection: null,
-                locale: "",
+                collection: row.collection ?? null,
+                locale: row.locale ?? "",
               },
             ]
           : [],

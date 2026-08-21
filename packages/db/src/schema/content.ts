@@ -26,6 +26,7 @@ export const posts = sqliteTable(
   {
     id: text("id").primaryKey(),
     slug: text("slug").notNull().unique(),
+    folder: text("folder").default("").notNull(),
     title: text("title").notNull(),
     description: text("description").default("").notNull(),
     coverImage: text("cover_image").default("").notNull(),
@@ -64,6 +65,7 @@ export const posts = sqliteTable(
   (table) => [
     index("posts_slug_idx").on(table.slug),
     index("posts_status_idx").on(table.status),
+    index("posts_folder_status_idx").on(table.folder, table.status),
   ],
 );
 
@@ -72,6 +74,7 @@ export const pages = sqliteTable(
   {
     id: text("id").primaryKey(),
     slug: text("slug").notNull().unique(),
+    folder: text("folder").default("").notNull(),
     title: text("title").notNull(),
     template: text("template", { enum: ["landing", "standard"] })
       .default("standard")
@@ -105,6 +108,7 @@ export const pages = sqliteTable(
   (table) => [
     index("pages_slug_idx").on(table.slug),
     index("pages_status_idx").on(table.status),
+    index("pages_folder_status_idx").on(table.folder, table.status),
   ],
 );
 
@@ -365,6 +369,7 @@ export const cmsGlobals = sqliteTable("cms_globals", {
   key: text("key").primaryKey(),
   content: text("content", { mode: "json" }).$type<unknown>().notNull(),
   version: integer("version").default(1).notNull(),
+  publishedRevisionId: text("published_revision_id"),
   updatedBy: text("updated_by").default("").notNull(),
   ...timestamps,
 });

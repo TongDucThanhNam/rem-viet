@@ -62,6 +62,7 @@ function page(title: string, slug: string) {
   return {
     title,
     slug,
+    folder: "campaigns/summer",
     template: "standard" as const,
     blocks: [
       {
@@ -305,7 +306,11 @@ describe("Rèm Việt standard-page collection runtime", () => {
 
     expect(await provider.getPublished({ slug: "new-page" })).toMatchObject({
       id: created.id,
-      content: { title: "New page", slug: "new-page" },
+      content: {
+        title: "New page",
+        slug: "new-page",
+        folder: "campaigns/summer",
+      },
       publishedRevisionId: published.revision.id,
     });
     expect(await provider.listRevisions(created.id)).toEqual([
@@ -324,13 +329,14 @@ describe("Rèm Việt standard-page collection runtime", () => {
 
     const legacy = await db
       .prepare(
-        `SELECT slug, title, blocks, version, published_revision_id AS revisionId,
+        `SELECT slug, title, folder, blocks, version, published_revision_id AS revisionId,
           scheduled_at AS scheduledAt FROM pages WHERE id = ?`,
       )
       .bind(created.id)
       .first<{
         slug: string;
         title: string;
+        folder: string;
         blocks: string;
         version: number;
         revisionId: string | null;
@@ -339,6 +345,7 @@ describe("Rèm Việt standard-page collection runtime", () => {
     expect(legacy).toMatchObject({
       slug: "new-page",
       title: "New page",
+      folder: "campaigns/summer",
       version: published.document.version,
       revisionId: published.revision.id,
       scheduledAt: null,

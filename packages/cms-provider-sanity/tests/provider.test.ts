@@ -359,6 +359,11 @@ class FakeGlobalSanityClient implements SanityClientPort {
         createdIds.add(id);
         continue;
       }
+      if (mutation.delete) {
+        const id = String((mutation.delete as { id?: string }).id ?? "");
+        if (!id || !this.records.has(id)) throw { statusCode: 409 };
+        continue;
+      }
       const patch = mutation.patch as {
         id: string;
         ifRevisionID: string;
@@ -372,6 +377,10 @@ class FakeGlobalSanityClient implements SanityClientPort {
     for (const mutation of mutations) {
       if (mutation.create) {
         this.#write(mutation.create as FakeGlobalRecord);
+        continue;
+      }
+      if (mutation.delete) {
+        this.records.delete(String((mutation.delete as { id: string }).id));
         continue;
       }
       const patch = mutation.patch as {
@@ -747,6 +756,7 @@ describe("Sanity global-content provider", () => {
     expect(sanityGlobalContentCapabilities.supported).toEqual([
       "content.readDraft",
       "content.write",
+      "content.publish",
       "content.restore",
     ]);
   });
@@ -776,16 +786,19 @@ describe("Sanity global-content provider", () => {
         key: "site:settings/vi-VN",
       }),
     ).resolves.toEqual({
+      compensatingRollback: true,
       create: true,
+      draftIsolation: true,
       optimisticConflict: true,
+      publish: true,
       revisionHistory: true,
       restore: true,
       update: true,
     });
     const current = await provider.get({ key: "site:settings/vi-VN" });
-    expect(current).toMatchObject({ content: initial, version: 3 });
+    expect(current).toMatchObject({ content: initial, version: 5 });
     expect(JSON.stringify(current)).not.toContain("_key");
-    expect(await provider.listRevisions("site:settings/vi-VN")).toHaveLength(3);
+    expect(await provider.listRevisions("site:settings/vi-VN")).toHaveLength(5);
   });
 
   test("maps native revision conflicts and isolates revision keys", async () => {
@@ -987,7 +1000,7 @@ describe("Sanity hosted conformance", () => {
         globalKey: "hosted-conformance/hosted-proof",
       },
     });
-    expect(client.records.size).toBe(4);
+    expect(client.records.size).toBe(5);
     expect(
       [...client.records.values()].every(
         (record) =>

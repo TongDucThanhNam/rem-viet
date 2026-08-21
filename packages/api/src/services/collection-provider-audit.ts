@@ -12,8 +12,12 @@ function json(value: unknown) {
   return value === null ? null : JSON.stringify(value);
 }
 
-function documentIdentity(event: CloudflareCmsCollectionMutationEvent) {
-  return `${event.collection}:${event.documentId}:${event.locale || "default"}`;
+export function cmsCollectionDocumentIdentity(input: {
+  collection: string;
+  documentId: string;
+  locale?: string | null;
+}) {
+  return `${input.collection}:${input.documentId}:${input.locale || "default"}`;
 }
 
 function auditState(event: CloudflareCmsCollectionMutationEvent) {
@@ -55,7 +59,7 @@ export function collectionMutationStatements(
   actor: CmsActor,
   event: CloudflareCmsCollectionMutationEvent,
 ): CloudflareD1PreparedStatement[] {
-  const identity = documentIdentity(event);
+  const identity = cmsCollectionDocumentIdentity(event);
   const state = auditState(event);
   return [
     database

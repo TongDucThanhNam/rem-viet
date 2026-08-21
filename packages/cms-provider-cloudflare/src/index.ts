@@ -67,6 +67,7 @@ CREATE TABLE IF NOT EXISTS pages (
   id TEXT PRIMARY KEY,
   slug TEXT NOT NULL UNIQUE,
   title TEXT NOT NULL,
+  folder TEXT NOT NULL DEFAULT '',
   template TEXT NOT NULL DEFAULT 'standard',
   blocks TEXT NOT NULL DEFAULT '[]',
   status TEXT NOT NULL DEFAULT 'draft',
@@ -328,6 +329,14 @@ CREATE INDEX IF NOT EXISTS cms_media_variants_asset_idx
 ALTER TABLE cms_review_events
   ADD COLUMN metadata TEXT NOT NULL DEFAULT '{}';`,
   },
+  {
+    id: "0010_page_workflow_folders",
+    sql: "",
+  },
+  {
+    id: "0011_global_publication_boundary",
+    sql: "",
+  },
 ] as const;
 
 async function ensureColumn(
@@ -385,6 +394,34 @@ export async function applyCloudflareCmsMigrations(
         "schedule_note",
         "TEXT NOT NULL DEFAULT ''",
       );
+    }
+    if (migration.id === "0010_page_workflow_folders") {
+      await ensureColumn(
+        database,
+        "pages",
+        "folder",
+        "TEXT NOT NULL DEFAULT ''",
+      );
+    }
+    if (migration.id === "0011_global_publication_boundary") {
+      await ensureColumn(
+        database,
+        "cms_globals",
+        "published_revision_id",
+        "TEXT",
+      );
+      await database
+        .prepare(
+          `UPDATE cms_globals
+           SET published_revision_id = (
+             SELECT id FROM cms_global_revisions
+             WHERE global_key = cms_globals.key
+               AND version = cms_globals.version
+             ORDER BY created_at DESC LIMIT 1
+           )
+           WHERE published_revision_id IS NULL`,
+        )
+        .run();
     }
     await database
       .prepare(
@@ -1540,6 +1577,7 @@ type GlobalRow = {
   key: string;
   content: string;
   version: number;
+  publishedRevisionId: string | null;
   updatedBy: string;
   createdAt: number;
   updatedAt: number;
@@ -1556,7 +1594,8 @@ type GlobalRevisionRow = {
 };
 
 const globalColumns = `
-  key, content, version, updated_by AS updatedBy,
+  key, content, version, published_revision_id AS publishedRevisionId,
+  updated_by AS updatedBy,
   created_at AS createdAt, updated_at AS updatedAt
 `;
 
@@ -1573,25 +1612,52 @@ export type CloudflareCmsGlobalProviderOptions<TContent> = {
   parseContent: (value: unknown) => TContent;
   createId?: () => string;
   now?: () => Date;
+  prepareMutationStatements?: (
+    event: CloudflareCmsGlobalMutationEvent<TContent>,
+  ) =>
+    | CloudflareD1PreparedStatement
+    | readonly CloudflareD1PreparedStatement[]
+    | null;
+};
+
+export type CloudflareCmsGlobalMutationEvent<TContent = unknown> = {
+  action: "save" | "publish" | "restore" | "rollback";
+  actorId: string;
+  key: string;
+  version: number;
+  timestamp: Date;
+  before: TContent | null;
+  after: TContent;
+  note: string;
+  previousPublishedRevisionId: string | null;
+  revisionId: string;
+  restoredVersion?: number;
 };
 
 export class CloudflareCmsGlobalContentProvider<
   TContent,
 > implements CmsGlobalContentProvider<TContent> {
   readonly capabilities: CmsProviderCapabilities = {
-    supported: ["content.readDraft", "content.write", "content.restore"],
+    supported: [
+      "content.readDraft",
+      "content.write",
+      "content.publish",
+      "content.restore",
+    ],
   };
 
   readonly #database: CloudflareD1Database;
   readonly #parseContent: (value: unknown) => TContent;
   readonly #createId: () => string;
   readonly #now: () => Date;
+  readonly #prepareMutationStatements?: CloudflareCmsGlobalProviderOptions<TContent>["prepareMutationStatements"];
 
   constructor(options: CloudflareCmsGlobalProviderOptions<TContent>) {
     this.#database = options.database;
     this.#parseContent = options.parseContent;
     this.#createId = options.createId ?? (() => crypto.randomUUID());
     this.#now = options.now ?? (() => new Date());
+    this.#prepareMutationStatements = options.prepareMutationStatements;
   }
 
   #document(row: GlobalRow): CmsGlobalDocument<TContent> {
@@ -1599,6 +1665,8 @@ export class CloudflareCmsGlobalContentProvider<
       key: row.key,
       content: this.#parseContent(decodeJson(row.content)),
       version: Number(row.version),
+      status: row.publishedRevisionId ? "published" : "draft",
+      publishedRevisionId: row.publishedRevisionId,
       createdAt: new Date(Number(row.createdAt)).toISOString(),
       updatedAt: new Date(Number(row.updatedAt)).toISOString(),
       updatedBy: row.updatedBy,
@@ -1623,6 +1691,40 @@ export class CloudflareCmsGlobalContentProvider<
       .bind(input.key)
       .first<GlobalRow>();
     return row ? this.#document(row) : null;
+  }
+
+  async getPublished(input: { key: string }) {
+    const row = await this.#database
+      .prepare(
+        `SELECT r.id, r.global_key AS globalKey, r.version, r.snapshot, r.note,
+          r.created_by AS createdBy, r.created_at AS createdAt
+         FROM cms_globals g
+         INNER JOIN cms_global_revisions r ON r.id = g.published_revision_id
+         WHERE g.key = ? LIMIT 1`,
+      )
+      .bind(input.key)
+      .first<GlobalRevisionRow>();
+    if (!row) return null;
+    const revision = this.#revision(row);
+    return {
+      key: revision.key,
+      content: revision.content,
+      version: revision.version,
+      status: "published" as const,
+      publishedRevisionId: revision.id,
+      createdAt: revision.createdAt,
+      updatedAt: revision.createdAt,
+      updatedBy: revision.createdBy,
+    };
+  }
+
+  #mutationStatements(event: CloudflareCmsGlobalMutationEvent<TContent>) {
+    const prepared = this.#prepareMutationStatements?.(event);
+    return prepared
+      ? Array.isArray(prepared)
+        ? [...prepared]
+        : [prepared]
+      : [];
   }
 
   async save(input: {
@@ -1651,7 +1753,9 @@ export class CloudflareCmsGlobalContentProvider<
     const content = this.#parseContent(input.content);
     const snapshot = JSON.stringify(content);
     const version = (current?.version ?? 0) + 1;
-    const timestamp = this.#now().getTime();
+    const occurredAt = this.#now();
+    const timestamp = occurredAt.getTime();
+    const revisionId = this.#createId();
     const documentStatement = current
       ? this.#database
           .prepare(
@@ -1681,7 +1785,7 @@ export class CloudflareCmsGlobalContentProvider<
         ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
-        this.#createId(),
+        revisionId,
         key,
         version,
         snapshot,
@@ -1695,6 +1799,18 @@ export class CloudflareCmsGlobalContentProvider<
       results = await this.#database.batch([
         documentStatement,
         revisionStatement,
+        ...this.#mutationStatements({
+          action: "save",
+          actorId: input.actorId,
+          key,
+          version,
+          timestamp: occurredAt,
+          before: current?.content ?? null,
+          after: content,
+          note: input.note ?? "",
+          previousPublishedRevisionId: current?.publishedRevisionId ?? null,
+          revisionId,
+        }),
       ]);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -1709,6 +1825,164 @@ export class CloudflareCmsGlobalContentProvider<
       conflict(input.expectedVersion ?? 0, latest?.version ?? 0);
     }
     return (await this.get({ key }))!;
+  }
+
+  async publish(input: {
+    key: string;
+    expectedVersion: number;
+    actorId: string;
+    note?: string;
+  }) {
+    const current = await this.get({ key: input.key });
+    if (!current) globalNotFound(input.key);
+    if (current.version !== input.expectedVersion) {
+      conflict(input.expectedVersion, current.version);
+    }
+    const content = this.#parseContent(current.content);
+    const snapshot = JSON.stringify(content);
+    const version = current.version + 1;
+    const revisionId = this.#createId();
+    const occurredAt = this.#now();
+    const timestamp = occurredAt.getTime();
+    let results: D1RunResult[];
+    try {
+      results = await this.#database.batch([
+        this.#database
+          .prepare(
+            `INSERT INTO cms_global_revisions (
+              id, global_key, version, snapshot, note, created_by, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          )
+          .bind(
+            revisionId,
+            current.key,
+            version,
+            snapshot,
+            input.note ?? "",
+            input.actorId,
+            timestamp,
+          ),
+        this.#database
+          .prepare(
+            `UPDATE cms_globals
+             SET version = ?, published_revision_id = ?, updated_by = ?, updated_at = ?
+             WHERE key = ? AND version = ?`,
+          )
+          .bind(
+            version,
+            revisionId,
+            input.actorId,
+            timestamp,
+            current.key,
+            input.expectedVersion,
+          ),
+        ...this.#mutationStatements({
+          action: "publish",
+          actorId: input.actorId,
+          key: current.key,
+          version,
+          timestamp: occurredAt,
+          before: current.content,
+          after: content,
+          note: input.note ?? "",
+          previousPublishedRevisionId: current.publishedRevisionId,
+          revisionId,
+        }),
+      ]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (/unique constraint|constraint failed.*cms_global/i.test(message)) {
+        const latest = await this.get({ key: current.key });
+        conflict(input.expectedVersion, latest?.version ?? 0);
+      }
+      throw error;
+    }
+    if ((results[1]?.meta?.changes ?? 0) !== 1) {
+      const latest = await this.get({ key: current.key });
+      conflict(input.expectedVersion, latest?.version ?? 0);
+    }
+    const document = (await this.get({ key: current.key }))!;
+    const row = await this.#database
+      .prepare(
+        `SELECT id, global_key AS globalKey, version, snapshot, note,
+          created_by AS createdBy, created_at AS createdAt
+         FROM cms_global_revisions WHERE id = ? LIMIT 1`,
+      )
+      .bind(revisionId)
+      .first<GlobalRevisionRow>();
+    if (!row) globalNotFound(revisionId);
+    return { document, revision: this.#revision(row) };
+  }
+
+  async rollbackPublication(input: {
+    key: string;
+    expectedVersion: number;
+    restoreVersion: number;
+    restorePublishedRevisionId: string | null;
+    publicationRevisionId: string;
+    actorId: string;
+  }) {
+    const current = await this.get({ key: input.key });
+    if (!current) globalNotFound(input.key);
+    if (
+      current.version !== input.expectedVersion ||
+      current.publishedRevisionId !== input.publicationRevisionId
+    ) {
+      conflict(input.expectedVersion, current.version);
+    }
+    if (
+      input.restoreVersion < 1 ||
+      input.restoreVersion >= input.expectedVersion
+    ) {
+      throw new CmsError({
+        code: "VALIDATION_FAILED",
+        message: "Global publication rollback versions are invalid.",
+        retryable: false,
+      });
+    }
+    const occurredAt = this.#now();
+    const timestamp = occurredAt.getTime();
+    const results = await this.#database.batch([
+      this.#database
+        .prepare(
+          `UPDATE cms_globals
+           SET version = ?, published_revision_id = ?, updated_by = ?, updated_at = ?
+           WHERE key = ? AND version = ? AND published_revision_id = ?`,
+        )
+        .bind(
+          input.restoreVersion,
+          input.restorePublishedRevisionId,
+          input.actorId,
+          timestamp,
+          input.key,
+          input.expectedVersion,
+          input.publicationRevisionId,
+        ),
+      this.#database
+        .prepare(
+          `DELETE FROM cms_global_revisions
+           WHERE id = ? AND global_key = ? AND version = ?`,
+        )
+        .bind(input.publicationRevisionId, input.key, input.expectedVersion),
+      ...this.#mutationStatements({
+        action: "rollback",
+        actorId: input.actorId,
+        key: input.key,
+        version: input.expectedVersion,
+        restoredVersion: input.restoreVersion,
+        timestamp: occurredAt,
+        before: current.content,
+        after: current.content,
+        note: "Compensate global publication",
+        previousPublishedRevisionId: current.publishedRevisionId,
+        revisionId: input.publicationRevisionId,
+      }),
+    ]);
+    if ((results[0]?.meta?.changes ?? 0) !== 1) {
+      const latest = await this.get({ key: input.key });
+      conflict(input.expectedVersion, latest?.version ?? 0);
+    }
+    return (await this.get({ key: input.key }))!;
   }
 
   async listRevisions(key: string) {
@@ -1746,13 +2020,60 @@ export class CloudflareCmsGlobalContentProvider<
       .bind(input.revisionId, input.key)
       .first<GlobalRevisionRow>();
     if (!row) globalNotFound(input.revisionId);
-    return this.save({
-      key: input.key,
-      expectedVersion: input.expectedVersion,
-      content: this.#revision(row).content,
-      actorId: input.actorId,
-      note: input.note ?? `Restore ${input.revisionId}`,
-    });
+    const revision = this.#revision(row);
+    const content = this.#parseContent(revision.content);
+    const snapshot = JSON.stringify(content);
+    const version = current.version + 1;
+    const revisionId = this.#createId();
+    const occurredAt = this.#now();
+    const timestamp = occurredAt.getTime();
+    const results = await this.#database.batch([
+      this.#database
+        .prepare(
+          `UPDATE cms_globals SET content = ?, version = ?, updated_by = ?, updated_at = ?
+           WHERE key = ? AND version = ?`,
+        )
+        .bind(
+          snapshot,
+          version,
+          input.actorId,
+          timestamp,
+          input.key,
+          input.expectedVersion,
+        ),
+      this.#database
+        .prepare(
+          `INSERT INTO cms_global_revisions (
+            id, global_key, version, snapshot, note, created_by, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .bind(
+          revisionId,
+          input.key,
+          version,
+          snapshot,
+          input.note ?? `Restore ${input.revisionId}`,
+          input.actorId,
+          timestamp,
+        ),
+      ...this.#mutationStatements({
+        action: "restore",
+        actorId: input.actorId,
+        key: input.key,
+        version,
+        timestamp: occurredAt,
+        before: current.content,
+        after: content,
+        note: input.note ?? `Restore ${input.revisionId}`,
+        previousPublishedRevisionId: current.publishedRevisionId,
+        revisionId,
+      }),
+    ]);
+    if ((results[0]?.meta?.changes ?? 0) !== 1) {
+      const latest = await this.get({ key: input.key });
+      conflict(input.expectedVersion, latest?.version ?? 0);
+    }
+    return (await this.get({ key: input.key }))!;
   }
 }
 

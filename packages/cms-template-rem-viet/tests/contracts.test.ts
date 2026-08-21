@@ -1,7 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { createCmsExtensionRegistry } from "@agency/cms-core";
+import {
+  createCmsExtensionRegistry,
+  migrateCollectionData,
+} from "@agency/cms-core";
 import { assertCmsVisualAdapterRoundTrip } from "@agency/cms-visual-editor";
 
 import faqFixture from "./fixtures/faq-v1.json";
@@ -81,6 +84,7 @@ describe("Rem Viet flagship template contracts", () => {
     const content = {
       title: "About Rèm Việt",
       slug: "about-rem-viet",
+      folder: "company/about",
       template: "standard" as const,
       blocks: [
         {
@@ -101,7 +105,7 @@ describe("Rem Viet flagship template contracts", () => {
       },
     };
 
-    expect(remVietStandardPagesCollection.schemaVersion).toBe(1);
+    expect(remVietStandardPagesCollection.schemaVersion).toBe(2);
     expect(remVietStandardPagesCollection.lifecycle).toEqual({
       drafts: true,
       revisions: true,
@@ -121,6 +125,13 @@ describe("Rem Viet flagship template contracts", () => {
         toRemVietStandardPageCollectionData(content),
       ),
     ).toEqual(content);
+    expect(
+      migrateCollectionData(
+        remVietStandardPagesCollection,
+        { ...toRemVietStandardPageCollectionData(content), folder: undefined },
+        1,
+      ),
+    ).toMatchObject({ folder: "" });
   });
 
   test("round-trips the canonical Hero golden fixture", () => {

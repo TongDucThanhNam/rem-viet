@@ -185,6 +185,17 @@ describe("content capability procedures", () => {
       code: "FORBIDDEN",
       message: "Missing capability: content.review.decide",
     });
+    await expect(
+      caller.content.comments.setResolved({
+        expectedVersion: 1,
+        operationId: "00000000-0000-4000-8000-000000000001",
+        resolved: true,
+        threadId: "00000000-0000-4000-8000-000000000002",
+      }),
+    ).rejects.toMatchObject({
+      code: "FORBIDDEN",
+      message: "Missing capability: content.review.decide",
+    });
   });
 
   test("an unauthenticated draft read receives UNAUTHORIZED", async () => {
@@ -196,6 +207,12 @@ describe("content capability procedures", () => {
     } catch (error) {
       expect(error).toMatchObject({ code: "UNAUTHORIZED" });
     }
+    await expect(
+      caller.content.comments.list({
+        documentId: "page-1",
+        documentType: "page",
+      }),
+    ).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 
   test("an owner without MFA receives FORBIDDEN before CMS authority", async () => {

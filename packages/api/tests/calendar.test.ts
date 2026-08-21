@@ -62,6 +62,17 @@ function createRuntime() {
           documentId: "page-review",
           title: "Review campaign",
         },
+        {
+          assigneeIds: ["owner-2"],
+          dueAt: "2026-08-03T09:00:00.000Z",
+          overdue: true,
+          requestedAt: new Date("2026-08-01T09:00:00.000Z"),
+          documentType: "collection" as const,
+          collection: "campaigns",
+          documentId: "page-review",
+          locale: "vi-VN",
+          title: "Localized review campaign",
+        },
       ],
     } satisfies CmsCalendarRuntime,
     sqlite,
@@ -121,13 +132,21 @@ describe("CMS operations calendar", () => {
 
     expect(entries.map((entry) => [entry.kind, entry.title])).toEqual([
       ["review_due", "Review campaign"],
+      ["review_due", "Localized review campaign"],
       ["content_schedule", "Campaign page"],
       ["content_schedule", "Localized campaign"],
       ["release_schedule", "Launch bundle"],
     ]);
     expect(entries[0]).toMatchObject({ overdue: true });
-    expect(entries[1]).toMatchObject({ overdue: true });
-    expect(entries[2]).toMatchObject({ locale: "vi-VN", overdue: false });
+    expect(entries[1]).toMatchObject({
+      id: "review:collection:campaigns:page-review:vi-VN",
+      entityType: "collection",
+      collection: "campaigns",
+      locale: "vi-VN",
+      overdue: true,
+    });
+    expect(entries[2]).toMatchObject({ overdue: true });
+    expect(entries[3]).toMatchObject({ locale: "vi-VN", overdue: false });
     expect(entries.some((entry) => entry.title.includes("Duplicate"))).toBe(
       false,
     );

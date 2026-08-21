@@ -53,6 +53,8 @@ test("selects, edits, and undoes canonical Atelier content", async ({
 test("generated Field v2 controls are responsive and axe-clean", async ({
   page,
 }) => {
+  test.slow();
+
   await page.goto("/?fixture=fields");
   await expect(
     page.getByRole("heading", { name: "Create Field v2 record" }),

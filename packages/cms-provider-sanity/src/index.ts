@@ -82,6 +82,7 @@ export type SanityGlobalRecord<TEncodedContent = unknown> = {
   _updatedAt: string;
   content: TEncodedContent;
   globalKey: string;
+  publishedRevisionId?: string | null;
   updatedBy: string;
   version: number;
 };
@@ -118,7 +119,12 @@ export const sanityCmsCapabilities: CmsProviderCapabilities = Object.freeze({
 
 export const sanityGlobalContentCapabilities: CmsProviderCapabilities =
   Object.freeze({
-    supported: ["content.readDraft", "content.write", "content.restore"],
+    supported: [
+      "content.readDraft",
+      "content.write",
+      "content.publish",
+      "content.restore",
+    ],
   });
 
 export function createSanityVisualEditingCapabilities(input?: {
@@ -276,6 +282,32 @@ export class SanityCmsGlobalContentProvider<
     return record ? this.#document(record) : null;
   }
 
+  async getPublished(input: { key: string }) {
+    const current = await this.get(input);
+    if (!current?.publishedRevisionId) return null;
+    const record = await this.#fetchRaw<SanityGlobalRevisionRecord>(
+      current.publishedRevisionId,
+    );
+    if (
+      !record ||
+      record._type !== this.#revisionDocumentType ||
+      record.globalKey !== current.key
+    ) {
+      notFound(current.publishedRevisionId);
+    }
+    const revision = this.#revision(record);
+    return {
+      key: revision.key,
+      content: revision.content,
+      version: revision.version,
+      status: "published" as const,
+      publishedRevisionId: revision.id,
+      createdAt: revision.createdAt,
+      updatedAt: revision.createdAt,
+      updatedBy: revision.createdBy,
+    };
+  }
+
   async save(input: {
     key: string;
     expectedVersion: number | null;
@@ -349,6 +381,97 @@ export class SanityCmsGlobalContentProvider<
     return records.map((record) => this.#revision(record));
   }
 
+  async publish(input: {
+    key: string;
+    expectedVersion: number;
+    actorId: string;
+    note?: string;
+  }) {
+    const key = normalizeGlobalKey(input.key);
+    const documentId = await sanityGlobalDocumentId(key);
+    const current = await this.#fetchRaw<SanityGlobalRecord>(documentId);
+    if (!current) notFound(key);
+    if (current.version !== input.expectedVersion) {
+      globalConflict(input.expectedVersion, current.version);
+    }
+    const content = this.#parseContent(stripSanityArrayKeys(current.content));
+    const encoded = this.#encodeContent(content);
+    const version = current.version + 1;
+    const revisionId = await sanityGlobalRevisionId(key, version);
+    await this.#mutate([
+      {
+        patch: {
+          id: current._id,
+          ifRevisionID: current._rev,
+          set: {
+            publishedRevisionId: revisionId,
+            updatedBy: input.actorId,
+            version,
+          },
+        },
+      },
+      {
+        create: {
+          _id: revisionId,
+          _type: this.#revisionDocumentType,
+          createdBy: input.actorId,
+          globalKey: key,
+          note: input.note ?? "",
+          snapshot: encoded,
+          version,
+        },
+      },
+    ]);
+    const document = await this.get({ key });
+    const revision =
+      await this.#fetchRaw<SanityGlobalRevisionRecord>(revisionId);
+    if (!document || !revision) notFound(key);
+    return { document, revision: this.#revision(revision) };
+  }
+
+  async rollbackPublication(input: {
+    key: string;
+    expectedVersion: number;
+    restoreVersion: number;
+    restorePublishedRevisionId: string | null;
+    publicationRevisionId: string;
+    actorId: string;
+  }) {
+    const key = normalizeGlobalKey(input.key);
+    const documentId = await sanityGlobalDocumentId(key);
+    const current = await this.#fetchRaw<SanityGlobalRecord>(documentId);
+    if (!current) notFound(key);
+    if (
+      current.version !== input.expectedVersion ||
+      (current.publishedRevisionId ?? null) !== input.publicationRevisionId
+    ) {
+      globalConflict(input.expectedVersion, current.version);
+    }
+    if (
+      input.restoreVersion < 1 ||
+      input.restoreVersion >= input.expectedVersion
+    ) {
+      validation("Global publication rollback versions are invalid.");
+    }
+    await this.#mutate([
+      {
+        patch: {
+          id: current._id,
+          ifRevisionID: current._rev,
+          set: {
+            publishedRevisionId: input.restorePublishedRevisionId,
+            updatedBy: input.actorId,
+            version: input.restoreVersion,
+          },
+        },
+      },
+      { delete: { id: input.publicationRevisionId } },
+    ]);
+    const restored = await this.get({ key });
+    if (!restored) notFound(key);
+    return restored;
+  }
+
   async restore(input: {
     key: string;
     revisionId: string;
@@ -386,6 +509,8 @@ export class SanityCmsGlobalContentProvider<
       key: record.globalKey,
       content: this.#parseContent(stripSanityArrayKeys(record.content)),
       version: record.version,
+      status: record.publishedRevisionId ? "published" : "draft",
+      publishedRevisionId: record.publishedRevisionId ?? null,
       createdAt: record._createdAt,
       updatedAt: record._updatedAt,
       updatedBy: record.updatedBy,

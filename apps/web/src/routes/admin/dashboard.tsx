@@ -77,9 +77,11 @@ type EditorialPost = {
 
 type EditorialReview = {
   assigneeIds: string[];
+  collection?: string;
   documentId: string;
-  documentType: "page" | "post";
+  documentType: "collection" | "page" | "post";
   dueAt: string | null;
+  locale?: string;
   note: string;
   overdue: boolean;
   requestedAt: string | Date | null;
@@ -572,6 +574,16 @@ function EditorialCommandCenter({
                     >
                       {content}
                     </Link>
+                  );
+                }
+                if (review.documentType === "collection") {
+                  return (
+                    <div
+                      className={className}
+                      key={`review:collection:${review.collection}:${review.documentId}:${review.locale || "default"}`}
+                    >
+                      {content}
+                    </div>
                   );
                 }
                 if (review.slug === "home") {

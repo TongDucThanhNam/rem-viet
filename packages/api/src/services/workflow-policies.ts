@@ -1,9 +1,12 @@
+import { cmsContentFolderSchema } from "@rem-viet/cms";
 import { createDb } from "@rem-viet/db";
 import { cmsWorkflowPolicies } from "@rem-viet/db/schema/automation";
 import { auditEvents } from "@rem-viet/db/schema/governance";
+import { cmsCollectionSlugSchema } from "@agency/cms-core";
 import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
+import { cmsCollectionDocumentIdentity } from "./collection-provider-audit";
 import type { CmsActor } from "./content-revisions";
 import { ContentWorkflowError } from "./content-workflow-error";
 import type { GovernanceActor } from "./governance";
@@ -24,10 +27,14 @@ export const cmsWorkflowStageSchema = z.object({
   allowSelfApproval: z.boolean().default(false),
 });
 
-export const upsertCmsWorkflowPolicyInputSchema = z
-  .object({
-    collection: z.enum(["page", "post"]),
-    locale: z.string().trim().max(35).default(""),
+export const cmsWorkflowPolicyTargetSchema = z.object({
+  collection: cmsCollectionSlugSchema,
+  folder: cmsContentFolderSchema,
+  locale: z.string().trim().max(35).default(""),
+});
+
+export const upsertCmsWorkflowPolicyInputSchema = cmsWorkflowPolicyTargetSchema
+  .extend({
     stages: z.array(cmsWorkflowStageSchema).min(1).max(5),
     active: z.boolean().default(true),
   })
@@ -42,11 +49,6 @@ export const upsertCmsWorkflowPolicyInputSchema = z
       });
     }
   });
-
-export const cmsWorkflowPolicyTargetSchema = z.object({
-  collection: z.enum(["page", "post"]),
-  locale: z.string().trim().max(35).default(""),
-});
 
 export type WorkflowRuntime = Readonly<{
   db?: ReturnType<typeof createDb>;
@@ -97,40 +99,61 @@ export async function listCmsWorkflowPolicies(runtime?: WorkflowRuntime) {
     .from(cmsWorkflowPolicies)
     .orderBy(
       asc(cmsWorkflowPolicies.collection),
+      asc(cmsWorkflowPolicies.folder),
       asc(cmsWorkflowPolicies.locale),
     );
   return rows.map(parsePolicy);
 }
 
 export async function resolveCmsWorkflowPolicy(
-  collection: "page" | "post",
-  locale = "",
+  input: z.input<typeof cmsWorkflowPolicyTargetSchema>,
   runtime?: WorkflowRuntime,
 ) {
+  const target = cmsWorkflowPolicyTargetSchema.parse(input);
+  const folderAncestors = target.folder
+    ? target.folder
+        .split("/")
+        .map((_, index, segments) =>
+          segments.slice(0, segments.length - index).join("/"),
+        )
+    : [];
+  const folders = [...folderAncestors, ""];
   const rows = await runtimeDb(runtime)
     .select()
     .from(cmsWorkflowPolicies)
     .where(
       and(
-        eq(cmsWorkflowPolicies.collection, collection),
+        eq(cmsWorkflowPolicies.collection, target.collection),
         eq(cmsWorkflowPolicies.active, true),
-        inArray(cmsWorkflowPolicies.locale, locale ? [locale, ""] : [""]),
+        inArray(cmsWorkflowPolicies.folder, folders),
+        inArray(
+          cmsWorkflowPolicies.locale,
+          target.locale ? [target.locale, ""] : [""],
+        ),
       ),
-    )
-    .orderBy(desc(cmsWorkflowPolicies.locale));
-  const exact = rows.find((row) => row.locale === locale) ?? rows[0];
-  return exact ? parsePolicy(exact) : null;
+    );
+  const ranked = rows.sort((left, right) => {
+    const leftFolderRank = folders.indexOf(left.folder);
+    const rightFolderRank = folders.indexOf(right.folder);
+    if (leftFolderRank !== rightFolderRank) {
+      return leftFolderRank - rightFolderRank;
+    }
+    return (
+      Number(right.locale === target.locale) -
+      Number(left.locale === target.locale)
+    );
+  });
+  return ranked[0] ? parsePolicy(ranked[0]) : null;
 }
 
 /** A newly-created document cannot already satisfy a review policy because it
  * has no review request or approvals yet. Reject before persisting the draft so
  * callers do not observe a failed create that nevertheless left content behind. */
 export async function assertCmsWorkflowInitialPublishAllowed(
-  documentType: "page" | "post",
-  locale = "",
+  input: z.input<typeof cmsWorkflowPolicyTargetSchema>,
   runtime?: WorkflowRuntime,
 ) {
-  const policy = await resolveCmsWorkflowPolicy(documentType, locale, runtime);
+  const policy = await resolveCmsWorkflowPolicy(input, runtime);
   if (policy) {
     throw new ContentWorkflowError(
       "CONFLICT",
@@ -140,7 +163,7 @@ export async function assertCmsWorkflowInitialPublishAllowed(
 }
 
 export async function upsertCmsWorkflowPolicy(
-  input: z.infer<typeof upsertCmsWorkflowPolicyInputSchema>,
+  input: z.input<typeof upsertCmsWorkflowPolicyInputSchema>,
   actor: GovernanceActor,
   runtime?: WorkflowRuntime,
 ) {
@@ -150,6 +173,7 @@ export async function upsertCmsWorkflowPolicy(
   const existing = await db.query.cmsWorkflowPolicies.findFirst({
     where: and(
       eq(cmsWorkflowPolicies.collection, parsed.collection),
+      eq(cmsWorkflowPolicies.folder, parsed.folder),
       eq(cmsWorkflowPolicies.locale, parsed.locale),
     ),
   });
@@ -160,6 +184,7 @@ export async function upsertCmsWorkflowPolicy(
       .values({
         id,
         collection: parsed.collection,
+        folder: parsed.folder,
         locale: parsed.locale,
         stages: parsed.stages,
         active: parsed.active,
@@ -168,7 +193,11 @@ export async function upsertCmsWorkflowPolicy(
         updatedAt: now,
       })
       .onConflictDoUpdate({
-        target: [cmsWorkflowPolicies.collection, cmsWorkflowPolicies.locale],
+        target: [
+          cmsWorkflowPolicies.collection,
+          cmsWorkflowPolicies.folder,
+          cmsWorkflowPolicies.locale,
+        ],
         set: {
           stages: parsed.stages,
           active: parsed.active,
@@ -190,19 +219,21 @@ export async function upsertCmsWorkflowPolicy(
       }),
     ),
   ]);
-  return resolveCmsWorkflowPolicy(parsed.collection, parsed.locale, runtime);
+  return resolveCmsWorkflowPolicy(parsed, runtime);
 }
 
 export async function deactivateCmsWorkflowPolicy(
-  input: z.infer<typeof cmsWorkflowPolicyTargetSchema>,
+  input: z.input<typeof cmsWorkflowPolicyTargetSchema>,
   actor: GovernanceActor,
   runtime?: WorkflowRuntime,
 ) {
+  const parsed = cmsWorkflowPolicyTargetSchema.parse(input);
   const db = runtimeDb(runtime);
   const existing = await db.query.cmsWorkflowPolicies.findFirst({
     where: and(
-      eq(cmsWorkflowPolicies.collection, input.collection),
-      eq(cmsWorkflowPolicies.locale, input.locale),
+      eq(cmsWorkflowPolicies.collection, parsed.collection),
+      eq(cmsWorkflowPolicies.folder, parsed.folder),
+      eq(cmsWorkflowPolicies.locale, parsed.locale),
     ),
   });
   if (!existing) return { deactivated: false as const };
@@ -234,18 +265,44 @@ const requestPayloadSchema = z.object({
   version: z.number().int().positive(),
 });
 
+export type CmsWorkflowDocumentTarget = {
+  collection: string;
+  documentId: string;
+  version: number;
+  locale?: string | null;
+  folder?: string;
+};
+
+export function cmsWorkflowAuditTarget(
+  input: Pick<
+    CmsWorkflowDocumentTarget,
+    "collection" | "documentId" | "locale"
+  >,
+) {
+  if (input.collection === "page" || input.collection === "post") {
+    return {
+      actionPrefix: input.collection,
+      entityId: input.documentId,
+      entityType: input.collection,
+    };
+  }
+  return {
+    actionPrefix: "collection",
+    entityId: cmsCollectionDocumentIdentity(input),
+    entityType: "cms_collection_document",
+  };
+}
+
 export async function getCmsWorkflowApprovalProgress(
-  input: {
-    documentType: "page" | "post";
-    documentId: string;
-    version: number;
-    locale?: string;
-  },
+  input: CmsWorkflowDocumentTarget,
   runtime?: WorkflowRuntime,
 ) {
   const policy = await resolveCmsWorkflowPolicy(
-    input.documentType,
-    input.locale,
+    {
+      collection: input.collection,
+      folder: input.folder,
+      locale: input.locale ?? "",
+    },
     runtime,
   );
   if (!policy) {
@@ -256,6 +313,7 @@ export async function getCmsWorkflowApprovalProgress(
       nextStageId: null,
     } as const;
   }
+  const auditTarget = cmsWorkflowAuditTarget(input);
   const events = await runtimeDb(runtime)
     .select({
       actorUserId: auditEvents.actorUserId,
@@ -264,9 +322,9 @@ export async function getCmsWorkflowApprovalProgress(
     .from(auditEvents)
     .where(
       and(
-        eq(auditEvents.entityType, input.documentType),
-        eq(auditEvents.entityId, input.documentId),
-        eq(auditEvents.action, `${input.documentType}.review_approved`),
+        eq(auditEvents.entityType, auditTarget.entityType),
+        eq(auditEvents.entityId, auditTarget.entityId),
+        eq(auditEvents.action, `${auditTarget.actionPrefix}.review_approved`),
       ),
     );
   const approvals = events.flatMap((event) => {
@@ -294,6 +352,7 @@ export async function getCmsWorkflowApprovalProgress(
     policy: {
       id: policy.id,
       collection: policy.collection,
+      folder: policy.folder,
       locale: policy.locale,
     },
     complete: stages.every((stage) => stage.complete),
@@ -303,12 +362,7 @@ export async function getCmsWorkflowApprovalProgress(
 }
 
 export async function assertCmsWorkflowPublishAllowed(
-  input: {
-    documentType: "page" | "post";
-    documentId: string;
-    version: number;
-    locale?: string;
-  },
+  input: CmsWorkflowDocumentTarget,
   runtime?: WorkflowRuntime,
 ) {
   const progress = await getCmsWorkflowApprovalProgress(input, runtime);
@@ -323,12 +377,7 @@ export async function assertCmsWorkflowPublishAllowed(
 }
 
 export async function assertCmsWorkflowReviewerAllowed(
-  input: {
-    documentType: "page" | "post";
-    documentId: string;
-    version: number;
-    stageId?: string;
-  },
+  input: CmsWorkflowDocumentTarget & { stageId?: string },
   actor: CmsActor,
   runtime?: WorkflowRuntime,
 ) {
@@ -360,6 +409,7 @@ export async function assertCmsWorkflowReviewerAllowed(
     return { stageId: stage.id, progress };
   }
   if (!stage.allowSelfApproval) {
+    const auditTarget = cmsWorkflowAuditTarget(input);
     const request = await runtimeDb(runtime)
       .select({
         actorUserId: auditEvents.actorUserId,
@@ -368,9 +418,12 @@ export async function assertCmsWorkflowReviewerAllowed(
       .from(auditEvents)
       .where(
         and(
-          eq(auditEvents.entityType, input.documentType),
-          eq(auditEvents.entityId, input.documentId),
-          eq(auditEvents.action, `${input.documentType}.review_requested`),
+          eq(auditEvents.entityType, auditTarget.entityType),
+          eq(auditEvents.entityId, auditTarget.entityId),
+          eq(
+            auditEvents.action,
+            `${auditTarget.actionPrefix}.review_requested`,
+          ),
         ),
       )
       .orderBy(desc(auditEvents.createdAt))

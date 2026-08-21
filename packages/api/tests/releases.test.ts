@@ -31,6 +31,13 @@ const {
 } = await import("../src/services/releases");
 const { createRemVietCollectionProviderForDatabase } =
   await import("../src/services/standard-page-runtime");
+const { createRemVietGlobalContentProviderForDatabase } =
+  await import("../src/services/global-content-runtime");
+const {
+  decideEditorialReview,
+  listEditorialReviewQueue,
+  requestEditorialReview,
+} = await import("../src/services/editorial-reviews");
 type CmsReleaseDocumentAdapter =
   import("../src/services/releases").CmsReleaseDocumentAdapter;
 type CmsReleaseDocumentSnapshot =
@@ -226,6 +233,18 @@ async function createCollectionRuntime(options?: { failLocale?: string }) {
       request_id text DEFAULT '' NOT NULL,
       created_at integer NOT NULL
     );
+    CREATE TABLE cms_workflow_policies (
+      id text PRIMARY KEY NOT NULL,
+      collection text NOT NULL,
+      folder text DEFAULT '' NOT NULL,
+      locale text DEFAULT '' NOT NULL,
+      stages text NOT NULL,
+      active integer DEFAULT true NOT NULL,
+      created_by text DEFAULT '' NOT NULL,
+      created_at integer NOT NULL,
+      updated_at integer NOT NULL,
+      UNIQUE(collection, folder, locale)
+    );
     CREATE TABLE cms_outbox_events (
       id text PRIMARY KEY NOT NULL,
       topic text NOT NULL,
@@ -239,6 +258,7 @@ async function createCollectionRuntime(options?: { failLocale?: string }) {
       max_attempts integer DEFAULT 8 NOT NULL,
       available_at integer NOT NULL,
       locked_until integer,
+      lock_token text,
       last_error text DEFAULT '' NOT NULL,
       occurred_at integer NOT NULL,
       dispatched_at integer,
@@ -298,16 +318,24 @@ async function createCollectionRuntime(options?: { failLocale?: string }) {
         },
       }) as CmsCollectionProvider)
     : releaseProvider;
+  const globalProvider =
+    createRemVietGlobalContentProviderForDatabase(database);
+  const releaseGlobalProvider = createRemVietGlobalContentProviderForDatabase(
+    database,
+    actor,
+  );
   const db = drizzleD1(database as unknown as D1Database, {
     schema: { ...automationSchema, ...contentSchema, ...governanceSchema },
   });
   return {
     database,
+    globalProvider,
     provider,
     runtime: {
       db: db as unknown as CmsReleaseRuntime["db"],
       now: () => new Date("2026-08-21T00:00:00.000Z"),
       collectionProvider,
+      globalProvider: releaseGlobalProvider,
     } satisfies CmsReleaseRuntime,
   };
 }
@@ -526,6 +554,331 @@ describe("durable CMS releases", () => {
     expect(
       outbox.results.map((event) => JSON.parse(event.payload).locale).sort(),
     ).toEqual(["en-US", "vi-VN"]);
+  });
+
+  test("blocks an arbitrary-collection release until its locale-bound policy is approved", async () => {
+    const { database, provider, runtime } = await createCollectionRuntime();
+    const collection = REM_VIET_LOCALIZED_CAMPAIGNS_COLLECTION;
+    const document = await provider.createDraft({
+      collection,
+      id: "policy-campaign",
+      locale: "vi-VN",
+      data: { code: "policy-2026", headline: "Chiến dịch đã duyệt" },
+      actorId: "editor-1",
+    });
+    const now = new Date("2026-08-21T00:00:00.000Z").getTime();
+    await database
+      .prepare(
+        `INSERT INTO cms_workflow_policies (
+          id, collection, folder, locale, stages, active, created_by,
+          created_at, updated_at
+        ) VALUES (?, ?, '', 'vi-VN', ?, 1, ?, ?, ?)`,
+      )
+      .bind(
+        "workflow-localized-campaign",
+        collection,
+        JSON.stringify([
+          {
+            id: "campaign-approval",
+            label: "Campaign approval",
+            approvalsRequired: 1,
+            reviewerRoles: ["owner"],
+            allowSelfApproval: false,
+          },
+        ]),
+        actor.userId,
+        now,
+        now,
+      )
+      .run();
+    const release = await createCmsRelease(
+      {
+        name: "Policy-bound campaign",
+        idempotencyKey: "release-policy-bound-campaign",
+        items: [
+          {
+            documentType: "collection",
+            collection,
+            documentId: document.id,
+            locale: "vi-VN",
+            expectedVersion: document.version,
+          },
+        ],
+      },
+      actor,
+      runtime,
+    );
+
+    await expect(
+      previewCmsRelease({ releaseId: release.id }, runtime),
+    ).resolves.toMatchObject({
+      valid: false,
+      items: [
+        {
+          valid: false,
+          issue: "Workflow approval is incomplete: Campaign approval (0/1)",
+        },
+      ],
+    });
+    await expect(executeCmsRelease(release.id, actor, runtime)).rejects.toThrow(
+      "Workflow approval is incomplete",
+    );
+
+    const reviewTarget = {
+      documentType: "collection" as const,
+      collection,
+      documentId: document.id,
+      locale: "vi-VN",
+    };
+    const requested = await requestEditorialReview(
+      {
+        ...reviewTarget,
+        expectedVersion: document.version,
+        note: "Review the localized campaign",
+        assigneeIds: [],
+        assigneeRoles: ["owner"],
+        checklist: [{ id: "copy", label: "Copy approved", required: true }],
+        dueAt: null,
+        mentionIds: [],
+        notify: true,
+      },
+      actor,
+      runtime,
+    );
+    expect(requested).toMatchObject({
+      collection,
+      documentType: "collection",
+      locale: "vi-VN",
+      status: "requested",
+    });
+    await expect(listEditorialReviewQueue({}, runtime)).resolves.toMatchObject([
+      {
+        collection,
+        documentId: document.id,
+        documentType: "collection",
+        locale: "vi-VN",
+        status: "requested",
+        title: "Chiến dịch đã duyệt",
+      },
+    ]);
+    const reviewOutbox = await database
+      .prepare(
+        `SELECT aggregate_id AS aggregateId, payload
+         FROM cms_outbox_events
+         WHERE topic = 'content.collection.review_requested'`,
+      )
+      .first<{ aggregateId: string; payload: string }>();
+    expect(reviewOutbox?.aggregateId).toBe(
+      `${collection}:${document.id}:vi-VN`,
+    );
+    expect(reviewOutbox?.payload).not.toContain("Chiến dịch đã duyệt");
+    await expect(
+      decideEditorialReview(
+        {
+          ...reviewTarget,
+          decision: "approved",
+          expectedVersion: document.version,
+          note: "Approved",
+          stageId: "campaign-approval",
+          completedChecklistItemIds: ["copy"],
+        },
+        {
+          ...actor,
+          userId: "owner-2",
+          email: "owner-2@example.com",
+          requestId: "request-approval",
+        },
+        runtime,
+      ),
+    ).resolves.toMatchObject({ status: "approved" });
+
+    await expect(
+      previewCmsRelease({ releaseId: release.id }, runtime),
+    ).resolves.toMatchObject({ valid: true, items: [{ valid: true }] });
+    await expect(
+      executeCmsRelease(release.id, actor, runtime),
+    ).resolves.toMatchObject({
+      status: "published",
+      items: [{ collection, locale: "vi-VN" }],
+    });
+  });
+
+  test("keeps global drafts private until a release publishes them exactly once", async () => {
+    const { database, globalProvider, runtime } =
+      await createCollectionRuntime();
+    const initial = {
+      kind: "navigation" as const,
+      location: "header" as const,
+      title: "Primary",
+      items: [],
+    };
+    const created = await globalProvider.save({
+      key: "navigation:header",
+      expectedVersion: null,
+      content: initial,
+      actorId: "editor-1",
+    });
+    const baseline = await globalProvider.publish({
+      key: created.key,
+      expectedVersion: created.version,
+      actorId: "editor-1",
+      note: "Baseline",
+    });
+    const changed = await globalProvider.save({
+      key: created.key,
+      expectedVersion: baseline.document.version,
+      content: { ...initial, title: "Campaign navigation" },
+      actorId: "editor-1",
+    });
+    await expect(
+      globalProvider.getPublished({ key: created.key }),
+    ).resolves.toMatchObject({ content: { title: "Primary" } });
+
+    const release = await createCmsRelease(
+      {
+        name: "Global navigation launch",
+        idempotencyKey: "release-global-navigation",
+        items: [
+          {
+            documentType: "global",
+            documentId: created.key,
+            expectedVersion: changed.version,
+            locale: null,
+          },
+        ],
+      },
+      actor,
+      runtime,
+    );
+    await expect(
+      previewCmsRelease({ releaseId: release.id }, runtime),
+    ).resolves.toMatchObject({
+      valid: true,
+      items: [{ documentType: "global", currentVersion: changed.version }],
+    });
+    const first = await executeCmsRelease(release.id, actor, runtime);
+    const replay = await executeCmsRelease(release.id, actor, runtime);
+
+    expect(replay).toEqual(first);
+    expect(first).toMatchObject({
+      status: "published",
+      items: [
+        {
+          documentType: "global",
+          publishedVersion: changed.version + 1,
+        },
+      ],
+    });
+    await expect(
+      globalProvider.getPublished({ key: created.key }),
+    ).resolves.toMatchObject({ content: { title: "Campaign navigation" } });
+    const events = await database
+      .prepare(
+        `SELECT topic, payload FROM cms_outbox_events
+         WHERE topic = 'content.global.published'`,
+      )
+      .all<{ payload: string; topic: string }>();
+    expect(events.results).toHaveLength(1);
+    expect(JSON.parse(events.results[0]!.payload)).toEqual({
+      key: created.key,
+      revisionId: expect.any(String),
+      version: changed.version + 1,
+    });
+    expect(events.results[0]!.payload).not.toContain("Campaign navigation");
+  });
+
+  test("restores the prior global publication when a later release member fails", async () => {
+    const { database, globalProvider, provider, runtime } =
+      await createCollectionRuntime({ failLocale: "en-US" });
+    const initial = {
+      kind: "navigation" as const,
+      location: "footer" as const,
+      title: "Footer",
+      items: [],
+    };
+    const created = await globalProvider.save({
+      key: "navigation:footer",
+      expectedVersion: null,
+      content: initial,
+      actorId: "editor-1",
+    });
+    const baseline = await globalProvider.publish({
+      key: created.key,
+      expectedVersion: created.version,
+      actorId: "editor-1",
+      note: "Baseline",
+    });
+    const changed = await globalProvider.save({
+      key: created.key,
+      expectedVersion: baseline.document.version,
+      content: { ...initial, title: "Unreleased footer" },
+      actorId: "editor-1",
+    });
+    const collection = REM_VIET_LOCALIZED_CAMPAIGNS_COLLECTION;
+    const vi = await provider.createDraft({
+      collection,
+      id: "global-rollback-campaign",
+      locale: "vi-VN",
+      data: { code: "global-rollback", headline: "Nền" },
+      actorId: "editor-1",
+    });
+    const en = await provider.createDraft({
+      collection,
+      id: vi.id,
+      locale: "en-US",
+      data: { code: "ignored", headline: "Later failure" },
+      actorId: "editor-1",
+    });
+    const release = await createCmsRelease(
+      {
+        name: "Global compensation",
+        idempotencyKey: "release-global-compensation",
+        items: [
+          {
+            documentType: "global",
+            documentId: created.key,
+            expectedVersion: changed.version,
+            locale: null,
+          },
+          {
+            documentType: "collection",
+            collection,
+            documentId: en.id,
+            locale: "en-US",
+            expectedVersion: en.version,
+          },
+        ],
+      },
+      actor,
+      runtime,
+    );
+
+    await expect(executeCmsRelease(release.id, actor, runtime)).rejects.toThrow(
+      "Provider rejected locale en-US",
+    );
+    await expect(
+      globalProvider.get({ key: created.key }),
+    ).resolves.toMatchObject({
+      content: { title: "Unreleased footer" },
+      publishedRevisionId: baseline.revision.id,
+      version: changed.version,
+    });
+    await expect(
+      globalProvider.getPublished({ key: created.key }),
+    ).resolves.toMatchObject({ content: { title: "Footer" } });
+    await expect(getCmsRelease(release.id, runtime)).resolves.toMatchObject({
+      status: "failed",
+      receipt: { compensationComplete: true },
+      items: [{ status: "rolled_back" }, { status: "pending" }],
+    });
+    await expect(
+      database
+        .prepare(
+          `SELECT COUNT(*) AS count FROM cms_outbox_events
+           WHERE topic = 'content.global.published'`,
+        )
+        .first<{ count: number }>(),
+    ).resolves.toEqual({ count: 0 });
   });
 
   test("compensates a published locale when a later locale fails", async () => {

@@ -128,7 +128,7 @@ export async function createRemVietHomePage(
   actor: CmsActor,
 ) {
   if (input.status === "published") {
-    await assertCmsWorkflowInitialPublishAllowed("page");
+    await assertCmsWorkflowInitialPublishAllowed({ collection: "page" });
   }
   const content = parseRemVietHomeContent({
     title: input.title,

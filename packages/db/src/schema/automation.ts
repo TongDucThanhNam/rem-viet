@@ -240,6 +240,7 @@ export const cmsWorkflowPolicies = sqliteTable(
   {
     id: text("id").primaryKey(),
     collection: text("collection").notNull(),
+    folder: text("folder").default("").notNull(),
     locale: text("locale").default("").notNull(),
     stages: text("stages", { mode: "json" }).$type<unknown[]>().notNull(),
     active: integer("active", { mode: "boolean" }).default(true).notNull(),
@@ -255,6 +256,7 @@ export const cmsWorkflowPolicies = sqliteTable(
   (table) => [
     uniqueIndex("cms_workflow_policy_target_unique").on(
       table.collection,
+      table.folder,
       table.locale,
     ),
   ],

@@ -147,8 +147,10 @@ Then:
    provider conformance function through the authenticated deployed API; route
    smoke alone is not equivalent provider evidence.
    If the template adopts global content, also run the keyed global-provider
-   conformance and retain a browser receipt that edits, renders, and restores
-   site settings plus every registered navigation location.
+   conformance and retain a browser receipt that saves a private draft, confirms
+   the public snapshot is unchanged, releases and renders it, then restores and
+   releases the recovery for site settings plus every registered navigation
+   location.
 6. Provision staging, migrate, seed, create the initial owner, and remove the
    bootstrap credential before any handover.
 
@@ -308,6 +310,16 @@ statement. Verify:
 - image alt text and safe rich-text/link rules;
 - animation/layout behavior in the client app, including reduced motion and
   mobile static paths.
+
+When a collection needs mandatory review, create the workflow policy against
+its registered collection slug, normalized folder, and locale—not the generic
+word `collection`. Review requests for provider documents use the explicit
+`collection` target with collection slug, document ID, locale, and exact
+version. Approval audit identity includes all three collection dimensions, so
+approval of one locale cannot release another. Keep review notification outbox
+payloads content-free, require every checklist gate, and use release preview as
+the final fail-closed policy check before publishing. Standard pages continue
+through the `page` target because their compatibility projection is atomic.
 
 A client-only layout or field component may stay in the client repository. Move
 it into a neutral package only after a second real template proves reuse.

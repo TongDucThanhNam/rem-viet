@@ -117,6 +117,7 @@ function pageSnapshot(row: typeof pages.$inferSelect): PageRevisionSnapshot {
   return pageRevisionSnapshotSchema.parse({
     title: row.title,
     slug: row.slug,
+    folder: row.folder,
     template: row.template,
     blocks: row.blocks,
     seoTitle: row.seoTitle,
@@ -135,6 +136,7 @@ function postSnapshot(
   return postRevisionSnapshotSchema.parse({
     title: row.title,
     slug: row.slug,
+    folder: row.folder,
     description: row.description,
     coverImage: row.coverImage,
     tags: row.tags,
@@ -306,9 +308,10 @@ export async function publishPage(
 
   assertVersion(document.version, input.expectedVersion);
   await assertCmsWorkflowPublishAllowed({
-    documentType: "page",
+    collection: "page",
     documentId: document.id,
     version: document.version,
+    folder: document.folder,
   });
 
   const snapshot = pageSnapshot(document);
@@ -386,9 +389,10 @@ export async function publishPost(
 
   assertVersion(document.version, input.expectedVersion);
   await assertCmsWorkflowPublishAllowed({
-    documentType: "post",
+    collection: "post",
     documentId: document.id,
     version: document.version,
+    folder: document.folder,
   });
 
   const now = new Date();
@@ -570,6 +574,7 @@ export async function restorePostRevision(
       .set({
         title: parsed.data.title,
         slug: parsed.data.slug,
+        folder: parsed.data.folder,
         description: parsed.data.description,
         coverImage: parsed.data.coverImage,
         tags: parsed.data.tags,
@@ -849,7 +854,12 @@ export async function publishDueContent(now = new Date()) {
   const db = createDb();
   const [duePages, duePosts] = await Promise.all([
     db
-      .select({ id: pages.id, template: pages.template })
+      .select({
+        id: pages.id,
+        template: pages.template,
+        folder: pages.folder,
+        version: pages.version,
+      })
       .from(pages)
       .where(lte(pages.scheduledAt, now)),
     db.select({ id: posts.id }).from(posts).where(lte(posts.scheduledAt, now)),
@@ -866,11 +876,10 @@ export async function publishDueContent(now = new Date()) {
         const { assertCmsWorkflowPublishAllowed } =
           await import("./workflow-policies");
         await assertCmsWorkflowPublishAllowed({
-          documentType: "page",
+          collection: "page",
           documentId: item.id,
-          version: (await db.query.pages.findFirst({
-            where: eq(pages.id, item.id),
-          }))!.version,
+          version: item.version,
+          folder: item.folder,
         });
         const { publishRemVietStandardPage } =
           await import("./standard-page-runtime");

@@ -938,6 +938,8 @@ export type CmsGlobalDocument<TContent = unknown> = {
   key: string;
   content: TContent;
   version: number;
+  status: "draft" | "published";
+  publishedRevisionId: string | null;
   createdAt: string;
   updatedAt: string;
   updatedBy: string;
@@ -969,8 +971,27 @@ export type RestoreGlobalContentInput = {
   note?: string;
 };
 
+export type PublishGlobalContentInput = {
+  key: string;
+  expectedVersion: number;
+  actorId: string;
+  note?: string;
+};
+
+export type RollbackGlobalPublicationInput = {
+  key: string;
+  expectedVersion: number;
+  restoreVersion: number;
+  restorePublishedRevisionId: string | null;
+  publicationRevisionId: string;
+  actorId: string;
+};
+
 export interface GlobalContentReader<TContent = unknown> {
   get(input: { key: string }): Promise<CmsGlobalDocument<TContent> | null>;
+  getPublished(input: {
+    key: string;
+  }): Promise<CmsGlobalDocument<TContent> | null>;
 }
 
 export interface GlobalContentWriter<TContent = unknown> {
@@ -986,16 +1007,31 @@ export interface GlobalContentHistory<TContent = unknown> {
   ): Promise<CmsGlobalDocument<TContent>>;
 }
 
+export interface GlobalContentPublishing<TContent = unknown> {
+  publish(input: PublishGlobalContentInput): Promise<{
+    document: CmsGlobalDocument<TContent>;
+    revision: CmsGlobalRevision<TContent>;
+  }>;
+  rollbackPublication(
+    input: RollbackGlobalPublicationInput,
+  ): Promise<CmsGlobalDocument<TContent>>;
+}
+
 export type CmsGlobalContentProvider<TContent = unknown> =
   GlobalContentReader<TContent> &
     GlobalContentWriter<TContent> &
     GlobalContentHistory<TContent> & {
+      publish: GlobalContentPublishing<TContent>["publish"];
+      rollbackPublication: GlobalContentPublishing<TContent>["rollbackPublication"];
       capabilities: CmsProviderCapabilities;
     };
 
 export type GlobalContentProviderConformanceEvidence = {
+  compensatingRollback: true;
   create: true;
+  draftIsolation: true;
   optimisticConflict: true;
+  publish: true;
   revisionHistory: true;
   restore: true;
   update: true;
@@ -1020,6 +1056,8 @@ export async function runGlobalContentProviderConformance<TContent>(input: {
     actorId = "conformance-user",
     key = "conformance:site-settings",
   } = input;
+  const sameContent = (left: TContent | undefined, right: TContent) =>
+    JSON.stringify(left) === JSON.stringify(right);
 
   assertCondition(
     (await provider.get({ key })) === null,
@@ -1036,23 +1074,74 @@ export async function runGlobalContentProviderConformance<TContent>(input: {
     created.version === 1,
     "new global content must start at version 1",
   );
-  const changedDocument = await provider.save({
+  assertCondition(
+    (await provider.getPublished({ key })) === null,
+    "an unpublished global draft must not be publicly readable",
+  );
+  const initialPublication = await provider.publish({
     key,
     expectedVersion: created.version,
+    actorId,
+    note: "Publish initial global content",
+  });
+  assertCondition(
+    initialPublication.document.version === 2 &&
+      sameContent(initialPublication.revision.content, initial),
+    "publishing global content must create an immutable published revision",
+  );
+  const changedDocument = await provider.save({
+    key,
+    expectedVersion: initialPublication.document.version,
     content: changed,
     actorId,
     note: "Changed global content",
   });
   assertCondition(
-    changedDocument.version === 2,
+    changedDocument.version === 3,
     "global content updates must increment the version",
   );
+  const stillPublished = await provider.getPublished({ key });
+  assertCondition(
+    sameContent(stillPublished?.content, initial) &&
+      stillPublished?.publishedRevisionId === initialPublication.revision.id,
+    "saving a global draft must not change the published snapshot",
+  );
+  const changedPublication = await provider.publish({
+    key,
+    expectedVersion: changedDocument.version,
+    actorId,
+    note: "Publish changed global content",
+  });
+  assertCondition(
+    changedPublication.document.version === 4 &&
+      sameContent((await provider.getPublished({ key }))?.content, changed),
+    "publishing a changed global draft must update the public snapshot",
+  );
+  const rolledBack = await provider.rollbackPublication({
+    key,
+    expectedVersion: changedPublication.document.version,
+    restoreVersion: changedDocument.version,
+    restorePublishedRevisionId: initialPublication.revision.id,
+    publicationRevisionId: changedPublication.revision.id,
+    actorId,
+  });
+  assertCondition(
+    rolledBack.version === changedDocument.version &&
+      sameContent((await provider.getPublished({ key }))?.content, initial),
+    "global publication compensation must restore the exact prior public snapshot",
+  );
+  const republished = await provider.publish({
+    key,
+    expectedVersion: rolledBack.version,
+    actorId,
+    note: "Republish changed global content",
+  });
 
   let conflict = false;
   try {
     await provider.save({
       key,
-      expectedVersion: created.version,
+      expectedVersion: changedDocument.version,
       content: initial,
       actorId,
     });
@@ -1066,8 +1155,8 @@ export async function runGlobalContentProviderConformance<TContent>(input: {
 
   const revisions = await provider.listRevisions(key);
   assertCondition(
-    revisions.length === 2 && revisions[0]?.version === 2,
-    "global content saves must create newest-first immutable revisions",
+    revisions.length === 4 && revisions[0]?.version === 4,
+    "global content saves and publications must create newest-first immutable revisions",
   );
   const initialRevision = revisions.find(
     (revision) => revision.version === created.version,
@@ -1079,23 +1168,30 @@ export async function runGlobalContentProviderConformance<TContent>(input: {
   const restored = await provider.restore({
     key,
     revisionId: initialRevision!.id,
-    expectedVersion: changedDocument.version,
+    expectedVersion: republished.document.version,
     actorId,
     note: "Restore initial global content",
   });
   assertCondition(
-    restored.version === 3,
+    restored.version === 5,
     "restore must create a new working version",
+  );
+  assertCondition(
+    sameContent((await provider.getPublished({ key }))?.content, changed),
+    "restoring a global draft must not change the published snapshot",
   );
   const afterRestore = await provider.listRevisions(key);
   assertCondition(
-    afterRestore.length === 3 && afterRestore[0]?.version === 3,
+    afterRestore.length === 5 && afterRestore[0]?.version === 5,
     "restore must append rather than mutate revision history",
   );
 
   return {
+    compensatingRollback: true,
     create: true,
+    draftIsolation: true,
     optimisticConflict: true,
+    publish: true,
     revisionHistory: true,
     restore: true,
     update: true,

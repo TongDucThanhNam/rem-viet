@@ -20,7 +20,11 @@ import {
   toRemVietStandardBlock,
   type RemVietStandardBlock,
 } from "@agency/cms-template-rem-viet";
-import { parseRichTextDocument, slugifyContent } from "@rem-viet/cms";
+import {
+  cmsContentFolderSchema,
+  parseRichTextDocument,
+  slugifyContent,
+} from "@rem-viet/cms";
 import { env } from "@rem-viet/env/server";
 
 import type { CmsActor } from "./content-revisions";
@@ -36,7 +40,7 @@ import { collectionMutationStatements } from "./collection-provider-audit";
 export type RemVietStandardPageContent = Omit<
   CmsPageContent<RemVietStandardBlock>,
   "template"
-> & { template: "standard" };
+> & { folder: string; template: "standard" };
 
 type RemVietPageMutationEvent =
   CloudflareCmsMutationEvent<RemVietStandardPageContent> & {
@@ -84,6 +88,7 @@ export function parseRemVietStandardPageContent(
   return {
     title: input.title,
     slug: input.slug,
+    folder: cmsContentFolderSchema.parse(input.folder ?? ""),
     template: "standard",
     blocks,
     seo: {
@@ -115,6 +120,7 @@ export function encodeRemVietStandardPageRevision(
   return {
     title: content.title,
     slug: content.slug,
+    folder: content.folder,
     template: content.template,
     blocks: encodeRemVietStandardPageBlocks(content),
     seoTitle: content.seo.title,
@@ -133,6 +139,7 @@ const remVietExtensions = createCmsExtensionRegistry({
 function legacyPageValues(content: RemVietStandardPageContent) {
   return [
     content.slug,
+    content.folder,
     content.title,
     content.template,
     JSON.stringify(encodeRemVietStandardPageBlocks(content)),
@@ -182,12 +189,12 @@ function legacyPageProjectionStatements(
       database
         .prepare(
           `INSERT INTO pages (
-            id, slug, title, template, blocks, status,
+            id, slug, folder, title, template, blocks, status,
             seo_title, seo_description, canonical_url, og_image,
             robots_index, robots_follow, published_revision_id,
             version, updated_by, published_at, scheduled_at,
             scheduled_by, schedule_note, created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, NULL,
+          ) VALUES (?, ?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?, ?, NULL,
             1, ?, NULL, NULL, '', '', ?, ?)`,
         )
         .bind(
@@ -205,7 +212,7 @@ function legacyPageProjectionStatements(
       database
         .prepare(
           `UPDATE pages SET
-            slug = ?, title = ?, template = ?, blocks = ?,
+            slug = ?, folder = ?, title = ?, template = ?, blocks = ?,
             seo_title = ?, seo_description = ?, canonical_url = ?, og_image = ?,
             robots_index = ?, robots_follow = ?, version = ?, updated_by = ?,
             updated_at = ?, scheduled_at = CASE WHEN ? THEN NULL ELSE scheduled_at END,
@@ -416,6 +423,7 @@ export function createRemVietStandardPageProviderForDatabase(
 type CreateStandardPageInput = {
   blocks: unknown[];
   canonicalUrl: string;
+  folder?: string;
   ogImage: string;
   robotsFollow: boolean;
   robotsIndex: boolean;
@@ -431,13 +439,17 @@ export async function createRemVietStandardPage(
   actor: CmsActor,
 ) {
   if (input.status === "published") {
-    await assertCmsWorkflowInitialPublishAllowed("page");
+    await assertCmsWorkflowInitialPublishAllowed({
+      collection: "page",
+      folder: input.folder,
+    });
   }
   const slug = slugifyContent(input.slug || input.title);
   if (!slug) throw new Error("Slug is required");
   const content = parseRemVietStandardPageContent({
     title: input.title,
     slug,
+    folder: input.folder,
     template: "standard",
     blocks: input.blocks,
     seoTitle: input.seoTitle,
@@ -510,6 +522,7 @@ export async function getPublishedRemVietStandardPage(slug: string) {
     _id: published.id,
     title: content.title,
     slug: content.slug,
+    folder: content.folder,
     template: content.template,
     blocks: encodeRemVietStandardPageBlocks(content),
     status: "published" as const,
@@ -541,6 +554,7 @@ type StandardDraftUpdate = {
   blocks?: unknown[];
   canonicalUrl?: string;
   expectedVersion?: number;
+  folder?: string;
   ogImage?: string;
   robotsFollow?: boolean;
   robotsIndex?: boolean;
@@ -585,6 +599,7 @@ export async function saveRemVietStandardPageDraft(
   const content = parseRemVietStandardPageContent({
     title: input.title ?? current.title,
     slug: nextSlug,
+    folder: input.folder ?? current.folder,
     template: "standard",
     blocks: input.blocks ?? current.blocks,
     seo: {

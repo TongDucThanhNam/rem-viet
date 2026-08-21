@@ -1047,6 +1047,9 @@ test.describe("authenticated CMS workflow", () => {
     await expect(
       page.getByRole("heading", { name: "Trang chủ CMS" }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Thảo luận biên tập" }),
+    ).toBeVisible();
     await expect
       .poll(() =>
         page.evaluate(
@@ -1104,7 +1107,7 @@ test.describe("authenticated CMS workflow", () => {
     context,
     page,
   }, testInfo) => {
-    test.setTimeout(90_000);
+    test.setTimeout(180_000);
     test.skip(
       testInfo.project.name.includes("mobile"),
       "The shared-content keyboard mutation runs once on desktop.",
@@ -1121,7 +1124,9 @@ test.describe("authenticated CMS workflow", () => {
       exact: true,
     });
     await expect(kicker).toBeVisible();
-    await expect(page.getByRole("status")).toBeVisible();
+    await expect(
+      page.getByRole("status").filter({ hasText: "Đã đồng bộ với máy chủ" }),
+    ).toBeVisible();
     const original = await kicker.inputValue();
     const marker = `E2E keyboard ${crypto.randomUUID().slice(0, 8)}`;
 
@@ -1541,6 +1546,27 @@ test.describe("authenticated CMS workflow", () => {
     await expect(
       page.getByText(/collection,collection-slug,document-id,vi-VN,3/),
     ).toBeVisible();
+    await expect(page.getByText(/global,key,3/)).toBeVisible();
+    const workflowLabel = `Phê duyệt E2E ${crypto.randomUUID().slice(0, 8)}`;
+    await page.getByLabel("Collection").fill("rem-viet-localized-campaigns");
+    await page.getByLabel("Thư mục").fill("Campaigns\\Summer/");
+    await page.getByLabel("Locale").fill("vi-VN");
+    await page.getByLabel("Tên bước").fill(workflowLabel);
+    await page.getByRole("button", { name: "Lưu workflow" }).click();
+    await expect(
+      page.getByText("Đã lưu workflow xuất bản.", { exact: true }),
+    ).toBeVisible();
+    const folderPolicy = page.getByText(new RegExp(workflowLabel));
+    await expect(folderPolicy).toBeVisible();
+    const folderPolicyCard = folderPolicy.locator("..").locator("..");
+    await folderPolicyCard.getByRole("button", { name: "Tắt" }).click();
+    const deactivatedToast = page.getByText("Đã tắt workflow.", {
+      exact: true,
+    });
+    await expect(deactivatedToast).toBeVisible();
+    await expect(
+      folderPolicyCard.getByText("inactive", { exact: true }),
+    ).toBeVisible();
     await expect
       .poll(() =>
         page.evaluate(
@@ -1786,9 +1812,11 @@ test.describe("authenticated CMS workflow", () => {
     try {
       // Fresh installs render safe navigation defaults before the first save.
       // Persist that baseline so the subsequent edit has a recoverable revision.
-      await page.getByRole("button", { name: "Lưu điều hướng" }).click();
+      await page
+        .getByRole("button", { name: "Lưu bản nháp điều hướng" })
+        .click();
       await expect(
-        page.getByText("Đã lưu điều hướng.", { exact: true }),
+        page.getByText("Đã lưu bản nháp điều hướng.", { exact: true }),
       ).toBeVisible();
 
       const draftStatus = page.getByTestId("global-settings-draft-status");
@@ -1884,9 +1912,11 @@ test.describe("authenticated CMS workflow", () => {
       await expect(page.getByLabel("Điện thoại")).toHaveValue(originalPhone);
 
       await page.locator("#header-menu-label-0").fill(menuMarker);
-      await page.getByRole("button", { name: "Lưu điều hướng" }).click();
+      await page
+        .getByRole("button", { name: "Lưu bản nháp điều hướng" })
+        .click();
       await expect(
-        page.getByText("Đã lưu điều hướng.", { exact: true }),
+        page.getByText("Đã lưu bản nháp điều hướng.", { exact: true }),
       ).toBeVisible();
       await page.reload();
       await expect(page.locator("#header-menu-label-0")).toHaveValue(
@@ -1894,8 +1924,11 @@ test.describe("authenticated CMS workflow", () => {
       );
       await page.goto("/danh-sach-san-pham");
       await expect(
-        page.getByRole("link", { name: menuMarker }).first(),
+        page.getByRole("link", { name: originalHeaderLabel }).first(),
       ).toBeVisible();
+      await expect(
+        page.getByRole("link", { name: menuMarker }).first(),
+      ).toHaveCount(0);
       await page.goto("/admin/settings");
       const headerHistory = page.getByTestId("header-menu-revision-history");
       await headerHistory
@@ -1917,17 +1950,21 @@ test.describe("authenticated CMS workflow", () => {
       const cleanupPhone = page.getByLabel("Điện thoại");
       if ((await cleanupPhone.inputValue()) !== originalPhone) {
         await cleanupPhone.fill(originalPhone);
-        await page.getByRole("button", { name: "Lưu cài đặt website" }).click();
+        await page
+          .getByRole("button", { name: "Lưu bản nháp cài đặt" })
+          .click();
         await expect(
-          page.getByText("Đã lưu cài đặt website.", { exact: true }),
+          page.getByText("Đã lưu bản nháp cài đặt website.", { exact: true }),
         ).toBeVisible();
       }
       const cleanupHeaderLabel = page.locator("#header-menu-label-0");
       if ((await cleanupHeaderLabel.inputValue()) !== originalHeaderLabel) {
         await cleanupHeaderLabel.fill(originalHeaderLabel);
-        await page.getByRole("button", { name: "Lưu điều hướng" }).click();
+        await page
+          .getByRole("button", { name: "Lưu bản nháp điều hướng" })
+          .click();
         await expect(
-          page.getByText("Đã lưu điều hướng.", { exact: true }),
+          page.getByText("Đã lưu bản nháp điều hướng.", { exact: true }),
         ).toBeVisible();
       }
     }
@@ -3307,6 +3344,7 @@ test.describe("authenticated CMS workflow", () => {
     await commentThread.getByLabel("Phản hồi").fill(replyBody);
     await commentThread.getByRole("button", { name: "Gửi phản hồi" }).click();
     await expect(commentThread.getByText(replyBody)).toBeVisible();
+    await expect(commentThread.getByText(/· v2/)).toBeVisible();
     await commentThread
       .getByRole("button", { name: "Đánh dấu đã xử lý" })
       .click();

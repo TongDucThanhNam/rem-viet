@@ -16,6 +16,7 @@ const {
   assertCmsWorkflowInitialPublishAllowed,
   assertCmsWorkflowPublishAllowed,
   assertCmsWorkflowReviewerAllowed,
+  cmsWorkflowAuditTarget,
   getCmsWorkflowApprovalProgress,
   resolveCmsWorkflowPolicy,
   upsertCmsWorkflowPolicy,
@@ -29,13 +30,14 @@ function createRuntime() {
     CREATE TABLE cms_workflow_policies (
       id text PRIMARY KEY NOT NULL,
       collection text NOT NULL,
+      folder text DEFAULT '' NOT NULL,
       locale text DEFAULT '' NOT NULL,
       stages text NOT NULL,
       active integer DEFAULT true NOT NULL,
       created_by text DEFAULT '' NOT NULL,
       created_at integer NOT NULL,
       updated_at integer NOT NULL,
-      UNIQUE(collection, locale)
+      UNIQUE(collection, folder, locale)
     );
     CREATE TABLE audit_events (
       id text PRIMARY KEY NOT NULL,
@@ -79,6 +81,16 @@ const owner = {
   requestId: "request-1",
 };
 
+function stage(id: string) {
+  return {
+    id,
+    label: id.replaceAll("-", " "),
+    approvalsRequired: 1,
+    reviewerRoles: ["owner" as const],
+    allowSelfApproval: false,
+  };
+}
+
 function insertReviewEvent(
   sqlite: Database,
   input: {
@@ -86,6 +98,7 @@ function insertReviewEvent(
     action: string;
     actorUserId: string;
     documentId: string;
+    entityType?: string;
     after: unknown;
     createdAt: number;
   },
@@ -94,11 +107,12 @@ function insertReviewEvent(
     `insert into audit_events (
       id, actor_user_id, actor_email, actor_role, action, entity_type,
       entity_id, before, after, request_id, created_at
-    ) values (?, ?, '', 'admin', ?, 'page', ?, null, ?, '', ?)`,
+    ) values (?, ?, '', 'admin', ?, ?, ?, null, ?, '', ?)`,
     [
       input.id,
       input.actorUserId,
       input.action,
+      input.entityType ?? "page",
       input.documentId,
       JSON.stringify(input.after),
       input.createdAt,
@@ -129,10 +143,10 @@ describe("configurable CMS workflow policies", () => {
     );
 
     await expect(
-      assertCmsWorkflowInitialPublishAllowed("post", "", runtime),
+      assertCmsWorkflowInitialPublishAllowed({ collection: "post" }, runtime),
     ).rejects.toThrow("Create this document as a draft");
     await expect(
-      assertCmsWorkflowInitialPublishAllowed("page", "", runtime),
+      assertCmsWorkflowInitialPublishAllowed({ collection: "page" }, runtime),
     ).resolves.toBeUndefined();
   });
 
@@ -165,7 +179,7 @@ describe("configurable CMS workflow policies", () => {
     );
     await expect(
       assertCmsWorkflowPublishAllowed(
-        { documentType: "page", documentId: "page-1", version: 4 },
+        { collection: "page", documentId: "page-1", version: 4 },
         runtime,
       ),
     ).rejects.toThrow("Legal approval (0/2)");
@@ -191,13 +205,13 @@ describe("configurable CMS workflow policies", () => {
 
     await expect(
       assertCmsWorkflowPublishAllowed(
-        { documentType: "page", documentId: "page-1", version: 4 },
+        { collection: "page", documentId: "page-1", version: 4 },
         runtime,
       ),
     ).resolves.toMatchObject({ complete: true });
     expect(
       await getCmsWorkflowApprovalProgress(
-        { documentType: "page", documentId: "page-1", version: 4 },
+        { collection: "page", documentId: "page-1", version: 4 },
         runtime,
       ),
     ).toMatchObject({
@@ -248,17 +262,151 @@ describe("configurable CMS workflow policies", () => {
     );
 
     expect(
-      await resolveCmsWorkflowPolicy("post", "vi-VN", runtime),
+      await resolveCmsWorkflowPolicy(
+        { collection: "post", locale: "vi-VN" },
+        runtime,
+      ),
     ).toMatchObject({
       locale: "vi-VN",
       stages: [{ id: "vietnam-review" }],
     });
     expect(
-      await resolveCmsWorkflowPolicy("post", "en-US", runtime),
+      await resolveCmsWorkflowPolicy(
+        { collection: "post", locale: "en-US" },
+        runtime,
+      ),
     ).toMatchObject({
       locale: "",
       stages: [{ id: "default-review" }],
     });
+  });
+
+  test("uses the nearest folder before locale and collection fallbacks", async () => {
+    const { runtime } = createRuntime();
+    await upsertCmsWorkflowPolicy(
+      {
+        collection: "page",
+        locale: "vi-VN",
+        stages: [stage("locale-review")],
+      },
+      owner,
+      runtime,
+    );
+    await upsertCmsWorkflowPolicy(
+      {
+        collection: "page",
+        folder: "campaigns",
+        stages: [stage("campaign-review")],
+      },
+      owner,
+      runtime,
+    );
+    await upsertCmsWorkflowPolicy(
+      {
+        collection: "page",
+        folder: "campaigns/summer",
+        locale: "vi-VN",
+        stages: [stage("summer-review")],
+      },
+      owner,
+      runtime,
+    );
+
+    await expect(
+      resolveCmsWorkflowPolicy(
+        {
+          collection: "page",
+          folder: "Campaigns\\Summer/Launch/",
+          locale: "vi-VN",
+        },
+        runtime,
+      ),
+    ).resolves.toMatchObject({
+      folder: "campaigns/summer",
+      locale: "vi-VN",
+      stages: [{ id: "summer-review" }],
+    });
+    await expect(
+      resolveCmsWorkflowPolicy(
+        {
+          collection: "page",
+          folder: "campaigns/spring",
+          locale: "vi-VN",
+        },
+        runtime,
+      ),
+    ).resolves.toMatchObject({
+      folder: "campaigns",
+      locale: "",
+      stages: [{ id: "campaign-review" }],
+    });
+    await expect(
+      assertCmsWorkflowPublishAllowed(
+        {
+          collection: "page",
+          documentId: "spring-launch",
+          folder: "campaigns/spring",
+          locale: "vi-VN",
+          version: 1,
+        },
+        runtime,
+      ),
+    ).rejects.toThrow("campaign review (0/1)");
+    await expect(
+      resolveCmsWorkflowPolicy(
+        { collection: "page", folder: "news", locale: "vi-VN" },
+        runtime,
+      ),
+    ).resolves.toMatchObject({
+      folder: "",
+      locale: "vi-VN",
+      stages: [{ id: "locale-review" }],
+    });
+  });
+
+  test("isolates arbitrary-collection approvals by document locale", async () => {
+    const { runtime, sqlite, now } = createRuntime();
+    const collection = "rem-viet-localized-campaigns";
+    await upsertCmsWorkflowPolicy(
+      {
+        collection,
+        stages: [stage("campaign-approval")],
+      },
+      owner,
+      runtime,
+    );
+    const viTarget = {
+      collection,
+      documentId: "summer-launch",
+      locale: "vi-VN",
+      version: 3,
+    };
+    const enTarget = { ...viTarget, locale: "en-US" };
+
+    await expect(
+      assertCmsWorkflowPublishAllowed(viTarget, runtime),
+    ).rejects.toThrow("campaign approval (0/1)");
+    await expect(
+      assertCmsWorkflowPublishAllowed(enTarget, runtime),
+    ).rejects.toThrow("campaign approval (0/1)");
+
+    const auditTarget = cmsWorkflowAuditTarget(viTarget);
+    insertReviewEvent(sqlite, {
+      id: "localized-approval-vi",
+      action: `${auditTarget.actionPrefix}.review_approved`,
+      actorUserId: "admin-vi",
+      documentId: auditTarget.entityId,
+      entityType: auditTarget.entityType,
+      after: { version: 3, stageId: "campaign-approval" },
+      createdAt: now.getTime(),
+    });
+
+    await expect(
+      assertCmsWorkflowPublishAllowed(viTarget, runtime),
+    ).resolves.toMatchObject({ complete: true });
+    await expect(
+      assertCmsWorkflowPublishAllowed(enTarget, runtime),
+    ).rejects.toThrow("campaign approval (0/1)");
   });
 
   test("blocks self-approval when the configured stage requires separation", async () => {
@@ -292,7 +440,7 @@ describe("configurable CMS workflow policies", () => {
 
     await expect(
       assertCmsWorkflowReviewerAllowed(
-        { documentType: "page", documentId: "page-1", version: 2 },
+        { collection: "page", documentId: "page-1", version: 2 },
         owner,
         runtime,
       ),
@@ -330,7 +478,7 @@ describe("configurable CMS workflow policies", () => {
     await expect(
       assertCmsWorkflowReviewerAllowed(
         {
-          documentType: "page",
+          collection: "page",
           documentId: "page-1",
           version: 2,
           stageId: "launch",

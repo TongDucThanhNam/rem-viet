@@ -143,6 +143,12 @@ const postRevisionFields = [
     summarize: (value) => `/${value.slug ?? ""}`,
   },
   {
+    key: "folder",
+    label: "Thư mục workflow",
+    read: (value) => value.folder,
+    summarize: (value) => value.folder || "Thư mục gốc",
+  },
+  {
     key: "description",
     label: "Mô tả",
     read: (value) => value.description,
@@ -217,6 +223,7 @@ function formValuesFromRevision(
   return {
     title: normalized.title,
     slug: normalized.slug,
+    folder: normalized.folder,
     description: normalized.description,
     coverImage: normalized.coverImage,
     tags: normalized.tags,
@@ -235,6 +242,7 @@ function formValuesFromPost(post: PostFormSource): CmsPostFormValues {
   return {
     title: post.title,
     slug: post.slug,
+    folder: post.folder,
     description: post.description,
     coverImage: post.coverImage,
     tags: post.tags,

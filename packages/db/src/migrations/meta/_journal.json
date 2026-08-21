@@ -169,6 +169,20 @@
       "when": 1787313017484,
       "tag": "0023_previous_leper_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1787315141412,
+      "tag": "0024_daffy_mac_gargan",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1787317704806,
+      "tag": "0025_mushy_ricochet",
+      "breakpoints": true
     }
   ]
 }

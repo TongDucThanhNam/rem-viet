@@ -20,6 +20,7 @@ export type CmsPostFormValues = {
   content: string;
   coverImage: string;
   description: string;
+  folder: string;
   publishDate: string;
   seoDescription: string;
   seoTitle: string;
@@ -67,6 +68,7 @@ function initialFormState(
     content: initialValues?.content ?? "",
     coverImage: initialValues?.coverImage ?? "",
     description: initialValues?.description ?? "",
+    folder: initialValues?.folder ?? "",
     publishDate: initialValues?.publishDate ?? "",
     seoDescription: initialValues?.seoDescription ?? "",
     seoTitle: initialValues?.seoTitle ?? "",
@@ -198,7 +200,18 @@ export default function CmsPostForm({
               }
             />
           </div>
-          <div className="grid content-end gap-1 rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+          <div className="grid gap-2">
+            <Label htmlFor="post-folder">Thư mục workflow</Label>
+            <Input
+              id="post-folder"
+              placeholder="campaigns/summer"
+              value={form.folder}
+              onChange={(event) =>
+                updateForm({ folder: event.target.value }, "post-field:folder")
+              }
+            />
+          </div>
+          <div className="grid content-end gap-1 rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground md:col-span-2">
             Biểu mẫu này luôn lưu bản nháp đang làm việc. Xuất bản là thao tác
             riêng có xác nhận.
           </div>

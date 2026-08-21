@@ -450,8 +450,8 @@ export async function runSanityHostedConformance<
     );
     assert(
       (await listSanityGlobalProofDocumentIds(input.client, globalKey))
-        .length === 4,
-      "Sanity global-content conformance did not preserve one current document and three revisions.",
+        .length === 6,
+      "Sanity global-content conformance did not preserve one current document and five revisions.",
     );
     await cleanupSanityGlobalProofDocuments(
       input.client,

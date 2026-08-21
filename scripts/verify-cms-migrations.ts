@@ -38,8 +38,10 @@ function count(db: Database, table: string) {
 }
 
 const temp = await mkdtemp(resolve(tmpdir(), "rem-viet-cms-migrations-"));
+let empty: Database | undefined;
+let upgraded: Database | undefined;
 try {
-  const empty = new Database(resolve(temp, "empty.sqlite"));
+  empty = new Database(resolve(temp, "empty.sqlite"));
   apply(empty, files);
   const requiredTables = [
     "pages",
@@ -83,8 +85,9 @@ try {
     throw new Error("Editorial review migration thiếu task metadata.");
   }
   empty.close();
+  empty = undefined;
 
-  const upgraded = new Database(resolve(temp, "upgraded.sqlite"));
+  upgraded = new Database(resolve(temp, "upgraded.sqlite"));
   const legacyFiles = files.filter((file) => file < "0006_");
   apply(upgraded, legacyFiles);
   upgraded.run(
@@ -124,8 +127,9 @@ try {
     ? (JSON.parse(collectionPage.data) as Record<string, unknown>)
     : null;
   if (
-    collectionPage?.schemaVersion !== 1 ||
+    collectionPage?.schemaVersion !== 2 ||
     collectionPage.locale !== "" ||
+    collectionData?.folder !== "" ||
     collectionData?.template !== "standard" ||
     !Array.isArray(collectionData.blocks) ||
     (collectionData.blocks[0] as { schemaVersion?: unknown } | undefined)
@@ -134,7 +138,19 @@ try {
   ) {
     throw new Error("Standard page collection backfill sai dữ liệu.");
   }
-  if (count(upgraded, "cms_collection_revisions") !== 1)
+  const collectionRevision = upgraded
+    .query(
+      `SELECT schema_version AS schemaVersion, snapshot
+       FROM cms_collection_revisions
+       WHERE collection_slug = 'standard-pages' AND document_id = 'legacy-page'`,
+    )
+    .get() as { schemaVersion: number; snapshot: string } | null;
+  if (
+    count(upgraded, "cms_collection_revisions") !== 1 ||
+    collectionRevision?.schemaVersion !== 2 ||
+    (JSON.parse(collectionRevision.snapshot) as Record<string, unknown>)
+      .folder !== ""
+  )
     throw new Error("Collection revision backfill sai số lượng.");
   const localizedColumns = upgraded
     .query("PRAGMA table_info(cms_collection_documents)")
@@ -153,6 +169,7 @@ try {
   if (foreignKeys.length)
     throw new Error("Upgraded fixture vi phạm foreign key.");
   upgraded.close();
+  upgraded = undefined;
 
   console.log(
     JSON.stringify(
@@ -171,5 +188,7 @@ try {
     ),
   );
 } finally {
+  empty?.close();
+  upgraded?.close();
   await rm(temp, { recursive: true, force: true });
 }

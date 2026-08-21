@@ -11,13 +11,16 @@ import {
   deletePage,
   deletePageInputSchema,
   getMenuByLocation,
+  getMenuDraftByLocation,
   getPageById,
   getPageBySlug,
   getSiteSettings,
+  getSiteSettingsDraft,
   globalRevisionInputSchema,
   listMedia,
   listMenuRevisions,
   listMenus,
+  listMenuDrafts,
   listPages,
   listSiteSettingsRevisions,
   listPagesInputSchema,
@@ -305,9 +308,13 @@ export const mediaRouter = router({
 
 export const menusRouter = router({
   list: publicProcedure.query(() => listMenus()),
+  drafts: capabilityProcedure("settings.manage").query(() => listMenuDrafts()),
   byLocation: publicProcedure
     .input(menuLocationInputSchema)
     .query(({ input }) => getMenuByLocation(input)),
+  draftByLocation: capabilityProcedure("settings.manage")
+    .input(menuLocationInputSchema)
+    .query(({ input }) => getMenuDraftByLocation(input)),
   revisions: capabilityProcedure("settings.manage")
     .input(menuLocationInputSchema)
     .query(({ input }) => listMenuRevisions(input)),
@@ -325,6 +332,9 @@ export const menusRouter = router({
 
 export const siteSettingsRouter = router({
   get: publicProcedure.query(() => getSiteSettings()),
+  draft: capabilityProcedure("settings.manage").query(() =>
+    getSiteSettingsDraft(),
+  ),
   revisions: capabilityProcedure("settings.manage").query(() =>
     listSiteSettingsRevisions(),
   ),

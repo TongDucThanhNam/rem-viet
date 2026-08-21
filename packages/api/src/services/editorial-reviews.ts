@@ -4,27 +4,30 @@ import { cmsOutboxEvents } from "@rem-viet/db/schema/automation";
 import { pages, posts } from "@rem-viet/db/schema/content";
 import { auditEvents, staffRoles } from "@rem-viet/db/schema/governance";
 import {
+  cmsCollectionSlugSchema,
   cmsEditorialReviewTaskSchema,
+  cmsLocaleSchema,
   type CmsEditorialReviewTask,
 } from "@agency/cms-core";
+import { REM_VIET_STANDARD_PAGES_COLLECTION } from "@agency/cms-template-rem-viet";
+import { cmsContentFolderSchema } from "@rem-viet/cms";
 import {
   deriveCmsEditorialReviewState,
   isCmsEditorialReviewActorAssigned,
   missingRequiredCmsEditorialReviewChecklistItems,
+  type CmsCollectionProvider,
   type CmsEditorialReviewEvent,
 } from "@agency/cms-runtime";
 import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 
-import {
-  ContentWorkflowError,
-  recordContentAudit,
-  type CmsActor,
-} from "./content-revisions";
+import { ContentWorkflowError, type CmsActor } from "./content-revisions";
 import {
   assertCmsWorkflowReviewerAllowed,
+  cmsWorkflowAuditTarget,
   getCmsWorkflowApprovalProgress,
 } from "./workflow-policies";
+import { createRemVietCollectionProvider } from "./standard-page-runtime";
 
 export const editorialDocumentTypeSchema = z.enum(["page", "post"]);
 export const editorialReviewDecisionSchema = z.enum([
@@ -34,16 +37,33 @@ export const editorialReviewDecisionSchema = z.enum([
 
 const editorialReviewNoteSchema = z.string().trim().max(500).default("");
 
-export const editorialReviewTargetSchema = z.object({
+const editorialPagePostReviewTargetSchema = z.object({
   documentType: editorialDocumentTypeSchema,
-  documentId: z.string().min(1),
+  documentId: z.string().trim().min(1).max(256),
 });
 
+const editorialCollectionReviewTargetSchema = z.object({
+  documentType: z.literal("collection"),
+  collection: cmsCollectionSlugSchema.refine(
+    (value) => value !== REM_VIET_STANDARD_PAGES_COLLECTION,
+    "Use the page review target for standard pages",
+  ),
+  documentId: z.string().trim().min(1).max(256),
+  locale: z.union([z.literal(""), cmsLocaleSchema]).default(""),
+});
+
+export const editorialReviewTargetSchema = z.discriminatedUnion(
+  "documentType",
+  [editorialPagePostReviewTargetSchema, editorialCollectionReviewTargetSchema],
+);
+
 export const requestEditorialReviewInputSchema = editorialReviewTargetSchema
-  .extend({
-    expectedVersion: z.coerce.number().int().positive(),
-    note: editorialReviewNoteSchema,
-  })
+  .and(
+    z.object({
+      expectedVersion: z.coerce.number().int().positive(),
+      note: editorialReviewNoteSchema,
+    }),
+  )
   .and(cmsEditorialReviewTaskSchema)
   .superRefine((value, context) => {
     const invalidRole = value.assigneeRoles.find(
@@ -59,17 +79,19 @@ export const requestEditorialReviewInputSchema = editorialReviewTargetSchema
   });
 
 export const decideEditorialReviewInputSchema = editorialReviewTargetSchema
-  .extend({
-    decision: editorialReviewDecisionSchema,
-    expectedVersion: z.coerce.number().int().positive(),
-    note: editorialReviewNoteSchema,
-    stageId: z.string().trim().min(2).max(64).optional(),
-    completedChecklistItemIds: z
-      .array(z.string().trim().min(1).max(64))
-      .max(20)
-      .default([])
-      .transform((values) => [...new Set(values)].sort()),
-  })
+  .and(
+    z.object({
+      decision: editorialReviewDecisionSchema,
+      expectedVersion: z.coerce.number().int().positive(),
+      note: editorialReviewNoteSchema,
+      stageId: z.string().trim().min(2).max(64).optional(),
+      completedChecklistItemIds: z
+        .array(z.string().trim().min(1).max(64))
+        .max(20)
+        .default([])
+        .transform((values) => [...new Set(values)].sort()),
+    }),
+  )
   .superRefine((value, context) => {
     if (value.decision === "changes_requested" && !value.note) {
       context.addIssue({
@@ -91,18 +113,41 @@ export const editorialReviewQueueInputSchema = z
   .default({ overdueOnly: false, limit: 50 });
 
 export type EditorialDocumentType = z.infer<typeof editorialDocumentTypeSchema>;
+export type EditorialReviewTarget = z.infer<typeof editorialReviewTargetSchema>;
+type EditorialReviewDocumentType = EditorialReviewTarget["documentType"];
 export type EditorialReviewStatus =
   "none" | "requested" | "changes_requested" | "approved";
 
 type EditorialDocument = {
+  collection: string;
   documentId: string;
-  documentType: EditorialDocumentType;
+  documentType: EditorialReviewDocumentType;
+  folder: string;
+  locale: string;
   publishedRevisionId: string | null;
   slug: string;
   status: "draft" | "published";
   title: string;
   version: number;
 };
+
+export type EditorialReviewRuntime = Readonly<{
+  collectionProvider?: CmsCollectionProvider;
+  db?: ReturnType<typeof createDb>;
+  now?: () => Date;
+}>;
+
+function runtimeDb(runtime?: EditorialReviewRuntime) {
+  return runtime?.db ?? createDb();
+}
+
+function runtimeCollectionProvider(runtime?: EditorialReviewRuntime) {
+  return runtime?.collectionProvider ?? createRemVietCollectionProvider();
+}
+
+function runtimeNow(runtime?: EditorialReviewRuntime) {
+  return runtime?.now?.() ?? new Date();
+}
 
 type EditorialReviewEvent = {
   action: string;
@@ -130,22 +175,61 @@ const reviewPayloadSchema = z.object({
   mentionIds: z.array(z.string()).default([]),
   note: z.string().max(500).catch(""),
   notify: z.boolean().default(true),
+  target: editorialReviewTargetSchema.optional(),
   version: z.number().int().positive(),
 });
 const publicationPayloadSchema = z.object({
   version: z.number().int().positive(),
 });
 
-const reviewActions = [
-  "page.review_requested",
-  "page.review_changes_requested",
-  "page.review_approved",
-  "post.review_requested",
-  "post.review_changes_requested",
-  "post.review_approved",
-] as const;
+function workflowCollectionForTarget(target: EditorialReviewTarget) {
+  return target.documentType === "collection"
+    ? target.collection
+    : target.documentType;
+}
 
-const publishActions = ["page.publish", "post.publish"] as const;
+function targetForDocument(document: EditorialDocument): EditorialReviewTarget {
+  return document.documentType === "collection"
+    ? {
+        documentType: "collection",
+        collection: document.collection,
+        documentId: document.documentId,
+        locale: document.locale,
+      }
+    : {
+        documentType: document.documentType,
+        documentId: document.documentId,
+      };
+}
+
+function auditTargetForEditorialTarget(target: EditorialReviewTarget) {
+  return cmsWorkflowAuditTarget({
+    collection: workflowCollectionForTarget(target),
+    documentId: target.documentId,
+    locale: target.documentType === "collection" ? target.locale : "",
+  });
+}
+
+function reviewActionsForTarget(target: EditorialReviewTarget) {
+  const prefix = auditTargetForEditorialTarget(target).actionPrefix;
+  return [
+    `${prefix}.review_requested`,
+    `${prefix}.review_changes_requested`,
+    `${prefix}.review_approved`,
+  ];
+}
+
+function publishActionForTarget(target: EditorialReviewTarget) {
+  return `${auditTargetForEditorialTarget(target).actionPrefix}.publish`;
+}
+
+function isReviewAction(action: string) {
+  return (
+    action.endsWith(".review_requested") ||
+    action.endsWith(".review_changes_requested") ||
+    action.endsWith(".review_approved")
+  );
+}
 
 function reviewStatusFromAction(action: string): EditorialReviewStatus {
   if (action.endsWith(".review_requested")) return "requested";
@@ -166,9 +250,11 @@ export type EditorialReviewState = {
     completed: boolean;
   }>;
   currentVersion: number;
+  collection?: string;
   documentId: string;
-  documentType: EditorialDocumentType;
+  documentType: EditorialReviewDocumentType;
   dueAt: string | null;
+  locale?: string;
   mentionIds: string[];
   note: string;
   notify: boolean;
@@ -184,9 +270,7 @@ export function deriveEditorialReviewState(
   events: EditorialReviewEvent[],
 ): EditorialReviewState {
   const normalizedEvents = events.flatMap<CmsEditorialReviewEvent>((event) => {
-    if (
-      reviewActions.includes(event.action as (typeof reviewActions)[number])
-    ) {
+    if (isReviewAction(event.action)) {
       const payload = reviewPayloadSchema.safeParse(event.after);
       const action = reviewStatusFromAction(event.action);
       if (!payload.success || action === "none") return [];
@@ -208,9 +292,7 @@ export function deriveEditorialReviewState(
         },
       ];
     }
-    if (
-      publishActions.includes(event.action as (typeof publishActions)[number])
-    ) {
+    if (event.action === publishActionForTarget(targetForDocument(document))) {
       const payload = publicationPayloadSchema.safeParse(event.after);
       if (!payload.success) return [];
       return [
@@ -238,8 +320,7 @@ export function deriveEditorialReviewState(
     normalizedEvents,
   );
   const stateEvent = events.find((event) => {
-    if (!reviewActions.includes(event.action as (typeof reviewActions)[number]))
-      return false;
+    if (!isReviewAction(event.action)) return false;
     const payload = reviewPayloadSchema.safeParse(event.after);
     return (
       payload.success &&
@@ -254,6 +335,9 @@ export function deriveEditorialReviewState(
     assigneeIds: state.assigneeIds,
     assigneeRoles: state.assigneeRoles,
     checklist: state.checklist,
+    ...(document.documentType === "collection"
+      ? { collection: document.collection, locale: document.locale }
+      : {}),
     currentVersion: state.currentVersion,
     documentId: document.documentId,
     documentType: document.documentType,
@@ -270,22 +354,62 @@ export function deriveEditorialReviewState(
 }
 
 async function loadEditorialDocument(
-  documentType: EditorialDocumentType,
-  documentId: string,
+  target: EditorialReviewTarget,
+  runtime?: EditorialReviewRuntime,
 ): Promise<EditorialDocument> {
-  const db = createDb();
+  if (target.documentType === "collection") {
+    const document = await runtimeCollectionProvider(runtime).getDraft({
+      collection: target.collection,
+      id: target.documentId,
+      locale: target.locale,
+    });
+    if (!document) {
+      throw new ContentWorkflowError("NOT_FOUND", "Content not found");
+    }
+    const stringValue = (...keys: string[]) => {
+      for (const key of keys) {
+        const value = document.data[key];
+        if (typeof value === "string" && value.trim()) return value.trim();
+      }
+      return "";
+    };
+    const folder = cmsContentFolderSchema.safeParse(document.data.folder);
+    return {
+      collection: document.collection,
+      documentId: document.id,
+      documentType: "collection",
+      folder: folder.success ? folder.data : "",
+      locale: document.locale ?? "",
+      publishedRevisionId: document.publishedRevisionId,
+      slug: stringValue("slug", "code") || document.id,
+      status: document.status,
+      title:
+        stringValue("headline", "title", "name", "label", "code", "slug") ||
+        `${document.collection}/${document.id}`,
+      version: document.version,
+    };
+  }
+
+  const db = runtimeDb(runtime);
   const document =
-    documentType === "page"
-      ? await db.query.pages.findFirst({ where: eq(pages.id, documentId) })
-      : await db.query.posts.findFirst({ where: eq(posts.id, documentId) });
+    target.documentType === "page"
+      ? await db.query.pages.findFirst({
+          where: eq(pages.id, target.documentId),
+        })
+      : await db.query.posts.findFirst({
+          where: eq(posts.id, target.documentId),
+        });
 
   if (!document) {
     throw new ContentWorkflowError("NOT_FOUND", "Content not found");
   }
 
   return {
+    collection: target.documentType,
     documentId: document.id,
-    documentType,
+    documentType: target.documentType,
+    folder: document.folder,
+    locale: "",
     publishedRevisionId: document.publishedRevisionId,
     slug: document.slug,
     status: document.status,
@@ -295,10 +419,11 @@ async function loadEditorialDocument(
 }
 
 async function listEditorialReviewEvents(
-  documentType: EditorialDocumentType,
-  documentId: string,
+  target: EditorialReviewTarget,
+  runtime?: EditorialReviewRuntime,
 ) {
-  const db = createDb();
+  const db = runtimeDb(runtime);
+  const auditTarget = auditTargetForEditorialTarget(target);
   return db
     .select({
       action: auditEvents.action,
@@ -311,9 +436,12 @@ async function listEditorialReviewEvents(
     .from(auditEvents)
     .where(
       and(
-        eq(auditEvents.entityType, documentType),
-        eq(auditEvents.entityId, documentId),
-        inArray(auditEvents.action, [...reviewActions, ...publishActions]),
+        eq(auditEvents.entityType, auditTarget.entityType),
+        eq(auditEvents.entityId, auditTarget.entityId),
+        inArray(auditEvents.action, [
+          ...reviewActionsForTarget(target),
+          publishActionForTarget(target),
+        ]),
       ),
     )
     .orderBy(desc(auditEvents.createdAt), sql`rowid desc`)
@@ -369,10 +497,11 @@ function editorialReviewTiming(state: EditorialReviewState, now = new Date()) {
 
 async function assertEditorialReviewTaskParticipants(
   task: CmsEditorialReviewTask,
+  runtime?: EditorialReviewRuntime,
 ) {
   const principalIds = [...new Set([...task.assigneeIds, ...task.mentionIds])];
   if (!principalIds.length) return;
-  const rows = await createDb()
+  const rows = await runtimeDb(runtime)
     .select({ id: staffRoles.userId, role: staffRoles.role })
     .from(staffRoles)
     .where(inArray(staffRoles.userId, principalIds));
@@ -395,8 +524,10 @@ async function assertEditorialReviewTaskParticipants(
   }
 }
 
-export async function listEditorialReviewParticipants() {
-  const rows = await createDb()
+export async function listEditorialReviewParticipants(
+  runtime?: EditorialReviewRuntime,
+) {
+  const rows = await runtimeDb(runtime)
     .select({
       id: staffRoles.userId,
       name: user.name,
@@ -419,32 +550,38 @@ export async function listEditorialReviewParticipants() {
   );
 }
 
-export function editorialReviewRequestedOutboxValues(input: {
-  actorUserId: string;
-  documentId: string;
-  documentType: EditorialDocumentType;
-  occurredAt: Date;
-  task: CmsEditorialReviewTask;
-  version: number;
-}) {
-  const topic = `content.${input.documentType}.review_requested`;
+export function editorialReviewRequestedOutboxValues(
+  input: EditorialReviewTarget & {
+    actorUserId: string;
+    occurredAt: Date;
+    task: CmsEditorialReviewTask;
+    version: number;
+  },
+) {
+  const target = editorialReviewTargetSchema.parse(input);
+  const auditTarget = auditTargetForEditorialTarget(target);
+  const topic = `content.${auditTarget.actionPrefix}.review_requested`;
   return {
     id: crypto.randomUUID(),
     topic,
-    aggregateType: input.documentType,
-    aggregateId: input.documentId,
+    aggregateType: auditTarget.actionPrefix,
+    aggregateId: auditTarget.entityId,
     aggregateVersion: input.version,
     payload: {
       actorUserId: input.actorUserId,
       documentId: input.documentId,
       documentType: input.documentType,
+      ...(input.documentType === "collection"
+        ? { collection: input.collection, locale: input.locale }
+        : {}),
+      target,
       version: input.version,
       task: input.task,
       notificationRecipientIds: input.task.notify
         ? [...new Set([...input.task.assigneeIds, ...input.task.mentionIds])]
         : [],
     },
-    idempotencyKey: `${topic}:${input.documentId}:v${input.version}`,
+    idempotencyKey: `${topic}:${auditTarget.entityId}:v${input.version}`,
     status: "pending" as const,
     attempts: 0,
     maxAttempts: 8,
@@ -458,21 +595,23 @@ export function editorialReviewRequestedOutboxValues(input: {
 
 export async function getEditorialReviewState(
   input: z.infer<typeof editorialReviewTargetSchema>,
+  runtime?: EditorialReviewRuntime,
 ) {
-  const document = await loadEditorialDocument(
-    input.documentType,
-    input.documentId,
-  );
-  const events = await listEditorialReviewEvents(
-    input.documentType,
-    input.documentId,
-  );
+  const parsed = editorialReviewTargetSchema.parse(input);
+  const document = await loadEditorialDocument(parsed, runtime);
+  const target = targetForDocument(document);
+  const events = await listEditorialReviewEvents(target, runtime);
   const state = deriveEditorialReviewState(document, events);
-  const workflow = await getCmsWorkflowApprovalProgress({
-    documentType: input.documentType,
-    documentId: input.documentId,
-    version: document.version,
-  });
+  const workflow = await getCmsWorkflowApprovalProgress(
+    {
+      collection: document.collection,
+      documentId: document.documentId,
+      version: document.version,
+      folder: document.folder,
+      locale: document.locale,
+    },
+    runtime,
+  );
   const result = {
     ...state,
     status:
@@ -481,30 +620,29 @@ export async function getEditorialReviewState(
         : state.status,
     workflow,
   };
-  return editorialReviewTiming(result);
+  return editorialReviewTiming(result, runtimeNow(runtime));
 }
 
 export async function requestEditorialReview(
   input: z.infer<typeof requestEditorialReviewInputSchema>,
   actor: CmsActor,
+  runtime?: EditorialReviewRuntime,
 ) {
   const parsed = requestEditorialReviewInputSchema.parse(input);
-  const document = await loadEditorialDocument(
-    parsed.documentType,
-    parsed.documentId,
-  );
+  const document = await loadEditorialDocument(parsed, runtime);
+  const target = targetForDocument(document);
   assertExpectedVersion(document.version, parsed.expectedVersion);
   const task = editorialReviewTaskFromRequest(parsed);
-  if (task.dueAt && new Date(task.dueAt) <= new Date()) {
+  if (task.dueAt && new Date(task.dueAt) <= runtimeNow(runtime)) {
     throw new ContentWorkflowError(
       "CONFLICT",
       "Editorial review due date must be in the future",
     );
   }
-  await assertEditorialReviewTaskParticipants(task);
+  await assertEditorialReviewTaskParticipants(task, runtime);
   const current = deriveEditorialReviewState(
     document,
-    await listEditorialReviewEvents(parsed.documentType, parsed.documentId),
+    await listEditorialReviewEvents(target, runtime),
   );
 
   if (
@@ -512,7 +650,7 @@ export async function requestEditorialReview(
     current.status === "requested"
   ) {
     if (isEquivalentEditorialReviewRequest(current, parsed, actor.userId)) {
-      return getEditorialReviewState(parsed);
+      return getEditorialReviewState(parsed, runtime);
     }
     throw new ContentWorkflowError(
       "CONFLICT",
@@ -528,23 +666,25 @@ export async function requestEditorialReview(
     );
   }
 
-  const occurredAt = new Date();
-  const db = createDb();
+  const occurredAt = runtimeNow(runtime);
+  const db = runtimeDb(runtime);
+  const auditTarget = auditTargetForEditorialTarget(target);
   await db.batch([
     db.insert(auditEvents).values({
       id: crypto.randomUUID(),
       actorUserId: actor.userId,
       actorEmail: actor.email,
       actorRole: actor.role,
-      action: `${parsed.documentType}.review_requested`,
-      entityType: document.documentType,
-      entityId: document.documentId,
+      action: `${auditTarget.actionPrefix}.review_requested`,
+      entityType: auditTarget.entityType,
+      entityId: auditTarget.entityId,
       before: null,
       after: {
         note: parsed.note,
         version: document.version,
         ...task,
         completedChecklistItemIds: [],
+        target,
       },
       requestId: actor.requestId ?? "",
       createdAt: occurredAt,
@@ -554,8 +694,7 @@ export async function requestEditorialReview(
       .values(
         editorialReviewRequestedOutboxValues({
           actorUserId: actor.userId,
-          documentId: document.documentId,
-          documentType: document.documentType,
+          ...target,
           occurredAt,
           task,
           version: document.version,
@@ -564,22 +703,21 @@ export async function requestEditorialReview(
       .onConflictDoNothing({ target: cmsOutboxEvents.idempotencyKey }),
   ]);
 
-  return getEditorialReviewState(parsed);
+  return getEditorialReviewState(parsed, runtime);
 }
 
 export async function decideEditorialReview(
   input: z.infer<typeof decideEditorialReviewInputSchema>,
   actor: CmsActor,
+  runtime?: EditorialReviewRuntime,
 ) {
   const parsed = decideEditorialReviewInputSchema.parse(input);
-  const document = await loadEditorialDocument(
-    parsed.documentType,
-    parsed.documentId,
-  );
+  const document = await loadEditorialDocument(parsed, runtime);
+  const target = targetForDocument(document);
   assertExpectedVersion(document.version, parsed.expectedVersion);
   const current = deriveEditorialReviewState(
     document,
-    await listEditorialReviewEvents(parsed.documentType, parsed.documentId),
+    await listEditorialReviewEvents(target, runtime),
   );
 
   if (
@@ -625,12 +763,15 @@ export async function decideEditorialReview(
     parsed.decision === "approved"
       ? await assertCmsWorkflowReviewerAllowed(
           {
-            documentType: parsed.documentType,
+            collection: document.collection,
             documentId: parsed.documentId,
             version: document.version,
+            folder: document.folder,
+            locale: document.locale,
             stageId: parsed.stageId,
           },
           actor,
+          runtime,
         )
       : null;
   if (
@@ -638,31 +779,40 @@ export async function decideEditorialReview(
     !workflowDecision?.progress.policy &&
     current.status === "approved"
   ) {
-    return getEditorialReviewState(input);
+    return getEditorialReviewState(input, runtime);
   }
   if (
     workflowDecision?.progress.stages
       .find((stage) => stage.id === workflowDecision.stageId)
       ?.actorIds.includes(actor.userId)
   ) {
-    return getEditorialReviewState(input);
+    return getEditorialReviewState(input, runtime);
   }
 
-  await recordContentAudit({
-    action: `${parsed.documentType}.review_${parsed.decision}`,
-    actor,
-    after: {
-      note: parsed.note,
-      version: document.version,
-      completedChecklistItemIds: parsed.completedChecklistItemIds,
-      ...(workflowDecision ? { stageId: workflowDecision.stageId } : {}),
-    },
-    before: { status: current.status, version: current.reviewVersion },
-    entityId: document.documentId,
-    entityType: document.documentType,
-  });
+  const auditTarget = auditTargetForEditorialTarget(target);
+  await runtimeDb(runtime)
+    .insert(auditEvents)
+    .values({
+      id: crypto.randomUUID(),
+      actorUserId: actor.userId,
+      actorEmail: actor.email,
+      actorRole: actor.role,
+      action: `${auditTarget.actionPrefix}.review_${parsed.decision}`,
+      entityType: auditTarget.entityType,
+      entityId: auditTarget.entityId,
+      before: { status: current.status, version: current.reviewVersion },
+      after: {
+        note: parsed.note,
+        version: document.version,
+        completedChecklistItemIds: parsed.completedChecklistItemIds,
+        target,
+        ...(workflowDecision ? { stageId: workflowDecision.stageId } : {}),
+      },
+      requestId: actor.requestId ?? "",
+      createdAt: runtimeNow(runtime),
+    });
 
-  return getEditorialReviewState(parsed);
+  return getEditorialReviewState(parsed, runtime);
 }
 
 export function filterAndSortEditorialReviewQueue<
@@ -708,9 +858,10 @@ export function filterAndSortEditorialReviewQueue<
 
 export async function listEditorialReviewQueue(
   input: z.input<typeof editorialReviewQueueInputSchema> = {},
+  runtime?: EditorialReviewRuntime,
 ) {
   const filters = editorialReviewQueueInputSchema.parse(input);
-  const db = createDb();
+  const db = runtimeDb(runtime);
   const rankedReviewEvents = db
     .select({
       action: auditEvents.action,
@@ -730,6 +881,7 @@ export async function listEditorialReviewQueue(
       inArray(auditEvents.action, [
         "page.review_requested",
         "post.review_requested",
+        "collection.review_requested",
       ]),
     )
     .as("ranked_review_events");
@@ -750,6 +902,7 @@ export async function listEditorialReviewQueue(
         inArray(rankedReviewEvents.action, [
           "page.review_requested",
           "post.review_requested",
+          "collection.review_requested",
         ]),
       ),
     )
@@ -757,22 +910,22 @@ export async function listEditorialReviewQueue(
     .limit(100);
   const documents = await Promise.all(
     events.map(async (event) => {
-      const documentType = editorialDocumentTypeSchema.safeParse(
+      const payload = reviewPayloadSchema.safeParse(event.after);
+      if (!payload.success) return null;
+      const legacyDocumentType = editorialDocumentTypeSchema.safeParse(
         event.entityType,
       );
-      if (!documentType.success) return null;
-      try {
-        const document = await loadEditorialDocument(
-          documentType.data,
-          event.entityId,
-        );
-        const payload = reviewPayloadSchema.safeParse(event.after);
-        if (!payload.success) return null;
-        return {
-          ...(await getEditorialReviewState({
-            documentType: documentType.data,
+      const target = legacyDocumentType.success
+        ? editorialReviewTargetSchema.safeParse({
+            documentType: legacyDocumentType.data,
             documentId: event.entityId,
-          })),
+          })
+        : editorialReviewTargetSchema.safeParse(payload.data.target);
+      if (!target.success) return null;
+      try {
+        const document = await loadEditorialDocument(target.data, runtime);
+        return {
+          ...(await getEditorialReviewState(target.data, runtime)),
           slug: document.slug,
           title: document.title,
         };

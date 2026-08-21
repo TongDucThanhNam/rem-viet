@@ -1,3 +1,7 @@
+import { createDb } from "@rem-viet/db";
+import { pages } from "@rem-viet/db/schema/content";
+import { eq } from "drizzle-orm";
+
 import type { CmsActor } from "./content-revisions";
 import {
   publishPage,
@@ -22,18 +26,16 @@ export async function publishManagedPage(
   input: { pageId: string; expectedVersion?: number; note?: string },
   actor: CmsActor,
 ) {
-  const expectedVersion =
-    input.expectedVersion ??
-    (
-      await createDb().query.pages.findFirst({
-        where: eq(pages.id, input.pageId),
-      })
-    )?.version;
-  if (expectedVersion === undefined) throw new Error("Page not found");
+  const document = await createDb().query.pages.findFirst({
+    where: eq(pages.id, input.pageId),
+  });
+  if (!document) throw new Error("Page not found");
+  const expectedVersion = input.expectedVersion ?? document.version;
   await assertCmsWorkflowPublishAllowed({
-    documentType: "page",
+    collection: "page",
     documentId: input.pageId,
     version: expectedVersion,
+    folder: document.folder,
   });
   if (await isRemVietHomePage(input.pageId)) {
     return publishRemVietHomePage(input, actor);
@@ -70,6 +72,3 @@ export async function restoreManagedPageRevision(
     ? restoreRemVietStandardPageRevision(input, actor)
     : restorePageRevision(input, actor);
 }
-import { createDb } from "@rem-viet/db";
-import { pages } from "@rem-viet/db/schema/content";
-import { eq } from "drizzle-orm";

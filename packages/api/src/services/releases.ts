@@ -3,7 +3,11 @@ import {
   cmsLocaleSchema,
   cmsReleaseStatusSchema,
 } from "@agency/cms-core";
-import { defineCmsTask, type CmsCollectionProvider } from "@agency/cms-runtime";
+import {
+  defineCmsTask,
+  type CmsCollectionProvider,
+  type CmsGlobalContentProvider,
+} from "@agency/cms-runtime";
 import { redactOperationalText } from "@rem-viet/cms";
 import { REM_VIET_STANDARD_PAGES_COLLECTION } from "@agency/cms-template-rem-viet";
 import { createDb } from "@rem-viet/db";
@@ -35,6 +39,7 @@ import {
 import { publishManagedPage } from "./managed-page-workflow";
 import type { GovernanceActor } from "./governance";
 import { createRemVietCollectionProvider } from "./standard-page-runtime";
+import { createRemVietGlobalContentProvider } from "./global-content-runtime";
 import { assertCmsWorkflowPublishAllowed } from "./workflow-policies";
 
 const dayMs = 24 * 60 * 60 * 1000;
@@ -57,6 +62,11 @@ const releaseItemInputSchema = z.discriminatedUnion("documentType", [
       "Use the page release type for standard pages",
     ),
     locale: z.union([z.literal(""), cmsLocaleSchema]).default(""),
+  }),
+  releaseItemIdentitySchema.extend({
+    documentType: z.literal("global"),
+    documentId: z.string().trim().min(1).max(160),
+    locale: z.null().default(null),
   }),
 ]);
 
@@ -100,6 +110,17 @@ export const scheduleCmsReleaseInputSchema = cmsReleaseIdInputSchema.extend({
 
 type ReleaseItem = typeof cmsReleaseItems.$inferSelect;
 
+function workflowFolderFromReleaseState(state: unknown) {
+  if (!state || typeof state !== "object" || !("document" in state)) return "";
+  const document = state.document;
+  return document &&
+    typeof document === "object" &&
+    "folder" in document &&
+    typeof document.folder === "string"
+    ? document.folder
+    : "";
+}
+
 export type CmsReleaseDocumentSnapshot = Readonly<{
   version: number;
   publicationMarker: string | null;
@@ -129,6 +150,7 @@ export type CmsReleaseRuntime = CmsJobsRuntime &
   Readonly<{
     documentAdapter?: CmsReleaseDocumentAdapter;
     collectionProvider?: CmsCollectionProvider;
+    globalProvider?: CmsGlobalContentProvider;
   }>;
 
 function runtimeDb(runtime?: CmsReleaseRuntime) {
@@ -264,6 +286,10 @@ function collectionProvider(runtime?: CmsReleaseRuntime, actor?: CmsActor) {
   return runtime?.collectionProvider ?? createRemVietCollectionProvider(actor);
 }
 
+function globalProvider(runtime?: CmsReleaseRuntime, actor?: CmsActor) {
+  return runtime?.globalProvider ?? createRemVietGlobalContentProvider(actor);
+}
+
 function releaseItemIdentity(item: ReleaseItem) {
   return item.documentType === "collection"
     ? `${item.collection}:${item.documentId}:${item.locale || "default"}`
@@ -303,6 +329,23 @@ function createProductionDocumentAdapter(
               locale: item.locale,
             })
           ).find((candidate) => candidate.id === document.publishedRevisionId)
+        : null;
+      return {
+        version: document.version,
+        publicationMarker: revision?.note ?? null,
+        state: { document },
+      };
+    }
+    if (item.documentType === "global") {
+      const provider = globalProvider(runtime);
+      const document = await provider.get({ key: item.documentId });
+      if (!document) {
+        throw new Error(`Global content not found: ${item.documentId}`);
+      }
+      const revision = document.publishedRevisionId
+        ? (await provider.listRevisions(document.key)).find(
+            (candidate) => candidate.id === document.publishedRevisionId,
+          )
         : null;
       return {
         version: document.version,
@@ -358,13 +401,20 @@ function createProductionDocumentAdapter(
   return {
     inspect,
     async validate(item, current) {
-      if (item.documentType === "collection") return;
-      await assertCmsWorkflowPublishAllowed({
-        documentType: item.documentType as "page" | "post",
-        documentId: item.documentId,
-        version: current.version,
-        locale: item.locale,
-      });
+      if (item.documentType === "global") return;
+      await assertCmsWorkflowPublishAllowed(
+        {
+          collection:
+            item.documentType === "collection"
+              ? item.collection
+              : item.documentType,
+          documentId: item.documentId,
+          version: current.version,
+          locale: item.locale,
+          folder: workflowFolderFromReleaseState(current.state),
+        },
+        runtime,
+      );
     },
     async publish(item, marker, actor) {
       if (item.documentType === "collection") {
@@ -372,6 +422,13 @@ function createProductionDocumentAdapter(
           collection: item.collection,
           id: item.documentId,
           locale: item.locale,
+          expectedVersion: item.expectedVersion,
+          actorId: actor.userId,
+          note: marker,
+        });
+      } else if (item.documentType === "global") {
+        await globalProvider(runtime, actor).publish({
+          key: item.documentId,
           expectedVersion: item.expectedVersion,
           actorId: actor.userId,
           note: marker,
@@ -416,7 +473,19 @@ function createProductionDocumentAdapter(
       }
       const now = runtimeNow(runtime);
       const queries = [];
-      if (item.documentType === "collection") {
+      if (item.documentType === "global") {
+        await globalProvider(runtime, actor).rollbackPublication({
+          key: item.documentId,
+          expectedVersion: after.version,
+          restoreVersion: before.version,
+          restorePublishedRevisionId:
+            beforeDocument.publishedRevisionId === null
+              ? null
+              : String(beforeDocument.publishedRevisionId),
+          publicationRevisionId: String(afterDocument.publishedRevisionId),
+          actorId: actor.userId,
+        });
+      } else if (item.documentType === "collection") {
         queries.push(
           db
             .update(cmsCollectionDocuments)

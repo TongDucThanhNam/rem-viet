@@ -2362,6 +2362,45 @@ export/import, CLI migration/rollback, isolated backup/restore, and 24-package
 upgrade/rollback rehearsal. This closes the missing hosted Linux
 PostgreSQL/MinIO execution receipt for commit `c4b7c2f`.
 
-It is deliberately not treated as final release provenance: the current
-working tree contains later uncommitted CMS changes, so the same workflow must
-pass again on the exact release commit before publication.
+At that checkpoint it was deliberately not treated as final release provenance:
+the working tree contained later uncommitted CMS changes, so the same workflow
+still had to pass on the exact release commit before publication.
+
+## Exact CMS release-candidate receipt — 2026-08-21
+
+The complete candidate delta was committed as
+`35ff024162366e9616d26d89c836acbf9007cab1` after the sequential root
+`bun run quality` gate passed. That local gate included the full unit/provider
+aggregate, 26 CMS migrations, secure production build, performance budgets,
+the nine-case Atelier desktop/tablet/mobile browser matrix, the isolated
+authenticated desktop/mobile CMS matrix, and the `acme-demo` second-site
+portability slice. The worktree was clean before release preparation.
+
+The guarded `0.1.0` preparer emitted 24 deterministic artifacts with clean,
+publish-eligible provenance. A deliberate publisher invocation with both
+private-registry inputs removed rebuilt and revalidated the source artifacts,
+then failed before any publication with the required HTTPS-registry error. This
+proves the fail-closed boundary; it is not a registry publication receipt.
+
+Authoritative exact-source hosted receipt:
+
+```text
+release-source commit                                      35ff024162366e9616d26d89c836acbf9007cab1
+draft PR                                                   https://github.com/TongDucThanhNam/rem-viet/pull/1
+GitHub Actions run                                         https://github.com/TongDucThanhNam/rem-viet/actions/runs/32504935724
+PostgreSQL provider conformance (Ubuntu/PostgreSQL 17/MinIO) PASS (36s)
+Packed consumer + clean checkout (Ubuntu)                  PASS (1m24s)
+Packed consumer + clean checkout (Windows)                 PASS (4m19s)
+```
+
+The live flagship readiness audit still returns nonzero truthfully. Staging
+reports a clean provenance contract but a commit different from the release
+source; operational alert delivery lacks a retained dispatch receipt and
+recipient; notification email configuration is absent; the scheduled-backup
+configuration/manual/weekly receipts are absent; representative 28-day field
+samples are below the 75-per-metric gate; and the schema-v3 client-ready release
+record does not exist. Local `CMS_PRIVATE_REGISTRY_URL` and
+`CMS_PRIVATE_REGISTRY_TOKEN` are also absent. Registry publication/reinstall,
+exact deployed staging, independent security/documentation review, the
+non-developer pilot, and paid-client handover therefore remain external and are
+not inferred from the green candidate checks.

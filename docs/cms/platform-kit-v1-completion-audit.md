@@ -505,15 +505,19 @@ bundle proof. Later reruns exposed a preselected-port startup race and ANSI-code
 Vite-origin parser defect in the verification harness. The retained passing run
 includes the manifest, bundle, and readiness-harness corrections.
 
-This is authoritative hosted-provider and operating-system portability evidence
-for that commit. It is not registry provenance and does not cover the later
-uncommitted candidate changes, so the workflow must run again on the exact
-release commit.
+That first receipt remains authoritative for commit `c4b7c2f`. The exact
+release-source follow-up is
+[GitHub Actions run 32504935724](https://github.com/TongDucThanhNam/rem-viet/actions/runs/32504935724),
+bound to `35ff024162366e9616d26d89c836acbf9007cab1`. It passed PostgreSQL 17 plus
+pinned MinIO in 36 seconds, the Ubuntu packed consumer and clean-checkout
+rehearsal in 1 minute 24 seconds, and the Windows equivalent in 4 minutes 19
+seconds. The exact release-source hosted rerun is therefore complete. Neither
+receipt is private-registry provenance or deployed-staging evidence.
 
 ## Exact remaining completion sequence
 
-1. Produce the exact clean release commit and rerun the now-proven hosted
-   Windows/Linux/PostgreSQL/MinIO workflow against it. Configure an
+1. Exact clean release-source commit `35ff024162366e9616d26d89c836acbf9007cab1`
+   and its hosted Windows/Linux/PostgreSQL/MinIO receipt now exist. Configure an
    agency-controlled private registry in the release environment, run the
    exact-confirmation guarded publisher for eligible provenance, retain its
    verified package registry receipt, and reinstall the released versions into

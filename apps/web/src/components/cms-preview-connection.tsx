@@ -85,9 +85,11 @@ export function CmsPreviewConnectionRecovery({
 export function CmsPreviewConnectionLabel({
   connectedLabel,
   status,
+  tone = "dark",
 }: {
   connectedLabel: ReactNode;
   status: CmsPreviewConnectionStatus;
+  tone?: "dark" | "light";
 }) {
   if (status === "connected")
     return (
@@ -98,13 +100,21 @@ export function CmsPreviewConnectionLabel({
     );
   if (status === "delayed")
     return (
-      <span className="inline-flex items-center gap-1.5 text-rose-300">
+      <span
+        className={`inline-flex items-center gap-1.5 ${
+          tone === "dark" ? "text-rose-300" : "text-rose-700"
+        }`}
+      >
         <WifiOff aria-hidden className="size-3" />
         Canvas chưa phản hồi
       </span>
     );
   return (
-    <span className="inline-flex items-center gap-1.5 text-amber-200">
+    <span
+      className={`inline-flex items-center gap-1.5 ${
+        tone === "dark" ? "text-amber-200" : "text-amber-800"
+      }`}
+    >
       <Clock3 aria-hidden className="size-3" />
       Đang kết nối canvas
     </span>

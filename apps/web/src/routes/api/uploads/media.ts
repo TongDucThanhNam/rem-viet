@@ -9,6 +9,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { getAdminUser } from "@/functions/get-admin-user";
 import { discardRequestBody } from "@/lib/api-auth";
+import { rejectCrossSiteMutation } from "@/lib/mutation-request-security";
 import {
   mediaObjectKey,
   mediaPublicPath,
@@ -19,12 +20,27 @@ export const Route = createFileRoute("/api/uploads/media")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const crossSite = rejectCrossSiteMutation(request);
+        if (crossSite) {
+          await discardRequestBody(request);
+          return crossSite;
+        }
         const session = await getAdminUser();
         if (!session?.user) {
           await discardRequestBody(request);
           return Response.json(
             { message: "Admin authentication required", statusCode: 401 },
             { status: 401 },
+          );
+        }
+        if (session.mfaRequired) {
+          await discardRequestBody(request);
+          return Response.json(
+            {
+              message: "Two-factor authentication required",
+              statusCode: 403,
+            },
+            { status: 403 },
           );
         }
         if (!roleHasCapability(session.staffRole, "media.manage")) {

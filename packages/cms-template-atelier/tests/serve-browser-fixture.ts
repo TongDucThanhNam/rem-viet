@@ -23,7 +23,7 @@ Bun.serve({
       });
     }
     return new Response(
-      `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><style>html,body{margin:0}nav{position:sticky;top:0;z-index:2;display:flex;gap:8px;padding:8px;background:white}.atelier-site{max-width:100%;overflow:hidden}.atelier-columns{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;padding:16px}img{max-width:100%}@media(max-width:700px){.atelier-columns{grid-template-columns:1fr}}</style></head><body><div id="root"></div><script type="module" src="/app.js"></script></body></html>`,
+      `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Atelier CMS browser fixture</title><style>html,body{margin:0}nav{position:sticky;top:0;z-index:2;display:flex;gap:8px;padding:8px;background:white}.atelier-site{max-width:100%;overflow:hidden}.atelier-columns{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;padding:16px}img{max-width:100%}@media(max-width:700px){.atelier-columns{grid-template-columns:1fr}}</style></head><body><div id="root"></div><script type="module" src="/app.js"></script></body></html>`,
       { headers: { "Content-Type": "text/html; charset=utf-8" } },
     );
   },

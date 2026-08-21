@@ -1,0 +1,11 @@
+{
+  "name": "cms-plugin-clean-fixture",
+  "compatibility_date": "2026-08-20",
+  "d1_databases": [
+    {
+      "binding": "CMS_DB",
+      "database_name": "cms-plugin-clean-fixture-db",
+      "database_id": "fixture-only",
+    },
+  ],
+}

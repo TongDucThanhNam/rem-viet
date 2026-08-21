@@ -14,10 +14,16 @@ import {
   posts,
 } from "@rem-viet/db/schema/content";
 import { auditEvents } from "@rem-viet/db/schema/governance";
+import { cmsOutboxEvents } from "@rem-viet/db/schema/automation";
 import { and, desc, eq, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { reportOperationalIncident } from "./incidents";
+import { contentPublishedOutboxValues } from "./outbox";
+import { assertCmsWorkflowPublishAllowed } from "./workflow-policies";
+import { ContentWorkflowError } from "./content-workflow-error";
+
+export { ContentWorkflowError } from "./content-workflow-error";
 
 export type CmsActor = {
   userId: string;
@@ -97,16 +103,6 @@ export const unschedulePostInputSchema = z.object({
   postId: z.string().min(1),
   expectedVersion: z.coerce.number().int().positive().optional(),
 });
-
-export class ContentWorkflowError extends Error {
-  constructor(
-    readonly code: "CONFLICT" | "NOT_FOUND" | "INVALID_REVISION" | "FORBIDDEN",
-    message: string,
-  ) {
-    super(message);
-    this.name = "ContentWorkflowError";
-  }
-}
 
 function assertVersion(actual: number, expected?: number) {
   if (expected !== undefined && actual !== expected) {
@@ -309,6 +305,11 @@ export async function publishPage(
   }
 
   assertVersion(document.version, input.expectedVersion);
+  await assertCmsWorkflowPublishAllowed({
+    documentType: "page",
+    documentId: document.id,
+    version: document.version,
+  });
 
   const snapshot = pageSnapshot(document);
   const revisionId = crypto.randomUUID();
@@ -356,6 +357,15 @@ export async function publishPage(
         entityType: "page",
       }),
     ),
+    db.insert(cmsOutboxEvents).values(
+      contentPublishedOutboxValues({
+        documentType: "page",
+        documentId: document.id,
+        version: nextVersion,
+        revisionId,
+        occurredAt: now,
+      }),
+    ),
   ]);
 
   return { publishedRevisionId: revisionId, snapshot, version: nextVersion };
@@ -375,6 +385,11 @@ export async function publishPost(
   }
 
   assertVersion(document.version, input.expectedVersion);
+  await assertCmsWorkflowPublishAllowed({
+    documentType: "post",
+    documentId: document.id,
+    version: document.version,
+  });
 
   const now = new Date();
   const publishDate = document.publishDate || now.toISOString();
@@ -422,6 +437,15 @@ export async function publishPost(
         },
         entityId: document.id,
         entityType: "post",
+      }),
+    ),
+    db.insert(cmsOutboxEvents).values(
+      contentPublishedOutboxValues({
+        documentType: "post",
+        documentId: document.id,
+        version: nextVersion,
+        revisionId,
+        occurredAt: now,
       }),
     ),
   ]);
@@ -839,6 +863,15 @@ export async function publishDueContent(now = new Date()) {
   for (const item of duePages) {
     try {
       if (item.template === "standard") {
+        const { assertCmsWorkflowPublishAllowed } =
+          await import("./workflow-policies");
+        await assertCmsWorkflowPublishAllowed({
+          documentType: "page",
+          documentId: item.id,
+          version: (await db.query.pages.findFirst({
+            where: eq(pages.id, item.id),
+          }))!.version,
+        });
         const { publishRemVietStandardPage } =
           await import("./standard-page-runtime");
         await publishRemVietStandardPage(

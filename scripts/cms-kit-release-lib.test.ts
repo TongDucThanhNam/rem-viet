@@ -171,6 +171,8 @@ describe("CMS Kit private release provenance", () => {
       schemas: {
         remVietBlock: 1,
         cloudflareProvider: 1,
+        localProvider: 1,
+        postgresProvider: 1,
         cloudflareMigrationsThrough: "0003_media_metadata",
       },
       validatedWith: Object.fromEntries(
@@ -296,12 +298,12 @@ describe("CMS Kit private release provenance", () => {
   test("treats prepared bundle provenance as untrusted input", () => {
     expect(() =>
       assertCmsKitPublishPackageSet([{ name: "@agency/cms-core" }]),
-    ).toThrow(/exact eleven-package set/);
+    ).toThrow(/exact 24-package set/);
     expect(
       assertCmsKitPublishPackageSet(
         cmsKitPackageNames.map((name) => ({ name })),
       ),
-    ).toHaveLength(11);
+    ).toHaveLength(24);
     expect(() =>
       createCmsKitReleaseProvenance({
         version: "0.1.0",

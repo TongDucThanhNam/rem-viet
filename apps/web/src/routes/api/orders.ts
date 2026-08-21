@@ -20,8 +20,8 @@ function unwrapBody(value: unknown) {
 export const Route = createFileRoute("/api/orders")({
   server: {
     handlers: {
-      GET: async () => {
-        const unauthorized = await requireApiSession();
+      GET: async ({ request }) => {
+        const unauthorized = await requireApiSession(request);
 
         if (unauthorized) {
           return unauthorized;

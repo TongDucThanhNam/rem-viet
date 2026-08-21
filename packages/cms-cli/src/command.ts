@@ -12,10 +12,27 @@ import {
   type CmsCliMigrationDriver,
   type CmsCliMigrationRecoveryPoint,
 } from "./index";
+import {
+  CMS_INTEGRATION_RECEIPT_PATH,
+  applyCmsIntegrationPackageEntries,
+  assertTanStackStartPackage,
+  cmsIntegrationRequiredPackages,
+  cmsIntegrationSha256,
+  createCmsIntegration,
+  parseCmsIntegrationPackageJson,
+  parseCmsIntegrationProvider,
+  parseCmsIntegrationReceipt,
+  removeCmsIntegrationPackageEntries,
+  type CmsIntegrationReceipt,
+} from "./integration";
 
 export type CmsCliCommandPorts = Readonly<{
   read: (path: string) => Promise<string | null>;
   write: (path: string, content: string) => Promise<void>;
+  replace?: (path: string, content: string) => Promise<void>;
+  remove?: (path: string) => Promise<void>;
+  install?: () => Promise<void>;
+  importIntegrationProvider?: (provider: string) => Promise<unknown>;
   importTemplateInitializer: (specifier: string) => Promise<unknown>;
   importMigrationDriver: (path: string) => Promise<unknown>;
   environment?: Readonly<Record<string, string | undefined>>;
@@ -25,6 +42,9 @@ export type CmsCliCommandPorts = Readonly<{
 export const cmsCliHelp = `agency-cms <command> [options]
 
 Commands:
+  add        --framework=tanstack-start --provider=<id> [--dry-run] [--skip-install]
+  diagnose   [--receipt=.agency-cms/integration.receipt.json]
+  remove     [--receipt=.agency-cms/integration.receipt.json] [--dry-run] [--skip-install]
   plan-init  --template=<package|./module> --site=<slug> --name=<name> --site-url=<https-origin>
              --preset=<id> --provider=<id> --output=<file> [--locale=<tag>]
              [--features=<comma-list>] [--dry-run]
@@ -48,6 +68,9 @@ export async function runCmsCli(
     return Object.freeze({ ok: true as const, command: "help" as const });
   }
   const options = parseOptions(rawOptions);
+  if (command === "add") return runAdd(options, ports);
+  if (command === "diagnose") return runDiagnose(options, ports);
+  if (command === "remove") return runRemove(options, ports);
   if (command === "plan-init") return runPlanInit(options, ports);
   if (command === "init") return runInit(options, ports);
   if (command === "add-block") return runAddBlock(options, ports);
@@ -55,6 +78,362 @@ export async function runCmsCli(
   if (command === "migrate") return runMigration(options, ports);
   if (command === "rollback") return runRollback(options, ports);
   throw new Error(`Unknown CMS CLI command: ${command}.`);
+}
+
+async function integrationReceipt(path: string, ports: CmsCliCommandPorts) {
+  return parseCmsIntegrationReceipt(await readJson(path, ports));
+}
+
+function packageHas(manifest: Record<string, unknown>, name: string) {
+  const dependencies = manifest.dependencies as
+    Record<string, unknown> | undefined;
+  const devDependencies = manifest.devDependencies as
+    Record<string, unknown> | undefined;
+  return (
+    typeof dependencies?.[name] === "string" ||
+    typeof devDependencies?.[name] === "string"
+  );
+}
+
+async function preflightManagedFiles(
+  receipt: CmsIntegrationReceipt,
+  generated: ReturnType<typeof createCmsIntegration>["managedFiles"],
+  ports: CmsCliCommandPorts,
+) {
+  const generatedByPath = new Map(generated.map((file) => [file.path, file]));
+  const results: Array<{
+    path: string;
+    status: "unchanged" | "would-create";
+  }> = [];
+  for (const expected of receipt.managedFiles) {
+    const file = generatedByPath.get(expected.path);
+    if (!file || file.sha256 !== expected.sha256) {
+      throw new Error(
+        `CMS integration generator does not match receipt for ${expected.path}.`,
+      );
+    }
+    const existing = await ports.read(expected.path);
+    if (existing === null) {
+      results.push({ path: expected.path, status: "would-create" });
+      continue;
+    }
+    if (cmsIntegrationSha256(existing) !== expected.sha256) {
+      throw new Error(`Refusing to overwrite divergent file: ${expected.path}`);
+    }
+    results.push({ path: expected.path, status: "unchanged" });
+  }
+  return results;
+}
+
+async function runAdd(
+  options: Map<string, string | true>,
+  ports: CmsCliCommandPorts,
+) {
+  assertOptions(options, ["framework", "provider", "dry-run", "skip-install"]);
+  const framework = requiredValue(options, "framework");
+  const provider = requiredValue(options, "provider");
+  if (framework !== "tanstack-start") {
+    throw new Error("Only --framework=tanstack-start is currently supported.");
+  }
+  if (!/^[a-z][a-z0-9-]{1,62}$/.test(provider)) {
+    throw new Error("CMS provider id must be a safe package suffix.");
+  }
+  if (!ports.importIntegrationProvider) {
+    throw new Error("CMS integration provider loader is unavailable.");
+  }
+  if ((await ports.read("src/routes/__root.tsx")) === null) {
+    throw new Error(
+      "TanStack Start route root src/routes/__root.tsx was not found.",
+    );
+  }
+  const packageJsonSource = await ports.read("package.json");
+  if (packageJsonSource === null) {
+    throw new Error("package.json was not found.");
+  }
+  const providerDefinition = parseCmsIntegrationProvider(
+    await ports.importIntegrationProvider(provider),
+  );
+  if (providerDefinition.id !== provider) {
+    throw new Error(
+      "CMS integration provider identity does not match --provider.",
+    );
+  }
+  const desired = createCmsIntegration({
+    packageJsonSource,
+    framework,
+    provider: providerDefinition,
+  });
+  const existingReceiptSource = await ports.read(CMS_INTEGRATION_RECEIPT_PATH);
+  const receipt = existingReceiptSource
+    ? parseCmsIntegrationReceipt(JSON.parse(existingReceiptSource))
+    : desired.receipt;
+  if (receipt.framework !== framework || receipt.provider !== provider) {
+    throw new Error("Existing CMS integration receipt targets another setup.");
+  }
+  const fileResults = await preflightManagedFiles(
+    receipt,
+    desired.managedFiles,
+    ports,
+  );
+  const packageJson = applyCmsIntegrationPackageEntries(
+    desired.manifest,
+    receipt.packageEntries,
+  );
+  const packageChanged = packageJson !== packageJsonSource;
+  const dryRun = options.get("dry-run") === true;
+  const dependencyInstallRequired = (
+    await Promise.all(
+      cmsIntegrationRequiredPackages(receipt.providerPackage.name).map((name) =>
+        ports.read(`node_modules/${name}/package.json`),
+      ),
+    )
+  ).some((source) => source === null);
+  const skipInstall = options.get("skip-install") === true;
+  if (!dryRun) {
+    if (!ports.replace) {
+      throw new Error("CMS CLI replace filesystem port is unavailable.");
+    }
+    if (!existingReceiptSource) {
+      await ports.write(
+        CMS_INTEGRATION_RECEIPT_PATH,
+        `${JSON.stringify(receipt, null, 2)}\n`,
+      );
+    }
+    if (packageChanged) await ports.replace("package.json", packageJson);
+    const generatedByPath = new Map(
+      desired.managedFiles.map((file) => [file.path, file]),
+    );
+    for (const result of fileResults) {
+      if (result.status === "would-create") {
+        await ports.write(
+          result.path,
+          generatedByPath.get(result.path)!.content,
+        );
+      }
+    }
+    if (dependencyInstallRequired && !skipInstall) {
+      if (!ports.install) {
+        throw new Error("CMS CLI package install port is unavailable.");
+      }
+      await ports.install();
+    }
+  }
+  return emit(ports, {
+    ok: true,
+    command: "add",
+    framework,
+    provider,
+    dryRun,
+    receipt: CMS_INTEGRATION_RECEIPT_PATH,
+    packageJson: packageChanged
+      ? dryRun
+        ? "would-update"
+        : "updated"
+      : "unchanged",
+    install: dependencyInstallRequired
+      ? dryRun
+        ? "would-run"
+        : skipInstall
+          ? "skipped"
+          : "completed"
+      : "not-needed",
+    files: fileResults.map((result) => ({
+      ...result,
+      status:
+        result.status === "would-create" && !dryRun
+          ? ("created" as const)
+          : result.status,
+    })),
+  });
+}
+
+async function runDiagnose(
+  options: Map<string, string | true>,
+  ports: CmsCliCommandPorts,
+) {
+  assertOptions(options, ["receipt"]);
+  const receiptPath = optionalValue(options, "receipt")
+    ? requiredPath(options, "receipt")
+    : CMS_INTEGRATION_RECEIPT_PATH;
+  const receipt = await integrationReceipt(receiptPath, ports);
+  const packageSource = await ports.read(receipt.packageJsonPath);
+  if (packageSource === null) throw new Error("package.json was not found.");
+  const manifest = parseCmsIntegrationPackageJson(packageSource);
+  const checks: Array<{
+    id: string;
+    status: "pass" | "fail" | "attention";
+    message: string;
+  }> = [];
+  try {
+    assertTanStackStartPackage(manifest);
+    checks.push({
+      id: "framework",
+      status: "pass",
+      message: "TanStack Start and Router dependencies are present.",
+    });
+  } catch (error) {
+    checks.push({
+      id: "framework",
+      status: "fail",
+      message:
+        error instanceof Error ? error.message : "Framework check failed.",
+    });
+  }
+  const missingPackages = cmsIntegrationRequiredPackages(
+    receipt.providerPackage.name,
+  ).filter((name) => !packageHas(manifest, name));
+  checks.push({
+    id: "packages",
+    status: missingPackages.length ? "fail" : "pass",
+    message: missingPackages.length
+      ? `Missing packages: ${missingPackages.join(", ")}.`
+      : "All selected CMS packages are declared.",
+  });
+  const divergentFiles: string[] = [];
+  const missingFiles: string[] = [];
+  for (const file of receipt.managedFiles) {
+    const source = await ports.read(file.path);
+    if (source === null) missingFiles.push(file.path);
+    else if (cmsIntegrationSha256(source) !== file.sha256)
+      divergentFiles.push(file.path);
+  }
+  checks.push({
+    id: "managed-files",
+    status: missingFiles.length || divergentFiles.length ? "fail" : "pass",
+    message:
+      missingFiles.length || divergentFiles.length
+        ? `Missing: ${missingFiles.join(", ") || "none"}; modified: ${divergentFiles.join(", ") || "none"}.`
+        : "All generated integration files match the receipt.",
+  });
+  const authenticationEnvironment =
+    receipt.diagnostics.authenticationEnvironment;
+  const providerAuthPresent = authenticationEnvironment
+    ? Boolean(ports.environment?.[authenticationEnvironment]?.trim())
+    : false;
+  const applicationAuthPresent =
+    packageHas(manifest, "better-auth") ||
+    (await ports.read("src/routes/api/auth/$.ts")) !== null ||
+    (await ports.read("src/lib/auth.server.ts")) !== null;
+  const authPresent = providerAuthPresent || applicationAuthPresent;
+  checks.push({
+    id: "authentication",
+    status: authPresent ? "pass" : "attention",
+    message: authPresent
+      ? providerAuthPresent
+        ? `Provider authentication secret ${authenticationEnvironment} is configured.`
+        : "An application authentication surface was detected."
+      : authenticationEnvironment
+        ? `Provider authentication secret ${authenticationEnvironment} is not configured.`
+        : "No authentication surface was detected; configure actorFor before enabling CMS data access.",
+  });
+  const databaseSources = await Promise.all(
+    receipt.diagnostics.databaseConfigFiles.map((path) => ports.read(path)),
+  );
+  const databaseBinding = receipt.diagnostics.databaseBinding;
+  const databasePresent =
+    databaseBinding === null ||
+    databaseSources.some((source) => source?.includes(databaseBinding));
+  checks.push({
+    id: "database-binding",
+    status: databasePresent ? "pass" : "attention",
+    message: databasePresent
+      ? databaseBinding === null
+        ? "The selected provider does not require a database binding."
+        : `Provider database binding ${databaseBinding} was detected.`
+      : `Provider database binding ${databaseBinding} was not detected.`,
+  });
+  checks.push({
+    id: "provider-capabilities",
+    status: "pass",
+    message: Object.entries(receipt.capabilities)
+      .map(
+        ([name, supported]) =>
+          `${name}:${supported ? "supported" : "unavailable"}`,
+      )
+      .join(", "),
+  });
+  const failed = checks.some(({ status }) => status === "fail");
+  const attention = checks.some(({ status }) => status === "attention");
+  return emit(ports, {
+    ok: !failed,
+    ready: !failed && !attention,
+    command: "diagnose",
+    framework: receipt.framework,
+    provider: receipt.provider,
+    capabilities: receipt.capabilities,
+    checks,
+  });
+}
+
+async function runRemove(
+  options: Map<string, string | true>,
+  ports: CmsCliCommandPorts,
+) {
+  assertOptions(options, ["receipt", "dry-run", "skip-install"]);
+  const receiptPath = optionalValue(options, "receipt")
+    ? requiredPath(options, "receipt")
+    : CMS_INTEGRATION_RECEIPT_PATH;
+  const receipt = await integrationReceipt(receiptPath, ports);
+  const packageSource = await ports.read(receipt.packageJsonPath);
+  if (packageSource === null) throw new Error("package.json was not found.");
+  const manifest = parseCmsIntegrationPackageJson(packageSource);
+  const packageJson = removeCmsIntegrationPackageEntries(
+    manifest,
+    receipt.packageEntries,
+  );
+  for (const file of receipt.managedFiles) {
+    const source = await ports.read(file.path);
+    if (source !== null && cmsIntegrationSha256(source) !== file.sha256) {
+      throw new Error(`Refusing to remove modified CMS file: ${file.path}.`);
+    }
+  }
+  const dryRun = options.get("dry-run") === true;
+  const skipInstall = options.get("skip-install") === true;
+  const dependencyInstallRequired = receipt.packageEntries.some(
+    ({ section }) =>
+      section === "dependencies" || section === "devDependencies",
+  );
+  if (!dryRun) {
+    if (!ports.replace || !ports.remove) {
+      throw new Error("CMS CLI mutation filesystem ports are unavailable.");
+    }
+    if (packageJson !== packageSource) {
+      await ports.replace(receipt.packageJsonPath, packageJson);
+    }
+    if (dependencyInstallRequired && !skipInstall) {
+      if (!ports.install) {
+        throw new Error("CMS CLI package install port is unavailable.");
+      }
+      await ports.install();
+    }
+    for (const file of receipt.managedFiles) {
+      if ((await ports.read(file.path)) !== null) await ports.remove(file.path);
+    }
+    await ports.remove(receiptPath);
+  }
+  return emit(ports, {
+    ok: true,
+    command: "remove",
+    dryRun,
+    receipt: receiptPath,
+    packageJson:
+      packageJson === packageSource
+        ? "unchanged"
+        : dryRun
+          ? "would-update"
+          : "updated",
+    install: dependencyInstallRequired
+      ? dryRun
+        ? "would-run"
+        : skipInstall
+          ? "skipped"
+          : "completed"
+      : "not-needed",
+    files: receipt.managedFiles.map(({ path }) => ({
+      path,
+      status: dryRun ? "would-remove" : "removed",
+    })),
+  });
 }
 
 async function runPlanInit(
@@ -407,7 +786,7 @@ function assertOptions(
   const invalid = [...options.keys()].find((key) => !allowed.includes(key));
   if (invalid) throw new Error(`Unknown CMS CLI option: --${invalid}.`);
   for (const [key, value] of options) {
-    if (value === true && key !== "dry-run") {
+    if (value === true && key !== "dry-run" && key !== "skip-install") {
       throw new Error(`CMS CLI option --${key} requires a value.`);
     }
   }

@@ -1,8 +1,11 @@
 import { z } from "zod";
 
 export * from "./collections.js";
+export * from "./artifacts.js";
 export * from "./extensions.js";
+export * from "./extension-lifecycle.js";
 export * from "./fields.js";
+export * from "./jobs.js";
 export * from "./primitives.js";
 export * from "./relationships.js";
 import {
@@ -96,6 +99,64 @@ export type CmsEditorialReviewDecision = z.infer<
 
 export const cmsEditorialReviewNoteSchema = z.string().trim().max(500);
 
+const cmsEditorialPrincipalIdSchema = z.string().trim().min(1).max(256);
+const cmsEditorialPrincipalIdsSchema = z
+  .array(cmsEditorialPrincipalIdSchema)
+  .max(20)
+  .transform((values) => [...new Set(values)].sort());
+
+export const cmsEditorialReviewChecklistItemSchema = z.object({
+  id: z
+    .string()
+    .trim()
+    .min(1)
+    .max(64)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  label: z.string().trim().min(1).max(160),
+  required: z.boolean().default(true),
+});
+export type CmsEditorialReviewChecklistItem = z.infer<
+  typeof cmsEditorialReviewChecklistItemSchema
+>;
+
+const cmsEditorialReviewTaskShape = {
+  assigneeIds: cmsEditorialPrincipalIdsSchema.default([]),
+  assigneeRoles: z
+    .array(z.string().trim().min(1).max(64))
+    .max(10)
+    .default([])
+    .transform((values) => [...new Set(values)].sort()),
+  mentionIds: cmsEditorialPrincipalIdsSchema.default([]),
+  dueAt: z.string().datetime({ offset: true }).nullable().default(null),
+  checklist: z.array(cmsEditorialReviewChecklistItemSchema).max(20).default([]),
+  notify: z.boolean().default(true),
+};
+
+function validateEditorialReviewChecklistIds(
+  value: { checklist: Array<{ id: string }> },
+  context: z.RefinementCtx,
+) {
+  const checklistIds = value.checklist.map((item) => item.id);
+  const duplicate = checklistIds.find(
+    (id, index) => checklistIds.indexOf(id) !== index,
+  );
+  if (duplicate) {
+    context.addIssue({
+      code: "custom",
+      message: `Duplicate checklist item: ${duplicate}`,
+      path: ["checklist"],
+    });
+  }
+}
+
+/** Portable task metadata attached to the immutable review request event. */
+export const cmsEditorialReviewTaskSchema = z
+  .object(cmsEditorialReviewTaskShape)
+  .superRefine(validateEditorialReviewChecklistIds);
+export type CmsEditorialReviewTask = z.infer<
+  typeof cmsEditorialReviewTaskSchema
+>;
+
 export const cmsEditorialReviewTargetSchema = z.object({
   documentType: z.string().trim().min(1).max(128),
   documentId: z.string().trim().min(1).max(128),
@@ -104,19 +165,27 @@ export type CmsEditorialReviewTarget = z.infer<
   typeof cmsEditorialReviewTargetSchema
 >;
 
+const cmsEditorialReviewCommandSchema = cmsEditorialReviewTargetSchema.extend({
+  expectedVersion: z.number().int().nonnegative(),
+  actorId: cmsEditorialPrincipalIdSchema,
+  actorRole: z.string().trim().min(1).max(64).optional(),
+  note: cmsEditorialReviewNoteSchema.default(""),
+});
+
 export const requestCmsEditorialReviewInputSchema =
-  cmsEditorialReviewTargetSchema.extend({
-    expectedVersion: z.number().int().nonnegative(),
-    actorId: z.string().trim().min(1).max(256),
-    note: cmsEditorialReviewNoteSchema.default(""),
-  });
-export type RequestCmsEditorialReviewInput = z.infer<
+  cmsEditorialReviewCommandSchema
+    .extend(cmsEditorialReviewTaskShape)
+    .superRefine(validateEditorialReviewChecklistIds);
+export type RequestCmsEditorialReviewInput = z.input<
   typeof requestCmsEditorialReviewInputSchema
 >;
 
 export const decideCmsEditorialReviewInputSchema =
-  requestCmsEditorialReviewInputSchema
-    .extend({ decision: cmsEditorialReviewDecisionSchema })
+  cmsEditorialReviewCommandSchema
+    .extend({
+      decision: cmsEditorialReviewDecisionSchema,
+      completedChecklistItemIds: cmsEditorialPrincipalIdsSchema.default([]),
+    })
     .superRefine((value, context) => {
       if (value.decision === "changes_requested" && !value.note) {
         context.addIssue({
@@ -126,7 +195,7 @@ export const decideCmsEditorialReviewInputSchema =
         });
       }
     });
-export type DecideCmsEditorialReviewInput = z.infer<
+export type DecideCmsEditorialReviewInput = z.input<
   typeof decideCmsEditorialReviewInputSchema
 >;
 

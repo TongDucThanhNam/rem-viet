@@ -21,10 +21,33 @@ function manifest(packageDirectory: string) {
     dependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
     peerDependencies?: Record<string, string>;
+    peerDependenciesMeta?: Record<string, { optional?: boolean }>;
   };
 }
 
 describe("Platform Kit package boundaries", () => {
+  test("pins one Bun runtime and wires Windows/Linux plus real provider CI", () => {
+    const repository = JSON.parse(
+      readFileSync(join(root, "package.json"), "utf8"),
+    ) as { packageManager?: string };
+    const workflow = readFileSync(
+      join(root, ".github", "workflows", "cms-plugin-conformance.yml"),
+      "utf8",
+    );
+
+    expect(repository.packageManager).toBe("bun@1.4.0");
+    expect(workflow.match(/bun-version: 1\.4\.0/g)).toHaveLength(2);
+    expect(workflow).toContain("os: [ubuntu-latest, windows-latest]");
+    expect(workflow).toContain("bun run cms:kit:clean-checkout");
+    expect(workflow).toContain("image: postgres:17-alpine");
+    expect(workflow).toContain("CMS_POSTGRES_TEST_URL:");
+    expect(workflow).toContain("CMS_S3_TEST_ENDPOINT:");
+    expect(workflow).toContain(
+      "quay.io/minio/minio:RELEASE.2025-06-13T11-33-47Z",
+    );
+    expect(workflow).toContain("bun --cwd packages/cms-provider-postgres test");
+  });
+
   test("cms-core has only its schema dependency", () => {
     const value = manifest("cms-core");
     expect(Object.keys(value.dependencies ?? {})).toEqual(["zod"]);
@@ -35,6 +58,8 @@ describe("Platform Kit package boundaries", () => {
   test("neutral package sources and manifests contain no provider or client coupling", () => {
     for (const packageDirectory of [
       "cms-core",
+      "cms-agency",
+      "cms-collaboration",
       "cms-runtime",
       "cms-react",
       "cms-admin",
@@ -42,7 +67,10 @@ describe("Platform Kit package boundaries", () => {
       "cms-visual-editor",
     ]) {
       const directory = join(root, "packages", packageDirectory);
-      const content = filesBelow(directory)
+      const content = [
+        ...filesBelow(join(directory, "src")),
+        join(directory, "package.json"),
+      ]
         .filter(
           (path) => !path.includes("node_modules") && !path.includes(".turbo"),
         )
@@ -63,6 +91,42 @@ describe("Platform Kit package boundaries", () => {
   });
 
   test("dependencies point inward through React and template to core", () => {
+    expect(Object.keys(manifest("cms-agency").dependencies ?? {})).toEqual([
+      "zod",
+    ]);
+    expect(Object.keys(manifest("cms-agency").peerDependencies ?? {})).toEqual([
+      "@agency/cms-core",
+    ]);
+    expect(manifest("cms-agency").peerDependenciesMeta).toEqual({
+      "@agency/cms-core": { optional: true },
+    });
+    for (const packageDirectory of [
+      "cms-module-forms",
+      "cms-module-import",
+      "cms-module-observability",
+      "cms-module-privacy",
+      "cms-module-redirects",
+      "cms-module-seo",
+      "cms-module-taxonomy",
+    ]) {
+      expect(
+        Object.keys(manifest(packageDirectory).dependencies ?? {}),
+      ).toEqual([]);
+      expect(
+        Object.keys(manifest(packageDirectory).peerDependencies ?? {}),
+      ).toEqual(["@agency/cms-core"]);
+    }
+    for (const packageDirectory of [
+      "cms-module-cache-cloudflare",
+      "cms-module-search",
+    ]) {
+      expect(
+        Object.keys(manifest(packageDirectory).dependencies ?? {}),
+      ).toEqual([]);
+      expect(
+        Object.keys(manifest(packageDirectory).peerDependencies ?? {}).sort(),
+      ).toEqual(["@agency/cms-core", "@agency/cms-runtime"]);
+    }
     expect(Object.keys(manifest("cms-runtime").dependencies ?? {})).toEqual([]);
     expect(Object.keys(manifest("cms-runtime").peerDependencies ?? {})).toEqual(
       ["@agency/cms-core"],
@@ -73,6 +137,25 @@ describe("Platform Kit package boundaries", () => {
     expect(
       Object.keys(
         manifest("cms-provider-cloudflare").peerDependencies ?? {},
+      ).sort(),
+    ).toEqual(["@agency/cms-core", "@agency/cms-runtime"]);
+    expect(
+      Object.keys(manifest("cms-provider-local").dependencies ?? {}),
+    ).toEqual(["@libsql/client"]);
+    expect(
+      Object.keys(manifest("cms-provider-local").peerDependencies ?? {}).sort(),
+    ).toEqual(["@agency/cms-core", "@agency/cms-runtime"]);
+    expect(
+      Object.keys(manifest("cms-provider-postgres").dependencies ?? {}).sort(),
+    ).toEqual([
+      "@aws-sdk/client-s3",
+      "@aws-sdk/s3-request-presigner",
+      "@types/pg",
+      "pg",
+    ]);
+    expect(
+      Object.keys(
+        manifest("cms-provider-postgres").peerDependencies ?? {},
       ).sort(),
     ).toEqual(["@agency/cms-core", "@agency/cms-runtime"]);
     expect(
@@ -113,6 +196,7 @@ describe("Platform Kit package boundaries", () => {
         manifest("cms-template-atelier").peerDependencies ?? {},
       ).sort(),
     ).toEqual([
+      "@agency/cms-admin",
       "@agency/cms-template-factory",
       "@agency/cms-visual-editor",
       "react",
@@ -341,10 +425,12 @@ describe("Platform Kit package boundaries", () => {
     expect(compatibility.schemas).toMatchObject({
       remVietBlock: 1,
       cloudflareProvider: 1,
-      cloudflareMigrationsThrough: "0003_media_metadata",
+      localProvider: 1,
+      postgresProvider: 1,
+      cloudflareMigrationsThrough: "0009_editorial_review_tasks",
     });
     expect(compatibility.validatedWith).toMatchObject({
-      bun: "1.3.14",
+      bun: "1.4.0",
       tanstackReactRouter: "1.170.6",
       tanstackReactStart: "1.168.9",
       alchemy: "2.0.0-beta.72",
@@ -394,6 +480,32 @@ describe("Platform Kit package boundaries", () => {
     expect(content).not.toMatch(/@rem-viet/i);
     expect(content).not.toMatch(/cms-template-rem-viet/i);
     expect(content).not.toMatch(/drizzle/i);
+    expect(content).not.toMatch(/packages\/db/i);
+  });
+
+  test("local provider is app-independent and does not couple to another provider", () => {
+    const directory = join(root, "packages", "cms-provider-local", "src");
+    const content = filesBelow(directory)
+      .map((path) => readFileSync(path, "utf8"))
+      .join("\n");
+
+    expect(content).not.toMatch(/@rem-viet/i);
+    expect(content).not.toMatch(/cms-template-rem-viet/i);
+    expect(content).not.toMatch(/cms-provider-cloudflare/i);
+    expect(content).not.toMatch(/cms-provider-sanity/i);
+    expect(content).not.toMatch(/packages\/db/i);
+  });
+
+  test("PostgreSQL provider is app-independent and keeps SQLite/D1/Sanity out", () => {
+    const directory = join(root, "packages", "cms-provider-postgres", "src");
+    const content = filesBelow(directory)
+      .map((path) => readFileSync(path, "utf8"))
+      .join("\n");
+
+    expect(content).not.toMatch(/@rem-viet/i);
+    expect(content).not.toMatch(/cms-template-rem-viet/i);
+    expect(content).not.toMatch(/@libsql|cms-provider-local/i);
+    expect(content).not.toMatch(/cms-provider-cloudflare|cms-provider-sanity/i);
     expect(content).not.toMatch(/packages\/db/i);
   });
 
@@ -705,6 +817,181 @@ describe("Platform Kit package boundaries", () => {
     expect(session).toContain("createPreviewSessionBinding");
   });
 
+  test("standard-page and post previews exclusively use the authenticated v2 session", () => {
+    const routes = [
+      join(root, "apps", "web", "src", "routes", "admin", "pages.tsx"),
+      join(
+        root,
+        "apps",
+        "web",
+        "src",
+        "routes",
+        "admin",
+        "pages_",
+        "$pageId",
+        "preview.tsx",
+      ),
+      join(
+        root,
+        "apps",
+        "web",
+        "src",
+        "routes",
+        "admin",
+        "posts",
+        "$postId",
+        "edit.tsx",
+      ),
+      join(
+        root,
+        "apps",
+        "web",
+        "src",
+        "routes",
+        "admin",
+        "posts",
+        "$postId",
+        "preview.tsx",
+      ),
+    ].map((path) => readFileSync(path, "utf8"));
+    const postProtocol = readFileSync(
+      join(root, "apps", "web", "src", "lib", "post-preview.ts"),
+      "utf8",
+    );
+
+    for (const source of routes) {
+      expect(source).toContain("createCmsVisualPreviewSession");
+      expect(source).toContain("event.source !==");
+      expect(source).not.toMatch(/cms:(?:standard-page|post-preview)/);
+      expect(source).not.toMatch(
+        /postMessage\(\s*createCmsVisualEditor(?:Ready|State|Selection|Move|Insert|Duplicate|Remove)Message/,
+      );
+    }
+    for (const preview of [routes[1]!, routes[3]!]) {
+      expect(preview).toContain("createCmsVisualPreviewResponseHeaders");
+      expect(preview).toContain("previewSessionBinding");
+    }
+    expect(postProtocol).not.toMatch(/cms:post-preview/);
+  });
+
+  test("Rèm and Atelier bind their visual workspaces to the packaged editor shell", () => {
+    const neutralShell = readFileSync(
+      join(root, "packages", "cms-admin", "src", "editor-shell.tsx"),
+      "utf8",
+    );
+    const remShell = readFileSync(
+      join(
+        root,
+        "packages",
+        "cms-template-rem-viet",
+        "src",
+        "editor-shell.tsx",
+      ),
+      "utf8",
+    );
+    const atelierShell = readFileSync(
+      join(root, "packages", "cms-template-atelier", "src", "admin.tsx"),
+      "utf8",
+    );
+    const remRoutes = [
+      join(root, "apps", "web", "src", "routes", "admin", "home.tsx"),
+      join(root, "apps", "web", "src", "routes", "admin", "pages.tsx"),
+      join(
+        root,
+        "apps",
+        "web",
+        "src",
+        "routes",
+        "admin",
+        "posts",
+        "$postId",
+        "edit.tsx",
+      ),
+    ].map((path) => readFileSync(path, "utf8"));
+
+    expect(neutralShell).toContain("data-cms-editor-shell");
+    expect(remShell).toContain("<CmsEditorShell");
+    expect(atelierShell).toContain("<CmsEditorShell");
+    for (const route of remRoutes) {
+      expect(route).toContain("<RemVietEditorShell");
+    }
+  });
+
+  test("operator onboarding enforces reset, verification, MFA, lockout, and recovery boundaries", () => {
+    const auth = readFileSync(
+      join(root, "packages", "auth", "src", "index.ts"),
+      "utf8",
+    );
+    const authSchema = readFileSync(
+      join(root, "packages", "db", "src", "schema", "auth.ts"),
+      "utf8",
+    );
+    const apiBoundary = readFileSync(
+      join(root, "packages", "api", "src", "index.ts"),
+      "utf8",
+    );
+    const security = readFileSync(
+      join(root, "apps", "web", "src", "routes", "admin", "security.tsx"),
+      "utf8",
+    );
+    const challenge = readFileSync(
+      join(root, "apps", "web", "src", "routes", "xac-thuc-hai-lop.tsx"),
+      "utf8",
+    );
+    const governance = readFileSync(
+      join(root, "packages", "api", "src", "services", "governance.ts"),
+      "utf8",
+    );
+    const apiKeys = readFileSync(
+      join(root, "packages", "api", "src", "services", "api-keys.ts"),
+      "utf8",
+    );
+    const apiContext = readFileSync(
+      join(root, "packages", "api", "src", "context.ts"),
+      "utf8",
+    );
+    const serviceAccountManager = readFileSync(
+      join(
+        root,
+        "apps",
+        "web",
+        "src",
+        "components",
+        "service-account-manager.tsx",
+      ),
+      "utf8",
+    );
+
+    expect(auth).toContain("resetPasswordTokenExpiresIn: 30 * 60");
+    expect(auth).toContain("revokeSessionsOnPasswordReset: true");
+    expect(auth).toContain("sendVerificationEmail");
+    expect(auth).toContain("accountLockout");
+    expect(auth).toContain("maxFailedAttempts: 5");
+    expect(auth).toContain('storage: "database"');
+    expect(auth).toContain('"/sign-in/*": { window: 60, max: 5 }');
+    expect(authSchema).toContain("export const twoFactor = sqliteTable(");
+    expect(authSchema).toContain("failedVerificationCount: integer(");
+    expect(apiBoundary).toContain("isStaffMfaRequired");
+    expect(apiBoundary).toContain('cause: "MFA_REQUIRED"');
+    expect(security).toContain("authClient.twoFactor.enable");
+    expect(security).toContain("mfaSetup.backupCodes");
+    expect(challenge).toContain("verifyBackupCode");
+    expect(challenge).toContain("ACCOUNT_TEMPORARILY_LOCKED");
+    expect(governance).toContain('action: "staff.invite_sent"');
+    expect(governance).toContain('action: "staff.invite_failed"');
+    expect(governance).not.toMatch(/after:\s*\{[^}]*password/s);
+    expect(apiKeys).toContain('const keyPrefix = "cmsk"');
+    expect(apiKeys).toContain('crypto.subtle.digest(\n    "SHA-256"');
+    expect(apiKeys).toContain('capability !== "staff.manage"');
+    expect(apiKeys).toContain('action: "service_account.key_rotate"');
+    expect(apiKeys).toContain('action: "service_account.key_revoke"');
+    expect(apiKeys).not.toMatch(/after:\s*\{[^}]*(?:rawKey|secretHash)/s);
+    expect(apiContext).toContain("authenticateCmsApiKey");
+    expect(apiContext).toContain('("apiKey" as const)');
+    expect(serviceAccountManager).toContain("Hãy sao chép khóa ngay");
+    expect(serviceAccountManager).toContain("Ma trận quyền");
+  });
+
   test("editorial review is a neutral runtime/provider/admin capability", () => {
     const core = readFileSync(
       join(root, "packages", "cms-core", "src", "index.ts"),
@@ -769,18 +1056,33 @@ describe("Platform Kit package boundaries", () => {
       join(root, "packages", "api", "src", "services", "home-page-runtime.ts"),
       "utf8",
     );
+    const managedWorkflow = readFileSync(
+      join(
+        root,
+        "packages",
+        "api",
+        "src",
+        "services",
+        "managed-page-workflow.ts",
+      ),
+      "utf8",
+    );
 
     expect(router).toContain("listRemVietHomeRevisions");
     expect(router).toContain("saveRemVietHomeDraft");
-    expect(router).toContain("publishRemVietHomePage");
+    expect(router).toContain("publishManagedPage");
     expect(router).toContain("scheduleRemVietHomePage");
     expect(router).toContain("unscheduleRemVietHomePage");
-    expect(router).toContain("restoreRemVietHomeRevision");
+    expect(router).toContain("restoreManagedPageRevision");
+    expect(router).toContain("unpublishManagedPage");
     expect(router).toContain('capabilityProcedure("content.schedule")');
     expect(adapter).toContain("createCloudflareCmsPageProvider");
     expect(adapter).toContain("getPublishedRemVietHomePage");
     expect(adapter).toContain("prepareMutationStatements");
     expect(adapter).toContain("encodeRemVietHomeRevision");
+    expect(managedWorkflow).toContain("publishRemVietHomePage");
+    expect(managedWorkflow).toContain("restoreRemVietHomeRevision");
+    expect(managedWorkflow).toContain("unpublishRemVietHomePage");
   });
 
   test("media upload, list, metadata, usage, and delete adopt the provider", () => {
@@ -820,6 +1122,17 @@ describe("Platform Kit package boundaries", () => {
       ),
       "utf8",
     );
+    const managedWorkflow = readFileSync(
+      join(
+        root,
+        "packages",
+        "api",
+        "src",
+        "services",
+        "managed-page-workflow.ts",
+      ),
+      "utf8",
+    );
     const editor = readFileSync(
       join(root, "apps", "web", "src", "routes", "admin", "pages.tsx"),
       "utf8",
@@ -835,10 +1148,10 @@ describe("Platform Kit package boundaries", () => {
     expect(editor).toContain("<CmsBlockEditor");
     expect(editor).not.toContain('selected?.type === "');
     expect(router).toContain("saveRemVietStandardPageDraft");
-    expect(router).toContain("publishRemVietStandardPage");
+    expect(router).toContain("publishManagedPage");
     expect(router).toContain("scheduleRemVietStandardPage");
     expect(router).toContain("createRemVietStandardPage");
-    expect(router).toContain("unpublishRemVietStandardPage");
+    expect(router).toContain("unpublishManagedPage");
     expect(router).toContain("deleteRemVietStandardPage");
     expect(adapter).toContain("createCloudflareCmsCollectionProvider");
     expect(adapter).toContain("createCmsPageCollectionAdapter");
@@ -846,6 +1159,9 @@ describe("Platform Kit package boundaries", () => {
     expect(adapter).toContain("pageMutationStatements");
     expect(adapter).toContain("pageSlugRedirectStatements");
     expect(adapter).toContain("validateRedirectGraph");
+    expect(managedWorkflow).toContain("publishRemVietStandardPage");
+    expect(managedWorkflow).toContain("unpublishRemVietStandardPage");
+    expect(managedWorkflow).toContain("restoreRemVietStandardPageRevision");
   });
 
   test("page editors resolve actions from provider and server capabilities", () => {

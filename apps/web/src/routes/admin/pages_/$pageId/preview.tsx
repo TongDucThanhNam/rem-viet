@@ -3,19 +3,18 @@ import {
   createCmsVisualEditorDuplicateMessage,
   createCmsVisualEditorInsertMessage,
   createCmsVisualEditorMoveMessage,
-  createCmsVisualEditorReadyMessage,
   createCmsVisualEditorRemoveMessage,
   createCmsVisualEditorSelectionMessage,
-  isCmsVisualEditorMessage,
+  createCmsVisualPreviewResponseHeaders,
+  createCmsVisualPreviewSession,
+  type CmsVisualEditorMessage,
   type CmsVisualEditorStateMessage,
 } from "@agency/cms-visual-editor";
 import {
   remVietStandardBlockAuthoringByType,
   remVietStandardBlockAuthoringCatalog,
-  remVietStandardBlockSchema,
   type RemVietStandardBlock,
 } from "@agency/cms-template-rem-viet";
-import { pageBlockListSchema, type PageBlock } from "@rem-viet/cms";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import {
@@ -31,6 +30,7 @@ import {
   Trash2,
 } from "lucide-react";
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -41,16 +41,45 @@ import {
 
 import CmsPageBlocks from "@/components/cms-page-blocks";
 import { getPreviewAdminUser } from "@/functions/get-preview-admin-user";
-import { siteConfig } from "@/lib/site-config";
-import { isUnsavedStandardPagePreviewId } from "@/lib/standard-page-preview";
+import { siteConfig, siteManifest } from "@/lib/site-config";
+import {
+  isUnsavedStandardPagePreviewId,
+  parseStandardPagePreviewState,
+  type StandardPagePreviewState,
+} from "@/lib/standard-page-preview";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/admin/pages_/$pageId/preview")({
-  headers: () => ({
-    "Cache-Control": "private, no-store, max-age=0",
-    "X-Robots-Tag": "noindex, nofollow, noarchive",
+  validateSearch: (search: Record<string, unknown>) => ({
+    ...(typeof search.cmsBinding === "string" && search.cmsBinding
+      ? { cmsBinding: search.cmsBinding }
+      : {}),
+    ...(typeof search.cmsConflict === "string" && search.cmsConflict
+      ? { cmsConflict: search.cmsConflict }
+      : {}),
+    ...(typeof search.cmsSession === "string" && search.cmsSession
+      ? { cmsSession: search.cmsSession }
+      : {}),
   }),
-  beforeLoad: async () => ({ session: await getPreviewAdminUser() }),
+  headers: () =>
+    createCmsVisualPreviewResponseHeaders({ frameAncestors: ["'self'"] }),
+  beforeLoad: async ({ search }) => {
+    const session = await getPreviewAdminUser();
+    if (!session) throw redirect({ to: "/dang-nhap" });
+    const hasChannel = Boolean(
+      search.cmsBinding || search.cmsConflict || search.cmsSession,
+    );
+    if (
+      hasChannel &&
+      (!search.cmsBinding ||
+        !search.cmsConflict ||
+        !search.cmsSession ||
+        search.cmsBinding !== session.previewSessionBinding)
+    ) {
+      throw redirect({ to: "/admin/pages" });
+    }
+    return { session };
+  },
   loader: async ({ context }) => {
     if (!context.session) throw redirect({ to: "/dang-nhap" });
   },
@@ -63,29 +92,9 @@ export const Route = createFileRoute("/admin/pages_/$pageId/preview")({
   component: StandardPagePreviewRoute,
 });
 
-type StandardPagePreviewMessage = {
-  type: "cms:standard-page-preview";
-  pageId: string;
-  title: string;
-  blocks: PageBlock[];
-};
-
-function isStandardPagePreviewMessage(
-  value: unknown,
-  pageId: string,
-): value is StandardPagePreviewMessage {
-  if (!value || typeof value !== "object") return false;
-  const candidate = value as Record<string, unknown>;
-  return (
-    candidate.type === "cms:standard-page-preview" &&
-    candidate.pageId === pageId &&
-    typeof candidate.title === "string" &&
-    pageBlockListSchema.safeParse(candidate.blocks).success
-  );
-}
-
 function StandardPagePreviewRoute() {
   const { pageId } = Route.useParams();
+  const search = Route.useSearch();
   const trpc = useTRPC();
   const isUnsavedPreview = isUnsavedStandardPagePreviewId(pageId);
   const pageQuery = useQuery({
@@ -94,13 +103,48 @@ function StandardPagePreviewRoute() {
   });
   const page = pageQuery.data?.data;
   const [workingCopy, setWorkingCopy] =
-    useState<StandardPagePreviewMessage | null>(null);
+    useState<StandardPagePreviewState | null>(null);
   const [visualState, setVisualState] =
     useState<CmsVisualEditorStateMessage<RemVietStandardBlock> | null>(null);
   const [draggedBlockId, setDraggedBlockId] = useState<string | null>(null);
   const [composerBlockId, setComposerBlockId] = useState<string | null>(null);
   const [catalogQuery, setCatalogQuery] = useState("");
   const draggedBlockIdRef = useRef<string | null>(null);
+  const previewSessionRef = useRef<ReturnType<
+    typeof createCmsVisualPreviewSession
+  > | null>(null);
+  const channelActive = Boolean(
+    search.cmsBinding && search.cmsConflict && search.cmsSession,
+  );
+  const getPreviewSession = useCallback(() => {
+    if (!previewSessionRef.current) {
+      previewSessionRef.current = createCmsVisualPreviewSession({
+        source: "preview",
+        expectedSource: "host",
+        identity: {
+          siteId: siteManifest.id,
+          documentId: pageId,
+          documentType: "standardPage",
+          sessionId: search.cmsSession ?? "",
+          sessionBinding: search.cmsBinding ?? "",
+          documentVersion: 0,
+          conflictToken: search.cmsConflict ?? "",
+        },
+        allowedOrigins: new Set([window.location.origin]),
+      });
+    }
+    return previewSessionRef.current;
+  }, [pageId, search.cmsBinding, search.cmsConflict, search.cmsSession]);
+  const postPreviewCommand = useCallback(
+    (command: CmsVisualEditorMessage) => {
+      if (!channelActive || window.parent === window) return;
+      window.parent.postMessage(
+        getPreviewSession().create({ type: "command", command }),
+        window.location.origin,
+      );
+    },
+    [channelActive, getPreviewSession],
+  );
 
   useEffect(() => {
     const receiveWorkingCopy = (event: MessageEvent<unknown>) => {
@@ -109,19 +153,33 @@ function StandardPagePreviewRoute() {
         event.source !== window.parent
       )
         return;
-      if (isStandardPagePreviewMessage(event.data, pageId)) {
-        setWorkingCopy(event.data);
+      if (!channelActive) return;
+      const validation = getPreviewSession().receive({
+        value: event.data,
+        origin: event.origin,
+      });
+      if (!validation.accepted || validation.envelope.payload.type !== "state")
         return;
-      }
-      if (
-        isCmsVisualEditorMessage(event.data) &&
-        event.data.type === "state" &&
-        remVietStandardBlockSchema.array().safeParse(event.data.blocks).success
-      ) {
-        setVisualState(
-          event.data as CmsVisualEditorStateMessage<RemVietStandardBlock>,
+      const state = parseStandardPagePreviewState(
+        validation.envelope.payload.state,
+        pageId,
+      );
+      if (!state) return;
+      const session = getPreviewSession();
+      const versionChanged =
+        session.snapshot().identity.documentVersion !==
+        state.visualState.revision;
+      if (versionChanged) {
+        window.parent.postMessage(
+          session.acknowledgeDocumentVersion(
+            validation.envelope.messageId,
+            state.visualState.revision,
+          ),
+          window.location.origin,
         );
       }
+      setWorkingCopy(state);
+      setVisualState(state.visualState);
     };
     const clearDropMarkers = () => {
       for (const block of document.querySelectorAll<HTMLElement>(
@@ -174,17 +232,8 @@ function StandardPagePreviewRoute() {
       ) {
         event.preventDefault();
         event.stopPropagation();
-        window.parent.postMessage(
-          {
-            type: "cms:standard-page-preview-intent",
-            pageId,
-            intent: createCmsVisualEditorMoveMessage(
-              sourceId,
-              targetId,
-              placement,
-            ),
-          },
-          window.location.origin,
+        postPreviewCommand(
+          createCmsVisualEditorMoveMessage(sourceId, targetId, placement),
         );
       }
       finishDragging();
@@ -193,21 +242,19 @@ function StandardPagePreviewRoute() {
     window.addEventListener("dragover", dragOverBlock, true);
     window.addEventListener("drop", dropBlock, true);
     window.addEventListener("dragend", finishDragging, true);
-    window.parent.postMessage(
-      { type: "cms:standard-page-preview-ready", pageId },
-      window.location.origin,
-    );
-    window.parent.postMessage(
-      createCmsVisualEditorReadyMessage(),
-      window.location.origin,
-    );
+    if (channelActive && window.parent !== window) {
+      window.parent.postMessage(
+        getPreviewSession().create({ type: "ready" }),
+        window.location.origin,
+      );
+    }
     return () => {
       window.removeEventListener("message", receiveWorkingCopy);
       window.removeEventListener("dragover", dragOverBlock, true);
       window.removeEventListener("drop", dropBlock, true);
       window.removeEventListener("dragend", finishDragging, true);
     };
-  }, [pageId]);
+  }, [channelActive, getPreviewSession, pageId, postPreviewCommand]);
 
   const title = workingCopy?.title || page?.title || "Bản nháp trang";
   const blocks = workingCopy?.blocks ?? page?.blocks;
@@ -220,14 +267,10 @@ function StandardPagePreviewRoute() {
     catalogQuery,
   );
 
-  const postAuthoringMessage = (intent: unknown) =>
-    window.parent.postMessage(
-      { type: "cms:standard-page-preview-intent", pageId, intent },
-      window.location.origin,
-    );
+  const postAuthoringMessage = postPreviewCommand;
   const postToolbarIntent = (
     event: MouseEvent<HTMLButtonElement> | KeyboardEvent<HTMLButtonElement>,
-    intent: unknown,
+    intent: CmsVisualEditorMessage,
   ) => {
     event.preventDefault();
     event.stopPropagation();
@@ -235,7 +278,7 @@ function StandardPagePreviewRoute() {
   };
   const postToolbarKeyIntent = (
     event: KeyboardEvent<HTMLButtonElement>,
-    intent: unknown,
+    intent: CmsVisualEditorMessage,
   ) => {
     if (event.repeat || (event.key !== "Enter" && event.key !== " ")) return;
     postToolbarIntent(event, intent);

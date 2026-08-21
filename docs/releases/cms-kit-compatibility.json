@@ -4,10 +4,12 @@
   "schemas": {
     "remVietBlock": 1,
     "cloudflareProvider": 1,
-    "cloudflareMigrationsThrough": "0003_media_metadata"
+    "localProvider": 1,
+    "postgresProvider": 1,
+    "cloudflareMigrationsThrough": "0009_editorial_review_tasks"
   },
   "validatedWith": {
-    "bun": "1.3.14",
+    "bun": "1.4.0",
     "typescript": "6.0.3",
     "react": "19.2.6",
     "vite": "8.2.1",
@@ -25,8 +27,21 @@
       },
       "packages": [
         "@agency/cms-core",
+        "@agency/cms-agency",
+        "@agency/cms-collaboration",
         "@agency/cms-runtime",
+        "@agency/cms-module-cache-cloudflare",
+        "@agency/cms-module-forms",
+        "@agency/cms-module-import",
+        "@agency/cms-module-observability",
+        "@agency/cms-module-privacy",
+        "@agency/cms-module-redirects",
+        "@agency/cms-module-search",
+        "@agency/cms-module-seo",
+        "@agency/cms-module-taxonomy",
         "@agency/cms-provider-cloudflare",
+        "@agency/cms-provider-local",
+        "@agency/cms-provider-postgres",
         "@agency/cms-react",
         "@agency/cms-admin",
         "@agency/cms-alchemy",

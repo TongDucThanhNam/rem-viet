@@ -63,6 +63,7 @@ import {
   unpublishPost,
   type CmsActor,
 } from "./content-revisions";
+import { assertCmsWorkflowInitialPublishAllowed } from "./workflow-policies";
 
 const defaultSettingsId = "default";
 
@@ -563,6 +564,10 @@ export async function createPost(
   const slug = normalizeSlug(input.slug, input.title);
   const shouldPublish = input.status === "published";
 
+  if (shouldPublish) {
+    await assertCmsWorkflowInitialPublishAllowed("post");
+  }
+
   await assertUniquePostSlug(slug);
 
   const [createdPost] = await db
@@ -848,6 +853,10 @@ export async function createPage(
   const pageId = crypto.randomUUID();
   const slug = normalizeSlug(input.slug, input.title);
   const shouldPublish = input.status === "published";
+
+  if (shouldPublish) {
+    await assertCmsWorkflowInitialPublishAllowed("page");
+  }
 
   await assertUniquePageSlug(slug);
 

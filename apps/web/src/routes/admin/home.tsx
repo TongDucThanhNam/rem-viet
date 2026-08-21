@@ -26,6 +26,7 @@ import {
   validateCmsVisualPreviewEnvelope,
   type CmsVisualPreviewIdentity,
 } from "@agency/cms-visual-editor";
+import { RemVietEditorShell } from "@agency/cms-template-rem-viet/admin";
 import {
   remVietTemplateAuthoringCatalog,
   remVietTemplateBlockLabels as homeBlockLabels,
@@ -314,6 +315,10 @@ function AdminHomeRoute() {
   const previewHostSequence = useRef(0);
   const previewChannelReady = useRef(false);
   const previewReplay = useRef(initialCmsVisualPreviewReplayState());
+  const pendingPreviewVersion = useRef<{
+    messageId: string;
+    version: number;
+  } | null>(null);
   const previewIdentity = useRef<CmsVisualPreviewIdentity>({
     siteId: siteManifest.id,
     documentId: "home",
@@ -338,6 +343,7 @@ function AdminHomeRoute() {
   });
   const {
     markConnected: markPreviewConnected,
+    markFrameLoading: markPreviewFrameLoading,
     markFrameLoaded: markPreviewFrameLoaded,
     reloadKey: previewReloadKey,
     retry: retryPreview,
@@ -345,14 +351,16 @@ function AdminHomeRoute() {
   } = useCmsPreviewConnection();
 
   useEffect(() => {
+    markPreviewFrameLoading();
     previewChannelReady.current = false;
     previewHostSequence.current = 0;
     previewReplay.current = initialCmsVisualPreviewReplayState();
+    pendingPreviewVersion.current = null;
     previewIdentity.current = {
       ...previewIdentity.current,
       documentVersion: 0,
     };
-  }, [previewReloadKey]);
+  }, [markPreviewFrameLoading, previewReloadKey]);
 
   const markDraftDirty = useCallback(() => {
     editGeneration.current += 1;
@@ -446,6 +454,7 @@ function AdminHomeRoute() {
 
   const syncVisualPreview = useCallback(() => {
     if (!previewChannelReady.current) return;
+    if (pendingPreviewVersion.current) return;
     const state = createCmsVisualEditorStateMessage({
       blocks,
       selectedBlockId: selectedBlock?.id ?? null,
@@ -454,20 +463,23 @@ function AdminHomeRoute() {
       revision: workingVersion,
     });
     const sequence = ++previewHostSequence.current;
+    const envelope = createCmsVisualPreviewEnvelope({
+      source: "host",
+      messageId: `${previewIdentity.current.sessionId}:host:${sequence}`,
+      sequence,
+      identity: previewIdentity.current,
+      payload: { type: "state", state },
+    });
+    if (previewIdentity.current.documentVersion !== workingVersion) {
+      pendingPreviewVersion.current = {
+        messageId: envelope.messageId,
+        version: workingVersion,
+      };
+    }
     previewFrameRef.current?.contentWindow?.postMessage(
-      createCmsVisualPreviewEnvelope({
-        source: "host",
-        messageId: `${previewIdentity.current.sessionId}:host:${sequence}`,
-        sequence,
-        identity: previewIdentity.current,
-        payload: { type: "state", state },
-      }),
+      envelope,
       window.location.origin,
     );
-    previewIdentity.current = {
-      ...previewIdentity.current,
-      documentVersion: workingVersion,
-    };
   }, [
     blocks,
     selectedBlock?.id,
@@ -478,6 +490,23 @@ function AdminHomeRoute() {
 
   useEffect(() => syncVisualPreview(), [syncVisualPreview]);
 
+  const previewHostActionsRef = useRef({
+    applyCompositionResult,
+    blocks,
+    markEdited,
+    markPreviewConnected,
+    selectedBlock,
+    syncVisualPreview,
+  });
+  previewHostActionsRef.current = {
+    applyCompositionResult,
+    blocks,
+    markEdited,
+    markPreviewConnected,
+    selectedBlock,
+    syncVisualPreview,
+  };
+
   useEffect(() => {
     const receivePreviewMessage = (event: MessageEvent<unknown>) => {
       if (
@@ -485,7 +514,7 @@ function AdminHomeRoute() {
         event.source !== previewFrameRef.current?.contentWindow
       )
         return;
-      const validation = validateCmsVisualPreviewEnvelope({
+      let validation = validateCmsVisualPreviewEnvelope({
         value: event.data,
         origin: event.origin,
         allowedOrigins: new Set([window.location.origin]),
@@ -493,13 +522,53 @@ function AdminHomeRoute() {
         expectedIdentity: previewIdentity.current,
         replay: previewReplay.current,
       });
+      const pendingVersion = pendingPreviewVersion.current;
+      if (
+        !validation.accepted &&
+        validation.reason === "identity" &&
+        pendingVersion
+      ) {
+        const transitionValidation = validateCmsVisualPreviewEnvelope({
+          value: event.data,
+          origin: event.origin,
+          allowedOrigins: new Set([window.location.origin]),
+          expectedSource: "preview",
+          expectedIdentity: {
+            ...previewIdentity.current,
+            documentVersion: pendingVersion.version,
+          },
+          replay: previewReplay.current,
+        });
+        if (
+          transitionValidation.accepted &&
+          transitionValidation.envelope.payload.type === "ack" &&
+          transitionValidation.envelope.payload.acknowledgedMessageId ===
+            pendingVersion.messageId
+        ) {
+          validation = transitionValidation;
+        }
+      }
       if (!validation.accepted) return;
       previewReplay.current = validation.replay;
       const payload = validation.envelope.payload;
+      if (payload.type === "ack") {
+        if (
+          pendingVersion &&
+          payload.acknowledgedMessageId === pendingVersion.messageId
+        ) {
+          previewIdentity.current = {
+            ...previewIdentity.current,
+            documentVersion: pendingVersion.version,
+          };
+          pendingPreviewVersion.current = null;
+          previewHostActionsRef.current.syncVisualPreview();
+        }
+        return;
+      }
       if (payload.type === "ready") {
         previewChannelReady.current = true;
-        markPreviewConnected();
-        syncVisualPreview();
+        previewHostActionsRef.current.markPreviewConnected();
+        previewHostActionsRef.current.syncVisualPreview();
         return;
       }
       if (
@@ -508,6 +577,8 @@ function AdminHomeRoute() {
       )
         return;
       const message = payload.command;
+      const { applyCompositionResult, blocks, markEdited, selectedBlock } =
+        previewHostActionsRef.current;
       if (message.type === "move") {
         const nextBlocks = moveHomeVisualBlock(blocks, message);
         if (!nextBlocks) return;
@@ -563,14 +634,7 @@ function AdminHomeRoute() {
     };
     window.addEventListener("message", receivePreviewMessage);
     return () => window.removeEventListener("message", receivePreviewMessage);
-  }, [
-    applyCompositionResult,
-    blocks,
-    markPreviewConnected,
-    markEdited,
-    selectedBlock?.id,
-    syncVisualPreview,
-  ]);
+  }, []);
 
   useEffect(() => {
     if (!selectedBlock || !selectedFieldPath) return;
@@ -1194,6 +1258,9 @@ function AdminHomeRoute() {
       {editorReady && page ? (
         <div className="mb-4">
           <EditorialReviewPanel
+            commentGranted={
+              session?.capabilities.includes("content.write") ?? false
+            }
             currentVersion={workingVersion}
             decisionGranted={
               session?.capabilities.includes("content.review.decide") ?? false
@@ -1213,13 +1280,7 @@ function AdminHomeRoute() {
       ) : null}
 
       {editorReady ? (
-        <div
-          aria-label={
-            workspaceFocused
-              ? "Không gian biên tập trực quan tập trung"
-              : undefined
-          }
-          aria-modal={workspaceFocused || undefined}
+        <RemVietEditorShell
           className={`grid gap-4 xl:h-[calc(100dvh-10rem)] xl:min-h-[42rem] xl:gap-0 xl:overflow-hidden xl:border ${
             workspaceFocused
               ? "fixed inset-3 z-[100] rounded-xl bg-background shadow-[0_30px_120px_rgba(0,0,0,0.45)] ring-1 ring-black/10 xl:min-h-0 xl:grid-cols-[minmax(0,1fr)_26rem]"
@@ -1228,8 +1289,11 @@ function AdminHomeRoute() {
           data-cms-home-workspace-mode={
             workspaceFocused ? "focused" : "standard"
           }
+          documentId="home"
+          documentType="homepage"
+          label="Không gian biên tập Trang chủ trực quan"
+          mode={workspaceFocused ? "focused" : "standard"}
           ref={workspaceRef}
-          role={workspaceFocused ? "dialog" : undefined}
           style={
             workspaceFocused ? { height: "calc(100dvh - 1.5rem)" } : undefined
           }
@@ -1807,7 +1871,7 @@ function AdminHomeRoute() {
               </CardContent>
             </Card>
           </aside>
-        </div>
+        </RemVietEditorShell>
       ) : (
         <Card aria-busy="true">
           <CardContent>

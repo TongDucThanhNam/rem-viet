@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as XacThucHaiLopRouteImport } from './routes/xac-thuc-hai-lop'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SanPhamRouteImport } from './routes/san-pham'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
@@ -22,6 +23,7 @@ import { Route as LienHeRouteImport } from './routes/lien-he'
 import { Route as InventoryRouteImport } from './routes/inventory'
 import { Route as GioiThieuRouteImport } from './routes/gioi-thieu'
 import { Route as GioHangRouteImport } from './routes/gio-hang'
+import { Route as DatLaiMatKhauRouteImport } from './routes/dat-lai-mat-khau'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as DanhSachSanPhamRouteImport } from './routes/danh-sach-san-pham'
 import { Route as DangNhapRouteImport } from './routes/dang-nhap'
@@ -57,12 +59,14 @@ import { Route as ApiAddProductRouteImport } from './routes/api/add-product'
 import { Route as AdminStaffRouteImport } from './routes/admin/staff'
 import { Route as AdminSettingsPreviewRouteImport } from './routes/admin/settings-preview'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminSecurityRouteImport } from './routes/admin/security'
 import { Route as AdminRedirectsRouteImport } from './routes/admin/redirects'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminPostsRouteImport } from './routes/admin/posts'
 import { Route as AdminPerformanceRouteImport } from './routes/admin/performance'
 import { Route as AdminPagesRouteImport } from './routes/admin/pages'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
+import { Route as AdminOperationsRouteImport } from './routes/admin/operations'
 import { Route as AdminMediaRouteImport } from './routes/admin/media'
 import { Route as AdminLogsRouteImport } from './routes/admin/logs'
 import { Route as AdminLeadsRouteImport } from './routes/admin/leads'
@@ -112,6 +116,11 @@ import { Route as AdminPostsPostIdPreviewRouteImport } from './routes/admin/post
 import { Route as AdminPostsPostIdEditRouteImport } from './routes/admin/posts/$postId/edit'
 import { Route as AdminPagesPageIdPreviewRouteImport } from './routes/admin/pages_/$pageId/preview'
 
+const XacThucHaiLopRoute = XacThucHaiLopRouteImport.update({
+  id: '/xac-thuc-hai-lop',
+  path: '/xac-thuc-hai-lop',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -175,6 +184,11 @@ const GioiThieuRoute = GioiThieuRouteImport.update({
 const GioHangRoute = GioHangRouteImport.update({
   id: '/gio-hang',
   path: '/gio-hang',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DatLaiMatKhauRoute = DatLaiMatKhauRouteImport.update({
+  id: '/dat-lai-mat-khau',
+  path: '/dat-lai-mat-khau',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -352,6 +366,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/admin/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminSecurityRoute = AdminSecurityRouteImport.update({
+  id: '/admin/security',
+  path: '/admin/security',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRedirectsRoute = AdminRedirectsRouteImport.update({
   id: '/admin/redirects',
   path: '/admin/redirects',
@@ -380,6 +399,11 @@ const AdminPagesRoute = AdminPagesRouteImport.update({
 const AdminOrdersRoute = AdminOrdersRouteImport.update({
   id: '/admin/orders',
   path: '/admin/orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminOperationsRoute = AdminOperationsRouteImport.update({
+  id: '/admin/operations',
+  path: '/admin/operations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminMediaRoute = AdminMediaRouteImport.update({
@@ -640,6 +664,7 @@ export interface FileRoutesByFullPath {
   '/dang-nhap': typeof DangNhapRoute
   '/danh-sach-san-pham': typeof DanhSachSanPhamRoute
   '/dashboard': typeof DashboardRoute
+  '/dat-lai-mat-khau': typeof DatLaiMatKhauRoute
   '/gio-hang': typeof GioHangRoute
   '/gioi-thieu': typeof GioiThieuRoute
   '/inventory': typeof InventoryRoute
@@ -653,6 +678,7 @@ export interface FileRoutesByFullPath {
   '/robots.txt': typeof RobotsDottxtRoute
   '/san-pham': typeof SanPhamRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/xac-thuc-hai-lop': typeof XacThucHaiLopRoute
   '/admin/add-product': typeof AdminAddProductRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -664,12 +690,14 @@ export interface FileRoutesByFullPath {
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/media': typeof AdminMediaRoute
+  '/admin/operations': typeof AdminOperationsRoute
   '/admin/orders': typeof AdminOrdersRouteWithChildren
   '/admin/pages': typeof AdminPagesRoute
   '/admin/performance': typeof AdminPerformanceRoute
   '/admin/posts': typeof AdminPostsRouteWithChildren
   '/admin/products': typeof AdminProductsRouteWithChildren
   '/admin/redirects': typeof AdminRedirectsRoute
+  '/admin/security': typeof AdminSecurityRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/settings-preview': typeof AdminSettingsPreviewRoute
   '/admin/staff': typeof AdminStaffRoute
@@ -743,6 +771,7 @@ export interface FileRoutesByTo {
   '/dang-nhap': typeof DangNhapRoute
   '/danh-sach-san-pham': typeof DanhSachSanPhamRoute
   '/dashboard': typeof DashboardRoute
+  '/dat-lai-mat-khau': typeof DatLaiMatKhauRoute
   '/gio-hang': typeof GioHangRoute
   '/gioi-thieu': typeof GioiThieuRoute
   '/inventory': typeof InventoryRoute
@@ -756,6 +785,7 @@ export interface FileRoutesByTo {
   '/robots.txt': typeof RobotsDottxtRoute
   '/san-pham': typeof SanPhamRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/xac-thuc-hai-lop': typeof XacThucHaiLopRoute
   '/admin/add-product': typeof AdminAddProductRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -766,9 +796,11 @@ export interface FileRoutesByTo {
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/media': typeof AdminMediaRoute
+  '/admin/operations': typeof AdminOperationsRoute
   '/admin/pages': typeof AdminPagesRoute
   '/admin/performance': typeof AdminPerformanceRoute
   '/admin/redirects': typeof AdminRedirectsRoute
+  '/admin/security': typeof AdminSecurityRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/settings-preview': typeof AdminSettingsPreviewRoute
   '/admin/staff': typeof AdminStaffRoute
@@ -843,6 +875,7 @@ export interface FileRoutesById {
   '/dang-nhap': typeof DangNhapRoute
   '/danh-sach-san-pham': typeof DanhSachSanPhamRoute
   '/dashboard': typeof DashboardRoute
+  '/dat-lai-mat-khau': typeof DatLaiMatKhauRoute
   '/gio-hang': typeof GioHangRoute
   '/gioi-thieu': typeof GioiThieuRoute
   '/inventory': typeof InventoryRoute
@@ -856,6 +889,7 @@ export interface FileRoutesById {
   '/robots.txt': typeof RobotsDottxtRoute
   '/san-pham': typeof SanPhamRouteWithChildren
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/xac-thuc-hai-lop': typeof XacThucHaiLopRoute
   '/admin/add-product': typeof AdminAddProductRoute
   '/admin/audit': typeof AdminAuditRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -867,12 +901,14 @@ export interface FileRoutesById {
   '/admin/leads': typeof AdminLeadsRoute
   '/admin/logs': typeof AdminLogsRoute
   '/admin/media': typeof AdminMediaRoute
+  '/admin/operations': typeof AdminOperationsRoute
   '/admin/orders': typeof AdminOrdersRouteWithChildren
   '/admin/pages': typeof AdminPagesRoute
   '/admin/performance': typeof AdminPerformanceRoute
   '/admin/posts': typeof AdminPostsRouteWithChildren
   '/admin/products': typeof AdminProductsRouteWithChildren
   '/admin/redirects': typeof AdminRedirectsRoute
+  '/admin/security': typeof AdminSecurityRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/settings-preview': typeof AdminSettingsPreviewRoute
   '/admin/staff': typeof AdminStaffRoute
@@ -949,6 +985,7 @@ export interface FileRouteTypes {
     | '/dang-nhap'
     | '/danh-sach-san-pham'
     | '/dashboard'
+    | '/dat-lai-mat-khau'
     | '/gio-hang'
     | '/gioi-thieu'
     | '/inventory'
@@ -962,6 +999,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/san-pham'
     | '/sitemap.xml'
+    | '/xac-thuc-hai-lop'
     | '/admin/add-product'
     | '/admin/audit'
     | '/admin/categories'
@@ -973,12 +1011,14 @@ export interface FileRouteTypes {
     | '/admin/leads'
     | '/admin/logs'
     | '/admin/media'
+    | '/admin/operations'
     | '/admin/orders'
     | '/admin/pages'
     | '/admin/performance'
     | '/admin/posts'
     | '/admin/products'
     | '/admin/redirects'
+    | '/admin/security'
     | '/admin/settings'
     | '/admin/settings-preview'
     | '/admin/staff'
@@ -1052,6 +1092,7 @@ export interface FileRouteTypes {
     | '/dang-nhap'
     | '/danh-sach-san-pham'
     | '/dashboard'
+    | '/dat-lai-mat-khau'
     | '/gio-hang'
     | '/gioi-thieu'
     | '/inventory'
@@ -1065,6 +1106,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/san-pham'
     | '/sitemap.xml'
+    | '/xac-thuc-hai-lop'
     | '/admin/add-product'
     | '/admin/audit'
     | '/admin/categories'
@@ -1075,9 +1117,11 @@ export interface FileRouteTypes {
     | '/admin/leads'
     | '/admin/logs'
     | '/admin/media'
+    | '/admin/operations'
     | '/admin/pages'
     | '/admin/performance'
     | '/admin/redirects'
+    | '/admin/security'
     | '/admin/settings'
     | '/admin/settings-preview'
     | '/admin/staff'
@@ -1151,6 +1195,7 @@ export interface FileRouteTypes {
     | '/dang-nhap'
     | '/danh-sach-san-pham'
     | '/dashboard'
+    | '/dat-lai-mat-khau'
     | '/gio-hang'
     | '/gioi-thieu'
     | '/inventory'
@@ -1164,6 +1209,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/san-pham'
     | '/sitemap.xml'
+    | '/xac-thuc-hai-lop'
     | '/admin/add-product'
     | '/admin/audit'
     | '/admin/categories'
@@ -1175,12 +1221,14 @@ export interface FileRouteTypes {
     | '/admin/leads'
     | '/admin/logs'
     | '/admin/media'
+    | '/admin/operations'
     | '/admin/orders'
     | '/admin/pages'
     | '/admin/performance'
     | '/admin/posts'
     | '/admin/products'
     | '/admin/redirects'
+    | '/admin/security'
     | '/admin/settings'
     | '/admin/settings-preview'
     | '/admin/staff'
@@ -1256,6 +1304,7 @@ export interface RootRouteChildren {
   DangNhapRoute: typeof DangNhapRoute
   DanhSachSanPhamRoute: typeof DanhSachSanPhamRoute
   DashboardRoute: typeof DashboardRoute
+  DatLaiMatKhauRoute: typeof DatLaiMatKhauRoute
   GioHangRoute: typeof GioHangRoute
   GioiThieuRoute: typeof GioiThieuRoute
   InventoryRoute: typeof InventoryRoute
@@ -1269,6 +1318,7 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SanPhamRoute: typeof SanPhamRouteWithChildren
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  XacThucHaiLopRoute: typeof XacThucHaiLopRoute
   AdminAddProductRoute: typeof AdminAddProductRoute
   AdminAuditRoute: typeof AdminAuditRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
@@ -1280,12 +1330,14 @@ export interface RootRouteChildren {
   AdminLeadsRoute: typeof AdminLeadsRoute
   AdminLogsRoute: typeof AdminLogsRoute
   AdminMediaRoute: typeof AdminMediaRoute
+  AdminOperationsRoute: typeof AdminOperationsRoute
   AdminOrdersRoute: typeof AdminOrdersRouteWithChildren
   AdminPagesRoute: typeof AdminPagesRoute
   AdminPerformanceRoute: typeof AdminPerformanceRoute
   AdminPostsRoute: typeof AdminPostsRouteWithChildren
   AdminProductsRoute: typeof AdminProductsRouteWithChildren
   AdminRedirectsRoute: typeof AdminRedirectsRoute
+  AdminSecurityRoute: typeof AdminSecurityRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
   AdminSettingsPreviewRoute: typeof AdminSettingsPreviewRoute
   AdminStaffRoute: typeof AdminStaffRoute
@@ -1328,6 +1380,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/xac-thuc-hai-lop': {
+      id: '/xac-thuc-hai-lop'
+      path: '/xac-thuc-hai-lop'
+      fullPath: '/xac-thuc-hai-lop'
+      preLoaderRoute: typeof XacThucHaiLopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -1417,6 +1476,13 @@ declare module '@tanstack/react-router' {
       path: '/gio-hang'
       fullPath: '/gio-hang'
       preLoaderRoute: typeof GioHangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dat-lai-mat-khau': {
+      id: '/dat-lai-mat-khau'
+      path: '/dat-lai-mat-khau'
+      fullPath: '/dat-lai-mat-khau'
+      preLoaderRoute: typeof DatLaiMatKhauRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -1664,6 +1730,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/security': {
+      id: '/admin/security'
+      path: '/admin/security'
+      fullPath: '/admin/security'
+      preLoaderRoute: typeof AdminSecurityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/redirects': {
       id: '/admin/redirects'
       path: '/admin/redirects'
@@ -1704,6 +1777,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/orders'
       fullPath: '/admin/orders'
       preLoaderRoute: typeof AdminOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/operations': {
+      id: '/admin/operations'
+      path: '/admin/operations'
+      fullPath: '/admin/operations'
+      preLoaderRoute: typeof AdminOperationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/media': {
@@ -2241,6 +2321,7 @@ const rootRouteChildren: RootRouteChildren = {
   DangNhapRoute: DangNhapRoute,
   DanhSachSanPhamRoute: DanhSachSanPhamRoute,
   DashboardRoute: DashboardRoute,
+  DatLaiMatKhauRoute: DatLaiMatKhauRoute,
   GioHangRoute: GioHangRoute,
   GioiThieuRoute: GioiThieuRoute,
   InventoryRoute: InventoryRoute,
@@ -2254,6 +2335,7 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   SanPhamRoute: SanPhamRouteWithChildren,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  XacThucHaiLopRoute: XacThucHaiLopRoute,
   AdminAddProductRoute: AdminAddProductRoute,
   AdminAuditRoute: AdminAuditRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
@@ -2265,12 +2347,14 @@ const rootRouteChildren: RootRouteChildren = {
   AdminLeadsRoute: AdminLeadsRoute,
   AdminLogsRoute: AdminLogsRoute,
   AdminMediaRoute: AdminMediaRoute,
+  AdminOperationsRoute: AdminOperationsRoute,
   AdminOrdersRoute: AdminOrdersRouteWithChildren,
   AdminPagesRoute: AdminPagesRoute,
   AdminPerformanceRoute: AdminPerformanceRoute,
   AdminPostsRoute: AdminPostsRouteWithChildren,
   AdminProductsRoute: AdminProductsRouteWithChildren,
   AdminRedirectsRoute: AdminRedirectsRoute,
+  AdminSecurityRoute: AdminSecurityRoute,
   AdminSettingsRoute: AdminSettingsRoute,
   AdminSettingsPreviewRoute: AdminSettingsPreviewRoute,
   AdminStaffRoute: AdminStaffRoute,

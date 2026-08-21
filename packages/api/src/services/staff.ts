@@ -12,6 +12,7 @@ import { eq } from "drizzle-orm";
 type StaffIdentity = {
   id: string;
   email?: string | null;
+  twoFactorEnabled?: boolean | null;
 };
 
 function bootstrapOwnerEmails() {
@@ -64,4 +65,14 @@ export function capabilitiesForRole(role: StaffRole | null) {
   return role
     ? ([...roleCapabilities[role]] satisfies CmsCapability[])
     : ([] satisfies CmsCapability[]);
+}
+
+/** Owner and admin identities must enroll MFA before receiving CMS authority. */
+export function isStaffMfaRequired(
+  role: StaffRole | null,
+  user?: StaffIdentity | null,
+) {
+  return (
+    (role === "owner" || role === "admin") && user?.twoFactorEnabled !== true
+  );
 }

@@ -5,6 +5,46 @@ Callable, filesystem-port-based CMS project operations plus the packaged
 block scaffolds, ordered content migrations, artifact/resource verification,
 and production-safe release migration orchestration.
 
+## Add to an existing TanStack Start app
+
+Run the integration from the existing app root:
+
+```bash
+bunx --bun @agency/cms-cli add \
+  --framework=tanstack-start \
+  --provider=<provider-id> \
+  --dry-run
+bunx --bun @agency/cms-cli add \
+  --framework=tanstack-start \
+  --provider=<provider-id>
+bun run cms:diagnose
+```
+
+`add` first verifies the TanStack package and file-route root. It only adds
+missing package entries and creates new CMS-owned files. A write-ahead receipt
+at `.agency-cms/integration.receipt.json` records the exact package entries and
+SHA-256 of every managed file, so an interrupted command can be rerun safely.
+Existing divergent files and package scripts fail closed.
+When package dependencies are missing, `add` runs `bun install` as part of the
+same command. Automated or offline workflows may opt out explicitly with
+`--skip-install` and install the reviewed package changes themselves.
+
+Provider-specific routes, bindings, migrations, and diagnostics come from the
+selected provider package's versioned `./integration` export. Generated REST
+routes remain fail-closed until the application supplies the binding and actor
+resolver required by that provider. Run `diagnose` to see separate framework,
+package, generated-file, authentication, and provider-binding checks.
+
+Removal is reviewable and refuses to delete a generated file or package entry
+that the consumer changed after installation:
+
+```bash
+bunx --bun @agency/cms-cli remove --dry-run
+bunx --bun @agency/cms-cli remove
+```
+
+Consumer-owned package entries added after CMS installation are preserved.
+
 ```bash
 bunx --bun @agency/cms-cli --help
 bunx --bun @agency/cms-cli plan-init \

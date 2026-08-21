@@ -11,10 +11,12 @@ import {
 import {
   commitCmsDraftHistory,
   createCmsDraftHistory,
+  createCmsVisualPreviewSession,
   redoCmsDraftHistory,
   undoCmsDraftHistory,
 } from "@agency/cms-visual-editor";
 import { remVietRichTextBlockLabels } from "@agency/cms-template-rem-viet";
+import { RemVietEditorShell } from "@agency/cms-template-rem-viet/admin";
 import {
   parseRichTextDocument,
   postRevisionSnapshotSchema,
@@ -68,14 +70,13 @@ import RevisionFieldComparison from "@/components/revision-field-comparison";
 import { getAdminUser } from "@/functions/get-admin-user";
 import { useSaveBeforeNavigation } from "@/hooks/use-save-before-navigation";
 import {
-  isPostPreviewCompositionMessage,
-  isPostPreviewSelectMessage,
+  isPostPreviewCompositionCommand,
+  isPostPreviewSelectCommand,
   type PostPreviewField,
 } from "@/lib/post-preview";
-import type {
-  PostRichTextCompositionCommand,
-  PostRichTextCompositionRequest,
-} from "@/lib/post-rich-text-composition";
+import type { PostRichTextCompositionCommand } from "@/lib/post-rich-text-composition";
+import { applyPostRichTextComposition } from "@/lib/post-rich-text-composition";
+import { siteManifest } from "@/lib/site-config";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/admin/posts/$postId/edit")({
@@ -282,6 +283,7 @@ function PostResponsivePreview({
   postId,
   values,
   version,
+  previewChannel,
   workspaceFocusTriggerRef,
   workspaceFocused,
 }: {
@@ -295,6 +297,11 @@ function PostResponsivePreview({
   postId: string;
   values: CmsPostFormValues;
   version: number;
+  previewChannel: Readonly<{
+    conflictToken: string;
+    sessionBinding: string;
+    sessionId: string;
+  }>;
   workspaceFocusTriggerRef: RefObject<HTMLButtonElement | null>;
   workspaceFocused: boolean;
 }) {
@@ -310,32 +317,96 @@ function PostResponsivePreview({
   const frameRef = useRef<HTMLIFrameElement>(null);
   const {
     markConnected,
+    markFrameLoading,
     markFrameLoaded,
     reloadKey,
     retry,
     status: connectionStatus,
   } = useCmsPreviewConnection();
   const valuesRef = useRef(values);
+  const onCompositionRef = useRef(onComposition);
+  const onSelectedBlockChangeRef = useRef(onSelectedBlockChange);
   const selectedFieldRef = useRef(selectedField);
   const selectedBlockIndexRef = useRef(selectedBlockIndex);
+  const shouldFocusInspectorRef = useRef(false);
+  const versionRef = useRef(version);
   const profile = postPreviewProfiles[device];
-  const previewUrl = `/admin/posts/${encodeURIComponent(postId)}/preview`;
+  const standalonePreviewUrl = `/admin/posts/${encodeURIComponent(postId)}/preview`;
+  const previewUrl = `${standalonePreviewUrl}?${new URLSearchParams({
+    cmsBinding: previewChannel.sessionBinding,
+    cmsConflict: previewChannel.conflictToken,
+    cmsSession: previewChannel.sessionId,
+  })}`;
+  const channelReadyRef = useRef(false);
+  const previewSessionRef = useRef<{
+    key: string;
+    session: ReturnType<typeof createCmsVisualPreviewSession>;
+  } | null>(null);
   valuesRef.current = values;
+  onCompositionRef.current = onComposition;
+  onSelectedBlockChangeRef.current = onSelectedBlockChange;
   selectedFieldRef.current = selectedField;
   selectedBlockIndexRef.current = selectedBlockIndex;
+  versionRef.current = version;
+  const getPreviewSession = useCallback(() => {
+    const key = [
+      postId,
+      previewChannel.sessionId,
+      previewChannel.sessionBinding,
+      previewChannel.conflictToken,
+      reloadKey,
+    ].join(":");
+    if (previewSessionRef.current?.key !== key) {
+      previewSessionRef.current = {
+        key,
+        session: createCmsVisualPreviewSession({
+          source: "host",
+          expectedSource: "preview",
+          identity: {
+            siteId: siteManifest.id,
+            documentId: postId,
+            documentType: "post",
+            sessionId: previewChannel.sessionId,
+            sessionBinding: previewChannel.sessionBinding,
+            documentVersion: 0,
+            conflictToken: previewChannel.conflictToken,
+          },
+          allowedOrigins: new Set([window.location.origin]),
+        }),
+      };
+    }
+    return previewSessionRef.current.session;
+  }, [
+    postId,
+    previewChannel.conflictToken,
+    previewChannel.sessionBinding,
+    previewChannel.sessionId,
+    reloadKey,
+  ]);
 
   const sendWorkingCopy = useCallback(() => {
-    frameRef.current?.contentWindow?.postMessage(
+    if (!channelReadyRef.current) return;
+    const target = frameRef.current?.contentWindow;
+    if (!target) return;
+    const session = getPreviewSession();
+    const envelope = session.createVersionedState(
       {
-        type: "cms:post-preview",
         postId,
+        revision: versionRef.current,
         selectedField: selectedFieldRef.current,
         selectedBlockIndex: selectedBlockIndexRef.current,
         values: valuesRef.current,
       },
-      window.location.origin,
+      versionRef.current,
     );
-  }, [postId]);
+    if (!envelope) return;
+    target.postMessage(envelope, window.location.origin);
+  }, [getPreviewSession, postId]);
+
+  useEffect(() => {
+    channelReadyRef.current = false;
+    markFrameLoading();
+  }, [getPreviewSession, markFrameLoading]);
 
   useEffect(() => {
     sendWorkingCopy();
@@ -346,52 +417,58 @@ function PostResponsivePreview({
       if (
         event.origin !== window.location.origin ||
         event.source !== frameRef.current?.contentWindow ||
-        !event.data ||
-        typeof event.data !== "object"
+        !event.data
       )
         return;
-      const message = event.data as Record<string, unknown>;
-      if (
-        message.type === "cms:post-preview-ready" &&
-        message.postId === postId
-      ) {
+      const validation = getPreviewSession().receive({
+        value: event.data,
+        origin: event.origin,
+      });
+      if (!validation.accepted) return;
+      const payload = validation.envelope.payload;
+      if (payload.type === "ready") {
+        channelReadyRef.current = true;
         markConnected();
         sendWorkingCopy();
+        return;
       }
-      if (isPostPreviewSelectMessage(event.data, postId)) {
+      if (payload.type === "ack") {
+        sendWorkingCopy();
+        return;
+      }
+      if (payload.type !== "command") return;
+      if (isPostPreviewSelectCommand(payload.command)) {
+        const command = payload.command;
         if (
-          event.data.blockIndex !== undefined &&
-          (event.data.content !== valuesRef.current.content ||
+          command.blockIndex !== undefined &&
+          (command.content !== valuesRef.current.content ||
             parseRichTextDocument(valuesRef.current.content)?.blocks[
-              event.data.blockIndex
-            ]?.id !== event.data.blockId)
+              command.blockIndex
+            ]?.id !== command.blockId)
         )
           return;
-        setSelectedField(event.data.field);
-        const blockIndex = event.data.blockIndex ?? null;
+        shouldFocusInspectorRef.current = true;
+        setSelectedField(command.field);
+        const blockIndex = command.blockIndex ?? null;
         setSelectedBlockIndex(blockIndex);
-        onSelectedBlockChange(blockIndex);
+        onSelectedBlockChangeRef.current(blockIndex);
       }
-      if (isPostPreviewCompositionMessage(event.data, postId)) {
-        if (event.data.content !== valuesRef.current.content) return;
+      if (isPostPreviewCompositionCommand(payload.command)) {
+        if (payload.command.content !== valuesRef.current.content) return;
+        shouldFocusInspectorRef.current = false;
         setSelectedField("content");
         setSelectedBlockIndex(null);
-        onSelectedBlockChange(null);
-        onComposition(event.data.command);
+        onSelectedBlockChangeRef.current(null);
+        onCompositionRef.current(payload.command.command);
       }
     };
     window.addEventListener("message", receiveReady);
     return () => window.removeEventListener("message", receiveReady);
-  }, [
-    markConnected,
-    onComposition,
-    onSelectedBlockChange,
-    postId,
-    sendWorkingCopy,
-  ]);
+  }, [getPreviewSession, markConnected, sendWorkingCopy]);
 
   useEffect(() => {
-    if (!selectedField) return;
+    if (!selectedField || !shouldFocusInspectorRef.current) return;
+    shouldFocusInspectorRef.current = false;
     const target = postPreviewFieldTargets[selectedField];
     let focusFrame = 0;
     const mountFrame = requestAnimationFrame(() => {
@@ -548,7 +625,7 @@ function PostResponsivePreview({
             <a
               aria-label="Mở bản nháp bài viết đã lưu trong tab riêng"
               className="grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
-              href={previewUrl}
+              href={standalonePreviewUrl}
               rel="noreferrer"
               target="_blank"
               title="Mở bản nháp đã lưu"
@@ -601,6 +678,7 @@ function PostResponsivePreview({
               <>Bản làm việc trên bản nháp v{version} · riêng tư · trực tiếp</>
             }
             status={connectionStatus}
+            tone="light"
           />
         </div>
       </CardContent>
@@ -635,8 +713,6 @@ function EditPostRoute() {
   const [draftHistory, setDraftHistory] = useState(() =>
     createCmsDraftHistory<CmsPostFormValues | null>(null),
   );
-  const [compositionRequest, setCompositionRequest] =
-    useState<PostRichTextCompositionRequest | null>(null);
   const [selectedPostBlockIndex, setSelectedPostBlockIndex] = useState<
     number | null
   >(null);
@@ -669,10 +745,11 @@ function EditPostRoute() {
   });
   const editGeneration = useRef(0);
   const baselineDraftRef = useRef<CmsPostFormValues | null>(null);
-  const compositionRequestId = useRef(0);
+  const draftValuesRef = useRef(draftValues);
   const saving = useRef(false);
   const loadedPostId = useRef<string | null>(null);
   const post = postQuery.data?.data;
+  draftValuesRef.current = draftValues;
 
   const installServerPost = useCallback(
     (nextPost: PostFormSource, state: SaveState = "clean") => {
@@ -683,7 +760,6 @@ function EditPostRoute() {
       setFormSeed(nextValues);
       setDraftValues(nextValues);
       setDraftHistory(createCmsDraftHistory(nextValues));
-      setCompositionRequest(null);
       setSelectedPostBlockIndex(null);
       setWorkingVersion(nextPost.version);
       setServerSlug(nextPost.slug);
@@ -797,7 +873,6 @@ function EditPostRoute() {
           ? null
           : Math.min(current, Math.max(0, (parsed?.blocks.length ?? 1) - 1)),
       );
-      setCompositionRequest(null);
       markDraftChanged(nextValues);
     },
     [draftHistory, markDraftChanged],
@@ -826,10 +901,20 @@ function EditPostRoute() {
 
   const handlePostComposition = useCallback(
     (command: PostRichTextCompositionCommand) => {
-      compositionRequestId.current += 1;
-      setCompositionRequest({ id: compositionRequestId.current, command });
+      const current = draftValuesRef.current;
+      if (!current) return;
+      const document = parseRichTextDocument(current.content);
+      if (!document) return;
+      const nextDocument = applyPostRichTextComposition(document, command);
+      if (nextDocument === document) return;
+      const nextValues = {
+        ...current,
+        content: JSON.stringify(nextDocument),
+      };
+      draftValuesRef.current = nextValues;
+      handleFormChange(nextValues);
     },
-    [],
+    [handleFormChange],
   );
 
   const saveNow = useCallback(
@@ -1128,6 +1213,9 @@ function EditPostRoute() {
             </div>
           ) : null}
           <EditorialReviewPanel
+            commentGranted={
+              session?.capabilities.includes("content.write") ?? false
+            }
             currentVersion={workingVersion}
             decisionGranted={
               session?.capabilities.includes("content.review.decide") ?? false
@@ -1146,13 +1234,7 @@ function EditPostRoute() {
               session?.capabilities.includes("content.review.request") ?? false
             }
           />
-          <div
-            aria-label={
-              workspaceFocused
-                ? "Không gian biên tập bài viết trực quan tập trung"
-                : undefined
-            }
-            aria-modal={workspaceFocused || undefined}
+          <RemVietEditorShell
             className={
               workspaceFocused
                 ? "fixed inset-3 z-[100] grid h-[calc(100dvh-1.5rem)] min-h-0 grid-cols-[minmax(0,1fr)_26rem] gap-0 overflow-hidden rounded-xl bg-background shadow-[0_30px_120px_rgba(0,0,0,0.45)] ring-1 ring-black/10"
@@ -1161,8 +1243,11 @@ function EditPostRoute() {
             data-cms-post-workspace-mode={
               workspaceFocused ? "focused" : "standard"
             }
+            documentId={postId}
+            documentType="post"
+            label="Không gian biên tập bài viết trực quan"
+            mode={workspaceFocused ? "focused" : "standard"}
             ref={workspaceRef}
-            role={workspaceFocused ? "dialog" : undefined}
             onKeyDown={handleFocusedWorkspaceKeyDown}
           >
             <div
@@ -1181,6 +1266,7 @@ function EditPostRoute() {
                 onUndo={() => navigateDraftHistory("undo")}
                 onWorkspaceFocusChange={setWorkspaceFocused}
                 postId={postId}
+                previewChannel={session!.previewChannel}
                 values={draftValues ?? formSeed}
                 version={workingVersion}
                 workspaceFocusTriggerRef={workspaceFocusTriggerRef}
@@ -1195,7 +1281,6 @@ function EditPostRoute() {
               }
             >
               <CmsPostForm
-                compositionRequest={compositionRequest}
                 contentValue={draftValues?.content}
                 key={`${postId}-${formEpoch}`}
                 initialValues={formSeed}
@@ -1219,7 +1304,7 @@ function EditPostRoute() {
                 }
               />
             </div>
-          </div>
+          </RemVietEditorShell>
           <Card
             className="mx-auto w-full max-w-4xl scroll-mt-20 rounded-md"
             id="post-revision-history"

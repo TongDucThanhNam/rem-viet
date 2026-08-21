@@ -1,5 +1,21 @@
 # `@agency/cms-provider-cloudflare`
 
+## TanStack Start integration
+
+The package owns the provider-specific install manifest consumed by the neutral
+CLI. From an existing TanStack Start app root:
+
+```bash
+bunx --bun @agency/cms-cli add \
+  --framework=tanstack-start \
+  --provider=cloudflare
+bun run cms:diagnose
+```
+
+The generated REST surface stays fail-closed with `CMS_BINDINGS_MISSING` until
+the app composition root supplies the `CMS_DB` D1 binding and authenticated
+`actorFor` resolver through `configureCmsIntegration(...)`.
+
 Cloudflare D1 reference adapter for the `@agency/cms-runtime` page workflow.
 It preserves separate `pages` and immutable `page_revisions` tables and uses a
 structural subset of the D1 API so consumers do not need Drizzle types in their
@@ -17,6 +33,13 @@ version-bound page review event log and ranked pending queue. Request and
 decision writes use D1 version guards; duplicate requests are idempotent; stale
 requests leave the queue; and publication records its resolution inside the
 same provider batch as the immutable revision and page pointer update.
+
+Migration `0009_editorial_review_tasks` adds bounded JSON metadata to that event
+log. The provider preserves request assignment, roles, mentions, due dates,
+notification intent, and checklist requirements, then records decision
+checklist evidence. Identical retries remain idempotent, divergent requests for
+the same version conflict, and assignment plus required-checklist gates are
+enforced before the decision write.
 
 Optional block/revision encoders preserve an application's existing storage
 shape during additive migration. Applications may also contribute prepared D1

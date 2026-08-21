@@ -16,8 +16,12 @@ function run(command: string, args: string[], cwd: string) {
     windowsHide: true,
   });
   if (result.status !== 0) {
+    const detail = [result.error?.message, result.stderr, result.stdout]
+      .filter((value) => typeof value === "string" && value.trim())
+      .join("\n")
+      .trim();
     throw new Error(
-      `CMS Kit artifact command failed: ${command} ${args[0] ?? ""}.`,
+      `CMS Kit artifact command failed: ${command} ${args[0] ?? ""}.${detail ? `\n${detail}` : ""}`,
     );
   }
 }
@@ -64,7 +68,7 @@ export function buildCmsKitPublishArtifact(input: {
       `${JSON.stringify(stagedManifest, null, 2)}\n`,
     );
     run(
-      process.platform === "win32" ? "npm.cmd" : "npm",
+      "npm",
       [
         "pack",
         "--ignore-scripts",

@@ -1,6 +1,8 @@
 /// <reference lib="dom" />
 
 export * from "./collections.js";
+export * from "./editor-shell.js";
+export * from "./platform.js";
 export * from "@agency/cms-visual-editor";
 
 import {
@@ -940,6 +942,7 @@ export type CmsPreviewConnectionState = Readonly<{
 }>;
 
 export type CmsPreviewConnectionEvent =
+  | Readonly<{ type: "frame-loading" }>
   | Readonly<{ type: "frame-loaded" }>
   | Readonly<{ type: "ready" }>
   | Readonly<{ type: "timeout" }>
@@ -959,11 +962,17 @@ export function reduceCmsPreviewConnection(
   state: CmsPreviewConnectionState,
   event: CmsPreviewConnectionEvent,
 ): CmsPreviewConnectionState {
-  if (event.type === "frame-loaded")
+  if (event.type === "frame-loading")
     return {
       ...state,
       cycle: state.cycle + 1,
       status: "connecting",
+    };
+  if (event.type === "frame-loaded")
+    return {
+      ...state,
+      cycle: state.cycle + 1,
+      status: state.status === "connected" ? "connected" : "connecting",
     };
   if (event.type === "ready") return { ...state, status: "connected" };
   if (event.type === "timeout")
@@ -997,6 +1006,10 @@ export function useCmsPreviewConnection({
   }, [state.cycle, state.status, timeoutMs]);
 
   return {
+    markFrameLoading: useCallback(
+      () => dispatch({ type: "frame-loading" }),
+      [],
+    ),
     markConnected: useCallback(() => dispatch({ type: "ready" }), []),
     markFrameLoaded: useCallback(() => dispatch({ type: "frame-loaded" }), []),
     reloadKey: state.reloadKey,

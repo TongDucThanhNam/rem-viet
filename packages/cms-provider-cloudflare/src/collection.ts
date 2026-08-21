@@ -5,6 +5,8 @@ import {
   migrateCollectionData,
   nullifyCmsRelationshipTarget,
   parseCmsCollectionData,
+  parseCmsCollectionDataAsync,
+  serializeCmsCollectionDataForRead,
   type CmsBuiltInField,
   type CmsCollectionDefinition,
   type CmsCollectionRegistry,
@@ -90,6 +92,7 @@ export type CloudflareCmsCollectionMutationEvent = {
   readonly actorId: string;
   readonly collection: string;
   readonly documentId: string;
+  readonly locale: string;
   readonly version: number;
   readonly timestamp: Date;
   readonly before: Readonly<Record<string, unknown>> | null;
@@ -251,6 +254,36 @@ function revisionFromRow(
     note: row.note,
     createdBy: row.createdBy,
     createdAt: new Date(row.createdAt).toISOString(),
+  };
+}
+
+async function documentForRead(
+  definition: CmsCollectionDefinition<string, readonly CmsBuiltInField[]>,
+  document: CmsCollectionDocument,
+  actorId: string | undefined,
+): Promise<CmsCollectionDocument> {
+  return {
+    ...document,
+    data: (await serializeCmsCollectionDataForRead(definition, document.data, {
+      actorId,
+      documentId: document.id,
+      locale: document.locale,
+    })) as Record<string, unknown>,
+  };
+}
+
+async function revisionForRead(
+  definition: CmsCollectionDefinition<string, readonly CmsBuiltInField[]>,
+  revision: CmsCollectionRevision,
+  actorId: string | undefined,
+): Promise<CmsCollectionRevision> {
+  return {
+    ...revision,
+    data: (await serializeCmsCollectionDataForRead(definition, revision.data, {
+      actorId,
+      documentId: revision.documentId,
+      locale: revision.locale,
+    })) as Record<string, unknown>,
   };
 }
 
@@ -561,9 +594,9 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         row.locale,
         document.data,
       );
-      return { ...document, data };
+      return documentForRead(definition, { ...document, data }, input.actorId);
     }
-    return document;
+    return documentForRead(definition, document, input.actorId);
   }
 
   async getPublished(input: {
@@ -622,21 +655,26 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       resolvedLocale,
       revision.data,
     );
-    return {
-      id: revision.documentId,
-      collection: revision.collection,
-      schemaVersion: revision.schemaVersion,
-      version: revision.version,
-      status: "published" as const,
-      data,
-      locale: revision.locale,
-      fallbackFrom: resolvedLocale === requestedLocale ? null : requestedLocale,
-      publishedRevisionId: revision.id,
-      scheduledAt: null,
-      createdAt: revision.createdAt,
-      updatedAt: revision.createdAt,
-      updatedBy: revision.createdBy,
-    };
+    return documentForRead(
+      definition,
+      {
+        id: revision.documentId,
+        collection: revision.collection,
+        schemaVersion: revision.schemaVersion,
+        version: revision.version,
+        status: "published" as const,
+        data,
+        locale: revision.locale,
+        fallbackFrom:
+          resolvedLocale === requestedLocale ? null : requestedLocale,
+        publishedRevisionId: revision.id,
+        scheduledAt: null,
+        createdAt: revision.createdAt,
+        updatedAt: revision.createdAt,
+        updatedBy: revision.createdBy,
+      },
+      input.actorId,
+    );
   }
 
   async list(
@@ -655,6 +693,26 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         throw new CmsError({
           code: "VALIDATION_FAILED",
           message: `Unknown query field \"${field}\" for collection \"${definition.slug}\".`,
+          retryable: false,
+        });
+      }
+      const definitionField = definition.fields.find(
+        ({ name }) => name === field,
+      );
+      if (definitionField?.access?.read) {
+        throw new CmsError({
+          code: "FORBIDDEN",
+          message: `Access-controlled field "${field}" cannot be used for collection queries.`,
+          retryable: false,
+        });
+      }
+      if (
+        definitionField?.kind === "virtual" ||
+        definitionField?.kind === "join"
+      ) {
+        throw new CmsError({
+          code: "CAPABILITY_UNAVAILABLE",
+          message: `Derived field "${field}" is not queryable by this provider.`,
           retryable: false,
         });
       }
@@ -743,7 +801,13 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
     const offset = Math.max(0, input.pagination?.offset ?? 0);
     const total = documents.length;
     return {
-      documents: documents.slice(offset, offset + limit),
+      documents: await Promise.all(
+        documents
+          .slice(offset, offset + limit)
+          .map((document) =>
+            documentForRead(definition, document, input.actorId),
+          ),
+      ),
       total,
       limit,
       offset,
@@ -769,7 +833,13 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       data: localizedInput,
       previousData: null,
     });
-    const data = parseCmsCollectionData(definition, hookedData);
+    const data = await parseCmsCollectionDataAsync(definition, hookedData, {
+      operation: "create",
+      actorId: input.actorId,
+      documentId: id,
+      locale: locale || null,
+      previousData: null,
+    });
     await this.#referencesValid(definition, data, locale);
     const timestamp = this.#now();
     const now = timestamp.getTime();
@@ -797,6 +867,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         actorId: input.actorId,
         collection: definition.slug,
         documentId: id,
+        locale,
         version: 1,
         timestamp,
         before: null,
@@ -836,7 +907,13 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       data: localizedInput,
       previousData: before,
     });
-    const data = parseCmsCollectionData(definition, hookedData);
+    const data = await parseCmsCollectionDataAsync(definition, hookedData, {
+      operation: "update",
+      actorId: input.actorId,
+      documentId: input.id,
+      locale: locale || null,
+      previousData: before,
+    });
     await this.#referencesValid(definition, data, locale);
     const timestamp = this.#now();
     const now = timestamp.getTime();
@@ -864,6 +941,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         actorId: input.actorId,
         collection: input.collection,
         documentId: input.id,
+        locale,
         version: current.version + 1,
         timestamp,
         before,
@@ -950,6 +1028,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         actorId: input.actorId,
         collection: input.collection,
         documentId: input.id,
+        locale,
         version: current.version + 1,
         timestamp,
         before: data,
@@ -999,7 +1078,13 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       data: before,
       previousData: before,
     });
-    const data = parseCmsCollectionData(definition, hookedData);
+    const data = await parseCmsCollectionDataAsync(definition, hookedData, {
+      operation: "update",
+      actorId: input.actorId,
+      documentId: input.id,
+      locale: locale || null,
+      previousData: before,
+    });
     await this.#referencesValid(definition, data, locale);
     const version = current.version + 1;
     const revisionId = this.#createId();
@@ -1050,6 +1135,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         actorId: input.actorId,
         collection: input.collection,
         documentId: input.id,
+        locale,
         version,
         timestamp,
         before,
@@ -1080,7 +1166,14 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       )
       .bind(revisionId)
       .first<CollectionRevisionRow>())!;
-    return { document, revision: revisionFromRow(definition, revision) };
+    return {
+      document,
+      revision: await revisionForRead(
+        definition,
+        revisionFromRow(definition, revision),
+        input.actorId,
+      ),
+    };
   }
 
   async unpublish(input: CmsCollectionVersionInput) {
@@ -1123,6 +1216,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         actorId: input.actorId,
         collection: input.collection,
         documentId: input.id,
+        locale,
         version: current.version + 1,
         timestamp,
         before: data,
@@ -1163,7 +1257,15 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       )
       .bind(input.collection, input.id, locale)
       .all<CollectionRevisionRow>();
-    return rows.results.map((row) => revisionFromRow(definition, row));
+    return Promise.all(
+      rows.results.map((row) =>
+        revisionForRead(
+          definition,
+          revisionFromRow(definition, row),
+          input.actorId,
+        ),
+      ),
+    );
   }
 
   async restore(input: RestoreCmsCollectionRevisionInput) {
@@ -1197,7 +1299,13 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       data: revisionData,
       previousData: before,
     });
-    const data = parseCmsCollectionData(definition, hookedData);
+    const data = await parseCmsCollectionDataAsync(definition, hookedData, {
+      operation: "update",
+      actorId: input.actorId,
+      documentId: input.id,
+      locale: locale || null,
+      previousData: before,
+    });
     await this.#referencesValid(definition, data, locale);
     const timestamp = this.#now();
     const now = timestamp.getTime();
@@ -1225,6 +1333,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         actorId: input.actorId,
         collection: input.collection,
         documentId: input.id,
+        locale,
         version: current.version + 1,
         timestamp,
         before,
@@ -1310,7 +1419,16 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
             : null,
         },
       ))!;
-      data = parseCmsCollectionData(definition, data);
+      const previousData = current
+        ? decodeData(definition, current.data, current.schemaVersion)
+        : null;
+      data = await parseCmsCollectionDataAsync(definition, data, {
+        operation: operation.kind === "create" ? "create" : "update",
+        actorId: input.actorId,
+        documentId: operation.id,
+        locale: operation.locale,
+        previousData,
+      });
       let publishedData = operation.publishedData
         ? this.#overlaySharedFields(
             definition,
@@ -1329,7 +1447,17 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
             ? decodeData(definition, current.data, current.schemaVersion)
             : null,
         }))!;
-        publishedData = parseCmsCollectionData(definition, publishedData);
+        publishedData = await parseCmsCollectionDataAsync(
+          definition,
+          publishedData,
+          {
+            operation: operation.kind === "create" ? "create" : "update",
+            actorId: input.actorId,
+            documentId: operation.id,
+            locale: operation.locale,
+            previousData,
+          },
+        );
       }
 
       for (const source of [data, ...(publishedData ? [publishedData] : [])]) {
@@ -1662,6 +1790,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
         actorId: input.actorId,
         collection: input.collection,
         documentId: input.id,
+        locale,
         version: current.version,
         timestamp: new Date(now),
         before: deletedDocument.data,
@@ -1683,7 +1812,7 @@ export class CloudflareCmsCollectionProvider implements CmsCollectionProvider {
       if (!latest) documentNotFound(input.collection, input.id);
       versionConflict(input.expectedVersion, latest.version);
     }
-    return deletedDocument;
+    return documentForRead(definition, deletedDocument, input.actorId);
   }
 }
 

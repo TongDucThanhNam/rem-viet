@@ -106,5 +106,33 @@ export function pageMutationStatements<TContent extends CmsPageContent>(
         actor.requestId ?? "",
         event.timestamp.getTime(),
       ),
+    ...(event.action === "publish" && event.revisionId
+      ? [
+          database
+            .prepare(
+              `INSERT INTO cms_outbox_events (
+                id, topic, aggregate_type, aggregate_id, aggregate_version,
+                payload, idempotency_key, status, attempts, max_attempts,
+                available_at, last_error, occurred_at, retention_until
+              ) VALUES (?, 'content.page.published', 'page', ?, ?, ?, ?,
+                'pending', 0, 8, ?, '', ?, ?)`,
+            )
+            .bind(
+              crypto.randomUUID(),
+              event.documentId,
+              event.version,
+              JSON.stringify({
+                documentType: "page",
+                documentId: event.documentId,
+                version: event.version,
+                revisionId: event.revisionId,
+              }),
+              `content.page.published:${event.documentId}:v${event.version}`,
+              event.timestamp.getTime(),
+              event.timestamp.getTime(),
+              event.timestamp.getTime() + 90 * 24 * 60 * 60 * 1000,
+            ),
+        ]
+      : []),
   ];
 }

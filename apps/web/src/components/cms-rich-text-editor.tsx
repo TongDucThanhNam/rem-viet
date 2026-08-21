@@ -23,10 +23,6 @@ import { ChevronDown, ChevronUp, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useId, useRef, useState, type ClipboardEvent } from "react";
 
 import MediaPickerField from "@/components/media-picker-field";
-import {
-  applyPostRichTextComposition,
-  type PostRichTextCompositionRequest,
-} from "@/lib/post-rich-text-composition";
 
 type Block = RichTextDocument["blocks"][number];
 
@@ -244,17 +240,14 @@ function InlineEditor({
 export default function CmsRichTextEditor({
   value,
   onChange,
-  compositionRequest,
   selectedBlockIndex,
 }: {
   value: string;
   onChange: (value: string, historyGroup?: string) => void;
-  compositionRequest?: PostRichTextCompositionRequest | null;
   selectedBlockIndex?: number | null;
 }) {
   const [document, setDocument] = useState(() => initialDocument(value));
   const [catalogQuery, setCatalogQuery] = useState("");
-  const appliedCompositionRequest = useRef<number | null>(null);
   const catalogDisclosure = useRef<HTMLDetailsElement>(null);
   const catalogSearchId = useId();
   const catalogResultId = `${catalogSearchId}-results`;
@@ -284,20 +277,6 @@ export default function CmsRichTextEditor({
     setDocument(next);
     onChange(JSON.stringify(next), historyGroup);
   }
-
-  useEffect(() => {
-    if (
-      !compositionRequest ||
-      appliedCompositionRequest.current === compositionRequest.id
-    )
-      return;
-    appliedCompositionRequest.current = compositionRequest.id;
-    const next = applyPostRichTextComposition(
-      document,
-      compositionRequest.command,
-    );
-    if (next !== document) commit(next);
-  }, [compositionRequest, document]);
 
   useEffect(() => {
     if (selectedBlockIndex === null || selectedBlockIndex === undefined) return;

@@ -76,6 +76,12 @@ try {
     if (!reviewIndexes.some(({ name }) => name === index))
       throw new Error(`Editorial review migration thiếu index ${index}`);
   }
+  const reviewColumns = empty
+    .query("PRAGMA table_info(cms_review_events)")
+    .all() as { name: string }[];
+  if (!reviewColumns.some(({ name }) => name === "metadata")) {
+    throw new Error("Editorial review migration thiếu task metadata.");
+  }
   empty.close();
 
   const upgraded = new Database(resolve(temp, "upgraded.sqlite"));

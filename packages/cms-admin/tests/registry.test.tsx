@@ -60,6 +60,12 @@ describe("preview connection contract", () => {
     expect(reduceCmsPreviewConnection(connected, { type: "timeout" })).toEqual(
       connected,
     );
+    expect(
+      reduceCmsPreviewConnection(connected, { type: "frame-loaded" }).status,
+    ).toBe("connected");
+    expect(
+      reduceCmsPreviewConnection(connected, { type: "frame-loading" }).status,
+    ).toBe("connecting");
   });
 
   test("retry creates a new connecting frame attempt", () => {

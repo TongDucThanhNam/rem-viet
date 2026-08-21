@@ -16,6 +16,10 @@
       "types": "./src/bootstrap.ts",
       "default": "./src/bootstrap.ts"
     },
+    "./admin": {
+      "types": "./src/admin.tsx",
+      "default": "./src/admin.tsx"
+    },
     "./visual-authoring": {
       "types": "./src/visual-authoring.ts",
       "default": "./src/visual-authoring.ts"
@@ -30,11 +34,15 @@
     "zod": "catalog:"
   },
   "peerDependencies": {
+    "@agency/cms-admin": "0.1.0",
     "@agency/cms-template-factory": "0.1.0",
     "@agency/cms-visual-editor": "0.1.0",
     "react": ">=18"
   },
   "peerDependenciesMeta": {
+    "@agency/cms-admin": {
+      "optional": true
+    },
     "@agency/cms-template-factory": {
       "optional": true
     },
@@ -46,8 +54,11 @@
     }
   },
   "devDependencies": {
+    "@agency/cms-core": "workspace:*",
+    "@agency/cms-admin": "workspace:*",
     "@agency/cms-template-factory": "workspace:*",
     "@agency/cms-visual-editor": "workspace:*",
+    "@axe-core/playwright": "^4.11.1",
     "@playwright/test": "^1.62.1",
     "@types/react": "^19.2.14",
     "react": "^19.2.3",

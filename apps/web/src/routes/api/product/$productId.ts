@@ -42,9 +42,9 @@ export const Route = createFileRoute("/api/product/$productId")({
           return apiErrorResponse(error);
         }
       },
-      DELETE: async ({ params }) => {
+      DELETE: async ({ params, request }) => {
         try {
-          const unauthorized = await requireApiSession();
+          const unauthorized = await requireApiSession(request);
 
           if (unauthorized) {
             return unauthorized;

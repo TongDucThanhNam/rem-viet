@@ -1,9 +1,11 @@
 import { sql } from "drizzle-orm";
 import {
+  check,
   foreignKey,
   index,
   integer,
   primaryKey,
+  real,
   sqliteTable,
   text,
   uniqueIndex,
@@ -226,6 +228,13 @@ export const cmsCollectionRevisions = sqliteTable(
   ],
 );
 
+export const cmsMediaFolders = sqliteTable("cms_media_folders", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  parentId: text("parent_id"),
+  ...timestamps,
+});
+
 export const media = sqliteTable(
   "media",
   {
@@ -237,11 +246,85 @@ export const media = sqliteTable(
     mimeType: text("mime_type").default("").notNull(),
     width: integer("width"),
     height: integer("height"),
+    folderId: text("folder_id"),
+    tags: text("tags", { mode: "json" })
+      .$type<string[]>()
+      .default([])
+      .notNull(),
+    contentHash: text("content_hash"),
+    visibility: text("visibility", { enum: ["public", "private"] })
+      .default("public")
+      .notNull(),
+    assetStatus: text("asset_status", { enum: ["active", "trashed"] })
+      .default("active")
+      .notNull(),
+    focalX: real("focal_x"),
+    focalY: real("focal_y"),
+    customMetadata: text("custom_metadata", { mode: "json" })
+      .$type<Record<string, unknown>>()
+      .default({})
+      .notNull(),
+    localizedMetadata: text("localized_metadata", { mode: "json" })
+      .$type<Record<string, Record<string, unknown>>>()
+      .default({})
+      .notNull(),
+    copyright: text("copyright").default("").notNull(),
+    license: text("license").default("").notNull(),
+    expiresAt: integer("expires_at", { mode: "timestamp_ms" }),
+    trashedAt: integer("trashed_at", { mode: "timestamp_ms" }),
+    purgeAt: integer("purge_at", { mode: "timestamp_ms" }),
     ...timestamps,
   },
   (table) => [
     index("media_key_idx").on(table.key),
     index("media_mime_type_idx").on(table.mimeType),
+    uniqueIndex("media_content_hash_unique")
+      .on(table.contentHash)
+      .where(sql`${table.contentHash} is not null`),
+    index("media_folder_status_idx").on(
+      table.folderId,
+      table.assetStatus,
+      table.updatedAt,
+    ),
+  ],
+);
+
+export const cmsMediaVariants = sqliteTable(
+  "cms_media_variants",
+  {
+    id: text("id").primaryKey(),
+    assetId: text("asset_id")
+      .notNull()
+      .references(() => media.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    width: integer("width"),
+    height: integer("height"),
+    format: text("format", { enum: ["avif", "webp", "jpeg", "png"] }).notNull(),
+    fit: text("fit", { enum: ["cover", "contain", "crop"] }).notNull(),
+    status: text("status", { enum: ["pending", "ready", "failed"] }).notNull(),
+    objectKey: text("object_key"),
+    url: text("url"),
+    error: text("error"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("cms_media_variants_asset_id_name_unique").on(
+      table.assetId,
+      table.name,
+    ),
+    index("cms_media_variants_asset_idx").on(table.assetId, table.createdAt),
+    check(
+      "cms_media_variants_format_check",
+      sql`${table.format} in ('avif', 'webp', 'jpeg', 'png')`,
+    ),
+    check(
+      "cms_media_variants_fit_check",
+      sql`${table.fit} in ('cover', 'contain', 'crop')`,
+    ),
+    check(
+      "cms_media_variants_status_check",
+      sql`${table.status} in ('pending', 'ready', 'failed')`,
+    ),
   ],
 );
 

@@ -3,6 +3,7 @@ import {
   type CmsBlock,
   CmsError,
   booleanField,
+  computedField,
   createCollectionRegistry,
   createCmsExtensionRegistry,
   defineCollection,
@@ -10,6 +11,7 @@ import {
   defineFeatureModule,
   relationshipField,
   textField,
+  virtualField,
 } from "@agency/cms-core";
 import {
   assertCmsCollectionAccess,
@@ -157,7 +159,7 @@ describe("Cloudflare D1 page provider", () => {
     const migrationCount = await empty
       .prepare("SELECT COUNT(*) AS count FROM cms_provider_migrations")
       .first<{ count: number }>();
-    expect(Number(migrationCount?.count)).toBe(7);
+    expect(Number(migrationCount?.count)).toBe(9);
 
     const upgraded = database();
     await upgraded.exec(`
@@ -190,6 +192,10 @@ describe("Cloudflare D1 page provider", () => {
     await expect(
       upgraded.prepare("SELECT id FROM cms_review_events").all(),
     ).resolves.toEqual({ results: [] });
+    const reviewColumns = await upgraded
+      .prepare("PRAGMA table_info(cms_review_events)")
+      .all<{ name: string }>();
+    expect(reviewColumns.results.map(({ name }) => name)).toContain("metadata");
     await expect(
       upgraded.prepare("SELECT id FROM cms_collection_documents").all(),
     ).resolves.toEqual({ results: [] });
@@ -386,6 +392,116 @@ describe("Cloudflare D1 page provider", () => {
         actorId: "editor",
       }),
     ).resolves.toMatchObject({ data: { name: "Permitted" } });
+  });
+
+  test("enforces async field lifecycle and read access in D1", async () => {
+    const db = database();
+    await applyCloudflareCmsMigrations(db);
+    const secured = defineCollection({
+      slug: "secured-records",
+      labels: { singular: "Secured record", plural: "Secured records" },
+      schemaVersion: 1,
+      lifecycle: { drafts: true, revisions: true, scheduling: false },
+      access: { read: [], create: [], update: [], delete: [], publish: [] },
+      fields: [
+        textField({
+          name: "title",
+          label: "Title",
+          required: true,
+          hooks: {
+            beforeValidate: async (value) => String(value).trim(),
+          },
+          validateAsync: async (value) =>
+            value === "Rejected" ? "Title is reserved." : true,
+        }),
+        textField({
+          name: "privateNote",
+          label: "Private note",
+          access: {
+            read: ({ actorId }) => actorId === "administrator",
+            create: ({ actorId }) => actorId === "administrator",
+            update: ({ actorId }) => actorId === "administrator",
+          },
+        }),
+        computedField({
+          name: "titleLength",
+          label: "Title length",
+          valueKind: "number",
+          compute: async ({ data }) => String(data.title ?? "").trim().length,
+        }),
+        virtualField({
+          name: "viewer",
+          label: "Viewer",
+          valueKind: "text",
+          resolve: async ({ actorId }) => actorId ?? "anonymous",
+        }),
+      ],
+    });
+    const provider = createCloudflareCmsCollectionProvider({
+      database: db,
+      registry: createCollectionRegistry([secured]),
+    });
+
+    await expect(
+      provider.createDraft({
+        collection: secured.slug,
+        id: "rejected",
+        data: { title: "Rejected" },
+        actorId: "administrator",
+      }),
+    ).rejects.toMatchObject({ code: "VALIDATION_FAILED" });
+    const created = await provider.createDraft({
+      collection: secured.slug,
+      id: "home",
+      data: { title: "  Home  ", privateNote: "secret" },
+      actorId: "administrator",
+    });
+    expect(created.data).toEqual({
+      title: "Home",
+      privateNote: "secret",
+      titleLength: 4,
+      viewer: "administrator",
+    });
+    expect(
+      (
+        await provider.getDraft({
+          collection: secured.slug,
+          id: "home",
+          actorId: "editor",
+        })
+      )?.data,
+    ).toEqual({ title: "Home", titleLength: 4, viewer: "editor" });
+    await expect(
+      provider.list({
+        collection: secured.slug,
+        actorId: "editor",
+        filters: [
+          { field: "privateNote", operator: "equals", value: "secret" },
+        ],
+      }),
+    ).rejects.toMatchObject({ code: "FORBIDDEN" });
+
+    await provider.saveDraft({
+      collection: secured.slug,
+      id: "home",
+      expectedVersion: created.version,
+      data: { title: "Updated" },
+      actorId: "editor",
+    });
+    expect(
+      (
+        await provider.getDraft({
+          collection: secured.slug,
+          id: "home",
+          actorId: "administrator",
+        })
+      )?.data,
+    ).toEqual({
+      title: "Updated",
+      privateNote: "secret",
+      titleLength: 7,
+      viewer: "administrator",
+    });
   });
 
   test("keeps localized drafts, publication, schedules, revisions, and relationships independent", async () => {
@@ -669,7 +785,15 @@ describe("Cloudflare D1 page provider", () => {
       schemaVersion: 1,
       lifecycle,
       access,
-      fields: [textField({ name: "name", label: "Name", required: true })],
+      fields: [
+        textField({ name: "name", label: "Name", required: true }),
+        virtualField({
+          name: "displayLabel",
+          label: "Display label",
+          valueKind: "text",
+          resolve: ({ data }) => `Author: ${String(data.name)}`,
+        }),
+      ],
     });
     const articles = defineCollection({
       slug: "portable-articles",
@@ -753,6 +877,19 @@ describe("Cloudflare D1 page provider", () => {
     );
     expect(allowed.status).toBe(200);
     await expect(allowed.json()).resolves.toMatchObject({ total: 1, limit: 1 });
+    const derivedRestResponse = await rest.handle(
+      new Request(
+        "https://cms.test/cms/collections/portable-authors/documents/author-1?view=published",
+        { headers: { authorization: "allowed" } },
+      ),
+    );
+    expect(derivedRestResponse.status).toBe(200);
+    await expect(derivedRestResponse.json()).resolves.toMatchObject({
+      data: {
+        name: "Portable author",
+        displayLabel: "Author: Portable author",
+      },
+    });
     const forbidden = await rest.handle(
       new Request(
         "https://cms.test/cms/collections/portable-articles/documents",
@@ -775,6 +912,11 @@ describe("Cloudflare D1 page provider", () => {
     });
     expect(stableJson(firstExport)).toBe(stableJson(secondExport));
     expect(stableJson(firstExport)).not.toContain("password");
+    expect(
+      firstExport.documents.find(
+        (document) => document.collection === authors.slug,
+      )?.data,
+    ).toEqual({ name: "Portable author" });
 
     const target = createCloudflareCmsCollectionProvider({
       database: targetDb,
@@ -1312,6 +1454,7 @@ describe("Cloudflare D1 page provider", () => {
       idempotentRequest: true,
       pendingQueue: true,
       staleProtection: true,
+      taskGovernance: true,
       versionBound: true,
     });
   });

@@ -5,4 +5,5 @@ export * from "./migrations.js";
 export * from "./preview-security.js";
 export * from "./protocol-v1.js";
 export * from "./registry.js";
+export * from "./session.js";
 export * from "./workspace.js";

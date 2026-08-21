@@ -13,7 +13,11 @@ export const Route = createFileRoute("/api/leads/export.csv")({
     handlers: {
       GET: async () => {
         const session = await getAdminUser();
-        if (!session || !roleHasCapability(session.staffRole, "leads.manage"))
+        if (
+          !session ||
+          session.mfaRequired ||
+          !roleHasCapability(session.staffRole, "leads.manage")
+        )
           return new Response("Forbidden", { status: 403 });
         const rows = await listSubmissions({ limit: 500 });
         const keys = [

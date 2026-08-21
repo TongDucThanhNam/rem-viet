@@ -46,6 +46,14 @@ async function database() {
       status_code INTEGER NOT NULL, active INTEGER NOT NULL, created_by TEXT NOT NULL,
       created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
     );
+    CREATE TABLE cms_outbox_events (
+      id TEXT PRIMARY KEY, topic TEXT NOT NULL, aggregate_type TEXT NOT NULL,
+      aggregate_id TEXT NOT NULL, aggregate_version INTEGER NOT NULL,
+      payload TEXT NOT NULL, idempotency_key TEXT NOT NULL UNIQUE,
+      status TEXT NOT NULL, attempts INTEGER NOT NULL, max_attempts INTEGER NOT NULL,
+      available_at INTEGER NOT NULL, locked_until INTEGER, last_error TEXT NOT NULL,
+      occurred_at INTEGER NOT NULL, dispatched_at INTEGER, retention_until INTEGER NOT NULL
+    );
   `);
   return value;
 }
@@ -369,6 +377,20 @@ describe("Rèm Việt standard-page collection runtime", () => {
       "page.unschedule",
       "page.publish",
     ]);
+    expect(
+      await db
+        .prepare(
+          `SELECT topic, aggregate_id AS aggregateId,
+            aggregate_version AS aggregateVersion, idempotency_key AS idempotencyKey
+          FROM cms_outbox_events`,
+        )
+        .first(),
+    ).toEqual({
+      topic: "content.page.published",
+      aggregateId: created.id,
+      aggregateVersion: published.document.version,
+      idempotencyKey: `content.page.published:${created.id}:v${published.document.version}`,
+    });
 
     await expect(
       provider.saveDraft({

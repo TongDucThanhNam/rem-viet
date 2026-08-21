@@ -28,9 +28,14 @@ The runtime also exposes media/global-content ports and a version-bound
 editorial review workflow. Review state is derived from newest-first immutable
 events: intervening saves make a request stale, reviewer decisions never
 publish, and only publication of the exact approved version resolves the
-handoff. `runEditorialReviewProviderConformance` proves idempotent requests,
-queue behavior, stale protection, decision validation, and publication
-resolution against a real provider lifecycle.
+handoff. The immutable request also owns assignee IDs/roles, mentions, due date,
+notification intent, and checklist requirements; decision events provide the
+completion evidence. Shared helpers fail closed when a decision actor is not
+assigned or required checklist items are missing.
+`runEditorialReviewProviderConformance` proves exact-retry idempotency,
+same-version conflict rejection, assignment and checklist gates, queue behavior,
+stale protection, decision validation, and publication resolution against a
+real provider lifecycle.
 
 ## Server SDK and REST resources
 

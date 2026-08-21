@@ -23,11 +23,6 @@ export type PostRichTextCompositionCommand =
   | { type: "duplicate"; targetId: string; targetIndex: number }
   | { type: "remove"; targetId: string; targetIndex: number };
 
-export type PostRichTextCompositionRequest = {
-  id: number;
-  command: PostRichTextCompositionCommand;
-};
-
 function isBlockIndex(value: unknown) {
   return (
     Number.isInteger(value) &&

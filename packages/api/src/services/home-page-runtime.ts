@@ -12,6 +12,7 @@ import { env } from "@rem-viet/env/server";
 
 import type { CmsActor } from "./content-revisions";
 import { pageMutationStatements } from "./page-provider-audit";
+import { assertCmsWorkflowInitialPublishAllowed } from "./workflow-policies";
 
 export type RemVietHomeContent = CmsPageContent<RemVietTemplateBlock>;
 
@@ -126,6 +127,9 @@ export async function createRemVietHomePage(
   input: CreateHomePageInput,
   actor: CmsActor,
 ) {
+  if (input.status === "published") {
+    await assertCmsWorkflowInitialPublishAllowed("page");
+  }
   const content = parseRemVietHomeContent({
     title: input.title,
     slug: "home",

@@ -1,4 +1,4 @@
-import { roleHasCapability, type CmsCapability } from "@rem-viet/cms";
+import type { CmsCapability } from "@rem-viet/cms";
 
 import { capabilityProcedure, publicProcedure, router } from "../index";
 import {
@@ -40,38 +40,49 @@ import {
 import {
   listPageRevisions,
   pageRevisionInputSchema,
-  publishPage,
   publishPageInputSchema,
-  restorePageRevision,
   schedulePage,
   schedulePageInputSchema,
   unschedulePage,
   unschedulePageInputSchema,
-  unpublishPage,
   unpublishPageInputSchema,
   type CmsActor,
 } from "../services/content-revisions";
+import {
+  publishManagedPage,
+  restoreManagedPageRevision,
+  unpublishManagedPage,
+} from "../services/managed-page-workflow";
 import { postsRouter } from "./posts";
 import { runCmsWorkflow } from "../workflow-error";
 import {
   decideEditorialReview,
   decideEditorialReviewInputSchema,
+  editorialReviewQueueInputSchema,
   editorialReviewTargetSchema,
   getEditorialReviewState,
+  listEditorialReviewParticipants,
   listEditorialReviewQueue,
   requestEditorialReview,
   requestEditorialReviewInputSchema,
 } from "../services/editorial-reviews";
 import {
+  createEditorialComment,
+  createEditorialCommentInputSchema,
+  listEditorialComments,
+  listEditorialCommentsInputSchema,
+  replyEditorialComment,
+  replyEditorialCommentInputSchema,
+  setEditorialCommentResolved,
+  setEditorialCommentResolvedInputSchema,
+} from "../services/editorial-comments";
+import {
   createRemVietHomePage,
   deleteRemVietHomePage,
   isRemVietHomePage,
   listRemVietHomeRevisions,
-  publishRemVietHomePage,
-  restoreRemVietHomeRevision,
   scheduleRemVietHomePage,
   unscheduleRemVietHomePage,
-  unpublishRemVietHomePage,
   canUseRemVietHomeDraftUpdate,
   saveRemVietHomeDraft,
 } from "../services/home-page-runtime";
@@ -84,26 +95,18 @@ import {
   isRemVietStandardPage,
   listRemVietStandardPageRevisions,
   publishRemVietStandardPage,
-  restoreRemVietStandardPageRevision,
   saveRemVietStandardPageDraft,
   scheduleRemVietStandardPage,
   unscheduleRemVietStandardPage,
-  unpublishRemVietStandardPage,
 } from "../services/standard-page-runtime";
 
 type StaffContext = {
+  actor: CmsActor;
   requestId: string;
-  session: { user: { id: string; email?: string | null } };
-  staffRole: "owner" | "admin" | "editor";
 };
 
 function actorFromContext(ctx: StaffContext): CmsActor {
-  return {
-    userId: ctx.session.user.id,
-    email: ctx.session.user.email ?? "",
-    role: ctx.staffRole,
-    requestId: ctx.requestId,
-  };
+  return { ...ctx.actor, requestId: ctx.requestId };
 }
 
 export const pagesRouter = router({
@@ -113,7 +116,7 @@ export const pagesRouter = router({
       provider,
       granted: provider.supported.filter(
         (capability): capability is CmsCapability =>
-          roleHasCapability(ctx.staffRole, capability),
+          ctx.capabilities.includes(capability),
       ),
     };
   }),
@@ -211,12 +214,7 @@ export const pagesRouter = router({
     .mutation(({ ctx, input }) =>
       runCmsWorkflow(
         async () => {
-          if (await isRemVietHomePage(input.pageId)) {
-            return publishRemVietHomePage(input, actorFromContext(ctx));
-          }
-          return (await isRemVietStandardPage(input.pageId))
-            ? publishRemVietStandardPage(input, actorFromContext(ctx))
-            : publishPage(input, actorFromContext(ctx));
+          return publishManagedPage(input, actorFromContext(ctx));
         },
         {
           category: "publish",
@@ -233,24 +231,14 @@ export const pagesRouter = router({
     .input(unpublishPageInputSchema)
     .mutation(({ ctx, input }) =>
       runCmsWorkflow(async () => {
-        if (await isRemVietHomePage(input.pageId)) {
-          return unpublishRemVietHomePage(input, actorFromContext(ctx));
-        }
-        return (await isRemVietStandardPage(input.pageId))
-          ? unpublishRemVietStandardPage(input, actorFromContext(ctx))
-          : unpublishPage(input, actorFromContext(ctx));
+        return unpublishManagedPage(input, actorFromContext(ctx));
       }),
     ),
   restore: capabilityProcedure("content.restore")
     .input(pageRevisionInputSchema)
     .mutation(({ ctx, input }) =>
       runCmsWorkflow(async () => {
-        if (await isRemVietHomePage(input.pageId)) {
-          return restoreRemVietHomeRevision(input, actorFromContext(ctx));
-        }
-        return (await isRemVietStandardPage(input.pageId))
-          ? restoreRemVietStandardPageRevision(input, actorFromContext(ctx))
-          : restorePageRevision(input, actorFromContext(ctx));
+        return restoreManagedPageRevision(input, actorFromContext(ctx));
       }),
     ),
   schedule: capabilityProcedure("content.schedule")
@@ -355,12 +343,15 @@ export const siteSettingsRouter = router({
 });
 
 export const editorialReviewsRouter = router({
+  participants: capabilityProcedure("content.review.request").query(() =>
+    listEditorialReviewParticipants(),
+  ),
   byDocument: capabilityProcedure("content.readDraft")
     .input(editorialReviewTargetSchema)
     .query(({ input }) => getEditorialReviewState(input)),
-  queue: capabilityProcedure("content.review.decide").query(() =>
-    listEditorialReviewQueue(),
-  ),
+  queue: capabilityProcedure("content.review.decide")
+    .input(editorialReviewQueueInputSchema)
+    .query(({ input }) => listEditorialReviewQueue(input)),
   request: capabilityProcedure("content.review.request")
     .input(requestEditorialReviewInputSchema)
     .mutation(({ ctx, input }) =>
@@ -375,10 +366,36 @@ export const editorialReviewsRouter = router({
     ),
 });
 
+export const editorialCommentsRouter = router({
+  list: capabilityProcedure("content.readDraft")
+    .input(listEditorialCommentsInputSchema)
+    .query(({ input }) => listEditorialComments(input)),
+  create: capabilityProcedure("content.write")
+    .input(createEditorialCommentInputSchema)
+    .mutation(({ ctx, input }) =>
+      runCmsWorkflow(() =>
+        createEditorialComment(input, actorFromContext(ctx)),
+      ),
+    ),
+  reply: capabilityProcedure("content.write")
+    .input(replyEditorialCommentInputSchema)
+    .mutation(({ ctx, input }) =>
+      runCmsWorkflow(() => replyEditorialComment(input, actorFromContext(ctx))),
+    ),
+  setResolved: capabilityProcedure("content.review.decide")
+    .input(setEditorialCommentResolvedInputSchema)
+    .mutation(({ ctx, input }) =>
+      runCmsWorkflow(() =>
+        setEditorialCommentResolved(input, actorFromContext(ctx)),
+      ),
+    ),
+});
+
 export const contentRouter = router({
   posts: postsRouter,
   pages: pagesRouter,
   reviews: editorialReviewsRouter,
+  comments: editorialCommentsRouter,
   media: mediaRouter,
   menus: menusRouter,
   siteSettings: siteSettingsRouter,

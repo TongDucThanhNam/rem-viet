@@ -32,7 +32,10 @@ export default function SignInForm() {
           password: value.password,
         },
         {
-          onSuccess: () => {
+          onSuccess: (context) => {
+            if (context.data?.twoFactorRedirect) {
+              return;
+            }
             navigate({
               to: "/admin/dashboard",
             });

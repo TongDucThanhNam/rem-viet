@@ -30,6 +30,8 @@ import {
   pageSlugRedirectStatements,
   type PageSlugRedirect,
 } from "./page-provider-redirect";
+import { assertCmsWorkflowInitialPublishAllowed } from "./workflow-policies";
+import { collectionMutationStatements } from "./collection-provider-audit";
 
 export type RemVietStandardPageContent = Omit<
   CmsPageContent<RemVietStandardBlock>,
@@ -334,6 +336,29 @@ export function createRemVietStandardPageProvider(
   );
 }
 
+/** Raw collection provider for installed non-page collections. Standard pages
+ * keep using the page adapter below so their legacy projection remains atomic. */
+export function createRemVietCollectionProvider(actor?: CmsActor) {
+  return createRemVietCollectionProviderForDatabase(databaseBinding(), actor);
+}
+
+export function createRemVietCollectionProviderForDatabase(
+  database: CloudflareD1Database,
+  actor?: CmsActor,
+) {
+  return createCloudflareCmsCollectionProvider({
+    database,
+    extensions: remVietExtensions,
+    ...(actor
+      ? {
+          prepareMutationStatements: (
+            event: CloudflareCmsCollectionMutationEvent,
+          ) => collectionMutationStatements(database, actor, event),
+        }
+      : {}),
+  });
+}
+
 export function createRemVietStandardPageProviderForDatabase(
   database: CloudflareD1Database,
   actor?: CmsActor,
@@ -405,6 +430,9 @@ export async function createRemVietStandardPage(
   input: CreateStandardPageInput,
   actor: CmsActor,
 ) {
+  if (input.status === "published") {
+    await assertCmsWorkflowInitialPublishAllowed("page");
+  }
   const slug = slugifyContent(input.slug || input.title);
   if (!slug) throw new Error("Slug is required");
   const content = parseRemVietStandardPageContent({

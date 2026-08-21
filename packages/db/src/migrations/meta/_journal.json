@@ -99,6 +99,76 @@
       "when": 1787031050979,
       "tag": "0013_curvy_living_lightning",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1787275097328,
+      "tag": "0014_great_leo",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "6",
+      "when": 1787275866146,
+      "tag": "0015_mushy_zemo",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "6",
+      "when": 1787276526812,
+      "tag": "0016_new_smiling_tiger",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1787277307593,
+      "tag": "0017_dry_marten_broadcloak",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1787278035014,
+      "tag": "0018_gigantic_the_stranger",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1787280873798,
+      "tag": "0019_workable_blue_blade",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1787298869414,
+      "tag": "0020_married_daredevil",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1787309217419,
+      "tag": "0021_wooden_screwball",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "6",
+      "when": 1787311704744,
+      "tag": "0022_common_puppet_master",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1787313017484,
+      "tag": "0023_previous_leper_queen",
+      "breakpoints": true
     }
   ]
 }

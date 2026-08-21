@@ -76,9 +76,12 @@ type EditorialPost = {
 };
 
 type EditorialReview = {
+  assigneeIds: string[];
   documentId: string;
   documentType: "page" | "post";
+  dueAt: string | null;
   note: string;
+  overdue: boolean;
   requestedAt: string | Date | null;
   reviewVersion: number | null;
   slug: string;
@@ -389,6 +392,8 @@ function EditorialCommandCenter({
   const scheduled = items.filter((item) => Boolean(item.scheduledAt)).length;
   const published = items.filter((item) => item.status === "published").length;
   const pendingReviews = reviews.filter((review) => !review.stale);
+  const scheduledReviews = pendingReviews.filter((review) => review.dueAt);
+  const overdueReviews = pendingReviews.filter((review) => review.overdue);
   const hasData = pages.length > 0 || posts.length > 0;
   const dateLabel = (value: string | Date) => {
     const date = new Date(value);
@@ -485,11 +490,19 @@ function EditorialCommandCenter({
           <div className="flex items-center justify-between gap-3 px-1 pb-3">
             <div>
               <h3 className="text-xs font-medium">
-                {reviews.length ? "Hàng đợi xét duyệt" : "Thay đổi gần đây"}
+                {reviews.length
+                  ? scheduledReviews.length
+                    ? "Lịch xét duyệt"
+                    : "Hàng đợi xét duyệt"
+                  : "Thay đổi gần đây"}
               </h3>
               <p className="mt-0.5 text-[10px] text-background/70">
                 {reviews.length
-                  ? `${pendingReviews.length} yêu cầu còn hiệu lực`
+                  ? `${pendingReviews.length} yêu cầu còn hiệu lực${
+                      overdueReviews.length
+                        ? ` · ${overdueReviews.length} quá hạn`
+                        : ""
+                    }`
                   : "Từ dữ liệu biên tập hiện tại"}
               </p>
             </div>
@@ -532,13 +545,19 @@ function EditorialCommandCenter({
                       </span>
                       <span className="mt-0.5 block text-[10px] text-background/70">
                         v{review.reviewVersion} ·{" "}
-                        {review.requestedAt
-                          ? dateLabel(review.requestedAt)
-                          : "Không rõ thời điểm"}
+                        {review.dueAt
+                          ? `Hạn ${dateLabel(review.dueAt)}`
+                          : review.requestedAt
+                            ? `Gửi ${dateLabel(review.requestedAt)}`
+                            : "Không rõ thời điểm"}
                       </span>
                     </span>
                     <span className="shrink-0 text-[9px] uppercase tracking-wide text-background/70">
-                      {review.stale ? "Đã cũ" : "Chờ duyệt"}
+                      {review.stale
+                        ? "Đã cũ"
+                        : review.overdue
+                          ? "Quá hạn"
+                          : "Chờ duyệt"}
                     </span>
                   </>
                 );

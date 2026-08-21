@@ -46,7 +46,7 @@ preview/publish/revision restore, backups and support boundaries. Paid-client
 reuse and unassisted human usability remain external evidence until real signed
 or observed receipts exist.
 
-Coordinated package upgrades install one exact version across all eleven private
+Coordinated package upgrades install one exact version across all twenty-four private
 artifacts. The clean-consumer and N-to-N+1-to-N rehearsals are mandatory before
 preparing a private release; no public publication is implied by a passing local
 rehearsal.

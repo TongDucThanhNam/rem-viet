@@ -1873,3 +1873,221 @@ The release record template is
 recorded in its completed counterpart and `bun run release:verify` passes on the
 exact clean commit, the correct product label is **technical release candidate**,
 not “client ready”.
+
+## CMS plugin Field v2 independent-template browser gate — 2026-08-21
+
+The packaged Atelier template now owns a second, independent browser fixture
+for the complete generated Field v2 collection form. It renders scalar,
+structured, relationship, polymorphic relationship, media, block, computed,
+virtual, and join controls through `CmsCollectionAdminShell`; it does not copy
+the Admin form algorithm into the template.
+
+The first real-browser run exposed two shared accessibility/data-integrity gaps.
+Tabs did not implement arrow/Home/End navigation, and a required single-value
+relationship without state visually displayed its first option, allowing a
+keyboard user to submit an apparently selected value that remained absent from
+React state. The shared Admin package now uses roving tab focus with the WAI-ARIA
+keyboard pattern and renders disabled, explicit placeholders for required
+single-value select, relationship, and polymorphic relationship controls.
+
+Current executable evidence:
+
+```text
+@agency/cms-admin test                         PASS (34 / 190 expectations)
+@agency/cms-template-atelier test              PASS (4 unit + 9 browser)
+  browser projects                             desktop + tablet + mobile
+  generated Field v2                           keyboard create + responsive + axe
+scripts/cms-kit-boundaries.test.ts             PASS (28 / 423 expectations)
+root bun run check-types                       PASS (34/34 tasks)
+bun install --frozen-lockfile                  PASS (Bun 1.4.0)
+```
+
+The conformance workflow and repository package-manager declaration now share
+the Bun 1.4.0 pin. A boundary test requires packed consumers on both Windows and
+Linux plus the PostgreSQL 17 and pinned MinIO integration wiring. This is a
+mechanical CI contract, not a substitute for the still-missing external Linux
+run URL.
+
+## CMS plugin clean-checkout operations gate — 2026-08-21
+
+The import/export/backup/restore/upgrade/rollback Definition-of-Done row now has
+one reproducible local command: `bun run cms:kit:clean-checkout`. The verifier
+enumerates tracked plus non-ignored untracked regular files, rejects unsafe or
+ambiguous paths, copies them into a fresh repository, creates one synthetic
+commit, requires clean Git status, and installs the frozen root lockfile. It
+then runs the packed independent consumers, provider-neutral portability,
+receipt-bound CLI migration/rollback, a bounded local SQLite backup and
+isolated restore, and the coordinated 24-package upgrade/rollback rehearsal.
+The same snapshot must remain clean after all operations.
+
+The passing receipt records:
+
+```text
+source kind                 assembled-current-source-snapshot
+source files                2,938
+source SHA-256              44b0f59646886195981e61dfb2be52f0c2019b945f4286ed0faa1e07c8154403
+synthetic commit            49f96146c040b9d39faf1feca4634c2374040270
+synthetic tree              74bfe94f3356d6022db3fa08ec13d0bc6cba95cb
+clean before / after        true / true
+restore integrity           ok; isolated; 7 tables; all critical fixture counts = 1
+backup SHA-256              3653423f4e4d1dfd6bdb57f8cc2a2a3bb6d976b36d40777de786d8d9927012d3
+package schemas             1 -> 2 -> 1 across 24 packages
+upgrade backup SHA-256      3df929d82e8eda933d5bbeaae8c093c93b83f0529558c7ea3d823c57c4a7e4ea
+receipt SHA-256             32b7247767cd862f00e8f3074c37e98433bbc4c01d862762705ddc01c37593b0
+```
+
+The first attempt also exposed a Windows fixture-harness weakness: Vite child
+startup output was hidden and failed teardown could keep the Bun process alive.
+Health probes now have bounded request timeouts, startup diagnostics are
+visible, and Windows process-tree cleanup is explicit. The independent packed
+consumer and the complete clean-checkout rehearsal both pass with the hardened
+harness.
+
+This receipt is deliberately labeled as an assembled current-source snapshot.
+It is local executable evidence, not an original clean release commit, registry
+publication, authenticated staging run, or immutable external backup. Those
+release proofs remain open.
+
+## CMS workflow task governance slice — 2026-08-21
+
+The version-bound editorial handoff now carries a provider-neutral task instead
+of only a note. Requests normalize assignee IDs and roles, mentions,
+notification intent, due date, and required or optional checklist items.
+Decisions carry completed checklist IDs. The runtime derives those fields from
+immutable events and exposes shared assignment and checklist checks; both the
+application service and Cloudflare provider fail closed when a reviewer is not
+assigned or an approval omits required evidence. Exact retries are idempotent,
+while a divergent request for the same version conflicts.
+
+The application stores this metadata in the new
+`0021_wooden_screwball.sql` migration, validates referenced staff and eligible
+Owner/Admin assignees, atomically emits a deduplicated
+`content.<type>.review_requested` outbox event, and provides due/assignee/overdue
+queue filters with deterministic due-first ordering. The editor exposes due
+date, role/person assignment, mentions, request notes, and line-based required
+checklists. The dashboard renders pending work as a review calendar when due
+dates exist. Approval is disabled until every required item is selected;
+requesting changes remains available for incomplete work.
+
+The Cloudflare reference provider adds
+`0009_editorial_review_tasks`, preserves task and decision evidence in bounded
+JSON metadata, and passes the strengthened real-provider conformance scenario.
+The first browser reruns caught two presentation defects without weakening the
+contract: a role-order assertion assumed display order, and the checklist gate
+was attached to the request-changes button instead of approval. The assertion
+is now order-independent and the gate is attached to approval.
+
+Current executable evidence:
+
+```text
+bun test packages/api/tests/editorial-review-tasks.test.ts
+         packages/cms-provider-cloudflare/tests/provider.test.ts
+                                                         PASS (19 / 85 expectations)
+focused core/runtime/API review suites                  PASS (49 / 131 expectations)
+bun run cms:migrations:verify                           PASS (22 migrations)
+cms-core/runtime/cloudflare/api/web typechecks          PASS
+bun scripts/test-e2e-local.ts --project=desktop-chrome
+  --grep "editorial review stays bound"                PASS (1 / 16.2s)
+```
+
+The browser journey creates a versioned page, requests review with Owner/Admin
+assignment, a due date and two required checklist items, verifies the due-aware
+dashboard queue, reopens the document, proves approval is gated until both
+items are checked, approves, runs the accessibility scan, verifies queue
+removal, and deletes the fixture.
+
+This is a truthful partial closure of `CMS-P1-03`, not completion of that item.
+Folder-scoped workflow policy, a threaded task/comment model, release membership
+for globals and real locales, and the external scheduled-campaign/staging
+receipts remain open. A signed-in in-app Browser visit was also blocked by the
+existing fail-closed Owner TOTP enrollment requirement; security state was not
+changed, so it produced no live authenticated UI evidence.
+
+## CMS unified operations calendar slice — 2026-08-21
+
+The operations workspace now exposes one bounded monthly agenda for scheduled
+pages, posts, generic localized collection documents, multi-document releases,
+and editorial review due dates. The API accepts an explicit half-open UTC range,
+rejects reversed or windows longer than 366 days, supports kind filters and a
+bounded limit, orders every database source before limiting, then de-duplicates,
+sorts, and marks overdue scheduled/review work deterministically. The generic
+standard-page compatibility projection is excluded so a scheduled standard page
+appears only once.
+
+The admin route groups entries by UTC day, provides previous/next-month controls,
+links page and post work back to their editors, surfaces type/status/locale and
+overdue state, and refreshes the calendar after release mutations. Its region,
+controls, responsive overflow contract, loading/error/empty states, and axe scan
+are covered by the authenticated operations journey on both configured browser
+projects.
+
+Current executable evidence:
+
+```text
+bun test packages/api/tests/calendar.test.ts            PASS (3 / 9 expectations)
+calendar + review/release/workflow focused suites        PASS (21 / 71 expectations)
+bun --cwd packages/api check-types                       PASS
+bun --cwd apps/web check-types                           PASS
+bun scripts/test-e2e-local.ts --grep
+  "operations modules are available to admin"           PASS (desktop + mobile)
+```
+
+This closes the local unified-calendar gap within `CMS-P1-03`; it does not close
+the broader item or replace authenticated deployed-staging and real scheduled
+campaign receipts.
+
+## CMS localized collection release slice — 2026-08-21
+
+Release membership now has an explicit collection dimension in addition to
+document type, document ID, locale, and expected version. Migration
+`0022_common_puppet_master.sql` preserves existing page/post rows with an empty
+collection and extends the uniqueness key so the same collection document may
+participate once per locale. Input validation accepts non-localized collection
+members with an empty locale or a canonical CMS locale, rejects duplicate
+collection/document/locale identities, and requires standard pages to continue
+through the page release path so their legacy projection is not bypassed.
+
+The production adapter publishes installed collection definitions through the
+real Cloudflare collection provider, retaining its schema, hook, relationship,
+revision, and optimistic-version boundaries. Collection publication records a
+locale-qualified audit identity and a reliable content-free
+`content.collection.published` outbox event inside the provider batch. Release
+preview and receipts expose collection and locale. If a later member fails,
+compensation verifies the exact published revision, restores the earlier locale,
+deletes the release-created revision and pending outbox event, records the
+rollback, and leaves the failed release receipt inspectable. Replay recognizes
+the release marker and does not publish or emit twice.
+
+The operations form accepts:
+
+```text
+page,page-id,3
+post,post-id,7
+collection,collection-slug,document-id,vi-VN,3
+```
+
+Its release list exposes each member's collection/document/locale, expected
+version, and status. The existing authenticated operations journey verifies the
+format guidance, responsive overflow contract, and axe-clean shell on desktop
+and mobile.
+
+Current executable evidence:
+
+```text
+bun test packages/api/tests/releases.test.ts             PASS (9 tests)
+  real D1 collection provider                            two-locale publish/replay
+  reliable outbox                                        one event per locale
+  later-locale failure                                   reverse compensation PASS
+bun --cwd packages/cms-provider-cloudflare test           PASS (21 / 103 expectations)
+bun run cms:migrations:verify                             PASS (23 migrations)
+bun scripts/test-e2e-local.ts --grep
+  "operations modules are available to admin"            PASS (desktop + mobile)
+```
+
+Global release membership remains open for a concrete reason: the current
+provider-neutral global API exposes immediate versioned `save`/`restore`, not a
+private draft and explicit publish boundary. Re-saving already-live content as a
+release would manufacture a receipt without changing visibility. `CMS-P1-03`
+therefore remains partial until global draft/publication semantics, arbitrary-
+collection review policy, threaded task comments, folder targeting, and the
+external scheduled-campaign/staging proof exist.

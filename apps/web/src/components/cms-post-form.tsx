@@ -15,7 +15,6 @@ import MediaPickerField from "@/components/media-picker-field";
 import CmsRichTextEditor from "@/components/cms-rich-text-editor";
 import { FormSection } from "@/components/admin-ui";
 import { parseRichTextDocument } from "@rem-viet/cms";
-import type { PostRichTextCompositionRequest } from "@/lib/post-rich-text-composition";
 
 export type CmsPostFormValues = {
   content: string;
@@ -34,7 +33,6 @@ export type CmsPostFormValues = {
 };
 
 type CmsPostFormProps = {
-  compositionRequest?: PostRichTextCompositionRequest | null;
   contentValue?: string;
   initialValues?: Partial<CmsPostFormValues>;
   isSubmitDisabled?: boolean;
@@ -100,7 +98,6 @@ export function validateCmsPostFormValues(values: CmsPostFormValues) {
 }
 
 export default function CmsPostForm({
-  compositionRequest,
   contentValue,
   initialValues,
   isSubmitDisabled = false,
@@ -269,7 +266,6 @@ export default function CmsPostForm({
         <div className="grid gap-2">
           <Label>Nội dung</Label>
           <CmsRichTextEditor
-            compositionRequest={compositionRequest}
             selectedBlockIndex={selectedBlockIndex}
             value={form.content}
             onChange={(content, historyGroup) =>

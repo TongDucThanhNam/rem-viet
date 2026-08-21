@@ -67,7 +67,7 @@ authorization.
   visual editor, admin, and template-factory source graphs.
 - The clean-consumer rehearsal installs and runs both template lifecycles from
   packed artifacts.
-- The coordinated eleven-package N-to-N+1 rehearsal includes Atelier and
+- The coordinated twenty-four-package N-to-N+1 rehearsal includes Atelier and
   restores the baseline packages and content backup.
 
 No deployment, public package publication, paid-client reuse, or human

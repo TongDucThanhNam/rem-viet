@@ -66,6 +66,17 @@ export default function AdminShell({
       return undefined;
     },
   });
+  const mfaRequired = useRouterState({
+    select: (state) => {
+      for (let index = state.matches.length - 1; index >= 0; index -= 1) {
+        const context = state.matches[index]?.context as
+          { session?: { mfaRequired?: boolean } } | undefined;
+        if (context?.session?.mfaRequired !== undefined)
+          return context.session.mfaRequired;
+      }
+      return false;
+    },
+  });
   const { data: session } = authClient.useSession();
   const [isHydrated, setIsHydrated] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(
@@ -84,6 +95,11 @@ export default function AdminShell({
   useEffect(() => {
     document.title = `${title} | ${siteManifest.name}`;
   }, [title]);
+  useEffect(() => {
+    if (mfaRequired && pathname !== "/admin/security") {
+      void navigate({ to: "/admin/security", replace: true });
+    }
+  }, [mfaRequired, navigate, pathname]);
 
   const handleSignOut = () => {
     authClient.signOut({

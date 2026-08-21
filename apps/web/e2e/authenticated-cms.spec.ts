@@ -1,4 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { createHmac } from "node:crypto";
+import { readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import { runPageProviderConformance } from "@agency/cms-runtime";
 import { defaultRichTextBlock } from "@agency/cms-template-rem-viet";
 import { defaultHomeBlocks, homeBlockSchema } from "@rem-viet/cms";
@@ -35,31 +38,132 @@ const expectedVisualControlIdsByBlockType = new Map<string, string[]>(
 
 const email = process.env.CMS_E2E_EMAIL;
 const password = process.env.CMS_E2E_PASSWORD;
+const totpSecret = process.env.CMS_E2E_TOTP_SECRET;
 const editorEmail = process.env.CMS_E2E_EDITOR_EMAIL;
 const editorPassword = process.env.CMS_E2E_EDITOR_PASSWORD;
 const ownerEmail = process.env.CMS_E2E_OWNER_EMAIL;
 const ownerPassword = process.env.CMS_E2E_OWNER_PASSWORD;
+const ownerTotpSecret = process.env.CMS_E2E_OWNER_TOTP_SECRET;
 const managedEmail = process.env.CMS_E2E_MANAGED_EMAIL;
+const authStateDirectory = process.env.CMS_E2E_AUTH_STATE_DIR;
 const authenticatedRole = process.env.CMS_E2E_ROLE ?? "admin";
+type AuthCookie = Awaited<
+  ReturnType<ReturnType<Page["context"]>["cookies"]>
+>[number];
+const authCookiesByEmail = new Map<string, AuthCookie[]>();
+
+function authCookieStatePath(loginEmail: string) {
+  if (!authStateDirectory) return undefined;
+  const identity =
+    loginEmail === email
+      ? "admin"
+      : loginEmail === editorEmail
+        ? "editor"
+        : loginEmail === ownerEmail
+          ? "owner"
+          : undefined;
+  if (!identity) return undefined;
+  return join(authStateDirectory, `playwright-${identity}-cookies.json`);
+}
+
+async function loadAuthCookies(loginEmail: string) {
+  const cached = authCookiesByEmail.get(loginEmail);
+  if (cached) return cached;
+  const statePath = authCookieStatePath(loginEmail);
+  if (!statePath) return undefined;
+  try {
+    const cookies = JSON.parse(await readFile(statePath, "utf8")) as unknown;
+    if (!Array.isArray(cookies)) {
+      throw new Error(`Invalid Playwright cookie state at ${statePath}.`);
+    }
+    const parsed = cookies as AuthCookie[];
+    authCookiesByEmail.set(loginEmail, parsed);
+    return parsed;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
+    throw error;
+  }
+}
+
+async function storeAuthCookies(page: Page, loginEmail: string) {
+  const cookies = await page.context().cookies();
+  authCookiesByEmail.set(loginEmail, cookies);
+  const statePath = authCookieStatePath(loginEmail);
+  if (statePath) {
+    await writeFile(statePath, JSON.stringify(cookies), "utf8");
+  }
+}
+
+function generateTotp(secret: string) {
+  const counter = Math.floor(Date.now() / 30_000);
+  const message = Buffer.alloc(8);
+  message.writeBigUInt64BE(BigInt(counter));
+  const digest = createHmac("sha1", Buffer.from(secret, "utf8"))
+    .update(message)
+    .digest();
+  const offset = digest[digest.length - 1]! & 0x0f;
+  const value =
+    ((digest[offset]! & 0x7f) << 24) |
+    ((digest[offset + 1]! & 0xff) << 16) |
+    ((digest[offset + 2]! & 0xff) << 8) |
+    (digest[offset + 3]! & 0xff);
+  return (value % 1_000_000).toString().padStart(6, "0");
+}
+
+function totpSecretFor(loginEmail: string) {
+  if (loginEmail === email) return totpSecret;
+  if (loginEmail === ownerEmail) return ownerTotpSecret;
+  return undefined;
+}
+
+async function waitForControlledInput(page: Page, selector: string) {
+  await page.waitForFunction(
+    (inputSelector) =>
+      Boolean(
+        (
+          document.querySelector(inputSelector) as HTMLInputElement & {
+            _valueTracker?: unknown;
+          }
+        )?._valueTracker,
+      ),
+    selector,
+  );
+}
 
 async function login(page: Page, loginEmail: string, loginPassword: string) {
+  const cachedCookies = await loadAuthCookies(loginEmail);
+  if (cachedCookies) {
+    await page.context().addCookies(cachedCookies);
+    await page.goto("/admin/dashboard");
+    await waitForAdminHydration(page);
+    return;
+  }
+
   await page.goto("/dang-nhap");
-  await page.waitForFunction(() =>
-    Boolean(
-      (
-        document.querySelector("#password") as HTMLInputElement & {
-          _valueTracker?: unknown;
-        }
-      )?._valueTracker,
-    ),
-  );
+  await waitForControlledInput(page, "#password");
   await page.getByLabel("Tên đăng nhập").fill(loginEmail);
   await page
     .getByRole("textbox", { name: "Mật khẩu", exact: true })
     .fill(loginPassword);
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
+  await page.waitForURL(/(?:admin\/dashboard|xac-thuc-hai-lop)/);
+  if (page.url().includes("/xac-thuc-hai-lop")) {
+    const secret = totpSecretFor(loginEmail);
+    if (!secret) {
+      throw new Error(`Missing TOTP fixture for ${loginEmail}.`);
+    }
+    await waitForControlledInput(page, "#two-factor-code");
+    await page.getByLabel("Mã xác thực").fill(generateTotp(secret));
+    const trustDevice = page.getByRole("checkbox", {
+      name: "Tin cậy thiết bị này trong 30 ngày",
+    });
+    await trustDevice.click();
+    await expect(trustDevice).toBeChecked();
+    await page.getByRole("button", { name: "Xác minh" }).click();
+  }
   await expect(page).toHaveURL(/admin\/dashboard/);
   await waitForAdminHydration(page);
+  await storeAuthCookies(page, loginEmail);
 }
 
 async function waitForAdminHydration(page: Page) {
@@ -292,6 +396,54 @@ test.describe("authenticated CMS workflow", () => {
       ).toBeVisible();
     }
     await expectNoAutomatedAccessibilityViolations(page, "Admin products list");
+  });
+
+  test("security workspace is responsive, keyboard operable, and accessible", async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto("/admin/security");
+    await waitForAdminHydration(page);
+
+    await expect(
+      page.getByRole("heading", { name: "Bảo mật tài khoản", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Thiết bị và phiên đăng nhập", { exact: true }),
+    ).toBeVisible();
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.documentElement.scrollWidth -
+            document.documentElement.clientWidth,
+        ),
+      )
+      .toBe(0);
+
+    const refreshButton = page.getByRole("button", { name: "Làm mới" });
+    await reachWithKeyboard(page, refreshButton);
+    await expect(refreshButton).toBeFocused();
+    await refreshButton.press("Enter");
+    await expect(refreshButton).toBeEnabled();
+
+    const sessionStatus = page
+      .getByRole("status")
+      .filter({ hasText: "phiên đăng nhập" });
+    await expect(sessionStatus).toContainText(/Hiển thị \d+ trong \d+ phiên/);
+
+    const revokeNames = await page
+      .getByRole("button", { name: /^Thu hồi phiên / })
+      .evaluateAll((buttons) =>
+        buttons.map((button) => button.getAttribute("aria-label")),
+      );
+    expect(revokeNames.every(Boolean)).toBe(true);
+    expect(new Set(revokeNames).size).toBe(revokeNames.length);
+
+    await expectNoAutomatedAccessibilityViolations(
+      page,
+      "Admin security workspace",
+    );
   });
 
   test("admin create routes and post validation remain reachable without data loss", async ({
@@ -1369,6 +1521,36 @@ test.describe("authenticated CMS workflow", () => {
       page.getByRole("heading", { name: "Nhật ký kiểm toán" }),
     ).toBeVisible();
     await expect(page.getByText("auth.sign_in_success").first()).toBeVisible();
+    await page.goto("/admin/operations");
+    await expect(
+      page.getByRole("heading", { name: "Tự động hóa và release" }),
+    ).toBeVisible();
+    const operationsCalendar = page.getByRole("region", {
+      name: "Lịch nội dung và release",
+    });
+    await expect(operationsCalendar).toBeVisible();
+    await expect(operationsCalendar).toContainText(
+      "Một lịch chung cho hạn duyệt, nội dung đã lên lịch và release nhiều tài liệu.",
+    );
+    await expect(
+      operationsCalendar.getByRole("button", { name: "Tháng trước" }),
+    ).toBeVisible();
+    await expect(
+      operationsCalendar.getByRole("button", { name: "Tháng sau" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(/collection,collection-slug,document-id,vi-VN,3/),
+    ).toBeVisible();
+    await expect
+      .poll(() =>
+        page.evaluate(
+          () =>
+            document.documentElement.scrollWidth -
+            document.documentElement.clientWidth,
+        ),
+      )
+      .toBe(0);
+    await expectNoAutomatedAccessibilityViolations(page, "Operations calendar");
     await page.goto("/admin/performance");
     await expect(
       page.getByRole("heading", { name: "Hiệu năng thực tế" }),
@@ -2558,7 +2740,7 @@ test.describe("authenticated CMS workflow", () => {
     );
     await expect(standardPreviewFrame).toHaveAttribute(
       "src",
-      /\/admin\/pages\/__new-standard-page__\/preview$/,
+      /\/admin\/pages\/new-standard-page-draft\/preview(?:\?|$)/,
     );
     await expect(
       unsavedStandardCanvas.getByText("Bản đang soạn · riêng tư", {
@@ -2632,7 +2814,7 @@ test.describe("authenticated CMS workflow", () => {
     ).toBeVisible({ timeout: 20_000 });
     await expect(standardPreviewFrame).toHaveAttribute(
       "src",
-      /\/admin\/pages\/(?!__new-standard-page__)[^/]+\/preview$/,
+      /\/admin\/pages\/(?!new-standard-page-draft\/)[^/]+\/preview(?:\?|$)/,
     );
     await expect(page.locator("#standard-page-preview")).toHaveAttribute(
       "data-cms-preview-connection",
@@ -3087,28 +3269,83 @@ test.describe("authenticated CMS workflow", () => {
     await reviewPanel
       .getByLabel("Ghi chú cho người duyệt")
       .fill(`Kiểm tra bản ${suffix}`);
+    await reviewPanel.getByLabel("Hạn duyệt").fill("2099-01-01T10:00");
+    await reviewPanel
+      .getByRole("checkbox", { name: "Chủ sở hữu", exact: true })
+      .check();
+    await reviewPanel
+      .getByRole("checkbox", { name: "Quản trị viên", exact: true })
+      .check();
+    await reviewPanel
+      .getByLabel("Danh sách kiểm tra bắt buộc")
+      .fill("Kiểm tra SEO\nXác nhận pháp lý");
     await reviewPanel
       .getByRole("button", { name: /Gửi duyệt bản v\d+/ })
       .click();
     await expect(
       reviewPanel.getByRole("heading", { name: /đang chờ duyệt/ }),
     ).toBeVisible();
+    await expect(reviewPanel.getByText(/Hạn duyệt:/)).toBeVisible();
+    const assignmentSummary = reviewPanel.getByText(/Phụ trách:/);
+    await expect(assignmentSummary).toContainText("Chủ sở hữu");
+    await expect(assignmentSummary).toContainText("Quản trị viên");
+
+    const editorialComments = reviewPanel.getByTestId("editorial-comments");
+    const commentBody = `Kiểm tra tuyên bố chiến dịch ${suffix}`;
+    const replyBody = `Đã đối chiếu nguồn cho ${suffix}`;
+    await editorialComments.getByLabel("Bình luận mới").fill(commentBody);
+    await editorialComments.getByText("Nhắc người tham gia").click();
+    await editorialComments.getByRole("checkbox").first().check();
+    await editorialComments
+      .getByRole("button", { name: "Tạo luồng bình luận" })
+      .click();
+    const commentThread = editorialComments.locator("article").filter({
+      hasText: commentBody,
+    });
+    await expect(commentThread).toBeVisible();
+    await expect(editorialComments.getByText("1 đang mở")).toBeVisible();
+    await commentThread.getByLabel("Phản hồi").fill(replyBody);
+    await commentThread.getByRole("button", { name: "Gửi phản hồi" }).click();
+    await expect(commentThread.getByText(replyBody)).toBeVisible();
+    await commentThread
+      .getByRole("button", { name: "Đánh dấu đã xử lý" })
+      .click();
+    await expect(
+      commentThread.getByText("Đã xử lý", { exact: true }),
+    ).toBeVisible();
+    await expect(editorialComments.getByText("0 đang mở")).toBeVisible();
 
     await page.goto("/admin/dashboard");
     const reviewQueue = page.getByRole("region", {
       name: "Nội dung đang chuyển động",
     });
     await expect(
-      reviewQueue.getByRole("heading", { name: "Hàng đợi xét duyệt" }),
+      reviewQueue.getByRole("heading", { name: "Lịch xét duyệt" }),
     ).toBeVisible();
     await reviewQueue.getByRole("link", { name: new RegExp(title) }).click();
     await expect(page).toHaveURL(/\/admin\/pages\?pageId=/);
 
     const decisionPanel = page.getByTestId("editorial-review-panel");
+    const persistedThread = decisionPanel.locator("article").filter({
+      hasText: commentBody,
+    });
+    await expect(persistedThread).toContainText(replyBody);
+    await expect(
+      persistedThread.getByText("Đã xử lý", { exact: true }),
+    ).toBeVisible();
     await decisionPanel
       .getByLabel("Ghi chú xét duyệt")
       .fill("Bản xem trước và nội dung đã được kiểm tra.");
-    await decisionPanel.getByRole("button", { name: /Duyệt bản v\d+/ }).click();
+    const approveReview = decisionPanel.getByRole("button", {
+      name: /Duyệt bản v\d+/,
+    });
+    await expect(approveReview).toBeDisabled();
+    await decisionPanel.getByRole("checkbox", { name: /Kiểm tra SEO/ }).check();
+    await decisionPanel
+      .getByRole("checkbox", { name: /Xác nhận pháp lý/ })
+      .check();
+    await expect(approveReview).toBeEnabled();
+    await approveReview.click();
     await expect(
       decisionPanel.getByRole("heading", { name: /đã được duyệt/ }),
     ).toBeVisible();
@@ -3424,10 +3661,10 @@ test.describe("owner governance workflow", () => {
         )?._valueTracker,
       ),
     );
-    await page.getByLabel("Tên").fill("Managed E2E Editor");
-    await page.getByLabel("Email").fill(managedEmail!);
-    await page.getByLabel("Mật khẩu tạm").fill("Managed-E2E-Password-123!");
-    await page.getByLabel("Vai trò", { exact: true }).selectOption("editor");
+    await page.locator("#staff-name").fill("Managed E2E Editor");
+    await page.locator("#staff-email").fill(managedEmail!);
+    await page.locator("#staff-password").fill("Managed-E2E-Password-123!");
+    await page.locator("#staff-role").selectOption("editor");
     await page
       .getByRole("button", { name: "Tạo tài khoản", exact: true })
       .click();

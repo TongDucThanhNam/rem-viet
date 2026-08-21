@@ -70,12 +70,28 @@ export type CmsFeatureMigration = {
 export type CmsAdminContribution = {
   readonly id: string;
   readonly collection?: string;
-  readonly placement: "navigation" | "list" | "form";
+  readonly placement:
+    "navigation" | "list" | "form" | "dashboard" | "root" | "document";
   readonly label: string;
 };
 
+export type CmsFeatureModuleManifest = Readonly<{
+  schemaVersion: 1;
+  packageName: string;
+  version: string;
+  cmsCompatibility: Readonly<{
+    minimum: string;
+    maximumExclusive?: string;
+  }>;
+  uninstall: Readonly<{
+    dataPolicy: "retain" | "delete" | "export-then-delete";
+    description: string;
+  }>;
+}>;
+
 export type CmsFeatureModule = {
   readonly id: string;
+  readonly manifest?: CmsFeatureModuleManifest;
   readonly dependsOn?: readonly string[];
   readonly collections?: readonly CmsCollectionDefinition[];
   readonly hooks?: readonly CmsLifecycleHook[];
@@ -90,6 +106,106 @@ const extensionIdSchema = z
   .min(2)
   .max(96)
   .regex(/^[a-z][a-z0-9-]*(?:\/[a-z][a-z0-9-]*)*$/);
+
+const exactSemverSchema = z
+  .string()
+  .regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?$/);
+
+const packageNameSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(214)
+  .regex(/^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/);
+
+function semverParts(value: string) {
+  const [core] = value.split("-");
+  return core!.split(".").map(Number) as [number, number, number];
+}
+
+function compareSemver(left: string, right: string) {
+  const leftParts = semverParts(left);
+  const rightParts = semverParts(right);
+  for (let index = 0; index < 3; index += 1) {
+    const difference = leftParts[index]! - rightParts[index]!;
+    if (difference) return difference;
+  }
+  return 0;
+}
+
+export function defineCmsFeatureModuleManifest(
+  manifest: CmsFeatureModuleManifest,
+): CmsFeatureModuleManifest {
+  const parsed = z
+    .object({
+      schemaVersion: z.literal(1),
+      packageName: packageNameSchema,
+      version: exactSemverSchema,
+      cmsCompatibility: z
+        .object({
+          minimum: exactSemverSchema,
+          maximumExclusive: exactSemverSchema.optional(),
+        })
+        .strict(),
+      uninstall: z
+        .object({
+          dataPolicy: z.enum(["retain", "delete", "export-then-delete"]),
+          description: z.string().trim().min(1).max(500),
+        })
+        .strict(),
+    })
+    .strict()
+    .safeParse(manifest);
+  if (!parsed.success) {
+    throw new CmsError({
+      code: "VALIDATION_FAILED",
+      message: `Invalid feature module manifest for "${manifest.packageName}".`,
+      retryable: false,
+      details: { issues: parsed.error.issues },
+    });
+  }
+  if (
+    manifest.cmsCompatibility.maximumExclusive &&
+    compareSemver(
+      manifest.cmsCompatibility.minimum,
+      manifest.cmsCompatibility.maximumExclusive,
+    ) >= 0
+  ) {
+    throw new CmsError({
+      code: "VALIDATION_FAILED",
+      message: "Feature compatibility maximum must exceed its minimum.",
+      retryable: false,
+    });
+  }
+  return Object.freeze(manifest);
+}
+
+export function assertCmsFeatureModuleCompatibility(
+  module: Pick<CmsFeatureModule, "id" | "manifest">,
+  cmsVersion: string,
+) {
+  exactSemverSchema.parse(cmsVersion);
+  if (!module.manifest) {
+    throw new CmsError({
+      code: "VALIDATION_FAILED",
+      message: `Feature module "${module.id}" has no compatibility manifest.`,
+      retryable: false,
+    });
+  }
+  const { minimum, maximumExclusive } = module.manifest.cmsCompatibility;
+  if (
+    compareSemver(cmsVersion, minimum) < 0 ||
+    (maximumExclusive && compareSemver(cmsVersion, maximumExclusive) >= 0)
+  ) {
+    throw new CmsError({
+      code: "CAPABILITY_UNAVAILABLE",
+      message: `Feature module "${module.id}" is incompatible with CMS ${cmsVersion}.`,
+      retryable: false,
+      details: { minimum, maximumExclusive: maximumExclusive ?? null },
+    });
+  }
+  return true;
+}
 
 function duplicate(values: readonly string[]) {
   return values.find((value, index) => values.indexOf(value) !== index);
@@ -136,6 +252,7 @@ export function defineFeatureModule<TModule extends CmsFeatureModule>(
   const parsed = z
     .object({
       id: extensionIdSchema,
+      manifest: z.unknown().optional(),
       dependsOn: z.array(extensionIdSchema).optional(),
       collections: z.array(z.unknown()).optional(),
       hooks: z.array(z.unknown()).optional(),
@@ -160,6 +277,7 @@ export function defineFeatureModule<TModule extends CmsFeatureModule>(
       retryable: false,
     });
   }
+  if (module.manifest) defineCmsFeatureModuleManifest(module.manifest);
   assertNoDuplicateIds(module.dependsOn ?? [], "module dependency");
   for (const hook of module.hooks ?? []) defineCmsLifecycleHook(hook);
   for (const permission of module.permissions ?? []) {
@@ -197,7 +315,9 @@ export function defineFeatureModule<TModule extends CmsFeatureModule>(
   for (const contribution of module.admin ?? []) {
     if (
       !extensionIdSchema.safeParse(contribution.id).success ||
-      !["navigation", "list", "form"].includes(contribution.placement) ||
+      !["navigation", "list", "form", "dashboard", "root", "document"].includes(
+        contribution.placement,
+      ) ||
       !contribution.label.trim()
     ) {
       throw new CmsError({

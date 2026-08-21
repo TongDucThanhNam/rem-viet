@@ -372,6 +372,7 @@ export const web = Cloudflare.Website.Vite("web", {
     LEAD_NOTIFICATION_EMAIL: optionalEnv("LEAD_NOTIFICATION_EMAIL"),
     EMAIL_FROM: optionalEnv("EMAIL_FROM"),
     JSONLINK_API_KEY: optionalSecret("JSONLINK_API_KEY"),
+    CMS_WEBHOOK_ALLOWED_HOSTS: optionalEnv("CMS_WEBHOOK_ALLOWED_HOSTS"),
     SANITY_PROJECT_ID: optionalEnv("SANITY_PROJECT_ID"),
     SANITY_DATASET: optionalEnv("SANITY_DATASET"),
     SANITY_STUDIO_URL: optionalEnv("SANITY_STUDIO_URL"),

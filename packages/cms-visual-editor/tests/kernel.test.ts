@@ -10,6 +10,7 @@ import {
   createCmsVisualMigrationRegistry,
   createCmsVisualPreviewEnvelope,
   createCmsVisualPreviewResponseHeaders,
+  createCmsVisualPreviewSession,
   defineCmsVisualComponent,
   initialCmsVisualPreviewReplayState,
   isCmsVisualEditorMessage,
@@ -442,6 +443,56 @@ describe("preview security", () => {
     ).toMatchObject({ reason: "identity" });
   });
 
+  test("rejects forged source and every bound identity dimension", () => {
+    const common = {
+      origin: "https://admin.example.test",
+      allowedOrigins: new Set(["https://admin.example.test"]),
+      expectedSource: "preview" as const,
+      expectedIdentity: identity,
+      replay: initialCmsVisualPreviewReplayState(),
+      now: 20_100,
+    };
+    expect(
+      validateCmsVisualPreviewEnvelope({
+        ...common,
+        value: createCmsVisualPreviewEnvelope({
+          source: "host",
+          messageId: "forged-source",
+          sequence: 1,
+          issuedAt: 20_000,
+          identity,
+          payload: { type: "ready" },
+        }),
+      }),
+    ).toMatchObject({ accepted: false, reason: "source" });
+
+    const mismatches: Array<Partial<CmsVisualPreviewIdentity>> = [
+      { siteId: "site-2" },
+      { documentId: "page-2" },
+      { documentType: "post" },
+      { sessionId: "session-5678" },
+      { sessionBinding: "binding-5678" },
+      { documentVersion: 5 },
+      { conflictToken: "conflict-5678" },
+    ];
+    for (const [index, mismatch] of mismatches.entries()) {
+      const forgedIdentity = { ...identity, ...mismatch };
+      expect(
+        validateCmsVisualPreviewEnvelope({
+          ...common,
+          value: createCmsVisualPreviewEnvelope({
+            source: "preview",
+            messageId: `forged-identity-${index}`,
+            sequence: index + 1,
+            issuedAt: 20_000,
+            identity: forgedIdentity,
+            payload: { type: "ready" },
+          }),
+        }),
+      ).toMatchObject({ accepted: false, reason: "identity" });
+    }
+  });
+
   test("generates private no-store noindex preview headers", () => {
     expect(
       createCmsVisualPreviewResponseHeaders({
@@ -471,5 +522,155 @@ describe("preview security", () => {
         createCmsVisualEditorSelectionMessage("hero-1", "title.prefix"),
       ),
     ).toBe(true);
+  });
+
+  test("keeps replay and document-version state inside a preview peer session", () => {
+    let hostMessage = 0;
+    let previewMessage = 0;
+    const allowedOrigins = new Set(["https://admin.example.test"]);
+    const host = createCmsVisualPreviewSession({
+      source: "host",
+      expectedSource: "preview",
+      identity,
+      allowedOrigins,
+      messageIdFactory: () => `host-message-${++hostMessage}`,
+    });
+    const preview = createCmsVisualPreviewSession({
+      source: "preview",
+      expectedSource: "host",
+      identity,
+      allowedOrigins,
+      messageIdFactory: () => `preview-message-${++previewMessage}`,
+    });
+    const ready = preview.create({ type: "ready" }, 10_000);
+
+    expect(
+      host.receive({
+        value: ready,
+        origin: "https://admin.example.test",
+        now: 10_100,
+      }),
+    ).toMatchObject({ accepted: true });
+    expect(
+      host.receive({
+        value: ready,
+        origin: "https://admin.example.test",
+        now: 10_200,
+      }),
+    ).toMatchObject({ accepted: false, reason: "replay" });
+
+    host.setDocumentVersion(5);
+    expect(
+      host.receive({
+        value: preview.create({ type: "ready" }, 10_300),
+        origin: "https://admin.example.test",
+        now: 10_400,
+      }),
+    ).toMatchObject({ accepted: false, reason: "identity" });
+
+    preview.setDocumentVersion(5);
+    expect(
+      host.receive({
+        value: preview.create({ type: "ready" }, 10_500),
+        origin: "https://admin.example.test",
+        now: 10_600,
+      }),
+    ).toMatchObject({ accepted: true });
+    expect(host.snapshot()).toMatchObject({
+      identity: { documentVersion: 5 },
+      outgoingSequence: 0,
+      replay: { lastSequence: 3 },
+    });
+
+    host.reset();
+    expect(host.snapshot()).toMatchObject({
+      identity: { documentVersion: 5 },
+      outgoingSequence: 0,
+      pendingDocumentVersion: null,
+      replay: { lastSequence: 0, messageIds: [] },
+    });
+  });
+
+  test("changes document versions only after the preview acknowledges the exact state", () => {
+    let hostMessage = 0;
+    let previewMessage = 0;
+    const allowedOrigins = new Set(["https://admin.example.test"]);
+    const host = createCmsVisualPreviewSession({
+      source: "host",
+      expectedSource: "preview",
+      identity,
+      allowedOrigins,
+      messageIdFactory: () => `host-transition-${++hostMessage}`,
+    });
+    const preview = createCmsVisualPreviewSession({
+      source: "preview",
+      expectedSource: "host",
+      identity,
+      allowedOrigins,
+      messageIdFactory: () => `preview-transition-${++previewMessage}`,
+    });
+    const state = host.createVersionedState({ revision: 5 }, 5, 20_000);
+
+    expect(state).not.toBeNull();
+    expect(host.snapshot()).toMatchObject({
+      identity: { documentVersion: 4 },
+      pendingDocumentVersion: {
+        messageId: state!.messageId,
+        documentVersion: 5,
+      },
+    });
+    expect(host.createVersionedState({ revision: 6 }, 6, 20_010)).toBeNull();
+
+    const oldVersionCommand = preview.create(
+      { type: "command", command: { type: "select" } },
+      20_020,
+    );
+    expect(
+      host.receive({
+        value: oldVersionCommand,
+        origin: "https://admin.example.test",
+        now: 20_030,
+      }),
+    ).toMatchObject({ accepted: true });
+    expect(
+      preview.receive({
+        value: state,
+        origin: "https://admin.example.test",
+        now: 20_040,
+      }),
+    ).toMatchObject({ accepted: true });
+
+    const wrongAck = preview.acknowledgeDocumentVersion(
+      "different-state-message",
+      5,
+      20_050,
+    );
+    expect(
+      host.receive({
+        value: wrongAck,
+        origin: "https://admin.example.test",
+        now: 20_060,
+      }),
+    ).toMatchObject({ accepted: false, reason: "identity" });
+
+    const exactAck = preview.create(
+      { type: "ack", acknowledgedMessageId: state!.messageId },
+      20_070,
+    );
+    expect(
+      host.receive({
+        value: exactAck,
+        origin: "https://admin.example.test",
+        now: 20_080,
+      }),
+    ).toMatchObject({ accepted: true });
+    expect(host.snapshot()).toMatchObject({
+      identity: { documentVersion: 5 },
+      pendingDocumentVersion: null,
+      replay: { lastSequence: 3 },
+    });
+    expect(
+      host.createVersionedState({ revision: 5, selected: "hero" }, 5, 20_090),
+    ).not.toBeNull();
   });
 });

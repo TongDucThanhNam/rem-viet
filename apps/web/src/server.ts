@@ -7,7 +7,17 @@ import {
   retryFailedNotifications,
 } from "@rem-viet/api/services/operations";
 import { reportOperationalIncident } from "@rem-viet/api/services/incidents";
+import {
+  purgeExpiredCmsJobs,
+  runDueCmsJobs,
+} from "@rem-viet/api/services/jobs";
+import {
+  dispatchCmsOutboxEvents,
+  purgeExpiredCmsOutbox,
+} from "@rem-viet/api/services/outbox";
 import { purgeExpiredWebVitals } from "@rem-viet/api/services/vitals";
+import { deliverDueCmsWebhooks } from "@rem-viet/api/services/webhooks";
+import { ensureCmsReleaseTaskRegistered } from "@rem-viet/api/services/releases";
 import {
   createStartHandler,
   defaultStreamHandler,
@@ -16,6 +26,7 @@ import {
 import { purgeExpiredSanityWebhookDeliveries } from "@/lib/sanity-webhook.server";
 
 const startHandler = createStartHandler(defaultStreamHandler);
+ensureCmsReleaseTaskRegistered();
 
 export default {
   fetch(request: Request) {
@@ -24,21 +35,18 @@ export default {
   scheduled(controller: ScheduledController, _env: Env, ctx: ExecutionContext) {
     ctx.waitUntil(
       (async () => {
-        const result = await publishDueContent(
-          new Date(controller.scheduledTime),
-        );
-        const notificationRetries = await retryFailedNotifications(
-          new Date(controller.scheduledTime),
-        );
-        const retention = await purgeExpiredSubmissions(
-          new Date(controller.scheduledTime),
-        );
-        const vitalsRetention = await purgeExpiredWebVitals(
-          new Date(controller.scheduledTime),
-        );
-        const webhookRetention = await purgeExpiredSanityWebhookDeliveries(
-          new Date(controller.scheduledTime),
-        );
+        const scheduledAt = new Date(controller.scheduledTime);
+        const jobs = await runDueCmsJobs(scheduledAt);
+        const result = await publishDueContent(scheduledAt);
+        const outbox = await dispatchCmsOutboxEvents(scheduledAt);
+        const webhooks = await deliverDueCmsWebhooks(scheduledAt);
+        const notificationRetries = await retryFailedNotifications(scheduledAt);
+        const retention = await purgeExpiredSubmissions(scheduledAt);
+        const vitalsRetention = await purgeExpiredWebVitals(scheduledAt);
+        const webhookRetention =
+          await purgeExpiredSanityWebhookDeliveries(scheduledAt);
+        await purgeExpiredCmsJobs(scheduledAt);
+        await purgeExpiredCmsOutbox(scheduledAt);
         if (result.errors.length) {
           reportOperationalIncident({
             category: "publish",
@@ -67,8 +75,11 @@ export default {
         }
         console.info("[cms:scheduler] complete", {
           cron: controller.cron,
+          jobs,
           pages: result.pages.length,
           posts: result.posts.length,
+          outbox,
+          webhooks,
           notificationRetries,
           purgedLeads: retention.deleted,
           purgedVitals: vitalsRetention.deleted,

@@ -1,0 +1,11 @@
+{
+  "name": "cms-plugin-existing-fixture",
+  "compatibility_date": "2026-08-20",
+  "d1_databases": [
+    {
+      "binding": "CMS_DB",
+      "database_name": "cms-plugin-existing-fixture-db",
+      "database_id": "fixture-only",
+    },
+  ],
+}

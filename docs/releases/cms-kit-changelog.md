@@ -21,13 +21,23 @@ evidence cover the same version.
 - Callable Alchemy resource planning and CLI init/add-block/migrate/verify APIs.
 - Exact-confirmation backup-before-apply migration orchestration and receipt-
   bound rollback.
-- Eleven-artifact clean-consumer, N→N+1→N rehearsal, artifact allowlist/content
+- Signed extension lifecycle/provenance contracts and a content-free agency
+  fleet control plane with reviewed one-site operation plans.
+- Eight official feature modules: SEO, redirects, search, forms,
+  nested-doc/taxonomy, WordPress import/export, Sentry/OpenTelemetry bridges,
+  and Cloudflare cache invalidation.
+- Provider-neutral collaboration with presence, soft locks, inline comments,
+  mentions, field/block diff, activity filtering, and a realtime adapter.
+- Official privacy/compliance module with PII classification, consent, subject
+  export/erase, retention/legal hold, redacted audit, license expiry, and
+  handover policy templates.
+- Twenty-four-artifact clean-consumer, N→N+1→N rehearsal, artifact allowlist/content
   inspection, and fail-closed private-release provenance.
 
 ### Compatibility
 
-- This is a private `0.x` preview. Install all eleven packages at exactly
-  `0.1.0`; mixed versions are unsupported.
+- This is a private `0.x` preview. Use the required packages from the coordinated
+  twenty-four-package `0.1.0` set; mixed versions are unsupported.
 - The validated toolchain and schema versions are recorded in
   `cms-kit-compatibility.json`.
 - Stable `1.0` remains blocked on private-registry, independent staging,

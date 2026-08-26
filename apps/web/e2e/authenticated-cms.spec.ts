@@ -1281,7 +1281,9 @@ test.describe("authenticated CMS workflow", () => {
     await expect(staleKicker).toHaveValue(winner);
 
     await staleKicker.fill(original);
-    await stalePage.getByRole("button", { name: "Lưu bản nháp" }).click();
+    await stalePage
+      .getByRole("button", { name: "Lưu bản nháp" })
+      .press("Enter");
     await expect(
       stalePage.getByText("Đã lưu bản nháp.", { exact: true }),
     ).toBeVisible();

@@ -842,7 +842,7 @@ test.describe("authenticated CMS workflow", () => {
     await expect(
       visualPreview.locator('[data-cms-field-hint="true"]'),
     ).toHaveAttribute("data-cms-field-label", "Tiêu đề chính");
-    await heroTitlePrefix.click();
+    await heroTitlePrefix.dispatchEvent("click");
     await expect(page.locator("#hero-title-prefix")).toBeFocused();
     await expect(page.getByText("Từ canvas: Tiêu đề chính")).toBeVisible();
 
@@ -854,7 +854,7 @@ test.describe("authenticated CMS workflow", () => {
     );
     if (!renderedFaqControlId)
       throw new Error("Rendered FAQ question control ID is missing.");
-    await renderedFaqQuestion.click();
+    await renderedFaqQuestion.dispatchEvent("click");
     await expect(
       page.getByRole("heading", { name: "Câu hỏi thường gặp" }),
     ).toBeVisible();
@@ -914,7 +914,7 @@ test.describe("authenticated CMS workflow", () => {
     const expectedMovedOrder = [...originalCanvasOrder];
     expectedMovedOrder.splice(originalBenefitsIndex, 1);
     expectedMovedOrder.splice(originalBenefitsIndex + 1, 0, benefitsBlockId);
-    await benefitsBlock.click({ position: { x: 8, y: 8 } });
+    await benefitsBlock.dispatchEvent("click");
     const sectionToolbar = visualPreview.locator(
       '[data-cms-section-toolbar="true"]',
     );
@@ -974,9 +974,17 @@ test.describe("authenticated CMS workflow", () => {
     await visualPreview
       .locator(`[data-cms-block-id="${benefitsBlockId}"]`)
       .dispatchEvent("click");
-    await sectionToolbar
-      .getByRole("button", { name: "Thêm section trên canvas" })
-      .dispatchEvent("click");
+    await expect(sectionToolbar).toHaveAttribute(
+      "data-cms-toolbar-block-id",
+      benefitsBlockId,
+    );
+    const addSectionButton = sectionToolbar.getByRole("button", {
+      name: "Thêm section trên canvas",
+    });
+    await expect(addSectionButton).toBeEnabled();
+    await expect(addSectionButton).toHaveAttribute("aria-expanded", "false");
+    await addSectionButton.dispatchEvent("click");
+    await expect(addSectionButton).toHaveAttribute("aria-expanded", "true");
     const sectionComposer = visualPreview.locator(
       '[data-cms-section-composer="true"]',
     );

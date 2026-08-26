@@ -130,6 +130,8 @@ function HomePreviewRoute() {
   } | null>(null);
   const fieldHintRef = useRef<HTMLDivElement>(null);
   const draggedBlockIdRef = useRef<string | null>(null);
+  const selectedBlockIdRef = useRef<string | null>(null);
+  const hostSelectionRevisionRef = useRef<number | null>(null);
   const previewSequence = useRef(0);
   const previewReplay = useRef(initialCmsVisualPreviewReplayState());
   const previewIdentity = useRef<CmsVisualPreviewIdentity>({
@@ -227,16 +229,24 @@ function HomePreviewRoute() {
         ...previewIdentity.current,
         documentVersion: message.revision,
       };
+      const nextSelectedBlockId = parsed.data.some(
+        (block) => block.id === message.selectedBlockId,
+      )
+        ? message.selectedBlockId
+        : null;
+      const hostSelectionChanged =
+        hostSelectionRevisionRef.current !== null &&
+        hostSelectionRevisionRef.current !== message.selectionRevision;
+      hostSelectionRevisionRef.current = message.selectionRevision;
+      selectedBlockIdRef.current = nextSelectedBlockId;
       setLiveBlocks(parsed.data);
-      setSelectedBlockId(
-        parsed.data.some((block) => block.id === message.selectedBlockId)
-          ? message.selectedBlockId
-          : null,
-      );
+      setSelectedBlockId(nextSelectedBlockId);
       setSelectedFieldPath(message.selectedFieldPath);
       setSelectionRevision(message.selectionRevision);
-      setComposerOpen(false);
-      setCatalogQuery("");
+      if (hostSelectionChanged) {
+        setComposerOpen(false);
+        setCatalogQuery("");
+      }
       setStudioConnected(true);
       if (versionChanged) {
         postPreviewPayload({
@@ -249,6 +259,12 @@ function HomePreviewRoute() {
       if (window.parent === window) return;
       const target = event.target;
       if (!(target instanceof Element)) return;
+      if (
+        target.closest(
+          "[data-cms-section-toolbar], [data-cms-section-composer]",
+        )
+      )
+        return;
       const block = target.closest<HTMLElement>("[data-cms-preview-block]");
       const blockId = block?.dataset.cmsBlockId;
       if (!blockId) return;
@@ -256,8 +272,14 @@ function HomePreviewRoute() {
       const fieldPath = field?.dataset.cmsFieldPath;
       event.preventDefault();
       event.stopPropagation();
+      const selectionChanged = selectedBlockIdRef.current !== blockId;
+      selectedBlockIdRef.current = blockId;
       setSelectedBlockId(blockId);
       setSelectedFieldPath(fieldPath ?? null);
+      if (selectionChanged) {
+        setComposerOpen(false);
+        setCatalogQuery("");
+      }
       postPreviewCommand(
         createCmsVisualEditorSelectionMessage(blockId, fieldPath),
       );
@@ -374,6 +396,7 @@ function HomePreviewRoute() {
         postPreviewCommand(
           createCmsVisualEditorMoveMessage(sourceId, targetId, placement),
         );
+        selectedBlockIdRef.current = sourceId;
         setSelectedBlockId(sourceId);
         setSelectedFieldPath(null);
       }

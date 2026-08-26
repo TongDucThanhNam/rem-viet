@@ -395,7 +395,17 @@ test.describe("authenticated CMS workflow", () => {
       )
       .toBe(0);
     const isNarrow = (page.viewportSize()?.width ?? 1440) < 768;
-    const hasProducts = (await page.locator("[data-product-card]").count()) > 0;
+    const productCards = page.locator("[data-product-card]");
+    const emptyProducts = page.getByRole("heading", {
+      name: "Chưa có sản phẩm",
+    });
+    await expect
+      .poll(
+        async () =>
+          (await productCards.count()) > 0 || (await emptyProducts.isVisible()),
+      )
+      .toBe(true);
+    const hasProducts = (await productCards.count()) > 0;
     if (hasProducts && isNarrow) {
       await expect(page.locator("[data-product-mobile-list]")).toBeVisible();
       await expect(page.locator("[data-product-table]")).toBeHidden();
@@ -412,9 +422,7 @@ test.describe("authenticated CMS workflow", () => {
       await expect(page.locator("[data-product-mobile-list]")).toBeHidden();
       await expect(page.locator("[data-product-table]")).toBeVisible();
     } else {
-      await expect(
-        page.getByRole("heading", { name: "Chưa có sản phẩm" }),
-      ).toBeVisible();
+      await expect(emptyProducts).toBeVisible();
     }
     await expectNoAutomatedAccessibilityViolations(page, "Admin products list");
   });

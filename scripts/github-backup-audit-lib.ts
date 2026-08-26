@@ -213,7 +213,7 @@ export function inspectGithubBackupRun(input: {
 
   const backup: BackupEvidence = parsedBackup.data;
   const archive: BackupArchiveEvidence = parsedArchive.data;
-  const expectedPath = `backups/${input.expectedSite}-${input.expectedStage}-gha-${run.id}-${run.run_attempt}.sql`;
+  const runBoundPath = `backups/${backup.siteId}-${backup.stage}-gha-${run.id}-${run.run_attempt}.sql`;
   if (
     backup.siteId !== input.expectedSite ||
     archive.siteId !== input.expectedSite
@@ -226,7 +226,7 @@ export function inspectGithubBackupRun(input: {
     errors.push("The evidence belongs to a different stage.");
   if (backup.database !== archive.database)
     errors.push("The export and immutable archive name different databases.");
-  if (backup.artifact.path !== expectedPath)
+  if (backup.artifact.path !== runBoundPath)
     errors.push(
       "The backup artifact path is not bound to this run and attempt.",
     );

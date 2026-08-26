@@ -198,6 +198,59 @@ describe("GitHub scheduled-backup audit", () => {
     );
   });
 
+  test("reports a stage mismatch separately from run binding", () => {
+    const manualRun = run("workflow_dispatch", 202);
+    const values = evidence(202, "2026-08-17T01:01:00.000Z");
+    const stagingPath = "backups/rem-viet-staging-gha-202-1.sql";
+    values.backup.stage = "staging";
+    values.backup.database = "rem-viet-db-staging";
+    values.backup.artifact.path = stagingPath;
+    values.archive.stage = "staging";
+    values.archive.database = "rem-viet-db-staging";
+    values.archive.source.path = stagingPath;
+
+    const wrongStage = inspectGithubBackupRun({
+      run: manualRun,
+      backupEvidence: values.backup,
+      archiveEvidence: values.archive,
+      expectedEvent: "workflow_dispatch",
+      expectedSite: "rem-viet",
+      expectedStage: "production",
+      expectedBucket: "rem-viet-backups",
+      defaultBranch: "main",
+      configuredAt: "2026-08-16T04:00:00.000Z",
+      retentionDays: 365,
+    });
+
+    expect(wrongStage.valid).toBe(false);
+    expect(wrongStage.errors).toContain(
+      "The evidence belongs to a different stage.",
+    );
+    expect(wrongStage.errors).not.toContain(
+      "The backup artifact path is not bound to this run and attempt.",
+    );
+
+    values.backup.artifact.path =
+      "backups/rem-viet-staging-gha-different-run-1.sql";
+    values.archive.source.path = values.backup.artifact.path;
+    const wrongRun = inspectGithubBackupRun({
+      run: manualRun,
+      backupEvidence: values.backup,
+      archiveEvidence: values.archive,
+      expectedEvent: "workflow_dispatch",
+      expectedSite: "rem-viet",
+      expectedStage: "staging",
+      expectedBucket: "rem-viet-backups",
+      defaultBranch: "main",
+      configuredAt: "2026-08-16T04:00:00.000Z",
+      retentionDays: 365,
+    });
+
+    expect(wrongRun.errors).toContain(
+      "The backup artifact path is not bound to this run and attempt.",
+    );
+  });
+
   test("requires a scheduled receipt after a distinct manual dispatch", () => {
     const configuration = inspectGithubBackupConfiguration({
       variables: [

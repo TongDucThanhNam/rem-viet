@@ -259,3 +259,20 @@
     @apply font-sans overflow-x-hidden;
   }
 }
+
+@layer components {
+  /* Sonner fades the entire toast between transparent and opaque. During that
+     transition both its foreground and background blend with the page, which
+     creates real intermediate frames below WCAG contrast. Keep the spatial
+     motion while making visibility changes atomic. */
+  [data-sonner-toast].cn-toast {
+    transition:
+      transform 400ms,
+      height 400ms,
+      box-shadow 200ms !important;
+  }
+
+  [data-sonner-toast].cn-toast > * {
+    transition: none !important;
+  }
+}

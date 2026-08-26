@@ -231,6 +231,7 @@ function RootDocument() {
                 ? "Thông báo quản trị"
                 : "Thông báo trang web"
           }
+          expand
           richColors
         />
         <Scripts />

@@ -865,3 +865,44 @@ audits passing. The remaining evidence below is still mandatory.
    rotate production secrets, rerun the dependency/security review, complete
    `docs/releases/v1.0.0-client-ready.json`, and only tag after
    `bun run release:verify` passes from the exact clean release commit.
+
+## Clean-candidate release-boundary refresh — 2026-08-27
+
+The current candidate is
+`5bd7fb9f468573859e0476ebb51dc73a5364b533`; local `main` and
+`origin/main` match it and the worktree was clean. The exact sequential
+`bun run quality` command exited zero after correcting the last deterministic
+API-key mutation defect, transient dark-theme contrast transition, CMS
+hydration/scaled-preview interactions, toast-blocked autosave action, and the
+mobile product-filter result race exposed by prior aggregate attempts. The
+passing run includes the complete clean-checkout rehearsal, all typechecks,
+secure build, performance audit, desktop/mobile stateful CMS matrix, and the
+independent `acme-demo` smoke. Release preparation for version `0.1.0` reports
+24 packages, `publishEligible=true`, and `sourceState=clean`.
+
+The same-turn sanitized readiness audit remains intentionally nonzero:
+
+- live Rèm Việt staging is healthy and clean but reports commit
+  `9ee320c991507ab3bc4717d6142c1f4236d4178e`, not the current candidate;
+- the notification provider contract and email configuration are ready for one
+  controlled smoke, but no exactly-once inbox receipt exists;
+- the deterministic Cloudflare alert policy/provisioning contract is ready, but
+  no controlled-failure dispatch and human inbox receipt exists;
+- the qualifying 28-day field sample counts are CLS `0/75`, LCP `1/75`, and
+  INP `0/75`;
+- the production scheduled-backup configuration gate, manual receipt, and
+  following weekly receipt are absent;
+- `docs/releases/v1.0.0-client-ready.json` remains correctly absent.
+
+Cloudflare D1 inventory is saturated at `10/10`, with no calculated release-slot
+deficit and one zero-table owner-review candidate. The audit does not authorize
+deletion. No staging deployment, credential reset, external notification,
+controlled alert failure, database deletion, production operation, package
+publication, or release evidence was performed during this refresh.
+
+The next exact sequence is therefore: obtain action-scoped authorization,
+deploy the current SHA and retain matching provenance; produce notification and
+alert receipts; collect representative RUM and the unassisted pilot; reconcile
+and execute the manual/following-weekly production backup workflow; publish and
+reinstall the released packages in Rèm Việt plus independent paid sites; then
+assemble schema-v3 evidence and run `bun run release:verify` before tagging.

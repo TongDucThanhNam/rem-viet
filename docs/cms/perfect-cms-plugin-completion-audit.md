@@ -1,9 +1,10 @@
 # Perfect CMS plugin completion audit
 
-Audit date: 2026-08-21  
+Audit date: 2026-08-27
 Objective: `docs/cms/perfect-cms-plugin-goal.vi.md`  
-Current disposition: exact local/hosted technical release candidate; objective
-not complete.
+Current disposition: exact clean local release candidate on `main`; the retained
+cross-platform hosted conformance receipt is for an older exact source commit,
+and the external release/adoption objective is not complete.
 
 Status meanings:
 
@@ -53,6 +54,21 @@ requirements have the following local/external disposition:
 | P3 adapters                    | Open/non-blocking for v1 | AI, personalization, federation, MCP, analytics, shared asset library, mobile companion, and commerce remain demand-driven future work.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 
 ## Latest repeatable evidence
+
+Current clean candidate: `5bd7fb9f468573859e0476ebb51dc73a5364b533`.
+`main` and `origin/main` matched this SHA with a clean worktree on 2026-08-27.
+The sequential root `bun run quality` gate exited zero on this exact candidate,
+including the frozen clean-checkout install, packed Cloudflare/local/PostgreSQL
+consumers, 24-package schema `1 -> 2 -> 1` upgrade/rollback, all package/app
+typechecks, secure production build, performance budgets, the primary
+desktop/mobile stateful CMS matrix, and the independent `acme-demo` second-site
+smoke. `bun run cms:kit:release:prepare --version=0.1.0` then emitted 24
+publish-eligible artifacts from a clean source.
+
+The retained hosted receipt below remains authoritative for its own immutable
+commit; it is not silently promoted to hosted evidence for the current SHA. A
+new hosted run, registry publication/reinstall, and exact deployed-staging
+receipt are still required for `5bd7fb9f468573859e0476ebb51dc73a5364b533`.
 
 Hosted receipt: [CMS plugin conformance run 32504935724](https://github.com/TongDucThanhNam/rem-viet/actions/runs/32504935724)
 for draft PR [#1](https://github.com/TongDucThanhNam/rem-viet/pull/1), bound to

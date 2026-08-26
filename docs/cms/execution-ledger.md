@@ -2404,3 +2404,31 @@ record does not exist. Local `CMS_PRIVATE_REGISTRY_URL` and
 exact deployed staging, independent security/documentation review, the
 non-developer pilot, and paid-client handover therefore remain external and are
 not inferred from the green candidate checks.
+
+## Exact clean-candidate refresh — 2026-08-27
+
+The release candidate advanced to
+`5bd7fb9f468573859e0476ebb51dc73a5364b533` on `main`, with
+`origin/main` matching and a clean worktree. The exact sequential
+`bun run quality` gate passed end to end. Its clean-checkout phase packed and
+installed Cloudflare, local, and PostgreSQL consumers, executed portability and
+CLI migration/rollback, integrity-checked an isolated backup restore, and
+upgraded all 24 packages from schema 1 to 2 before restoring schema 1. All
+package/app typechecks, secure production build, secret and performance audits,
+desktop/mobile stateful CMS scenarios, and the independent `acme-demo`
+second-site smoke passed. The guarded `0.1.0` preparer then reported 24
+publish-eligible artifacts from a clean source.
+
+The read-only live audit remained fail-closed for external evidence. Rèm Việt
+staging is healthy and reports a clean source, but still serves
+`9ee320c991507ab3bc4717d6142c1f4236d4178e` rather than the candidate. Email
+notification configuration and the Cloudflare alert provisioning contract are
+ready, but neither exactly-once notification nor controlled-failure inbox
+receipt exists. Field counts remain CLS `0/75`, LCP `1/75`, INP `0/75` in the
+required 28-day slice. Production scheduled-backup configuration/manual/weekly
+receipts and the schema-v3 client-ready record remain absent.
+
+This checkpoint updates the evidence boundary only. It performed no deploy,
+credential reset, provider write, email send, controlled incident, database
+deletion, production operation, registry publication, tag, or manufactured
+release receipt. Those actions remain authorization- and external-event-bound.

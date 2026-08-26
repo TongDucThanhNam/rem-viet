@@ -2432,3 +2432,15 @@ This checkpoint updates the evidence boundary only. It performed no deploy,
 credential reset, provider write, email send, controlled incident, database
 deletion, production operation, registry publication, tag, or manufactured
 release receipt. Those actions remain authorization- and external-event-bound.
+
+A follow-up read-only backup audit separated the retained staging receipt from
+the required production gate. GitHub Actions run
+[`32640607964`](https://github.com/TongDucThanhNam/rem-viet/actions/runs/32640607964)
+is valid for `rem-viet` staging: its run/attempt-bound export passed an isolated
+restore with 50 tables, and the matching SHA-256 was archived immutably in the
+`rem-viet-backups` bucket with a one-year protection horizon. The production
+audit rejects that same receipt because `CMS_BACKUP_STAGE` is configured as
+`staging`; the resulting path mismatch is a consequence of that stage mismatch,
+not a missing run-ID binding. Staging still lacks a successful subsequent
+scheduled run, while production still requires correct configuration followed
+by both a valid manual run and the next valid weekly run.

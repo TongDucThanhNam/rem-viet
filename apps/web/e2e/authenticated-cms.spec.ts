@@ -1556,6 +1556,7 @@ test.describe("authenticated CMS workflow", () => {
     ).toBeVisible();
     await expect(page.getByText("auth.sign_in_success").first()).toBeVisible();
     await page.goto("/admin/operations");
+    await waitForAdminHydration(page);
     await expect(
       page.getByRole("heading", { name: "Tự động hóa và release" }),
     ).toBeVisible();

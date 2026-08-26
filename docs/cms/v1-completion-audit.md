@@ -869,19 +869,19 @@ audits passing. The remaining evidence below is still mandatory.
 ## Clean-candidate release-boundary refresh — 2026-08-27
 
 The current code-bearing candidate is
-`5bd7fb9f468573859e0476ebb51dc73a5364b533`; local `main` and
-`origin/main` matched it with a clean worktree when the candidate was verified.
-They now point to documentation-only descendant `9de4e04`; the intervening
-diff changes only CMS evidence documents and does not promote a different code
-candidate. The exact sequential `bun run quality` command exited zero on
-`5bd7fb9` after correcting the last deterministic
-API-key mutation defect, transient dark-theme contrast transition, CMS
-hydration/scaled-preview interactions, toast-blocked autosave action, and the
-mobile product-filter result race exposed by prior aggregate attempts. The
-passing run includes the complete clean-checkout rehearsal, all typechecks,
-secure build, performance audit, desktop/mobile stateful CMS matrix, and the
-independent `acme-demo` smoke. Release preparation for version `0.1.0` reports
-24 packages, `publishEligible=true`, and `sourceState=clean`.
+`59f35ca1a9078aaa63d1b36edfb636047abc6d7b`. It was pushed to `origin/main`
+from a clean worktree; later evidence-only descendants do not promote a
+different code candidate. Its parent `43567fe` corrects GitHub backup auditing
+so an evidence-stage mismatch is reported independently from run/attempt path
+binding. `59f35ca` keeps stacked notifications expanded and removes whole-toast
+opacity interpolation, preserving compliant foreground/background contrast in
+every rendered transition frame. The previously failing focused operations
+calendar accessibility workflow passed, and the exact sequential
+`bun run quality` command then exited zero on `59f35ca`. The passing run
+includes the complete clean-checkout rehearsal, all typechecks, secure build,
+performance audit, desktop/mobile stateful CMS matrix, and the independent
+`acme-demo` smoke. Release preparation for version `0.1.0` reports 24 packages,
+`publishEligible=true`, and `sourceState=clean`.
 
 The same-turn sanitized readiness audit remains intentionally nonzero:
 

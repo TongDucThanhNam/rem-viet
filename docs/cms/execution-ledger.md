@@ -2444,3 +2444,37 @@ audit rejects that same receipt because `CMS_BACKUP_STAGE` is configured as
 not a missing run-ID binding. Staging still lacks a successful subsequent
 scheduled run, while production still requires correct configuration followed
 by both a valid manual run and the next valid weekly run.
+
+## Exact candidate advancement and quality receipt — 2026-08-27
+
+The code-bearing release candidate advanced to
+`59f35ca1a9078aaa63d1b36edfb636047abc6d7b` and was pushed to `origin/main`
+from a clean worktree. Its parent `43567fe` separates the backup evidence's
+site/stage identity from its run/attempt path binding: a valid staging archive
+audited as production now reports only `The evidence belongs to a different
+stage.`, while a genuinely wrong run path still fails the binding check. The
+expanded backup unit suite passes 4 tests and 24 expectations.
+
+The final candidate also keeps concurrent Sonner notifications expanded and
+removes whole-toast opacity interpolation. Sonner's default fade blended both
+the compliant success foreground and background with the page, producing
+transient frames below WCAG AA. The replacement retains spatial movement but
+makes visibility atomic. The focused authenticated operations workflow that
+previously caught the transient contrast frame passed after the change.
+
+The exact sequential `bun run quality` command then exited zero on `59f35ca`.
+It covered the zero-high security audit, 89-check migration-parity audit, full
+aggregate package tests, 26 canonical migrations, frozen clean-checkout
+installation, Cloudflare/local/PostgreSQL packed consumers, official extension
+remove/reinstall, portability, CLI migration/rollback, isolated restore, the
+24-package schema `1 -> 2 -> 1` cycle, every package/app typecheck, secure web
+build, performance budgets, the full desktop/mobile stateful CMS matrix, and
+the independent second-site suite. `bun run cms:kit:release:prepare
+--version=0.1.0` then reported 24 packages, `publishEligible=true`, and
+`sourceState=clean`.
+
+This advancement performed no staging deploy, credential reset, external
+notification, controlled alert failure, production backup operation, database
+deletion, registry publication, release tag, or manufactured receipt. Live
+staging and every external completion gate therefore retain their prior
+fail-closed status until separately authorized and evidenced.

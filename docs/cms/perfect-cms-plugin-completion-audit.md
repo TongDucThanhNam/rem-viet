@@ -56,12 +56,13 @@ requirements have the following local/external disposition:
 ## Latest repeatable evidence
 
 Current code-bearing clean candidate:
-`5bd7fb9f468573859e0476ebb51dc73a5364b533`. `main` and `origin/main` matched
-this SHA with a clean worktree when the candidate was verified on 2026-08-27.
-They now point to documentation-only descendant `9de4e04`; the intervening
-diff changes only the three CMS evidence documents and does not silently move
-the verified code candidate. The sequential root `bun run quality` gate exited
-zero on exact candidate `5bd7fb9`,
+`59f35ca1a9078aaa63d1b36edfb636047abc6d7b`. It was pushed to `origin/main`
+from a clean worktree on 2026-08-27. Later evidence-only descendants do not
+silently move this verified code boundary. The candidate includes the backup
+audit correction that reports an evidence-stage mismatch independently from
+run/attempt binding, plus the Sonner transition fix that keeps toast foreground
+and background contrast valid throughout notification motion. The sequential
+root `bun run quality` gate exited zero on exact candidate `59f35ca`,
 including the frozen clean-checkout install, packed Cloudflare/local/PostgreSQL
 consumers, 24-package schema `1 -> 2 -> 1` upgrade/rollback, all package/app
 typechecks, secure production build, performance budgets, the primary
@@ -72,7 +73,7 @@ publish-eligible artifacts from a clean source.
 The retained hosted receipt below remains authoritative for its own immutable
 commit; it is not silently promoted to hosted evidence for the current SHA. A
 new hosted run, registry publication/reinstall, and exact deployed-staging
-receipt are still required for `5bd7fb9f468573859e0476ebb51dc73a5364b533`.
+receipt are still required for `59f35ca1a9078aaa63d1b36edfb636047abc6d7b`.
 
 Hosted receipt: [CMS plugin conformance run 32504935724](https://github.com/TongDucThanhNam/rem-viet/actions/runs/32504935724)
 for draft PR [#1](https://github.com/TongDucThanhNam/rem-viet/pull/1), bound to

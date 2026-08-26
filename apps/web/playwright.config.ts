@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+const usesExternalCredentials = Boolean(process.env.CMS_E2E_PASSWORD);
+
 export default defineConfig({
   testDir: "./e2e",
   timeout: 45_000,
@@ -13,8 +15,10 @@ export default defineConfig({
   use: {
     baseURL: process.env.CMS_E2E_BASE_URL || "http://127.0.0.1:3020",
     storageState: process.env.SANITY_PRESENTATION_STORAGE_STATE || undefined,
-    trace: "retain-on-failure",
-    screenshot: "only-on-failure",
+    // Hosted credentials must never be retained in trace/screenshot artifacts.
+    // Local isolated fixtures keep rich debugging output.
+    trace: usesExternalCredentials ? "off" : "retain-on-failure",
+    screenshot: usesExternalCredentials ? "off" : "only-on-failure",
   },
   projects: [
     {

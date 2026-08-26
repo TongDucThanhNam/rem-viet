@@ -2,7 +2,13 @@ import { randomBytes } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { argument, flag, readSiteManifest, repoRoot } from "./site-lib";
+import {
+  argument,
+  flag,
+  privateSiteEnvPaths,
+  readSiteManifest,
+  repoRoot,
+} from "./site-lib";
 
 const site = argument("site") ?? "";
 const dryRun = flag("dry-run");
@@ -12,17 +18,18 @@ if (dryRun === apply) {
   throw new Error("Pass exactly one of --dry-run or --apply.");
 }
 
-const { manifest } = await readSiteManifest(site);
-const relativeTarget = `sites/${manifest.id}/.env`;
+const { manifest, source } = await readSiteManifest(site);
+const { relativeTarget, relativeTemplate } = privateSiteEnvPaths({
+  siteId: manifest.id,
+  source,
+});
 const target = resolve(repoRoot, relativeTarget);
-const template = resolve(repoRoot, `sites/${manifest.id}/.env.example`);
+const template = resolve(repoRoot, relativeTemplate);
 if (existsSync(target)) {
   throw new Error(`Private site env already exists: ${relativeTarget}`);
 }
 if (!existsSync(template)) {
-  throw new Error(
-    `Site env template does not exist: ${relativeTarget}.example`,
-  );
+  throw new Error(`Site env template does not exist: ${relativeTemplate}`);
 }
 
 const ignored = Bun.spawnSync(

@@ -4,7 +4,13 @@ import { join, resolve } from "node:path";
 
 import { config } from "dotenv";
 
-import { argument, flag, readSiteManifest, repoRoot } from "./site-lib";
+import {
+  argument,
+  flag,
+  privateSiteEnvPaths,
+  readSiteManifest,
+  repoRoot,
+} from "./site-lib";
 
 type D1QueryResponse = Array<{
   results?: Array<Record<string, unknown>>;
@@ -74,17 +80,22 @@ const dryRun = flag("dry-run");
 if (!site) throw new Error("Missing --site=<client-slug>.");
 
 const { manifest, source } = await readSiteManifest(site);
-const siteEnvPath =
-  source === "root"
-    ? resolve(repoRoot, "apps/web/.env")
-    : resolve(repoRoot, "sites", site, ".env");
-
-config({ path: resolve(repoRoot, ".env") });
+const { relativeTarget: siteEnvPath } = privateSiteEnvPaths({
+  siteId: manifest.id,
+  source,
+});
+config({ path: resolve(repoRoot, ".env"), quiet: true });
 const inheritedCloudflareToken =
   process.env.CLOUDFLARE_API_TOKEN?.trim() ||
   process.env.CLOUDFLARE_D1_TOKEN?.trim() ||
   "";
-config({ path: siteEnvPath, override: source === "client" });
+if (source === "client") {
+  config({
+    path: resolve(repoRoot, "sites", site, ".env"),
+    override: true,
+    quiet: true,
+  });
+}
 
 const allowlist = new Set(
   (process.env.ADMIN_EMAILS ?? "")

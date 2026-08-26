@@ -5,7 +5,7 @@ import { Label } from "@rem-viet/ui/components/label";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
 import { Eye, EyeOff, KeyRound, Mail } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import z from "zod";
 
@@ -14,11 +14,16 @@ import { authClient } from "@/lib/auth-client";
 import { siteConfig } from "@/lib/site-config";
 
 export default function SignInForm() {
+  const [isHydrated, setIsHydrated] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [remember, setRemember] = useState(true);
   const navigate = useNavigate({
     from: "/",
   });
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const form = useForm({
     defaultValues: {
@@ -30,6 +35,7 @@ export default function SignInForm() {
         {
           email: value.email,
           password: value.password,
+          rememberMe: remember,
         },
         {
           onSuccess: (context) => {
@@ -65,6 +71,8 @@ export default function SignInForm() {
       </div>
 
       <form
+        aria-busy={!isHydrated}
+        data-auth-ready={isHydrated ? "true" : "false"}
         method="post"
         onSubmit={(e) => {
           e.preventDefault();
@@ -89,6 +97,7 @@ export default function SignInForm() {
                   name={field.name}
                   placeholder="Nhập email đăng nhập"
                   type="email"
+                  disabled={!isHydrated}
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
@@ -119,6 +128,7 @@ export default function SignInForm() {
                   name={field.name}
                   placeholder="Nhập mật khẩu"
                   type={isPasswordVisible ? "text" : "password"}
+                  disabled={!isHydrated}
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(e) => field.handleChange(e.target.value)}
@@ -128,6 +138,7 @@ export default function SignInForm() {
                     isPasswordVisible ? "Ẩn mật khẩu" : "Hiện mật khẩu"
                   }
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                  disabled={!isHydrated}
                   type="button"
                   onClick={() => setIsPasswordVisible((value) => !value)}
                 >
@@ -152,6 +163,7 @@ export default function SignInForm() {
             <Checkbox
               checked={remember}
               className="rounded"
+              disabled={!isHydrated}
               onCheckedChange={(value) => setRemember(value === true)}
             />
             Ghi nhớ đăng nhập
@@ -174,7 +186,7 @@ export default function SignInForm() {
             <Button
               type="submit"
               className="h-10 w-full rounded-lg text-sm"
-              disabled={!canSubmit || isSubmitting}
+              disabled={!isHydrated || !canSubmit || isSubmitting}
             >
               {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
             </Button>

@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import {
   argument,
   flag,
+  privateSiteEnvPaths,
   readSiteManifest,
   removePrivateEnvBinding,
   repoRoot,
@@ -18,8 +19,11 @@ if (dryRun === apply) {
   throw new Error("Pass exactly one of --dry-run or --apply.");
 }
 
-const { manifest } = await readSiteManifest(site);
-const relativeTarget = `sites/${manifest.id}/.env`;
+const { manifest, source } = await readSiteManifest(site);
+const { relativeTarget } = privateSiteEnvPaths({
+  siteId: manifest.id,
+  source,
+});
 const target = resolve(repoRoot, relativeTarget);
 if (!existsSync(target)) {
   throw new Error(`Private site env does not exist: ${relativeTarget}`);

@@ -13,8 +13,10 @@ import {
   handoverChecklist,
   logoPlaceholderSvg,
   manifestFor,
+  privateSiteEnvPaths,
   readSiteManifest,
   removePrivateEnvBinding,
+  repoRoot,
   seedSql,
   validateClientEnvExample,
   validateSiteDeployModeFlags,
@@ -52,6 +54,54 @@ describe("site provisioning contracts", () => {
         "CMS_BOOTSTRAP_PASSWORD",
       ),
     ).toThrow(/duplicate private env binding/);
+  });
+
+  test("resolves private env paths for the flagship and isolated client sites", () => {
+    expect(privateSiteEnvPaths({ siteId: "rem-viet", source: "root" })).toEqual(
+      {
+        relativeTarget: ".env",
+        relativeTemplate: "apps/web/env.example",
+      },
+    );
+    expect(
+      privateSiteEnvPaths({ siteId: "acme-demo", source: "client" }),
+    ).toEqual({
+      relativeTarget: "sites/acme-demo/.env",
+      relativeTemplate: "sites/acme-demo/.env.example",
+    });
+    expect(() =>
+      privateSiteEnvPaths({ siteId: "../unsafe", source: "client" }),
+    ).toThrow(/safe client slug/);
+  });
+
+  test("reports the flagship private env path before any remote Owner bootstrap", () => {
+    const result = Bun.spawnSync(
+      [
+        "bun",
+        "scripts/site-admin-create.ts",
+        "--site=rem-viet",
+        "--stage=staging",
+        "--email=owner@example.test",
+      ],
+      {
+        cwd: repoRoot,
+        env: {
+          ...Bun.env,
+          ADMIN_EMAILS: "owner@example.test",
+          CLOUDFLARE_API_TOKEN: "",
+          CLOUDFLARE_D1_TOKEN: "",
+          DOTENV_CONFIG_QUIET: "true",
+        },
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    );
+    const output = `${result.stdout.toString()}\n${result.stderr.toString()}`;
+    expect(result.exitCode).not.toBe(0);
+    expect(output).toContain(
+      "Missing CLOUDFLARE_API_TOKEN (or CLOUDFLARE_D1_TOKEN) in .env or the process environment.",
+    );
+    expect(output).not.toContain("siteEnvPath");
   });
 
   test("builds explicit plan and non-interactive deploy commands", () => {

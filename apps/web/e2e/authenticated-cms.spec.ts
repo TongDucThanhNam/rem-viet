@@ -140,13 +140,34 @@ async function login(page: Page, loginEmail: string, loginPassword: string) {
   }
 
   await page.goto("/dang-nhap");
-  await waitForControlledInput(page, "#password");
+  await page.locator('form[data-auth-ready="true"]').waitFor();
   await page.getByLabel("Tên đăng nhập").fill(loginEmail);
-  await page
-    .getByRole("textbox", { name: "Mật khẩu", exact: true })
-    .fill(loginPassword);
+  const passwordInput = page.getByRole("textbox", {
+    name: "Mật khẩu",
+    exact: true,
+  });
+  await passwordInput.fill(loginPassword);
   await page.getByRole("button", { name: "Đăng nhập", exact: true }).click();
-  await page.waitForURL(/(?:admin\/dashboard|xac-thuc-hai-lop)/);
+  const loginError = page.locator('[data-sonner-toast][data-type="error"]');
+  const outcome = await Promise.race([
+    page
+      .waitForURL(/(?:admin\/dashboard|xac-thuc-hai-lop)/, {
+        timeout: 15_000,
+      })
+      .then(() => "navigated" as const),
+    loginError
+      .waitFor({ state: "visible", timeout: 15_000 })
+      .then(() => "rejected" as const),
+    page.waitForTimeout(15_000).then(() => "timeout" as const),
+  ]);
+  if (outcome !== "navigated") {
+    const message =
+      outcome === "rejected"
+        ? (await loginError.textContent())?.trim() || "provider rejected login"
+        : "login did not return a result within 15 seconds";
+    await passwordInput.fill("");
+    throw new Error(`CMS sign-in failed: ${message}.`);
+  }
   if (page.url().includes("/xac-thuc-hai-lop")) {
     const secret = totpSecretFor(loginEmail);
     if (!secret) {

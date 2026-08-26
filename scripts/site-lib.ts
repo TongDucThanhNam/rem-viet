@@ -355,6 +355,25 @@ export function removePrivateEnvBinding(contents: string, key: string) {
   } as const;
 }
 
+export function privateSiteEnvPaths(input: {
+  siteId: string;
+  source: "root" | "client";
+}) {
+  if (!/^[a-z][a-z0-9-]{1,62}$/.test(input.siteId)) {
+    throw new Error("Site must be a safe client slug.");
+  }
+  if (input.source === "root") {
+    return {
+      relativeTarget: ".env",
+      relativeTemplate: "apps/web/env.example",
+    } as const;
+  }
+  return {
+    relativeTarget: `sites/${input.siteId}/.env`,
+    relativeTemplate: `sites/${input.siteId}/.env.example`,
+  } as const;
+}
+
 export async function readSiteManifest(site: string) {
   if (!/^[a-z][a-z0-9-]{1,62}$/.test(site)) {
     throw new Error("Site must be a safe client slug.");

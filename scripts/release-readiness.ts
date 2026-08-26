@@ -616,7 +616,7 @@ export function buildReleaseReadinessReport(input: {
     gaps.push({
       gate: "scheduled-backup-audit",
       action:
-        "Pass --site, --stage and --origin to include the read-only GitHub scheduled-backup audit.",
+        "Pass --site, --stage and --origin to include the read-only GitHub production scheduled-backup audit.",
     });
   else {
     if (!scheduledBackup.workflow.availableOnDefaultBranch)
@@ -635,25 +635,25 @@ export function buildReleaseReadinessReport(input: {
       gaps.push({
         gate: "scheduled-backup-configuration",
         action:
-          "Configure the exact backup repository variables and dedicated Cloudflare secret; values remain suppressed.",
+          "Configure the exact production backup repository variables and dedicated Cloudflare secret; values remain suppressed.",
       });
     if (!scheduledBackup.manualDispatch.valid)
       gaps.push({
         gate: "scheduled-backup-manual-run",
         action:
-          "Retain one successful manual backup run with run-bound restore and immutable archive evidence.",
+          "Retain one successful production manual backup run with run-bound restore and immutable archive evidence.",
       });
     if (!scheduledBackup.scheduledRun.valid)
       gaps.push({
         gate: "scheduled-backup-weekly-run",
         action:
-          "Retain the following successful weekly run with distinct immutable evidence.",
+          "Retain the following successful production weekly run with distinct immutable evidence.",
       });
     else if (!scheduledBackup.sequenceValid)
       gaps.push({
         gate: "scheduled-backup-sequence",
         action:
-          "Use a distinct weekly immutable object completed within eight days after the manual run.",
+          "Use a distinct production weekly immutable object completed within eight days after the manual run.",
       });
   }
   if (!releaseGate)
@@ -833,6 +833,7 @@ export function buildReleaseReadinessReport(input: {
     scheduledBackup: scheduledBackup
       ? {
           checked: true as const,
+          stage: "production" as const,
           ready: scheduledBackup.ready,
           workflowOnDefaultBranch:
             scheduledBackup.workflow.availableOnDefaultBranch,
@@ -845,6 +846,7 @@ export function buildReleaseReadinessReport(input: {
         }
       : {
           checked: false as const,
+          stage: "production" as const,
           ready: false,
           workflowOnDefaultBranch: false,
           workflowMatchesContract: false,
@@ -1102,8 +1104,8 @@ async function main() {
     );
     console.log(
       report.scheduledBackup.checked
-        ? `Scheduled backup: ${report.scheduledBackup.ready ? "ready" : "blocked"}; workflow ${report.scheduledBackup.workflowOnDefaultBranch ? (report.scheduledBackup.workflowMatchesContract ? "matches" : "drifted") : "missing"}; configuration ${report.scheduledBackup.configurationReady ? "ready" : "missing"}; manual ${report.scheduledBackup.manualDispatchReady ? "valid" : "missing"}; weekly ${report.scheduledBackup.scheduledRunReady ? "valid" : "missing"}.`
-        : "Scheduled backup: not audited; pass --site, --stage and --origin.",
+        ? `Production scheduled backup: ${report.scheduledBackup.ready ? "ready" : "blocked"}; workflow ${report.scheduledBackup.workflowOnDefaultBranch ? (report.scheduledBackup.workflowMatchesContract ? "matches" : "drifted") : "missing"}; configuration ${report.scheduledBackup.configurationReady ? "ready" : "missing"}; manual ${report.scheduledBackup.manualDispatchReady ? "valid" : "missing"}; weekly ${report.scheduledBackup.scheduledRunReady ? "valid" : "missing"}.`
+        : "Production scheduled backup: not audited; pass --site, --stage and --origin.",
     );
     console.log(
       `Release evidence (${relativeEvidencePath}): ${report.releaseEvidence.present ? (report.releaseEvidence.valid ? "valid" : "incomplete") : "missing"}.`,

@@ -216,6 +216,7 @@ describe("client-ready live readiness report", () => {
     expect(report.releaseReady).toBe(false);
     expect(report.livePrerequisitesReady).toBe(false);
     expect(report.d1.zeroTableOwnerReviewCandidates).toBe(1);
+    expect(report.scheduledBackup.stage).toBe("production");
     expect(report.gaps.map((gap) => gap.gate)).toEqual([
       "d1-capacity",
       "operational-alert-policy",
@@ -233,6 +234,14 @@ describe("client-ready live readiness report", () => {
       "release-evidence",
       "release-checkout",
     ]);
+    for (const gate of [
+      "scheduled-backup-configuration",
+      "scheduled-backup-manual-run",
+      "scheduled-backup-weekly-run",
+    ])
+      expect(report.gaps.find((gap) => gap.gate === gate)?.action).toContain(
+        "production",
+      );
     const serialized = JSON.stringify(report);
     for (const secret of [
       "secret-database-id",
@@ -355,6 +364,7 @@ describe("client-ready live readiness report", () => {
     );
     expect(report.scheduledBackup).toEqual({
       checked: false,
+      stage: "production",
       ready: false,
       workflowOnDefaultBranch: false,
       workflowMatchesContract: false,
@@ -366,6 +376,9 @@ describe("client-ready live readiness report", () => {
     expect(report.gaps.map((gap) => gap.gate)).toContain(
       "scheduled-backup-audit",
     );
+    expect(
+      report.gaps.find((gap) => gap.gate === "scheduled-backup-audit")?.action,
+    ).toContain("production");
     expect(report.clientReadyWorkflow).toEqual({
       checked: false,
       ready: false,

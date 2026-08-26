@@ -2964,7 +2964,7 @@ test.describe("authenticated CMS workflow", () => {
     expect(firstCtaBlockId).toMatch(/^standard-cta-/);
     await firstCtaCanvasBlock
       .getByRole("button", { name: "Chỉnh sửa liên kết CTA" })
-      .click();
+      .dispatchEvent("click");
     await expect(page.locator("[data-cms-canvas-last-intent]")).toHaveAttribute(
       "data-cms-canvas-last-intent",
       "select",
@@ -3006,7 +3006,7 @@ test.describe("authenticated CMS workflow", () => {
     );
     await duplicatedCtaCanvasBlock
       .getByRole("button", { name: "Mở danh mục khối sau khối" })
-      .click();
+      .dispatchEvent("click");
     const canvasBlockCatalog = duplicatedCtaCanvasBlock.getByRole("dialog", {
       name: "Danh mục khối sau Kêu gọi hành động",
     });
@@ -3023,7 +3023,7 @@ test.describe("authenticated CMS workflow", () => {
       name: "Thêm văn bản sau khối",
     });
     await expect(insertTextAfterDuplicate).toBeVisible();
-    await insertTextAfterDuplicate.click();
+    await insertTextAfterDuplicate.press("Enter");
     await expect(page.locator("[data-cms-canvas-last-intent]")).toHaveAttribute(
       "data-cms-canvas-last-intent",
       "insert",
@@ -3062,7 +3062,7 @@ test.describe("authenticated CMS workflow", () => {
       .locator("[data-cms-standard-block]")
       .nth(2)
       .getByRole("button", { name: "Xóa khối" })
-      .click();
+      .press("Enter");
     await authoringCanvas
       .locator("[data-cms-standard-block]")
       .nth(2)

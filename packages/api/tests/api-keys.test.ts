@@ -146,8 +146,9 @@ describe("CMS API key material", () => {
         .query("select last_used_at from cms_api_keys where id = ?")
         .get(created.key.id),
     ).toMatchObject({ last_used_at: expect.any(Number) });
+    const invalidRawKey = `${created.rawKey.slice(0, -1)}${created.rawKey.endsWith("a") ? "b" : "a"}`;
     await expect(
-      authenticateCmsApiKey(`Bearer ${created.rawKey.slice(0, -1)}c`, runtime),
+      authenticateCmsApiKey(`Bearer ${invalidRawKey}`, runtime),
     ).resolves.toBeNull();
 
     const rotated = await rotateApiKey(

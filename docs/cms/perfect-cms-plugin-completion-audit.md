@@ -55,9 +55,13 @@ requirements have the following local/external disposition:
 
 ## Latest repeatable evidence
 
-Current clean candidate: `5bd7fb9f468573859e0476ebb51dc73a5364b533`.
-`main` and `origin/main` matched this SHA with a clean worktree on 2026-08-27.
-The sequential root `bun run quality` gate exited zero on this exact candidate,
+Current code-bearing clean candidate:
+`5bd7fb9f468573859e0476ebb51dc73a5364b533`. `main` and `origin/main` matched
+this SHA with a clean worktree when the candidate was verified on 2026-08-27.
+They now point to documentation-only descendant `9de4e04`; the intervening
+diff changes only the three CMS evidence documents and does not silently move
+the verified code candidate. The sequential root `bun run quality` gate exited
+zero on exact candidate `5bd7fb9`,
 including the frozen clean-checkout install, packed Cloudflare/local/PostgreSQL
 consumers, 24-package schema `1 -> 2 -> 1` upgrade/rollback, all package/app
 typechecks, secure production build, performance budgets, the primary

@@ -868,10 +868,13 @@ audits passing. The remaining evidence below is still mandatory.
 
 ## Clean-candidate release-boundary refresh — 2026-08-27
 
-The current candidate is
+The current code-bearing candidate is
 `5bd7fb9f468573859e0476ebb51dc73a5364b533`; local `main` and
-`origin/main` match it and the worktree was clean. The exact sequential
-`bun run quality` command exited zero after correcting the last deterministic
+`origin/main` matched it with a clean worktree when the candidate was verified.
+They now point to documentation-only descendant `9de4e04`; the intervening
+diff changes only CMS evidence documents and does not promote a different code
+candidate. The exact sequential `bun run quality` command exited zero on
+`5bd7fb9` after correcting the last deterministic
 API-key mutation defect, transient dark-theme contrast transition, CMS
 hydration/scaled-preview interactions, toast-blocked autosave action, and the
 mobile product-filter result race exposed by prior aggregate attempts. The

@@ -2478,3 +2478,44 @@ notification, controlled alert failure, production backup operation, database
 deletion, registry publication, release tag, or manufactured receipt. Live
 staging and every external completion gate therefore retain their prior
 fail-closed status until separately authorized and evidenced.
+
+## External-operation preflight receipt — 2026-08-27
+
+The clean `main` checkout was exercised through the pending operations' guarded
+read-only paths. The Rèm Việt staging deployment preflight reports all bindings
+ready for the manifest-owned Worker, D1, media R2, and lifecycle-independent
+backup bucket. The provider plan is narrowly scoped: D1 and media R2 are
+`noop`; only the Worker and its `RELEASE_GIT_SHA` / `RELEASE_INPUT_SHA256`
+provenance values would update. No provider apply was run.
+
+The notification smoke dry-run resolved the manifest-owned staging D1, active
+email-enabled contact form, configured email runtime, and clean site/stage
+provenance. It is ready to request exactly one real email plus one duplicate
+replay after the current candidate is deployed. The dry-run sent no request and
+its transient run ID is deliberately not promoted as release evidence.
+
+The isolated Cloudflare alert-profile dry-run reports the deterministic
+`rem-viet-staging-operational-failures` policy already configured and converged,
+with recipient, provider contract, email eligibility, and write authentication
+ready. Its plan is `noop`; the underlying Workers Observability threshold and
+the controlled-failure dispatch/inbox receipt remain external actions.
+
+The production GitHub backup audit confirms the default-branch workflow is
+present and byte-identical to the local contract. `CMS_BACKUP_SITE`, the
+Cloudflare account ID, and the dedicated token secret are present and
+shape-valid without exposing values. The sole configuration mismatch is
+`CMS_BACKUP_STAGE`, which still identifies staging instead of production. The
+retained manual run is consequently rejected only as different-stage evidence,
+and the latest scheduled run is failed; production still needs a correctly
+configured manual receipt followed by the next distinct weekly receipt.
+
+The independent `acme-demo` runner also passed its local dry-run boundaries: the
+private environment is Git-ignored and the checkout is clean. Its credentials
+are intentionally not available to the runner and must be injected from the
+password manager at execution time. Its provider plan is not yet converged: D1
+and Worker require updates while media R2 is `noop`. Therefore the independent
+site apply is a separate, more expansive authorization scope and was not run.
+
+These preflights performed no deploy, database mutation, email request, alert
+trigger, GitHub configuration write, workflow dispatch, credential reset, or
+release action.

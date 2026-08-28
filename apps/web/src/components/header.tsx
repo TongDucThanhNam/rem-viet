@@ -120,7 +120,7 @@ export default function Header({
     }
 
     window.open(
-      `https://www.google.com/search?q=${searchValue} site:luoichongmuoi.shop`,
+      `https://www.google.com/search?q=${searchValue} site:${new URL(siteConfig.url).hostname}`,
       "_blank",
     );
   }

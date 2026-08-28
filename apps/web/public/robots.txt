@@ -2,5 +2,5 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://luoichongmuoi.shop/sitemap.xml
-Host: https://luoichongmuoi.shop
+Sitemap: https://rem-viet-web-production.terasumi.workers.dev/sitemap.xml
+Host: https://rem-viet-web-production.terasumi.workers.dev

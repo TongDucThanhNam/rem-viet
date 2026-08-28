@@ -1,7 +1,7 @@
 {
   "id": "rem-viet",
   "name": "Rèm Vina",
-  "siteUrl": "https://luoichongmuoi.shop",
+  "siteUrl": "https://rem-viet-web-production.terasumi.workers.dev",
   "description": "Cửa hàng Rèm Vina, chuyên cung cấp rèm cửa và lưới chống muỗi chất lượng cao.",
   "locale": "vi-VN",
   "preset": "catalog",

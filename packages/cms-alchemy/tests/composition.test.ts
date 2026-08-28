@@ -71,4 +71,29 @@ describe("CMS Alchemy composition", () => {
       }),
     ).toThrow(/Production origin/);
   });
+
+  test("uses native workers.dev routing without attaching a custom domain", () => {
+    const nativeOrigin = "https://acme-web-production.example.workers.dev";
+    const plan = createCmsAlchemyResourcePlan({
+      manifest: { ...manifest, siteUrl: nativeOrigin },
+      stage: "production",
+      origin: nativeOrigin,
+      bindings: {},
+      allowMissingBindings: true,
+    });
+
+    expect(plan.productionDomain).toBeNull();
+  });
+
+  test("keeps a manifest-owned hostname as the production custom domain", () => {
+    const plan = createCmsAlchemyResourcePlan({
+      manifest,
+      stage: "production",
+      origin: manifest.siteUrl,
+      bindings: {},
+      allowMissingBindings: true,
+    });
+
+    expect(plan.productionDomain).toBe("acme.example.com");
+  });
 });

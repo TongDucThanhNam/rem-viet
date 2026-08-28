@@ -1,4 +1,10 @@
+import { readFileSync } from "node:fs";
+
 import { expect, test } from "@playwright/test";
+
+const siteManifest = JSON.parse(
+  readFileSync(new URL("../../../site.manifest.json", import.meta.url), "utf8"),
+) as { siteUrl: string };
 
 test("health, sitemap and private preview boundaries", async ({
   page,
@@ -46,7 +52,7 @@ test("homepage exposes validated theme structured data", async ({ page }) => {
     "@context": "https://schema.org",
     "@type": "Store",
     name: "Rèm Vina",
-    url: "https://luoichongmuoi.shop",
+    url: siteManifest.siteUrl,
   });
 });
 

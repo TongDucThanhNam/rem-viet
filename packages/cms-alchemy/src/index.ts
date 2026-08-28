@@ -109,6 +109,11 @@ export function createCmsAlchemyResourcePlan({
   const siteOrigin = parseOrigin(manifest.siteUrl, "Manifest siteUrl");
   const origin = parseOrigin(rawOrigin, "Deployment origin");
   const production = stage === "production" || stage === "prod";
+  const productionHostname = new URL(siteOrigin).hostname;
+  const productionDomain =
+    production && !productionHostname.endsWith(".workers.dev")
+      ? productionHostname
+      : null;
   if (production && origin !== siteOrigin) {
     throw new Error("Production origin must match the manifest siteUrl.");
   }
@@ -131,7 +136,7 @@ export function createCmsAlchemyResourcePlan({
     siteId: manifest.id,
     stage,
     origin,
-    productionDomain: production ? new URL(siteOrigin).hostname : null,
+    productionDomain,
     requiredBindings: Object.freeze([...requiredBindings]),
     missingBindings: Object.freeze(missingBindings),
     database: Object.freeze({

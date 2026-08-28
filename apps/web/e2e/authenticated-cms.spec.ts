@@ -319,6 +319,25 @@ async function cleanupInterruptedStandardPageFixtures(page: Page) {
   }
 }
 
+async function cleanupInterruptedLeadFixtures(page: Page) {
+  await page.goto("/admin/leads");
+  let staleCards = page
+    .getByTestId(/^lead-/u)
+    .filter({ hasText: /e2e-inbox-[0-9a-f-]{36}@example\.com/iu });
+  while ((await staleCards.count()) > 0) {
+    const staleCount = await staleCards.count();
+    await staleCards
+      .first()
+      .getByRole("button", { name: "Xóa dữ liệu" })
+      .click();
+    await confirmAlertDialog(page, "Xóa");
+    await expect(staleCards).toHaveCount(staleCount - 1);
+    staleCards = page
+      .getByTestId(/^lead-/u)
+      .filter({ hasText: /e2e-inbox-[0-9a-f-]{36}@example\.com/iu });
+  }
+}
+
 test.describe("authenticated CMS workflow", () => {
   test.skip(
     !email || !password,
@@ -2019,6 +2038,7 @@ test.describe("authenticated CMS workflow", () => {
       testInfo.project.name.includes("mobile"),
       "The durable lead mutation runs once; mobile has the operations smoke.",
     );
+    await cleanupInterruptedLeadFixtures(page);
     const marker = crypto.randomUUID();
     const leadEmail = `e2e-inbox-${marker}@example.com`;
     const response = await request.post("/api/forms/submit", {

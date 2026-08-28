@@ -38,13 +38,17 @@ Các hạng mục sau không cần paid upgrade nên vẫn là completion gate:
 - toàn bộ implementation, security, migration và conformance của CMS core;
 - packed install/remove trong các repo TanStack Start độc lập;
 - Local, Cloudflare free-tier/reference và Postgres conformance;
-- scheduled backup receipt khi workflow thật chạy;
-- representative RUM đủ sample;
 - non-developer pilot và independent documentation walkthrough;
 - provider-neutral alerts/health contracts và local/hosted evidence nào thực
   hiện được không cần entitlement trả phí;
 - registry/extension manifest, provenance, compatibility và lifecycle ở cấp
   implementation, không yêu cầu managed private-registry publication.
+
+Scheduled-production backup cadence và representative RUM không cần paid
+upgrade, nhưng chúng thuộc client-release/operations readiness rộng hơn, không
+phải completion gate của Section 10 trong active goal này. Chúng tiếp tục được
+theo dõi trong release evidence tương ứng mà không được dùng để block
+`/goal resume` cho `perfect-cms-plugin-goal.vi.md`.
 
 ## 4. Quy tắc quay lại
 

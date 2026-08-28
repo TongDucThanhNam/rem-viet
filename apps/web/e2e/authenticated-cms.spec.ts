@@ -321,6 +321,11 @@ async function cleanupInterruptedStandardPageFixtures(page: Page) {
 
 async function cleanupInterruptedLeadFixtures(page: Page) {
   await page.goto("/admin/leads");
+  await page.waitForFunction(
+    () =>
+      document.querySelector('[data-testid^="lead-"]') !== null ||
+      document.body.textContent?.includes("Chưa có khách hàng tiềm năng"),
+  );
   let staleCards = page
     .getByTestId(/^lead-/u)
     .filter({ hasText: /e2e-inbox-[0-9a-f-]{36}@example\.com/iu });

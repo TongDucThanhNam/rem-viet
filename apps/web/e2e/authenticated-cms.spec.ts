@@ -212,6 +212,7 @@ async function confirmAlertDialog(page: Page, confirmLabel: string) {
   const dialog = page.getByRole("alertdialog");
   await expect(dialog).toBeVisible();
   await dialog.getByRole("button", { name: confirmLabel, exact: true }).click();
+  await expect(dialog).toBeHidden();
 }
 
 async function reachWithKeyboard(
@@ -340,6 +341,41 @@ async function cleanupInterruptedStandardPageFixtures(page: Page) {
     staleRedirectRows = page
       .getByRole("row")
       .filter({ hasText: /\/standard-provider-[0-9a-f]{8}/ });
+  }
+}
+
+async function cleanupInterruptedCampaignFixtures(page: Page) {
+  await page.goto("/admin/campaigns?locale=vi-VN");
+  await waitForAdminHydration(page);
+  await page.getByRole("heading", { name: "Localized campaigns" }).waitFor();
+  let staleRows = page
+    .getByRole("row")
+    .filter({ hasText: /Collection E2E [0-9a-f]{8}/ });
+  while ((await staleRows.count()) > 0) {
+    const staleRow = staleRows.first();
+    await staleRow
+      .getByRole("link", { name: /Edit Collection E2E [0-9a-f]{8}/ })
+      .click();
+    await waitForAdminHydration(page);
+    const unpublish = page.getByRole("button", {
+      name: "Gỡ xuất bản",
+      exact: true,
+    });
+    if (await unpublish.isVisible()) {
+      await unpublish.click();
+      await expect(
+        page.getByText("Đã gỡ xuất bản chiến dịch.", { exact: true }),
+      ).toBeVisible();
+    }
+    await page.getByRole("button", { name: "Xóa", exact: true }).click();
+    await confirmAlertDialog(page, "Xóa");
+    await expect(
+      page.getByText("Đã xóa chiến dịch.", { exact: true }),
+    ).toBeVisible();
+    await page.getByRole("heading", { name: "Localized campaigns" }).waitFor();
+    staleRows = page
+      .getByRole("row")
+      .filter({ hasText: /Collection E2E [0-9a-f]{8}/ });
   }
 }
 
@@ -2811,6 +2847,131 @@ test.describe("authenticated CMS workflow", () => {
       });
     } finally {
       await provider.cleanup();
+    }
+  });
+
+  test("localized generic collection uses authenticated secure preview v2", async ({
+    browser,
+    page,
+  }) => {
+    test.setTimeout(150_000);
+    await cleanupInterruptedCampaignFixtures(page);
+    const suffix = crypto.randomUUID().slice(0, 8);
+    const code = `COLLECTION-${suffix.toUpperCase()}`;
+    const headline = `Collection E2E ${suffix}`;
+    const changedHeadline = `${headline} updated`;
+
+    try {
+      await page.goto("/admin/campaigns?locale=vi-VN&mode=create");
+      await waitForAdminHydration(page);
+      await expect(
+        page.getByRole("heading", {
+          name: "Chiến dịch bản địa hóa",
+          exact: true,
+        }),
+      ).toBeVisible();
+      const codeInput = page.getByLabel("Campaign code", { exact: true });
+      const headlineInput = page.getByLabel("Headline", { exact: true });
+      await expect(codeInput).toBeVisible();
+      await expect(headlineInput).toBeVisible();
+      await expect(page.locator("#localized-campaign-preview")).toHaveAttribute(
+        "data-cms-preview-connection",
+        "connected",
+        { timeout: 20_000 },
+      );
+
+      await codeInput.fill(code);
+      await headlineInput.fill(headline);
+      const preview = page.frameLocator(
+        'iframe[title="Xem trước chiến dịch được bản địa hóa"]',
+      );
+      await expect(preview.getByText(code, { exact: true })).toBeVisible();
+      await expect(preview.getByText(headline, { exact: true })).toBeVisible();
+      await preview.getByText(headline, { exact: true }).click();
+      await expect(headlineInput).toBeFocused();
+
+      await expectNoAutomatedAccessibilityViolations(
+        page,
+        "Localized collection secure preview editor",
+        { exclude: ["iframe", "[data-sonner-toast]"] },
+      );
+      await expect
+        .poll(() =>
+          page.evaluate(
+            () =>
+              document.documentElement.scrollWidth -
+              document.documentElement.clientWidth,
+          ),
+        )
+        .toBe(0);
+
+      await page.getByRole("button", { name: "Create", exact: true }).click();
+      await expect(
+        page.getByText("Đã tạo chiến dịch.", { exact: true }),
+      ).toBeVisible();
+      await expect(page).toHaveURL(/campaignId=[0-9a-f-]+/);
+      const campaignId = new URL(page.url()).searchParams.get("campaignId");
+      expect(campaignId).toMatch(/^[0-9a-f-]+$/);
+      await expect(
+        page.getByRole("button", { name: "Save changes", exact: true }),
+      ).toBeVisible();
+      await expect(headlineInput).toHaveValue(headline);
+      await expect(
+        page.getByText(/draft · v\d+/, { exact: true }),
+      ).toBeVisible();
+
+      await headlineInput.fill(changedHeadline);
+      await expect(
+        preview.getByText(changedHeadline, { exact: true }),
+      ).toBeVisible();
+      await page
+        .getByRole("button", { name: "Save changes", exact: true })
+        .click();
+      await expect(
+        page.getByText("Đã lưu bản nháp chiến dịch.", { exact: true }),
+      ).toBeVisible();
+
+      await page.getByRole("button", { name: "Xuất bản", exact: true }).click();
+      await expect(
+        page.getByText("Đã xuất bản chiến dịch.", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByText(/published · v\d+/, { exact: true }),
+      ).toBeVisible();
+
+      const standalone = await page.context().newPage();
+      await standalone.goto(
+        `/admin/campaigns/${encodeURIComponent(campaignId!)}/preview?locale=vi-VN`,
+      );
+      await expect(
+        standalone.getByText(changedHeadline, { exact: true }),
+      ).toBeVisible();
+      await standalone.close();
+
+      const anonymousContext = await browser.newContext();
+      const anonymousPage = await anonymousContext.newPage();
+      await anonymousPage.goto(
+        `${new URL(page.url()).origin}/admin/campaigns/${encodeURIComponent(campaignId!)}/preview?locale=vi-VN`,
+      );
+      await expect(anonymousPage).toHaveURL(/dang-nhap/);
+      await anonymousContext.close();
+
+      await page
+        .getByRole("button", { name: "Gỡ xuất bản", exact: true })
+        .click();
+      await expect(
+        page.getByText("Đã gỡ xuất bản chiến dịch.", { exact: true }),
+      ).toBeVisible();
+      await page.getByRole("button", { name: "Xóa", exact: true }).click();
+      await confirmAlertDialog(page, "Xóa");
+      await expect(
+        page.getByText("Đã xóa chiến dịch.", { exact: true }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("row").filter({ hasText: headline }),
+      ).toHaveCount(0);
+    } finally {
+      await cleanupInterruptedCampaignFixtures(page);
     }
   });
 

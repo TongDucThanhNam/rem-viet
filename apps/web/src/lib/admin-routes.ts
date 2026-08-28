@@ -11,6 +11,7 @@ import {
   Inbox,
   LayoutDashboard,
   ListFilter,
+  Megaphone,
   PackageOpen,
   Plus,
   Settings,
@@ -175,6 +176,15 @@ export const adminNavigationSections = [
         description: "Quản lý các trang nội dung có cấu trúc.",
         to: "/admin/pages",
         icon: FileText,
+      },
+      {
+        label: "Chiến dịch bản địa hóa",
+        pageTitle: "Chiến dịch bản địa hóa",
+        description:
+          "Biên tập collection đa ngôn ngữ bằng editor shell và secure preview dùng chung.",
+        to: "/admin/campaigns",
+        icon: Megaphone,
+        requiredCapability: "content.readDraft",
       },
       {
         label: "Thư viện media",

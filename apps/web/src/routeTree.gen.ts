@@ -76,6 +76,7 @@ import { Route as AdminHomeRouteImport } from './routes/admin/home'
 import { Route as AdminHandoverRouteImport } from './routes/admin/handover'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
+import { Route as AdminCampaignsRouteImport } from './routes/admin/campaigns'
 import { Route as AdminAuditRouteImport } from './routes/admin/audit'
 import { Route as AdminAddProductRouteImport } from './routes/admin/add-product'
 import { Route as AdminProductsIndexRouteImport } from './routes/admin/products/index'
@@ -115,6 +116,7 @@ import { Route as AdminProductsProductIdEditRouteImport } from './routes/admin/p
 import { Route as AdminPostsPostIdPreviewRouteImport } from './routes/admin/posts/$postId/preview'
 import { Route as AdminPostsPostIdEditRouteImport } from './routes/admin/posts/$postId/edit'
 import { Route as AdminPagesPageIdPreviewRouteImport } from './routes/admin/pages_/$pageId/preview'
+import { Route as AdminCampaignsCampaignIdPreviewRouteImport } from './routes/admin/campaigns_/$campaignId/preview'
 
 const XacThucHaiLopRoute = XacThucHaiLopRouteImport.update({
   id: '/xac-thuc-hai-lop',
@@ -451,6 +453,11 @@ const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   path: '/admin/categories',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCampaignsRoute = AdminCampaignsRouteImport.update({
+  id: '/admin/campaigns',
+  path: '/admin/campaigns',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminAuditRoute = AdminAuditRouteImport.update({
   id: '/admin/audit',
   path: '/admin/audit',
@@ -651,6 +658,12 @@ const AdminPagesPageIdPreviewRoute = AdminPagesPageIdPreviewRouteImport.update({
   path: '/admin/pages/$pageId/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCampaignsCampaignIdPreviewRoute =
+  AdminCampaignsCampaignIdPreviewRouteImport.update({
+    id: '/admin/campaigns_/$campaignId/preview',
+    path: '/admin/campaigns/$campaignId/preview',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -681,6 +694,7 @@ export interface FileRoutesByFullPath {
   '/xac-thuc-hai-lop': typeof XacThucHaiLopRoute
   '/admin/add-product': typeof AdminAddProductRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/handover': typeof AdminHandoverRoute
@@ -752,6 +766,7 @@ export interface FileRoutesByFullPath {
   '/admin/orders/': typeof AdminOrdersIndexRoute
   '/admin/posts/': typeof AdminPostsIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
+  '/admin/campaigns/$campaignId/preview': typeof AdminCampaignsCampaignIdPreviewRoute
   '/admin/pages/$pageId/preview': typeof AdminPagesPageIdPreviewRoute
   '/admin/posts/$postId/edit': typeof AdminPostsPostIdEditRoute
   '/admin/posts/$postId/preview': typeof AdminPostsPostIdPreviewRoute
@@ -788,6 +803,7 @@ export interface FileRoutesByTo {
   '/xac-thuc-hai-lop': typeof XacThucHaiLopRoute
   '/admin/add-product': typeof AdminAddProductRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/handover': typeof AdminHandoverRoute
@@ -854,6 +870,7 @@ export interface FileRoutesByTo {
   '/admin/orders': typeof AdminOrdersIndexRoute
   '/admin/posts': typeof AdminPostsIndexRoute
   '/admin/products': typeof AdminProductsIndexRoute
+  '/admin/campaigns/$campaignId/preview': typeof AdminCampaignsCampaignIdPreviewRoute
   '/admin/pages/$pageId/preview': typeof AdminPagesPageIdPreviewRoute
   '/admin/posts/$postId/edit': typeof AdminPostsPostIdEditRoute
   '/admin/posts/$postId/preview': typeof AdminPostsPostIdPreviewRoute
@@ -892,6 +909,7 @@ export interface FileRoutesById {
   '/xac-thuc-hai-lop': typeof XacThucHaiLopRoute
   '/admin/add-product': typeof AdminAddProductRoute
   '/admin/audit': typeof AdminAuditRoute
+  '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/handover': typeof AdminHandoverRoute
@@ -963,6 +981,7 @@ export interface FileRoutesById {
   '/admin/orders/': typeof AdminOrdersIndexRoute
   '/admin/posts/': typeof AdminPostsIndexRoute
   '/admin/products/': typeof AdminProductsIndexRoute
+  '/admin/campaigns_/$campaignId/preview': typeof AdminCampaignsCampaignIdPreviewRoute
   '/admin/pages_/$pageId/preview': typeof AdminPagesPageIdPreviewRoute
   '/admin/posts/$postId/edit': typeof AdminPostsPostIdEditRoute
   '/admin/posts/$postId/preview': typeof AdminPostsPostIdPreviewRoute
@@ -1002,6 +1021,7 @@ export interface FileRouteTypes {
     | '/xac-thuc-hai-lop'
     | '/admin/add-product'
     | '/admin/audit'
+    | '/admin/campaigns'
     | '/admin/categories'
     | '/admin/dashboard'
     | '/admin/handover'
@@ -1073,6 +1093,7 @@ export interface FileRouteTypes {
     | '/admin/orders/'
     | '/admin/posts/'
     | '/admin/products/'
+    | '/admin/campaigns/$campaignId/preview'
     | '/admin/pages/$pageId/preview'
     | '/admin/posts/$postId/edit'
     | '/admin/posts/$postId/preview'
@@ -1109,6 +1130,7 @@ export interface FileRouteTypes {
     | '/xac-thuc-hai-lop'
     | '/admin/add-product'
     | '/admin/audit'
+    | '/admin/campaigns'
     | '/admin/categories'
     | '/admin/dashboard'
     | '/admin/handover'
@@ -1175,6 +1197,7 @@ export interface FileRouteTypes {
     | '/admin/orders'
     | '/admin/posts'
     | '/admin/products'
+    | '/admin/campaigns/$campaignId/preview'
     | '/admin/pages/$pageId/preview'
     | '/admin/posts/$postId/edit'
     | '/admin/posts/$postId/preview'
@@ -1212,6 +1235,7 @@ export interface FileRouteTypes {
     | '/xac-thuc-hai-lop'
     | '/admin/add-product'
     | '/admin/audit'
+    | '/admin/campaigns'
     | '/admin/categories'
     | '/admin/dashboard'
     | '/admin/handover'
@@ -1283,6 +1307,7 @@ export interface FileRouteTypes {
     | '/admin/orders/'
     | '/admin/posts/'
     | '/admin/products/'
+    | '/admin/campaigns_/$campaignId/preview'
     | '/admin/pages_/$pageId/preview'
     | '/admin/posts/$postId/edit'
     | '/admin/posts/$postId/preview'
@@ -1321,6 +1346,7 @@ export interface RootRouteChildren {
   XacThucHaiLopRoute: typeof XacThucHaiLopRoute
   AdminAddProductRoute: typeof AdminAddProductRoute
   AdminAuditRoute: typeof AdminAuditRoute
+  AdminCampaignsRoute: typeof AdminCampaignsRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminHandoverRoute: typeof AdminHandoverRoute
@@ -1374,6 +1400,7 @@ export interface RootRouteChildren {
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
   ApiUploadsMediaRoute: typeof ApiUploadsMediaRoute
   ApiUploadsProductImagesRoute: typeof ApiUploadsProductImagesRoute
+  AdminCampaignsCampaignIdPreviewRoute: typeof AdminCampaignsCampaignIdPreviewRoute
   AdminPagesPageIdPreviewRoute: typeof AdminPagesPageIdPreviewRoute
   ApiDraftModePageIdRoute: typeof ApiDraftModePageIdRoute
 }
@@ -1849,6 +1876,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/campaigns': {
+      id: '/admin/campaigns'
+      path: '/admin/campaigns'
+      fullPath: '/admin/campaigns'
+      preLoaderRoute: typeof AdminCampaignsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/audit': {
       id: '/admin/audit'
       path: '/admin/audit'
@@ -2122,6 +2156,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPagesPageIdPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/campaigns_/$campaignId/preview': {
+      id: '/admin/campaigns_/$campaignId/preview'
+      path: '/admin/campaigns/$campaignId/preview'
+      fullPath: '/admin/campaigns/$campaignId/preview'
+      preLoaderRoute: typeof AdminCampaignsCampaignIdPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -2338,6 +2379,7 @@ const rootRouteChildren: RootRouteChildren = {
   XacThucHaiLopRoute: XacThucHaiLopRoute,
   AdminAddProductRoute: AdminAddProductRoute,
   AdminAuditRoute: AdminAuditRoute,
+  AdminCampaignsRoute: AdminCampaignsRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminHandoverRoute: AdminHandoverRoute,
@@ -2391,6 +2433,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,
   ApiUploadsMediaRoute: ApiUploadsMediaRoute,
   ApiUploadsProductImagesRoute: ApiUploadsProductImagesRoute,
+  AdminCampaignsCampaignIdPreviewRoute: AdminCampaignsCampaignIdPreviewRoute,
   AdminPagesPageIdPreviewRoute: AdminPagesPageIdPreviewRoute,
   ApiDraftModePageIdRoute: ApiDraftModePageIdRoute,
 }

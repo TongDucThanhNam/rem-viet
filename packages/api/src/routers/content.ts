@@ -102,6 +102,7 @@ import {
   scheduleRemVietStandardPage,
   unscheduleRemVietStandardPage,
 } from "../services/standard-page-runtime";
+import { campaignsRouter } from "./campaigns";
 
 type StaffContext = {
   actor: CmsActor;
@@ -404,6 +405,7 @@ export const editorialCommentsRouter = router({
 export const contentRouter = router({
   posts: postsRouter,
   pages: pagesRouter,
+  campaigns: campaignsRouter,
   reviews: editorialReviewsRouter,
   comments: editorialCommentsRouter,
   media: mediaRouter,

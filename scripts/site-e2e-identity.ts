@@ -13,6 +13,7 @@ import {
   AuthCookieJar,
   extractTotpSecret,
   generateTotp,
+  providerClockOffsetMs,
   replacePrivateBinding,
   stagingE2eEmail,
 } from "./site-e2e-identity-lib";
@@ -153,11 +154,13 @@ if (gitOutput(["status", "--porcelain", "--untracked-files=all"]) !== "") {
   throw new Error("Staging E2E provisioning requires a clean checkout.");
 }
 
+const healthRequestStartedAt = Date.now();
 const healthResponse = await fetch(`${origin}/api/health`, {
   headers: { Accept: "application/json", "Cache-Control": "no-cache" },
   redirect: "error",
   signal: AbortSignal.timeout(10_000),
 });
+const healthRequestCompletedAt = Date.now();
 if (![200, 503].includes(healthResponse.status)) {
   throw new Error(`Staging health returned HTTP ${healthResponse.status}.`);
 }
@@ -170,6 +173,7 @@ const health = z
       commit: z.string(),
       sourceState: z.literal("clean"),
     }),
+    timestamp: z.string(),
   })
   .passthrough()
   .parse(await healthResponse.json());
@@ -182,6 +186,11 @@ if (
     "Live staging provenance must match this clean checkout before E2E provisioning.",
   );
 }
+const providerTimeOffsetMs = providerClockOffsetMs(
+  health.timestamp,
+  healthRequestStartedAt,
+  healthRequestCompletedAt,
+);
 
 let privateContents = originalPrivateContents;
 const password = configuredPassword || randomBytes(24).toString("base64url");
@@ -445,7 +454,10 @@ if (mfaEnabled) {
 
 await requireJson(
   await authRequest("/two-factor/verify-totp", {
-    body: { code: generateTotp(totpSecret), trustDevice: true },
+    body: {
+      code: generateTotp(totpSecret, Date.now() + providerTimeOffsetMs),
+      trustDevice: true,
+    },
   }),
   "Staging E2E TOTP verification",
 );
@@ -480,6 +492,7 @@ console.log(
       totpEnrolled,
       totpVerified: true,
       sessionVerified: true,
+      providerClockOffsetApplied: providerTimeOffsetMs !== 0,
       privateBindingsReady: true,
       backupCodesRetained: false,
       secretsPrinted: false,

@@ -6,6 +6,7 @@ import {
   AuthCookieJar,
   extractTotpSecret,
   generateTotp,
+  providerClockOffsetMs,
   replacePrivateBinding,
   stagingE2eEmail,
 } from "./site-e2e-identity-lib";
@@ -85,6 +86,18 @@ describe("staging E2E identity contracts", () => {
     });
     expect(generateTotp(secret, 59_000)).toBe("287082");
     expect(() => extractTotpSecret("https://example.com")).toThrow(/TOTP/u);
+  });
+
+  test("derives a bounded provider clock offset from the request midpoint", () => {
+    expect(
+      providerClockOffsetMs("1970-01-01T00:01:41.000Z", 100_000, 102_000),
+    ).toBe(0);
+    expect(
+      providerClockOffsetMs("1970-01-01T00:03:11.000Z", 100_000, 102_000),
+    ).toBe(90_000);
+    expect(() =>
+      providerClockOffsetMs("1970-01-01T01:00:00.000Z", 100_000, 102_000),
+    ).toThrow(/five minutes/u);
   });
 
   test("retains only cookie name/value pairs and applies expiry", () => {

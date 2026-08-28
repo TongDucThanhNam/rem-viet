@@ -155,6 +155,30 @@ export function generateTotp(secret: string, timestamp = Date.now()) {
   return (value % 1_000_000).toString().padStart(6, "0");
 }
 
+export function providerClockOffsetMs(
+  serverTimestamp: string,
+  requestStartedAt: number,
+  requestCompletedAt: number,
+) {
+  const serverTime = Date.parse(serverTimestamp);
+  if (
+    !Number.isSafeInteger(requestStartedAt) ||
+    !Number.isSafeInteger(requestCompletedAt) ||
+    requestStartedAt < 0 ||
+    requestCompletedAt < requestStartedAt ||
+    Number.isNaN(serverTime)
+  ) {
+    throw new Error("Provider clock evidence is invalid.");
+  }
+  const midpoint =
+    requestStartedAt + (requestCompletedAt - requestStartedAt) / 2;
+  const offset = Math.round(serverTime - midpoint);
+  if (Math.abs(offset) > 5 * 60_000) {
+    throw new Error("Provider clock differs by more than five minutes.");
+  }
+  return offset;
+}
+
 export class AuthCookieJar {
   readonly #cookies = new Map<string, string>();
 

@@ -1,5 +1,4 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { createHmac } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { runPageProviderConformance } from "@agency/cms-runtime";
@@ -7,6 +6,10 @@ import { defaultRichTextBlock } from "@agency/cms-template-rem-viet";
 import { defaultHomeBlocks, homeBlockSchema } from "@rem-viet/cms";
 
 import { getHomeVisualFieldTargets } from "../src/lib/home-visual-editing";
+import {
+  generateTotp,
+  providerClockOffsetMs,
+} from "../../../scripts/site-e2e-identity-lib";
 import { expectNoAutomatedAccessibilityViolations } from "./accessibility";
 import {
   createStagingPageProvider,
@@ -94,22 +97,6 @@ async function storeAuthCookies(page: Page, loginEmail: string) {
   }
 }
 
-function generateTotp(secret: string) {
-  const counter = Math.floor(Date.now() / 30_000);
-  const message = Buffer.alloc(8);
-  message.writeBigUInt64BE(BigInt(counter));
-  const digest = createHmac("sha1", Buffer.from(secret, "utf8"))
-    .update(message)
-    .digest();
-  const offset = digest[digest.length - 1]! & 0x0f;
-  const value =
-    ((digest[offset]! & 0x7f) << 24) |
-    ((digest[offset + 1]! & 0xff) << 16) |
-    ((digest[offset + 2]! & 0xff) << 8) |
-    (digest[offset + 3]! & 0xff);
-  return (value % 1_000_000).toString().padStart(6, "0");
-}
-
 function totpSecretFor(loginEmail: string) {
   if (loginEmail === email) return totpSecret;
   if (loginEmail === ownerEmail) return ownerTotpSecret;
@@ -173,8 +160,22 @@ async function login(page: Page, loginEmail: string, loginPassword: string) {
     if (!secret) {
       throw new Error(`Missing TOTP fixture for ${loginEmail}.`);
     }
+    const healthRequestStartedAt = Date.now();
+    const healthResponse = await page.request.get("/api/health", {
+      headers: { "cache-control": "no-cache" },
+    });
+    const healthRequestCompletedAt = Date.now();
+    expect(healthResponse.status()).toBe(200);
+    const health = (await healthResponse.json()) as { timestamp?: unknown };
+    const providerTimeOffsetMs = providerClockOffsetMs(
+      String(health.timestamp ?? ""),
+      healthRequestStartedAt,
+      healthRequestCompletedAt,
+    );
     await waitForControlledInput(page, "#two-factor-code");
-    await page.getByLabel("Mã xác thực").fill(generateTotp(secret));
+    await page
+      .getByLabel("Mã xác thực")
+      .fill(generateTotp(secret, Date.now() + providerTimeOffsetMs));
     const trustDevice = page.getByRole("checkbox", {
       name: "Tin cậy thiết bị này trong 30 ngày",
     });

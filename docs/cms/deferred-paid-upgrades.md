@@ -1,6 +1,6 @@
 # Deferred paid upgrades and commercial evidence
 
-> Ngày lập index: 2026-08-29  
+> Ngày lập index: 2026-08-29<br>
 > Trạng thái: Deferred backlog — không phải completion gate của
 > `perfect-cms-plugin-goal.vi.md`
 

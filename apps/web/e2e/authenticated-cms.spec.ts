@@ -13,6 +13,7 @@ import {
 import { expectNoAutomatedAccessibilityViolations } from "./accessibility";
 import {
   createStagingPageProvider,
+  createStagingTrpcClient,
   type StagingStandardPageContent,
 } from "./staging-page-provider";
 
@@ -51,6 +52,11 @@ const managedEmail = process.env.CMS_E2E_MANAGED_EMAIL;
 const authStateDirectory = process.env.CMS_E2E_AUTH_STATE_DIR;
 const authenticatedRole = process.env.CMS_E2E_ROLE ?? "admin";
 const collectHostedReleaseReceipt = process.env.CMS_E2E_RELEASE_RECEIPT === "1";
+const collectHostedDamReceipt = process.env.CMS_E2E_DAM_RECEIPT === "1";
+const damOwnerEmail =
+  ownerEmail ?? (authenticatedRole === "owner" ? email : undefined);
+const damOwnerPassword =
+  ownerPassword ?? (authenticatedRole === "owner" ? password : undefined);
 type AuthCookie = Awaited<
   ReturnType<ReturnType<Page["context"]>["cookies"]>
 >[number];
@@ -345,7 +351,12 @@ async function cleanupInterruptedStandardPageFixtures(page: Page) {
 }
 
 async function cleanupInterruptedCampaignFixtures(page: Page) {
+  const listLoaded = page.waitForResponse(
+    (response) =>
+      response.ok() && response.url().includes("content.campaigns.list"),
+  );
   await page.goto("/admin/campaigns?locale=vi-VN");
+  await listLoaded;
   await waitForAdminHydration(page);
   await page.getByRole("heading", { name: "Localized campaigns" }).waitFor();
   let staleRows = page
@@ -4050,13 +4061,18 @@ test.describe("authenticated CMS workflow", () => {
 
 test.describe("owner governance workflow", () => {
   test.skip(
-    !ownerEmail || !ownerPassword || !managedEmail,
+    !collectHostedDamReceipt &&
+      (!ownerEmail || !ownerPassword || !managedEmail),
     "Set dedicated CMS_E2E_OWNER credentials",
   );
 
   test("owner creates, changes and revokes a staff role", async ({
     page,
   }, testInfo) => {
+    test.skip(
+      !ownerEmail || !ownerPassword || !managedEmail,
+      "Set dedicated CMS_E2E_OWNER credentials",
+    );
     test.skip(
       testInfo.project.name.includes("mobile"),
       "The destructive governance lifecycle runs once on desktop.",
@@ -4106,6 +4122,94 @@ test.describe("owner governance workflow", () => {
     await expect(
       row.getByText("Không có quyền CMS", { exact: true }),
     ).toBeVisible();
+  });
+
+  test("private R2 DAM lifecycle is enforced and leaves no synthetic fixtures", async ({
+    browser,
+    context,
+    page,
+  }, testInfo) => {
+    test.setTimeout(150_000);
+    test.skip(
+      !collectHostedDamReceipt ||
+        !damOwnerEmail ||
+        !damOwnerPassword ||
+        testInfo.project.name.includes("mobile"),
+      "The opt-in private R2 DAM receipt runs once against staging.",
+    );
+    await login(page, damOwnerEmail!, damOwnerPassword!);
+    const baseUrl = new URL(page.url()).origin;
+    const cookie = (await context.cookies(baseUrl))
+      .map(({ name, value }) => `${name}=${value}`)
+      .join("; ");
+    expect(cookie).not.toBe("");
+    const trpc = createStagingTrpcClient({ baseUrl, cookie });
+    let state:
+      | Awaited<
+          ReturnType<typeof trpc.content.media.rehearsal.start.mutate>
+        >["state"]
+      | null = null;
+    let proof:
+      | Awaited<
+          ReturnType<typeof trpc.content.media.rehearsal.start.mutate>
+        >["proof"]
+      | null = null;
+    let lifecycleCompleted = false;
+
+    try {
+      const started = await trpc.content.media.rehearsal.start.mutate({
+        confirmation: "RUN_STAGING_DAM_REHEARSAL",
+      });
+      state = started.state;
+      proof = started.proof;
+      expect(started.evidence).toEqual({
+        foldersAndFilters: true,
+        duplicateDetection: true,
+        metadataAndFocalPoint: true,
+        asyncVariants: true,
+        usageFound: true,
+        replacementPrepared: true,
+      });
+
+      const anonymousContext = await browser.newContext({ baseURL: baseUrl });
+      try {
+        const direct = await anonymousContext.request.get(started.directUrl);
+        expect(direct.status()).toBe(404);
+
+        const signed = await anonymousContext.request.get(started.signedUrl);
+        expect(signed.status()).toBe(200);
+        expect(signed.headers()["content-type"]).toContain("image/png");
+        expect(signed.headers()["cache-control"]).toContain("private");
+        expect(signed.headers()["cache-control"]).toContain("no-store");
+        expect([...(await signed.body()).subarray(0, 8)]).toEqual([
+          0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
+        ]);
+      } finally {
+        await anonymousContext.close();
+      }
+
+      const completed = await trpc.content.media.rehearsal.complete.mutate({
+        confirmation: "COMPLETE_STAGING_DAM_REHEARSAL",
+        state,
+        proof,
+      });
+      expect(completed).toEqual({
+        evidence: {
+          usageAndReplace: true,
+          trashRestoreRetention: true,
+        },
+        cleaned: true,
+      });
+      lifecycleCompleted = true;
+    } finally {
+      if (state && proof && !lifecycleCompleted) {
+        await trpc.content.media.rehearsal.complete.mutate({
+          confirmation: "COMPLETE_STAGING_DAM_REHEARSAL",
+          state,
+          proof,
+        });
+      }
+    }
   });
 });
 

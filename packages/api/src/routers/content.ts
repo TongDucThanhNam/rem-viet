@@ -103,6 +103,12 @@ import {
   unscheduleRemVietStandardPage,
 } from "../services/standard-page-runtime";
 import { campaignsRouter } from "./campaigns";
+import {
+  completeDamRehearsal,
+  completeDamRehearsalInputSchema,
+  startDamRehearsal,
+  startDamRehearsalInputSchema,
+} from "../services/dam-rehearsal";
 
 type StaffContext = {
   actor: CmsActor;
@@ -305,6 +311,20 @@ export const mediaRouter = router({
     .mutation(({ ctx, input }) =>
       runCmsWorkflow(() => deleteMedia(input, actorFromContext(ctx))),
     ),
+  rehearsal: router({
+    start: capabilityProcedure("media.manage")
+      .input(startDamRehearsalInputSchema)
+      .mutation(({ ctx, input }) =>
+        runCmsWorkflow(() => startDamRehearsal(input, actorFromContext(ctx))),
+      ),
+    complete: capabilityProcedure("media.delete")
+      .input(completeDamRehearsalInputSchema)
+      .mutation(({ ctx, input }) =>
+        runCmsWorkflow(() =>
+          completeDamRehearsal(input, actorFromContext(ctx)),
+        ),
+      ),
+  }),
 });
 
 export const menusRouter = router({

@@ -1,5 +1,6 @@
 import {
   createCloudflareCmsMediaProvider,
+  type CloudflareCmsMediaProviderOptions,
   type CloudflareCmsMediaMutationEvent,
   type CloudflareD1Database,
   type CloudflareR2MediaBucket,
@@ -1244,9 +1245,13 @@ function createMediaAuditStatement(
     );
 }
 
-function createRemVietMediaProvider(
+export function createRemVietMediaProvider(
   actor?: CmsActor,
   usageCorpus?: MediaUsageCorpus,
+  extensions: Pick<
+    CloudflareCmsMediaProviderOptions,
+    "createId" | "now" | "replaceUsage" | "enqueueVariant" | "deliveryAdapter"
+  > = {},
 ) {
   const database = env.DB as unknown as CloudflareD1Database;
   const configuredBucket = (env as Env & { PRODUCT_IMAGES?: R2Bucket })
@@ -1260,6 +1265,7 @@ function createRemVietMediaProvider(
     },
   }) as unknown as CloudflareR2MediaBucket;
   return createCloudflareCmsMediaProvider({
+    ...extensions,
     database,
     bucket,
     resolveUsage: (record) =>

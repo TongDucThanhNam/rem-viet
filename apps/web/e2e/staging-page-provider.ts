@@ -162,12 +162,12 @@ export type StagingPageProvider =
     cleanup(): Promise<void>;
   };
 
-export function createStagingPageProvider(input: {
+export function createStagingTrpcClient(input: {
   baseUrl: string;
   cookie: string;
-}): StagingPageProvider {
+}) {
   const origin = new URL(input.baseUrl).origin;
-  const trpc = createTRPCClient<AppRouter>({
+  return createTRPCClient<AppRouter>({
     links: [
       httpBatchLink({
         url: `${input.baseUrl.replace(/\/$/, "")}/api/trpc`,
@@ -175,6 +175,13 @@ export function createStagingPageProvider(input: {
       }),
     ],
   });
+}
+
+export function createStagingPageProvider(input: {
+  baseUrl: string;
+  cookie: string;
+}): StagingPageProvider {
+  const trpc = createStagingTrpcClient(input);
   const actualIds = new Map<string, string>();
   const logicalIds = new Map<string, string>();
 

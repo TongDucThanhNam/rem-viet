@@ -45,6 +45,29 @@ export function addPrivateBindingIfMissing(
   } as const;
 }
 
+export function replacePrivateBinding(
+  contents: string,
+  key: StagingE2eEnvironmentKey,
+  expectedValue: string,
+  replacementValue: string,
+) {
+  validateBinding(key, expectedValue);
+  validateBinding(key, replacementValue);
+  const newline = contents.includes("\r\n") ? "\r\n" : "\n";
+  const lines = contents.split(/\r?\n/u);
+  const matches = lines
+    .map((line, index) => ({ line, index }))
+    .filter(({ line }) => line.startsWith(`${key}=`));
+  if (matches.length !== 1) {
+    throw new Error(`Expected one private staging E2E binding: ${key}.`);
+  }
+  if (matches[0]!.line !== `${key}=${expectedValue}`) {
+    throw new Error(`Private staging E2E binding changed: ${key}.`);
+  }
+  lines[matches[0]!.index] = `${key}=${replacementValue}`;
+  return lines.join(newline);
+}
+
 export function stagingE2eEmail(siteId: string, stage: string) {
   if (!/^[a-z][a-z0-9-]{1,62}$/u.test(siteId)) {
     throw new Error("Site must be a safe slug.");
@@ -77,13 +100,37 @@ export function extractTotpSecret(totpUri: string) {
   if (uri.protocol !== "otpauth:" || uri.hostname !== "totp") {
     throw new Error("The authentication provider did not return a TOTP URI.");
   }
-  const secret = uri.searchParams.get("secret") ?? "";
-  if (!/^[A-Za-z0-9_-]{16,128}$/u.test(secret)) {
+  const encodedSecret = uri.searchParams.get("secret") ?? "";
+  if (!/^[A-Z2-7]{16,256}$/u.test(encodedSecret)) {
     throw new Error(
       "The authentication provider returned an invalid TOTP secret.",
     );
   }
-  return secret;
+  let buffer = 0;
+  let bits = 0;
+  const bytes: number[] = [];
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  for (const character of encodedSecret) {
+    const value = alphabet.indexOf(character);
+    if (value < 0) {
+      throw new Error(
+        "The authentication provider returned an invalid TOTP secret.",
+      );
+    }
+    buffer = (buffer << 5) | value;
+    bits += 5;
+    if (bits >= 8) {
+      bits -= 8;
+      bytes.push((buffer >> bits) & 0xff);
+    }
+  }
+  const secret = new TextDecoder("utf-8", { fatal: true }).decode(
+    Uint8Array.from(bytes),
+  );
+  if (!/^[A-Za-z0-9_-]{16,128}$/u.test(secret)) {
+    throw new Error("The decoded TOTP secret is invalid.");
+  }
+  return { encodedSecret, secret } as const;
 }
 
 export function generateTotp(secret: string, timestamp = Date.now()) {

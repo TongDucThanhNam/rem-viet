@@ -6,6 +6,7 @@ import {
   AuthCookieJar,
   extractTotpSecret,
   generateTotp,
+  replacePrivateBinding,
   stagingE2eEmail,
 } from "./site-e2e-identity-lib";
 
@@ -53,17 +54,36 @@ describe("staging E2E identity contracts", () => {
     );
   });
 
+  test("replaces only the exact private value during a guarded repair", () => {
+    expect(
+      replacePrivateBinding(
+        "CMS_E2E_TOTP_SECRET=encoded\r\nADMIN_EMAILS=keep\r\n",
+        "CMS_E2E_TOTP_SECRET",
+        "encoded",
+        "decoded",
+      ),
+    ).toBe("CMS_E2E_TOTP_SECRET=decoded\r\nADMIN_EMAILS=keep\r\n");
+    expect(() =>
+      replacePrivateBinding(
+        "CMS_E2E_TOTP_SECRET=other\n",
+        "CMS_E2E_TOTP_SECRET",
+        "encoded",
+        "decoded",
+      ),
+    ).toThrow(/changed/u);
+  });
+
   test("extracts the provider secret and produces stable six-digit TOTP", () => {
-    const secret = "0123456789abcdefghijklmnopqrstuv";
+    const secret = "12345678901234567890";
     expect(
       extractTotpSecret(
-        `otpauth://totp/R%C3%A8m%20Vina?secret=${secret}&issuer=R%C3%A8m%20Vina`,
+        "otpauth://totp/R%C3%A8m%20Vina?secret=GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ&issuer=R%C3%A8m%20Vina",
       ),
-    ).toBe(secret);
-    expect(generateTotp(secret, 1_800_000)).toMatch(/^\d{6}$/u);
-    expect(generateTotp(secret, 1_800_000)).toBe(
-      generateTotp(secret, 1_800_000),
-    );
+    ).toEqual({
+      encodedSecret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+      secret,
+    });
+    expect(generateTotp(secret, 59_000)).toBe("287082");
     expect(() => extractTotpSecret("https://example.com")).toThrow(/TOTP/u);
   });
 

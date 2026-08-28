@@ -13,6 +13,7 @@ import {
   AuthCookieJar,
   extractTotpSecret,
   generateTotp,
+  replacePrivateBinding,
   stagingE2eEmail,
 } from "./site-e2e-identity-lib";
 import {
@@ -400,7 +401,7 @@ if (mfaEnabled) {
       }),
       "Staging E2E TOTP enrollment",
     );
-    totpSecret = extractTotpSecret(String(enabled.totpURI ?? ""));
+    totpSecret = extractTotpSecret(String(enabled.totpURI ?? "")).secret;
     const secretBinding = addPrivateBindingIfMissing(
       privateContents,
       "CMS_E2E_TOTP_SECRET",
@@ -422,8 +423,22 @@ if (mfaEnabled) {
       }),
       "Staging E2E TOTP recovery",
     );
-    if (extractTotpSecret(String(existing.totpURI ?? "")) !== totpSecret) {
-      throw new Error("Private TOTP binding does not match the provider.");
+    const providerTotp = extractTotpSecret(String(existing.totpURI ?? ""));
+    if (providerTotp.secret !== totpSecret) {
+      if (providerTotp.encodedSecret !== totpSecret) {
+        throw new Error("Private TOTP binding does not match the provider.");
+      }
+      privateContents = replacePrivateBinding(
+        privateContents,
+        "CMS_E2E_TOTP_SECRET",
+        totpSecret,
+        providerTotp.secret,
+      );
+      totpSecret = providerTotp.secret;
+      await writeFile(envPath, privateContents, {
+        encoding: "utf8",
+        mode: 0o600,
+      });
     }
   }
 }

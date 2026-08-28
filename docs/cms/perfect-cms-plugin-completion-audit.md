@@ -34,7 +34,7 @@ Status meanings:
 | Eight official feature modules install and remove independently                                       | Local proven  | SEO, redirects, search, forms, taxonomy, WordPress import, observability, and Cloudflare cache invalidation expose official extension manifests, execute behavior smoke, are removed/reinstalled one at a time, and join collaboration/privacy in the packed ten-entry catalog.                                                                                                                                                                                                                                                                                  | —                                                                                                                        |
 | Auth covers invite/reset/MFA/session revoke/API-key rotation                                          | Local proven  | Auth/API/security suites cover role gates, expiry, replay, digest-only keys, rotation overlap, revocation, audit, MFA, and last-owner protection. An isolated synthetic staging Admin completes TOTP authentication and authenticated task execution; the deployed edge returns five controlled `401` responses followed by `429` for the protected rate-limit probe.                                                                                                                                                                                            | Personal Owner TOTP enrollment is a human onboarding action, not an implementation blocker.                              |
 | Import/export/backup/restore/upgrade/rollback run from a clean checkout                               | Hosted proven | The exact candidate passes frozen clean-checkout portability and 24-package schema `1 -> 2 -> 1`. Staging backup `rem-viet-staging-20260828T191721Z.sql` has SHA-256 `17093123bad3615c99f4a81ded53b58b520165d49d759a71afcc7f0ad6710e53`, passes SQLite integrity with 50 tables and exact critical counts, and is preserved in private R2 as an immutable 365-day object. An earlier current-series export was restored into isolated remote D1 `rem-viet-restore-drill-20260829`, passed parity plus `quick_check`, and the drill target was deleted.           | First real weekly scheduled-backup run receipt; the workflow and manual path are already ready.                          |
-| Admin desktop/mobile passes keyboard, axe, overflow, and task E2E                                     | Hosted proven | Exact candidate `413cf9b` passes the full isolated 62-case Desktop Chrome/Mobile Chrome matrix. The matching clean staging deployment then passes four authenticated desktop and two authenticated mobile acceptance scenarios, including TOTP login, visual authoring and cleanup. Remote D1 cleanup confirms zero synthetic E2E leads/pages and preserves nine real leads; synthetic media is zero.                                                                                                                                                            | —                                                                                                                        |
+| Admin desktop/mobile passes keyboard, axe, overflow, and task E2E                                     | Hosted proven | Code-bearing candidate `413cf9b` passes the full isolated 62-case Desktop Chrome/Mobile Chrome matrix. The same runtime code on clean staging then passes four authenticated desktop and two authenticated mobile acceptance scenarios, including TOTP login, visual authoring and cleanup. Remote D1 cleanup confirms zero synthetic E2E leads/pages and preserves nine real leads; synthetic media is zero.                                                                                                                                                    | —                                                                                                                        |
 | Non-developer pilot and independent-site signed handover                                              | External open | Schemas, verifier, client manual, and pilot script refuse self-attestation.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Real participant, timings, approval, and signed receipt.                                                                 |
 | Security review covers required threat classes                                                        | Partial       | `docs/security-review.md`, 81 focused security tests, four same-origin tests, magic-byte checks, bundle-secret audits, and a zero-high dependency gate. Exact-candidate edge probes prove that sitemap output excludes admin/preview URLs, cross-origin vitals are rejected with `403`, protected auth traffic reaches `429` after five controlled `401` responses, and preview redirects to sign-in.                                                                                                                                                            | Independent reviewer report and explicit risk acceptance.                                                                |
 | Documentation was followed successfully by another person                                             | External open | Install, schema/template, editor, provider, extension, migration, backup/restore, incident, and handover guides exist.                                                                                                                                                                                                                                                                                                                                                                                                                                           | Named independent operator run and feedback/remediation receipt.                                                         |
@@ -58,11 +58,11 @@ requirements have the following local/external disposition:
 
 Current code-bearing clean candidate:
 `413cf9b69634116e64a46eb9ff3b672d9f37f410`. It was pushed to `origin/main`
-from a clean worktree on 2026-08-29 and deployed to flagship staging with the
-same commit and clean source state. A post-apply plan reports three no-op
-resources. Later documentation-only scope changes do not silently move this
-verified code boundary. The sequential root `bun run quality` gate exited zero
-on exact candidate `413cf9b`, including the
+from a clean worktree on 2026-08-29. Flagship staging runs the same runtime code
+through a clean documentation-only successor, and its post-apply plan reports
+three no-op resources. Documentation-only scope changes do not silently move
+this verified code boundary. The sequential root `bun run quality` gate exited
+zero on exact candidate `413cf9b`, including the
 frozen clean-checkout install, packed Cloudflare/local/PostgreSQL consumers,
 24-package schema `1 -> 2 -> 1` upgrade/rollback, all package/app typechecks,
 secure production build, performance budgets, the desktop/mobile stateful CMS
@@ -90,12 +90,13 @@ adoption are tracked only in the deferred backlog.
 ## Exact-candidate free-tier staging closure
 
 The active goal can continue without a paid upgrade. Candidate
-`413cf9b69634116e64a46eb9ff3b672d9f37f410` is live on flagship staging with
-clean provenance, `/api/health` returns `200` with database status `ok`, and the
-post-deploy Worker/D1/R2 plan is fully converged. Authenticated acceptance passes
-four desktop and two mobile scenarios with a dedicated synthetic TOTP Admin. The
-post-run remote cleanup reports zero synthetic leads, zero synthetic pages, zero
-synthetic media, and retains all nine real leads.
+`413cf9b69634116e64a46eb9ff3b672d9f37f410` is live on flagship staging through
+a documentation-only successor with clean provenance. `/api/health` returns
+`200` with database status `ok`, and the post-deploy Worker/D1/R2 plan is fully
+converged. Authenticated acceptance passes four desktop and two mobile scenarios
+with a dedicated synthetic TOTP Admin. The post-run remote cleanup reports zero
+synthetic leads, zero synthetic pages, zero synthetic media, and retains all
+nine real leads.
 
 The latest staging D1 export is integrity-checked and stored in private R2 under
 an immutable 365-day lock. The separate remote-D1 restore drill passed exact

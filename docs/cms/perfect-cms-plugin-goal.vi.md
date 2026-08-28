@@ -4,6 +4,8 @@
 > Trạng thái: Product goal mới, chưa phải tuyên bố hoàn thành  
 > Đối tượng: Senior Web Developer/Freelancer xây website bằng TanStack Start + React  
 > Phạm vi: CMS code-first, self-hosted, có visual authoring, tái sử dụng được cho nhiều website
+> Paid upgrade/commercial evidence: defer riêng tại
+> [`deferred-paid-upgrades.md`](./deferred-paid-upgrades.md), không chặn active goal
 
 ## 1. Kết luận ngắn
 
@@ -59,6 +61,18 @@ CMS được xem là hoàn chỉnh cho use case này khi một developer có th�
 11. có tài liệu, diagnostics và test kit đủ để một repo độc lập tự chứng minh
     integration đúng;
 12. không cần Sanity, Payload hoặc dịch vụ trả phí nào để chạy core product.
+
+### 2.1 Ranh giới completion không phụ thuộc paid upgrade
+
+Definition of Done của goal này chỉ yêu cầu evidence có thể tạo bằng code,
+fixture, repository độc lập, local/self-hosted/free-tier và human pilot. Mọi
+entitlement hoặc receipt chỉ có sau khi mua dịch vụ đã được loại khỏi active
+goal và index tại [`deferred-paid-upgrades.md`](./deferred-paid-upgrades.md).
+
+Việc defer không làm yếu implementation contract tương ứng: health/alert,
+extension registry, package provenance, provider adapter và handover vẫn phải
+được implement/test ở phạm vi provider-neutral. Chỉ managed-provider dispatch,
+publication và commercial receipt được loại khỏi completion gate hiện tại.
 
 ## 3. Baseline đã được chứng minh trong repository
 
@@ -198,7 +212,7 @@ Quy ước:
 | Extension SDK                     | PARTIAL  | versioned manifest, permissions, hooks, admin slots, migrations, compatibility test kit       | feature module mạnh nhưng chưa có install/discover/compatibility lifecycle                                                  |
 | Plugin ecosystem                  | OPEN     | official modules + registry + security/deprecation policy                                     | marketplace không cần ngay nhưng official module catalog là bắt buộc                                                        |
 | Multisite/agency operations       | PARTIAL  | fleet dashboard, version drift, backup/health/update orchestration                            | hiện cô lập mỗi client rất tốt nhưng quản lý từng stack riêng                                                               |
-| Observability                     | PARTIAL  | audit, metrics, job/webhook traces, alerts, redaction, health                                 | nhiều local checks; external production receipts và unified tracing còn thiếu                                               |
+| Observability                     | PARTIAL  | audit, metrics, job/webhook traces, alerts, redaction, health                                 | unified tracing và provider-neutral evidence còn thiếu                                                                      |
 | Accessibility                     | PARTIAL  | WCAG 2.2 AA cho admin/editor, keyboard DnD, screen-reader announcements                       | đã có axe/keyboard evidence nhưng phải gate mọi generated/custom control                                                    |
 | Privacy/compliance                | OPEN     | data export/erase, retention, consent, PII audit, asset license metadata                      | chưa có reusable privacy module                                                                                             |
 | Realtime collaboration            | OPEN     | presence, field locking hoặc CRDT, comments, conflict visualization                           | hiện có optimistic conflict/two-tab recovery, chưa phải co-editing                                                          |
@@ -349,7 +363,8 @@ localization semantics, import/export và accessibility tests.
 - custom/localized metadata, copyright/license/expiry;
 - usage graph và global replace;
 - async processing qua jobs, không block upload request;
-- storage/transform adapters cho R2 và ít nhất một external CDN service.
+- storage/transform adapters cho R2 và ít nhất một external CDN contract, có thể
+  verify bằng mock/free/self-hosted provider.
 
 #### CMS-P1-05 — Official feature modules
 
@@ -400,7 +415,7 @@ multi-tenancy chỉ là optional provider/plugin, không được làm yếu iso
 - compatibility checker;
 - sandbox/boundary rules cho client code;
 - signed package provenance/SBOM/security policy;
-- official registry trước, marketplace cộng đồng sau.
+- official registry/catalog contract trước, marketplace cộng đồng sau.
 
 #### CMS-P2-03 — Collaboration
 
@@ -430,7 +445,7 @@ multi-tenancy chỉ là optional provider/plugin, không được làm yếu iso
 - analytics widgets;
 - shared asset library giữa nhiều isolated site;
 - native mobile editorial companion;
-- ecommerce module riêng nếu có khách hàng trả tiền xác nhận nhu cầu.
+- ecommerce module riêng chỉ khi discovery xác nhận nhu cầu vận hành.
 
 AI không được ghi/publish trực tiếp nếu không qua validation, permission, review,
 audit và exact-version conflict check.
@@ -440,8 +455,8 @@ audit và exact-version conflict check.
 1. Không clone toàn bộ WordPress hoặc theo đuổi số lượng plugin.
 2. Không đưa arbitrary runtime code do editor upload vào production.
 3. Không lưu Puck/Craft/Sanity state làm canonical database contract.
-4. Không làm shared multi-tenant SaaS trước khi isolated agency model có khách
-   hàng trả tiền và vận hành ổn định.
+4. Không làm shared multi-tenant SaaS trước khi isolated agency model có nhiều
+   site độc lập và vận hành ổn định.
 5. Không làm GraphQL chỉ để tick checkbox nếu typed REST/OpenAPI đủ tốt cho use
    case thực tế.
 6. Không đưa commerce, CRM, email marketing và analytics vào core.
@@ -497,8 +512,8 @@ Exit gate: hai website độc lập dùng module packages mà không copy source
 - agency fleet read-only dashboard;
 - pilot/handover/upgrade receipts.
 
-Exit gate: ít nhất ba site khác ngành, hai provider, một upgrade N→N+1→rollback,
-và một khách hàng thật tự chỉnh content.
+Exit gate: ít nhất ba site/fixture độc lập khác ngành, hai provider, một upgrade
+N→N+1→rollback và một non-developer tự chỉnh content trong pilot có receipt.
 
 Tổng thời gian hợp lý để đạt **client-ready mạnh**: 8–12 tuần.  
 Để đạt **framework cạnh tranh rộng với Payload**: 16–24 tuần và tiếp tục duy trì
@@ -543,8 +558,8 @@ Chỉ được gọi là hoàn thành khi có đủ bằng chứng sau:
 - [ ] Auth có invite/reset/MFA/session revoke/API key rotation.
 - [ ] Import/export/backup/restore/upgrade/rollback đều chạy từ clean checkout.
 - [ ] Admin desktop + mobile vượt keyboard/axe/overflow/task E2E.
-- [ ] Một non-developer pilot và ít nhất một website trả phí có signed handover
-      receipt; không dùng local test để thay external evidence.
+- [ ] Một non-developer pilot trên site độc lập có signed handover receipt;
+      không dùng local test để thay human evidence.
 - [ ] Security review bao gồm CSRF/XSS/SSRF, preview origin/session/replay,
       upload magic bytes, rate limits, secret exposure và dependency audit.
 - [ ] Tài liệu install, schema, editor, provider, extension, migration,
@@ -614,7 +629,7 @@ Thứ tự đúng là:
 4. jobs/events/releases đáng tin cậy;
 5. DAM/admin/modules đủ rộng;
 6. provider/extension ecosystem;
-7. pilot thật, upgrade thật và paid-site evidence.
+7. pilot thật và upgrade thật trên repo/site độc lập.
 
 Nếu chưa vượt qua một bước thì không được dùng số lượng package, unit test hoặc
 độ phức tạp kiến trúc để thay thế bằng chứng sản phẩm tương ứng.

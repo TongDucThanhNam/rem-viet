@@ -50,6 +50,7 @@ const ownerTotpSecret = process.env.CMS_E2E_OWNER_TOTP_SECRET;
 const managedEmail = process.env.CMS_E2E_MANAGED_EMAIL;
 const authStateDirectory = process.env.CMS_E2E_AUTH_STATE_DIR;
 const authenticatedRole = process.env.CMS_E2E_ROLE ?? "admin";
+const collectHostedReleaseReceipt = process.env.CMS_E2E_RELEASE_RECEIPT === "1";
 type AuthCookie = Awaited<
   ReturnType<ReturnType<Page["context"]>["cookies"]>
 >[number];
@@ -316,6 +317,29 @@ async function cleanupInterruptedStandardPageFixtures(page: Page) {
     staleRows = page
       .getByRole("row")
       .filter({ hasText: /Standard provider [0-9a-f]{8}/ });
+  }
+
+  await page.goto("/admin/redirects");
+  await page.waitForFunction(
+    () =>
+      document.querySelectorAll("tbody tr").length > 0 ||
+      document.body.textContent?.includes("Chưa có chuyển hướng"),
+  );
+  let staleRedirectRows = page
+    .getByRole("row")
+    .filter({ hasText: /\/standard-provider-[0-9a-f]{8}/ });
+  while ((await staleRedirectRows.count()) > 0) {
+    const staleCount = await staleRedirectRows.count();
+    const staleRow = staleRedirectRows.first();
+    const oldPath = (
+      await staleRow.getByRole("cell").first().innerText()
+    ).trim();
+    await staleRow.getByRole("button", { name: `Xóa ${oldPath}` }).click();
+    await confirmAlertDialog(page, "Xóa");
+    await expect(staleRedirectRows).toHaveCount(staleCount - 1);
+    staleRedirectRows = page
+      .getByRole("row")
+      .filter({ hasText: /\/standard-provider-[0-9a-f]{8}/ });
   }
 }
 
@@ -2790,11 +2814,140 @@ test.describe("authenticated CMS workflow", () => {
     }
   });
 
+  test("deployed scheduler publishes a validated multi-page release and retains its receipt", async ({
+    context,
+    page,
+  }, testInfo) => {
+    test.setTimeout(240_000);
+    test.skip(
+      !collectHostedReleaseReceipt || testInfo.project.name.includes("mobile"),
+      "The opt-in hosted release receipt runs once against the deployed minute scheduler.",
+    );
+
+    const suffix = crypto.randomUUID().slice(0, 8);
+    const releaseName = `Staging release receipt ${suffix}`;
+    const baseUrl = new URL(page.url()).origin;
+    const cookie = (await context.cookies(baseUrl))
+      .map(({ name, value }) => `${name}=${value}`)
+      .join("; ");
+    expect(cookie).not.toBe("");
+    const provider = createStagingPageProvider({ baseUrl, cookie });
+    const createdPages: Array<{
+      id: string;
+      marker: string;
+      slug: string;
+      version: number;
+    }> = [];
+    let releasePublished = false;
+
+    try {
+      for (const index of [1, 2]) {
+        const title = `Release page ${index} ${suffix}`;
+        const slug = `release-page-${index}-${suffix}`;
+        const marker = `Release content ${index} ${suffix}`;
+        const document = await provider.createDraft({
+          actorId: "authenticated-staging-release",
+          content: {
+            title,
+            slug,
+            template: "standard",
+            blocks: [
+              {
+                ...defaultRichTextBlock,
+                id: `release-rich-text-${index}-${suffix}`,
+                data: { content: marker },
+              },
+            ],
+            seo: {
+              title,
+              description: `Scheduled release page ${index}`,
+              canonicalUrl: "",
+              ogImage: "",
+              robotsIndex: true,
+              robotsFollow: true,
+            },
+          },
+        });
+        createdPages.push({
+          id: document.id,
+          marker,
+          slug,
+          version: document.version,
+        });
+      }
+
+      await page.goto("/admin/operations");
+      await waitForAdminHydration(page);
+      await page.getByLabel("Tên release").fill(releaseName);
+      const scheduled = new Date(Date.now() + 30_000);
+      scheduled.setMinutes(
+        scheduled.getMinutes() - scheduled.getTimezoneOffset(),
+      );
+      await page
+        .getByLabel("Lên lịch (không bắt buộc)")
+        .fill(scheduled.toISOString().slice(0, 16));
+      await page
+        .getByLabel("Nội dung và version")
+        .fill(
+          createdPages
+            .map(({ id, version }) => `page,${id},${version}`)
+            .join("\n"),
+        );
+      await page.getByRole("button", { name: "Tạo và lên lịch" }).click();
+      await expect(
+        page.getByText("Đã lên lịch release.", { exact: true }),
+      ).toBeVisible();
+
+      let releaseRow = page.getByRole("row").filter({ hasText: releaseName });
+      await expect(releaseRow).toContainText("scheduled");
+      await releaseRow
+        .getByRole("button", { name: `Kiểm tra ${releaseName}` })
+        .click();
+      await expect(releaseRow).toContainText("Kiểm tra: sẵn sàng");
+
+      await expect
+        .poll(
+          async () => {
+            await page.reload();
+            await waitForAdminHydration(page);
+            releaseRow = page.getByRole("row").filter({ hasText: releaseName });
+            const text = await releaseRow.innerText();
+            return text.includes("published") ? "published" : text;
+          },
+          { intervals: [10_000], timeout: 150_000 },
+        )
+        .toBe("published");
+      releasePublished = true;
+      await expect(releaseRow).toContainText("2 mục · 2 đã xuất bản");
+
+      for (const { marker, slug } of createdPages) {
+        await page.goto(`/${slug}`);
+        await expect(page.getByText(marker, { exact: true })).toBeVisible();
+      }
+    } finally {
+      if (!releasePublished) {
+        await page.goto("/admin/operations");
+        const releaseRow = page
+          .getByRole("row")
+          .filter({ hasText: releaseName });
+        const cancel = releaseRow.getByRole("button", {
+          name: `Hủy ${releaseName}`,
+        });
+        if (await cancel.isVisible()) {
+          await cancel.click();
+          await confirmAlertDialog(page, "Hủy release");
+          await expect(releaseRow).toContainText("cancelled");
+        }
+      }
+      await provider.cleanup();
+    }
+  });
+
   test("standard page draft and publish use immutable snapshots", async ({
     browser,
     page,
   }, testInfo) => {
-    test.setTimeout(150_000);
+    test.setTimeout(300_000);
     test.skip(
       testInfo.project.name.includes("mobile"),
       "The standard-page mutation lifecycle runs once on desktop.",
@@ -3330,11 +3483,7 @@ test.describe("authenticated CMS workflow", () => {
     await page.goto(`/${movedSlug}`);
     await expect(page.getByRole("heading", { name: secondCta })).toHaveCount(0);
 
-    await page.goto("/admin/pages");
-    const cleanupRow = page.getByRole("row").filter({ hasText: title });
-    await cleanupRow.getByRole("button", { name: `Xóa ${title}` }).click();
-    await confirmAlertDialog(page, "Xóa");
-    await expect(cleanupRow).toHaveCount(0);
+    await cleanupInterruptedStandardPageFixtures(page);
   });
 
   test("editorial review stays bound to one saved version and appears in the reviewer queue", async ({

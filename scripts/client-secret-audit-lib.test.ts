@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import "./site-e2e-identity-lib.test";
+
 import {
   findClientSecretExposures,
   privateEnvironmentCandidates,
@@ -14,6 +16,7 @@ describe("client build secret audit", () => {
         BETTER_AUTH_SECRET: "high-entropy-auth-secret",
         RESEND_API_KEY: "short",
         CLOUDFLARE_ALERT_API_TOKEN: "dedicated-alert-token-secret",
+        CMS_E2E_TOTP_SECRET: "staging-totp-secret-value",
       },
       {
         BETTER_AUTH_SECRET: "high-entropy-auth-secret",
@@ -23,6 +26,10 @@ describe("client build secret audit", () => {
 
     expect(candidates).toEqual([
       { key: "BETTER_AUTH_SECRET", value: "high-entropy-auth-secret" },
+      {
+        key: "CMS_E2E_TOTP_SECRET",
+        value: "staging-totp-secret-value",
+      },
       {
         key: "CLOUDFLARE_ALERT_API_TOKEN",
         value: "dedicated-alert-token-secret",

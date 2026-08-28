@@ -2,6 +2,8 @@ export const clientForbiddenEnvironmentKeys = [
   "BETTER_AUTH_SECRET",
   "ADMIN_EMAILS",
   "CMS_BOOTSTRAP_PASSWORD",
+  "CMS_E2E_PASSWORD",
+  "CMS_E2E_TOTP_SECRET",
   "TELEGRAM_BOT_TOKEN",
   "TELEGRAM_CHAT_ID",
   "RESEND_API_KEY",

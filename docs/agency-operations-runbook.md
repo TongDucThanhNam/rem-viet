@@ -249,6 +249,34 @@ Màn hình đăng nhập cố ý không hiển thị đăng ký công khai hoặ
 hình. Luồng **Quên mật khẩu** hiện yêu cầu liên hệ Owner/agency để xác minh và
 khôi phục; nó không gửi hoặc tuyên bố đã gửi email reset tự động.
 
+### Identity riêng cho staging E2E
+
+Không dùng TOTP hoặc session của Owner thật để chạy Playwright. Provisioner dưới
+đây chỉ chấp nhận `staging`, một email tổng hợp cố định
+`cms-e2e-<site>-staging@example.com`, origin HTTPS được confirm chính xác và một
+checkout sạch có commit trùng `/api/health`. Nó tạo đúng một Admin có audit event,
+đăng nhập qua Better Auth thật, enroll + verify TOTP qua API thật và lưu
+`CMS_E2E_EMAIL`, `CMS_E2E_PASSWORD`, `CMS_E2E_TOTP_SECRET` vào private env đã
+được Git ignore. Secret, mã TOTP và backup codes không được in hoặc ghi vào
+receipt; backup codes của identity tự động này không được giữ.
+
+```bash
+bun run site:e2e:identity --site=<site-id> --stage=staging \
+  --origin=https://<staging-origin> --dry-run
+
+bun run site:e2e:identity --site=<site-id> --stage=staging \
+  --origin=https://<staging-origin> \
+  --confirm-site=<site-id> \
+  --confirm-origin=https://<staging-origin> \
+  --confirm-email=cms-e2e-<site-id>-staging@example.com --apply
+```
+
+Command chạy lại phải xác minh cùng role, credential, TOTP và session thay vì tạo
+identity thứ hai hay reset secret. Hai secret E2E là server-only và được bundle
+secret audit quét cùng các credential khác. TOTP của Owner/Admin con người vẫn
+phải do chính người đó enroll và giữ recovery codes; identity tự động này không
+thay thế onboarding hoặc MFA evidence của người thật.
+
 ## Migration production
 
 1. Chốt maintenance window và kiểm tra `/api/health`.

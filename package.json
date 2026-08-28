@@ -85,6 +85,7 @@
     "site:seed": "bun scripts/site-seed.ts",
     "site:verify": "bun scripts/site-verify.ts",
     "site:admin:create": "bun scripts/site-admin-create.ts",
+    "site:e2e:identity": "bun scripts/site-e2e-identity.ts",
     "site:build": "bun scripts/site-build.ts",
     "site:deploy": "bun scripts/site-deploy.ts",
     "site:backup": "bun scripts/site-backup.ts",

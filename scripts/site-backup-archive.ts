@@ -281,7 +281,13 @@ try {
   const providerVerificationTime = new Date(
     downloadResponse.headers.get("date") ?? "",
   );
-  await Bun.write(downloaded, downloadResponse);
+  const downloadedBytes = await downloadResponse.arrayBuffer();
+  if (downloadedBytes.byteLength !== plan.sizeBytes) {
+    throw new Error(
+      "Cloudflare R2 archive verification download size does not match the source artifact.",
+    );
+  }
+  await Bun.write(downloaded, downloadedBytes);
   const evidence = await buildBackupArchiveEvidence({
     plan,
     lock,

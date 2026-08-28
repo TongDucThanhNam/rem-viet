@@ -406,6 +406,7 @@ function AdminCampaignsRoute() {
   const submit = async (value: Readonly<Record<string, unknown>>) => {
     try {
       const nextData = campaignData(value);
+      let successMessage: string;
       if (campaign && search.campaignId) {
         const updated = await saveCampaign.mutateAsync({
           id: search.campaignId,
@@ -414,17 +415,18 @@ function AdminCampaignsRoute() {
           data: nextData,
         });
         setData(campaignData(updated.data));
-        toast.success("Đã lưu bản nháp chiến dịch.");
+        successMessage = "Đã lưu bản nháp chiến dịch.";
       } else {
         const created = await createCampaign.mutateAsync({
           locale,
           data: nextData,
         });
-        toast.success("Đã tạo chiến dịch.");
+        successMessage = "Đã tạo chiến dịch.";
         await setRoute({ campaignId: created.id, locale });
       }
       setErrors({});
       await invalidate();
+      toast.success(successMessage);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Không thể lưu chiến dịch.",
@@ -441,8 +443,8 @@ function AdminCampaignsRoute() {
         expectedVersion: campaign.version,
         note: "Publish from localized campaign editor",
       });
-      toast.success("Đã xuất bản chiến dịch.");
       await invalidate();
+      toast.success("Đã xuất bản chiến dịch.");
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Không thể xuất bản.",
@@ -459,8 +461,8 @@ function AdminCampaignsRoute() {
         expectedVersion: campaign.version,
         note: "Unpublish from localized campaign editor",
       });
-      toast.success("Đã gỡ xuất bản chiến dịch.");
       await invalidate();
+      toast.success("Đã gỡ xuất bản chiến dịch.");
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Không thể gỡ xuất bản.",
@@ -476,9 +478,9 @@ function AdminCampaignsRoute() {
       expectedVersion: campaign.version,
       note: "Delete from localized campaign editor",
     });
-    toast.success("Đã xóa chiến dịch.");
     await invalidate();
     await setRoute({ locale });
+    toast.success("Đã xóa chiến dịch.");
   };
 
   const campaignId = search.campaignId ?? unsavedLocalizedCampaignPreviewId;

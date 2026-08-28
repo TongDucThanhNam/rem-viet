@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "repository": "TongDucThanhNam/rem-viet",
+  "documentationCommit": "",
+  "recordedAt": "",
+  "projectOwnerName": "",
+  "operator": {
+    "name": "",
+    "relationship": "independent-operator",
+    "operatingSystem": "",
+    "checkout": "independent-clean-checkout",
+    "startedAt": "",
+    "completedAt": "",
+    "usedOnlyCheckedInDocumentation": false,
+    "undocumentedDeveloperInterventions": 0,
+    "openP0": 0,
+    "openP1": 0
+  },
+  "tasks": {
+    "installationAndDiagnostics": false,
+    "schemaAndTemplateAuthoring": false,
+    "editorAndClientManual": false,
+    "providerConfiguration": false,
+    "extensionLifecycle": false,
+    "migrationUpgradeAndRollback": false,
+    "backupAndRestore": false,
+    "incidentResponse": false,
+    "clientHandover": false
+  },
+  "findings": [],
+  "operatorApproval": { "name": "", "approvedAt": "" }
+}

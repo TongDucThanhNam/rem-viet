@@ -42,6 +42,10 @@ does not replace the non-developer pilot or final release verifier.
 
 ## Acceptance and evidence
 
+- [ ] Keep the technical documentation walkthrough separate from the client
+      pilot. A different independent operator follows
+      `docs/cms/documentation-walkthrough.md`; `release:docs:verify` must accept
+      that operator's exact-commit receipt without project-owner self-attestation.
 - [ ] Run the bounded script in `docs/pilot-handover-script.md` with a
       non-developer. Total elapsed time is at most 30 minutes; revision restore
       is at most 5 minutes; no developer intervention is allowed.

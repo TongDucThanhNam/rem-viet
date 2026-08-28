@@ -563,7 +563,9 @@ Chỉ được gọi là hoàn thành khi có đủ bằng chứng sau:
 - [ ] Security review bao gồm CSRF/XSS/SSRF, preview origin/session/replay,
       upload magic bytes, rate limits, secret exposure và dependency audit.
 - [ ] Tài liệu install, schema, editor, provider, extension, migration,
-      backup/restore, incident và handover đã được người khác làm theo thành công.
+      backup/restore, incident và handover đã được người khác làm theo thành công;
+      dùng receipt contract tại [`documentation-walkthrough.md`](./documentation-walkthrough.md),
+      không tự xác nhận thay operator độc lập.
 
 ## 11. Nguồn nghiên cứu chính thức
 

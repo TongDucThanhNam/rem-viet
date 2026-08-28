@@ -15,16 +15,36 @@ local rehearsal into registry, staging, or production evidence.
 - Use the exact Bun and framework versions recorded in the compatibility matrix.
 - Start from a client-owned repository and a client manifest with unique Worker,
   D1, R2, backup-bucket, domain, and secret names.
-- Obtain read access to the agency private registry. Keep the token in the
-  release environment; never place it in `.npmrc`, a site manifest, source, or
-  generated evidence.
-- Retain the registry publication receipt and the artifact SHA-256 values from
-  `provenance.json`.
+- Choose one reviewed artifact source for the entire coordinated version. The
+  free/self-hosted path uses locally packed tarballs and does not require a
+  managed registry, registry token, or commercial receipt. If an authorized
+  private registry is used later, keep its token only in the release environment
+  and never place it in `.npmrc`, a site manifest, source, or generated evidence.
+- Retain the artifact SHA-256 values from `provenance.json`. Retain a registry
+  publication receipt only when that optional distribution path was actually
+  used; do not manufacture one for the local-tarball path.
+
+From a clean source checkout, the no-paid preparation and portability rehearsal
+is:
+
+```bash
+bun install --frozen-lockfile
+bun run cms:kit:release:prepare --version=0.1.0
+bun run cms:kit:clean-checkout
+```
+
+The prepared bundle contains 24 coordinated tarballs under its `artifacts/`
+directory plus `provenance.json`. A separate client repository may install the
+selected tarball file paths directly with `bun add`; use only artifacts from one
+bundle and retain their hashes. `cms:kit:clean-checkout` independently repeats
+frozen install, add/diagnose/build/remove, provider isolation, backup/restore,
+and upgrade/rollback without relying on a managed registry.
 
 Install one coordinated version of the required packages. The stable release
 set contains 24 artifacts; a site normally installs one provider, the neutral
 runtime/admin packages, the modules it enables, and its selected template. Do
-not mix versions:
+not mix versions. When an authorized registry is the chosen artifact source,
+the command has this form:
 
 ```bash
 bun add @agency/cms-core@0.1.0 @agency/cms-runtime@0.1.0 \

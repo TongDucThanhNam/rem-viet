@@ -2,11 +2,13 @@
 
 ## Evidence templates and hygiene
 
-The two Track A templates are intentionally invalid until real observations
+The Track A templates are intentionally invalid until real observations
 replace every placeholder:
 
 - `pilot-evidence.template.json` is the bounded non-developer worksheet consumed
   by `release:pilot:verify`.
+- `documentation-walkthrough-evidence.template.json` is the independent operator
+  worksheet consumed by `release:docs:verify`.
 - `v1.0.0-client-ready.template.json` is the final schema-v3 record consumed by
   `release:verify` and the tag workflow.
 
@@ -296,3 +298,23 @@ The live Worker must report the same site, staging stage, clean commit and
 deploy-input SHA-256 recorded in `pilot.deployment`. The tool never performs
 pilot actions or turns incomplete checkboxes into a pass. Copy only its
 `releaseEvidence` fragment into the final record after the tester confirms it.
+
+## Documentation walkthrough evidence
+
+The CMS Platform v1 goal separately requires another person to follow the
+installation, schema/template, editor, provider, extension, migration,
+backup/restore, incident, and handover documentation successfully. Follow
+`docs/cms/documentation-walkthrough.md` from an independent clean checkout, then
+verify the operator-approved worksheet:
+
+```bash
+bun run release:docs:verify \
+  --evidence=docs/releases/documentation-walkthrough-evidence.json \
+  --repository=TongDucThanhNam/rem-viet \
+  --commit=<full-documentation-git-sha>
+```
+
+This verifier binds the human record to the exact repository and documentation
+commit, rejects self-attestation and incomplete tasks, and checks that any named
+remediation commit is contained in the verified commit. It does not perform the
+walkthrough or sign for the independent operator.

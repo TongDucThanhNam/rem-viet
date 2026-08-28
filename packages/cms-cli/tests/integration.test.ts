@@ -3,6 +3,7 @@ import { describe, expect, test } from "bun:test";
 import {
   CMS_INTEGRATION_RECEIPT_PATH,
   cmsIntegrationSha256,
+  cmsIntegrationTextSha256,
   parseCmsIntegrationReceipt,
 } from "../src";
 import { runCmsCli, type CmsCliCommandPorts } from "../src/command";
@@ -123,6 +124,15 @@ describe("TanStack Start CMS integration", () => {
     );
   });
 
+  test("normalizes only Git line-ending rewrites for managed text receipts", () => {
+    expect(cmsIntegrationTextSha256("first\r\nsecond\r\n")).toBe(
+      cmsIntegrationTextSha256("first\nsecond\n"),
+    );
+    expect(cmsIntegrationTextSha256("first\nchanged\n")).not.toBe(
+      cmsIntegrationTextSha256("first\nsecond\n"),
+    );
+  });
+
   test("dry-runs, applies, diagnoses, reruns, and removes without replacing app code", async () => {
     const state = fixture();
     const args = [
@@ -158,7 +168,9 @@ describe("TanStack Start CMS integration", () => {
     expect(
       receipt.managedFiles.every(({ path, sha256 }) => {
         const source = state.files.get(path);
-        return source !== undefined && cmsIntegrationSha256(source) === sha256;
+        return (
+          source !== undefined && cmsIntegrationTextSha256(source) === sha256
+        );
       }),
     ).toBe(true);
 
@@ -174,6 +186,10 @@ describe("TanStack Start CMS integration", () => {
     });
     expect(JSON.stringify([...state.files.values()])).not.toContain("@sanity/");
     expect(JSON.stringify([...state.files.values()])).not.toContain("SANITY_");
+
+    for (const { path } of receipt.managedFiles) {
+      state.files.set(path, state.files.get(path)!.replace(/\n/g, "\r\n"));
+    }
 
     await expect(runCmsCli(args, state.ports)).resolves.toMatchObject({
       packageJson: "unchanged",

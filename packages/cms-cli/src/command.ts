@@ -17,7 +17,7 @@ import {
   applyCmsIntegrationPackageEntries,
   assertTanStackStartPackage,
   cmsIntegrationRequiredPackages,
-  cmsIntegrationSha256,
+  cmsIntegrationTextSha256,
   createCmsIntegration,
   parseCmsIntegrationPackageJson,
   parseCmsIntegrationProvider,
@@ -117,7 +117,7 @@ async function preflightManagedFiles(
       results.push({ path: expected.path, status: "would-create" });
       continue;
     }
-    if (cmsIntegrationSha256(existing) !== expected.sha256) {
+    if (cmsIntegrationTextSha256(existing) !== expected.sha256) {
       throw new Error(`Refusing to overwrite divergent file: ${expected.path}`);
     }
     results.push({ path: expected.path, status: "unchanged" });
@@ -294,7 +294,7 @@ async function runDiagnose(
   for (const file of receipt.managedFiles) {
     const source = await ports.read(file.path);
     if (source === null) missingFiles.push(file.path);
-    else if (cmsIntegrationSha256(source) !== file.sha256)
+    else if (cmsIntegrationTextSha256(source) !== file.sha256)
       divergentFiles.push(file.path);
   }
   checks.push({
@@ -383,7 +383,7 @@ async function runRemove(
   );
   for (const file of receipt.managedFiles) {
     const source = await ports.read(file.path);
-    if (source !== null && cmsIntegrationSha256(source) !== file.sha256) {
+    if (source !== null && cmsIntegrationTextSha256(source) !== file.sha256) {
       throw new Error(`Refusing to remove modified CMS file: ${file.path}.`);
     }
   }

@@ -152,6 +152,15 @@ export function cmsIntegrationSha256(content: string) {
   return [...hash].map((value) => value.toString(16).padStart(8, "0")).join("");
 }
 
+/**
+ * Managed integration files are text. Git may rewrite LF to CRLF during a
+ * Windows checkout, so receipts compare canonical line endings while every
+ * other whitespace or content change remains protected.
+ */
+export function cmsIntegrationTextSha256(content: string) {
+  return cmsIntegrationSha256(content.replace(/\r\n/g, "\n"));
+}
+
 function objectRecord(value: unknown, label: string) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error(`${label} must be an object.`);
@@ -339,7 +348,11 @@ export function createCmsIntegration(input: {
   assertTanStackStartPackage(manifest);
   const managedFiles = Object.freeze(
     input.provider.files.map(({ path, content }) =>
-      Object.freeze({ path, content, sha256: cmsIntegrationSha256(content) }),
+      Object.freeze({
+        path,
+        content,
+        sha256: cmsIntegrationTextSha256(content),
+      }),
     ),
   );
   const packageEntries = missingEntries(manifest, input.provider);

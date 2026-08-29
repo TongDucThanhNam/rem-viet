@@ -1,7 +1,8 @@
 # @agency/cms-template-rem-viet
 
 Rèm Việt template-owned schemas and versioned defaults for all ten flagship
-homepage blocks plus the rich-text, product-grid, and CTA standard-page blocks;
+homepage blocks plus the rich-text, product-grid, CTA, and reusable-reference
+standard-page blocks;
 flattened compatibility adapters for existing stored content; and typed
 renderer-registry factories. The package contains content contracts; concrete
 React components, CSS, assets, GSAP behavior, and field controls remain consumer
@@ -47,6 +48,12 @@ between the generic collection envelope and the existing public page shape.
 permission metadata, schema migration contribution, and admin navigation
 contribution through the public core extension API used by independent
 consumers.
+
+The `reusableContent` standard block preserves a page-local visual ID while its
+payload points to a provider-neutral reusable fragment. Public rendering swaps
+the wrapper for the resolved concrete block; authoring may stay synced, pin a
+published revision, apply bounded local overrides, or detach a provenance-bound
+copy without changing the three concrete renderer contracts.
 
 `remVietLocalizedCampaignsCollection` is the template's localization fixture:
 Vietnamese and English variants share a campaign code while keeping their

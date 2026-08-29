@@ -17,6 +17,7 @@ export * from "./collections.js";
 export * from "./jobs.js";
 export * from "./page-collection-adapter.js";
 export * from "./portability.js";
+export * from "./reusable-content.js";
 export * from "./server.js";
 export * from "./webhooks.js";
 

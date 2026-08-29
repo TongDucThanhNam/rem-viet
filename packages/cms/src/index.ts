@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { cmsCapabilitySchema, type CmsCapability } from "@agency/cms-core";
+import {
+  cmsCapabilitySchema,
+  cmsReusableContentReferenceSchema,
+  type CmsCapability,
+} from "@agency/cms-core";
 
 import {
   bentoDetailsBlockSchema,
@@ -79,6 +83,14 @@ export const standardPageBlockSchema = z.union([
     type: z.literal("cta"),
     title: z.string().min(1),
     href: safePublicLinkSchema,
+  }),
+  z.object({
+    id: z.string().trim().min(1).max(128).optional(),
+    type: z.literal("reusableContent"),
+    reference: cmsReusableContentReferenceSchema.refine(
+      (reference) => reference.contentType === "standard-page-block",
+      "Reusable standard-page blocks require the standard-page-block content type.",
+    ),
   }),
 ]);
 export type StandardPageBlock = z.infer<typeof standardPageBlockSchema>;

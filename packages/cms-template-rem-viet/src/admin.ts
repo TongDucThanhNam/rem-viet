@@ -7,6 +7,7 @@ import type { ComponentType } from "react";
 import {
   type ProductGridBlock,
   type RemVietStandardBlock,
+  type ReusableContentBlock,
   type RichTextBlock,
   type StandardCtaBlock,
 } from "./standard-blocks.js";
@@ -22,6 +23,9 @@ export type RemVietStandardEditors<TContext> = {
   >;
   cta: ComponentType<
     CmsBlockEditorProps<StandardCtaBlock> & { context: TContext }
+  >;
+  reusableContent: ComponentType<
+    CmsBlockEditorProps<ReusableContentBlock> & { context: TContext }
   >;
 };
 
@@ -40,6 +44,10 @@ export function createRemVietStandardBlockEditorRegistry<TContext>(
     cta: {
       label: "Call to action",
       Editor: editors.cta,
+    },
+    reusableContent: {
+      label: "Reusable content",
+      Editor: editors.reusableContent,
     },
   });
 }

@@ -39,6 +39,20 @@ localized without collection localization is rejected. Relationships to a
 localized target must choose `same`, `default`, or `any` locale resolution, so
 providers never infer cross-locale integrity behavior.
 
+## Reusable content
+
+`cmsReusableContentReferenceSchema` is a portable JSON marker for synced or
+revision-pinned fragments. References carry an explicit content type and at
+most 64 immutable RFC 6901 set/unset overrides. Unsafe prototype paths,
+dangling targets, type drift, unavailable revision pins, excessive depth, and
+cycles fail closed through the shared `CmsError` contract.
+
+`resolveCmsReusableContent()` recursively materializes a reference and returns
+path-aware usage receipts. `detachCmsReusableContent()` returns an independent
+snapshot with exact fragment/revision/time provenance, while
+`buildCmsReusableContentUsageGraph()` exposes inbound document usage and
+fragment dependency cycles without requiring a provider-specific table.
+
 Editorial handoff is modeled as bounded request/decision schemas with separate
 `content.review.request` and `content.review.decide` capabilities. Requests may
 carry provider-neutral assignee IDs/roles, mentions, an ISO due date,

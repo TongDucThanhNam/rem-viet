@@ -282,11 +282,21 @@ describe("Rem Viet flagship template contracts", () => {
     }
   });
 
-  test("adapts the three standard page blocks to versioned envelopes", () => {
+  test("adapts all standard page blocks to versioned envelopes", () => {
     const legacy = [
       { type: "richText", content: '{"type":"doc","content":[]}' },
       { type: "productGrid", categoryId: "curtains", limit: 8 },
       { type: "cta", title: "Contact", href: "/lien-he" },
+      {
+        type: "reusableContent",
+        reference: {
+          kind: "cms.reusable-reference",
+          fragmentId: "shared-cta",
+          contentType: "standard-page-block",
+          revisionId: null,
+          overrides: [{ op: "set", path: "/title", value: "Local title" }],
+        },
+      },
     ];
     const canonical = legacy.map((block, index) => {
       const result = toRemVietStandardBlock(block, index);
@@ -298,6 +308,7 @@ describe("Rem Viet flagship template contracts", () => {
       "standard-0-richText",
       "standard-1-productGrid",
       "standard-2-cta",
+      "standard-3-reusableContent",
     ]);
     expect(canonical.map(toLegacyRemVietStandardBlock)).toEqual([
       {
@@ -317,6 +328,17 @@ describe("Rem Viet flagship template contracts", () => {
         title: "Contact",
         href: "/lien-he",
       },
+      {
+        id: "standard-3-reusableContent",
+        type: "reusableContent",
+        reference: {
+          kind: "cms.reusable-reference",
+          fragmentId: "shared-cta",
+          contentType: "standard-page-block",
+          revisionId: null,
+          overrides: [{ op: "set", path: "/title", value: "Local title" }],
+        },
+      },
     ]);
 
     const persisted = toRemVietStandardBlock(
@@ -335,7 +357,7 @@ describe("Rem Viet flagship template contracts", () => {
   test("publishes exhaustive immutable discovery metadata for standard pages", () => {
     expect(
       remVietStandardBlockAuthoringCatalog.map(({ type }) => type),
-    ).toEqual(["richText", "productGrid", "cta"]);
+    ).toEqual(["richText", "productGrid", "cta", "reusableContent"]);
     for (const definition of remVietStandardBlockAuthoringCatalog) {
       expect(definition.label.trim()).not.toBe("");
       expect(definition.description.trim()).not.toBe("");

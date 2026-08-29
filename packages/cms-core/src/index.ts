@@ -8,6 +8,7 @@ export * from "./fields.js";
 export * from "./jobs.js";
 export * from "./primitives.js";
 export * from "./relationships.js";
+export * from "./reusable-content.js";
 import {
   cmsCapabilitySchema,
   cmsLocaleSchema,

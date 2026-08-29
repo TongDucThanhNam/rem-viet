@@ -3,6 +3,7 @@
 export * from "./collections.js";
 export * from "./editor-shell.js";
 export * from "./platform.js";
+export * from "./reusable-content.js";
 export * from "@agency/cms-visual-editor";
 
 import {

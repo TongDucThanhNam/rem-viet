@@ -12,6 +12,16 @@ capability metadata declared by the collection without owning application roles,
 and `runCollectionProviderConformance()` exercises the shared lifecycle against
 any provider.
 
+`cmsReusableContentModule` installs a versioned `cms-reusable-content`
+collection on the same provider surface. `createCmsReusableContentRuntime()`
+adds typed fragment create/save/publish/unpublish/restore/delete operations,
+synced and pinned loaders, cycle/dangling/type validation, public-dependency
+gates, safe detach, and a serializable usage graph. It scans both working and
+published fragment states before destructive actions, so editing a draft cannot
+hide a dependency that remains live in an immutable published revision. No
+extra provider table is required: local SQLite/libSQL, Cloudflare D1, and
+Postgres inherit the existing collection persistence and revision contract.
+
 Localized collection calls carry an explicit locale through reads, writes,
 queries, schedules, revisions, restores, and deletes. Draft and publication
 state are independent per locale. Reads default to no fallback; callers may

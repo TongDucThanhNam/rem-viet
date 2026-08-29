@@ -12,6 +12,11 @@ stable-ID block revision summaries, value-safe metadata-field comparison, and a
 provider-neutral media-selection resolver that adopts reviewed library alt text
 without retaining stale descriptions while allowing explicit decorative-image
 preservation.
+Reusable-content primitives add accent-insensitive library discovery, published
+and draft-only status, inbound usage counts, synced/pinned reference state,
+override reset, and guarded detach actions. The app still supplies localized
+styling and mutations, while these primitives keep the authoring semantics and
+accessibility structure consistent across templates.
 `resolveCmsEditorialReviewPresentation` centralizes review status and action
 availability so unsaved or stale content is never presented as approved while
 the application retains full control of localization and visual design. Both

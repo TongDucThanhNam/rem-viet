@@ -6,6 +6,7 @@ import {
   areCmsRevisionValuesEqual,
   compareCmsRevisionFieldDetails,
   filterCmsBlockAuthoringCatalog,
+  resolveCmsReusableContentReferenceState,
   resolveCmsAdminWorkflow,
   runCmsWorkflowCommand,
   useCmsAutosave,
@@ -36,6 +37,7 @@ import {
   toRemVietStandardBlock,
   type ProductGridBlock,
   type RichTextBlock,
+  type ReusableContentBlock,
   type StandardCtaBlock,
 } from "@agency/cms-template-rem-viet";
 import {
@@ -171,6 +173,20 @@ type PageRevisionRow = {
 type SaveState = CmsDraftSaveState;
 
 type StandardBlock = IdentifiedStandardPageBlock;
+type ReusableFragmentRow = {
+  id: string;
+  version: number;
+  status: "draft" | "published";
+  data: {
+    title: string;
+    key: string;
+    description: string;
+    contentType: string;
+    value: unknown;
+  };
+  publishedRevisionId: string | null;
+  updatedAt: string;
+};
 type StandardPageDraft = {
   title: string;
   slug: string;
@@ -198,15 +214,27 @@ function createStandardBlock(
     type,
     existing.map((block) => block.id),
   );
-  return type === "cta"
-    ? { id, type, title: "Liên hệ với chúng tôi", href: "/lien-he" }
-    : type === "productGrid"
-      ? { id, type, limit: 8 }
-      : {
-          id,
-          type,
-          content: JSON.stringify(emptyRichTextDocument),
-        };
+  return type === "reusableContent"
+    ? {
+        id,
+        type,
+        reference: {
+          kind: "cms.reusable-reference",
+          fragmentId: "select-fragment",
+          contentType: "standard-page-block",
+          revisionId: null,
+          overrides: [],
+        },
+      }
+    : type === "cta"
+      ? { id, type, title: "Liên hệ với chúng tôi", href: "/lien-he" }
+      : type === "productGrid"
+        ? { id, type, limit: 8 }
+        : {
+            id,
+            type,
+            content: JSON.stringify(emptyRichTextDocument),
+          };
 }
 
 function summarizeRichTextContent(content: string) {
@@ -241,7 +269,12 @@ function summarizeStandardPageBlocks(blocks: PageBlock[]) {
     if (block.type === "productGrid") {
       return `Lưới sản phẩm: ${block.limit ?? 8} mục`;
     }
-    return `CTA: ${block.title} → ${block.href}`;
+    if (block.type === "cta") return `CTA: ${block.title} → ${block.href}`;
+    return `Dùng lại: ${block.reference.fragmentId}${
+      block.reference.overrides.length
+        ? ` · ${block.reference.overrides.length} ghi đè`
+        : ""
+    }`;
   });
 
   return summaries.length ? summaries.join(" · ") : "Không có block";
@@ -314,7 +347,7 @@ function standardBlocks(blocks: PageBlock[]): StandardBlock[] {
   return ensureStandardPageBlockIds(
     blocks.filter((block) => isRemVietStandardBlockType(block.type)) as Extract<
       PageBlock,
-      { type: "richText" | "productGrid" | "cta" }
+      { type: "richText" | "productGrid" | "cta" | "reusableContent" }
     >[],
   );
 }
@@ -828,7 +861,10 @@ function StandardPageResponsivePreview({
   );
 }
 
-type StandardEditorContext = { key: string };
+type StandardEditorContext = {
+  key: string;
+  onDetach: (block: StandardBlock) => void;
+};
 
 function RichTextEditor({
   block,
@@ -924,11 +960,457 @@ function CtaEditor({
   );
 }
 
+function ReusableContentEditor({
+  block,
+  context,
+  onChange,
+}: CmsBlockEditorProps<ReusableContentBlock> & {
+  context: StandardEditorContext;
+}) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const fragmentsQuery = useQuery(
+    trpc.content.reusableContent.list.queryOptions(),
+  );
+  const usageQuery = useQuery(
+    trpc.content.reusableContent.usage.queryOptions(),
+  );
+  const resolutionQuery = useQuery({
+    ...trpc.content.reusableContent.resolve.queryOptions({
+      reference: block.data.reference,
+      mode: "draft",
+      blockId: block.id,
+    }),
+    enabled: block.data.reference.fragmentId !== "select-fragment",
+  });
+  const updateFragment = useMutation(
+    trpc.content.reusableContent.update.mutationOptions(),
+  );
+  const publishFragment = useMutation(
+    trpc.content.reusableContent.publish.mutationOptions(),
+  );
+  const detachFragment = useMutation(
+    trpc.content.reusableContent.detach.mutationOptions(),
+  );
+  const fragments = (fragmentsQuery.data ?? []) as ReusableFragmentRow[];
+  const current = fragments.find(
+    (fragment) => fragment.id === block.data.reference.fragmentId,
+  );
+  const usageCount = new Set(
+    (usageQuery.data?.byFragment[block.data.reference.fragmentId] ?? []).map(
+      (usage) => usage.sourceId,
+    ),
+  ).size;
+  const state = resolveCmsReusableContentReferenceState({
+    reference: block.data.reference,
+    fragment: current
+      ? {
+          id: current.id,
+          title: current.data.title,
+          key: current.data.key,
+          description: current.data.description,
+          contentType: current.data.contentType,
+          version: current.version,
+          publishedRevisionId: current.publishedRevisionId,
+          usageCount,
+        }
+      : null,
+    resolved: Boolean(resolutionQuery.data?.block),
+  });
+
+  const changeReference = (
+    next: Partial<ReusableContentBlock["data"]["reference"]>,
+  ) =>
+    onChange({
+      ...block,
+      data: {
+        reference: { ...block.data.reference, ...next },
+      },
+    });
+  const setOverride = (path: string, value: string | number) =>
+    changeReference({
+      overrides: [
+        ...block.data.reference.overrides.filter(
+          (override) => override.path !== path,
+        ),
+        { op: "set", path, value },
+      ],
+    });
+  const invalidateReusable = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries(
+        trpc.content.reusableContent.list.queryFilter(),
+      ),
+      queryClient.invalidateQueries(
+        trpc.content.reusableContent.usage.queryFilter(),
+      ),
+      queryClient.invalidateQueries(
+        trpc.content.reusableContent.resolve.queryFilter(),
+      ),
+    ]);
+  };
+  const resolved = resolutionQuery.data?.block;
+
+  const applyOverridesToShared = async () => {
+    if (!current || !resolved) return;
+    try {
+      const saved = await updateFragment.mutateAsync({
+        fragmentId: current.id,
+        expectedVersion: current.version,
+        value: resolved,
+      });
+      await publishFragment.mutateAsync({
+        fragmentId: current.id,
+        expectedVersion: saved.version,
+        note: `Applied from page editor (${usageCount} current usages)`,
+      });
+      changeReference({ overrides: [], revisionId: null });
+      await invalidateReusable();
+      toast.success("Đã cập nhật và xuất bản nội dung dùng chung.");
+    } catch (caught) {
+      toast.error(
+        caught instanceof Error
+          ? caught.message
+          : "Không thể cập nhật nội dung dùng chung.",
+      );
+    }
+  };
+
+  const detachLocalCopy = async () => {
+    try {
+      const detached = await detachFragment.mutateAsync({
+        reference: block.data.reference,
+        mode: "draft",
+        blockId: block.id,
+      });
+      context.onDetach({ ...detached.block, id: block.id });
+      toast.success(
+        `Đã tách bản cục bộ từ revision ${detached.detachedFrom.revisionId}.`,
+      );
+    } catch (caught) {
+      toast.error(
+        caught instanceof Error
+          ? caught.message
+          : "Không thể tách nội dung dùng chung.",
+      );
+    }
+  };
+
+  return (
+    <div className="grid gap-4">
+      <div className="grid gap-2">
+        <Label htmlFor={`${context.key}-reusable-fragment`}>
+          Nội dung dùng chung
+        </Label>
+        <select
+          className="h-9 rounded-md border bg-background px-3 text-sm"
+          id={`${context.key}-reusable-fragment`}
+          value={block.data.reference.fragmentId}
+          onChange={(event) =>
+            changeReference({
+              fragmentId: event.target.value,
+              revisionId: null,
+              overrides: [],
+            })
+          }
+        >
+          <option value="select-fragment">Chọn một nội dung…</option>
+          {fragments.map((fragment) => (
+            <option key={fragment.id} value={fragment.id}>
+              {fragment.data.title} ·{" "}
+              {fragment.publishedRevisionId ? "đã xuất bản" : "bản nháp"}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {current ? (
+        <div className="grid gap-2 rounded-md border bg-muted/30 p-3 text-xs">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span>
+              <strong>{current.data.title}</strong> · {usageCount} nơi đang dùng
+            </span>
+            <StatusBadge
+              status={current.publishedRevisionId ? "success" : "warning"}
+            >
+              {current.publishedRevisionId ? "Đã xuất bản" : "Chỉ bản nháp"}
+            </StatusBadge>
+          </div>
+          <p className="text-muted-foreground">
+            {state.synced
+              ? "Đồng bộ với bản xuất bản mới nhất."
+              : `Đang ghim revision ${state.revisionId}.`}
+          </p>
+        </div>
+      ) : null}
+
+      {resolved?.type === "richText" ? (
+        <div data-cms-field-path="data.reference.overrides.content">
+          <Label>Nội dung ghi đè trên trang này</Label>
+          <CmsRichTextEditor
+            key={`${context.key}-reusable-rich-text`}
+            value={resolved.content}
+            onChange={(content) => setOverride("/content", content)}
+          />
+        </div>
+      ) : resolved?.type === "productGrid" ? (
+        <div className="grid gap-3">
+          <div className="grid gap-2">
+            <Label htmlFor={`${context.key}-reusable-category`}>
+              Mã danh mục ghi đè
+            </Label>
+            <Input
+              id={`${context.key}-reusable-category`}
+              value={resolved.categoryId ?? ""}
+              onChange={(event) =>
+                setOverride("/categoryId", event.target.value)
+              }
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor={`${context.key}-reusable-limit`}>
+              Số sản phẩm ghi đè
+            </Label>
+            <Input
+              id={`${context.key}-reusable-limit`}
+              max={24}
+              min={1}
+              type="number"
+              value={resolved.limit ?? 8}
+              onChange={(event) =>
+                setOverride("/limit", Number(event.target.value))
+              }
+            />
+          </div>
+        </div>
+      ) : resolved?.type === "cta" ? (
+        <div className="grid gap-3">
+          <div className="grid gap-2">
+            <Label htmlFor={`${context.key}-reusable-title`}>
+              Tiêu đề ghi đè
+            </Label>
+            <Input
+              id={`${context.key}-reusable-title`}
+              value={resolved.title}
+              onChange={(event) => setOverride("/title", event.target.value)}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor={`${context.key}-reusable-href`}>
+              Liên kết ghi đè
+            </Label>
+            <Input
+              id={`${context.key}-reusable-href`}
+              value={resolved.href}
+              onChange={(event) => setOverride("/href", event.target.value)}
+            />
+          </div>
+        </div>
+      ) : resolutionQuery.isError ? (
+        <p className="text-xs text-destructive" role="alert">
+          {resolutionQuery.error.message}
+        </p>
+      ) : current ? (
+        <p className="text-xs text-muted-foreground" role="status">
+          Đang tải nội dung dùng chung…
+        </p>
+      ) : null}
+
+      <div className="flex flex-wrap gap-2 border-t pt-3">
+        <Button
+          disabled={!current?.publishedRevisionId}
+          size="sm"
+          type="button"
+          variant="outline"
+          onClick={() =>
+            changeReference({
+              revisionId: state.pinned
+                ? null
+                : (current?.publishedRevisionId ?? null),
+            })
+          }
+        >
+          {state.pinned ? "Bỏ ghim revision" : "Ghim revision hiện tại"}
+        </Button>
+        <Button
+          disabled={state.overrideCount === 0}
+          size="sm"
+          type="button"
+          variant="outline"
+          onClick={() => changeReference({ overrides: [] })}
+        >
+          Xóa {state.overrideCount} ghi đè
+        </Button>
+        <Button
+          disabled={!resolved || detachFragment.isPending}
+          size="sm"
+          type="button"
+          variant="secondary"
+          onClick={() => void detachLocalCopy()}
+        >
+          Tách thành bản cục bộ
+        </Button>
+        <Button
+          disabled={
+            !current ||
+            !resolved ||
+            state.overrideCount === 0 ||
+            updateFragment.isPending ||
+            publishFragment.isPending
+          }
+          size="sm"
+          type="button"
+          onClick={() => void applyOverridesToShared()}
+        >
+          Áp dụng cho {usageCount} nơi và xuất bản
+        </Button>
+        {current && !current.publishedRevisionId ? (
+          <Button
+            disabled={publishFragment.isPending}
+            size="sm"
+            type="button"
+            onClick={() =>
+              void publishFragment
+                .mutateAsync({
+                  fragmentId: current.id,
+                  expectedVersion: current.version,
+                  note: "Published from standard-page editor",
+                })
+                .then(invalidateReusable)
+                .then(() => toast.success("Đã xuất bản nội dung dùng chung."))
+                .catch((caught: unknown) =>
+                  toast.error(
+                    caught instanceof Error
+                      ? caught.message
+                      : "Không thể xuất bản nội dung dùng chung.",
+                  ),
+                )
+            }
+          >
+            Xuất bản nội dung dùng chung
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function SaveBlockAsReusable({
+  block,
+  onCreated,
+}: {
+  block: Exclude<StandardBlock, { type: "reusableContent" }>;
+  onCreated: (fragment: ReusableFragmentRow) => void;
+}) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [fragmentTitle, setFragmentTitle] = useState("");
+  const [fragmentKey, setFragmentKey] = useState("");
+  const createFragment = useMutation(
+    trpc.content.reusableContent.create.mutationOptions(),
+  );
+  const suggestedKey = fragmentTitle
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[đĐ]/g, "d")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 128);
+
+  const create = async () => {
+    const key = (fragmentKey || suggestedKey).trim();
+    if (!fragmentTitle.trim() || !key) {
+      toast.error("Tên và key nội dung dùng chung là bắt buộc.");
+      return;
+    }
+    try {
+      const created = (await createFragment.mutateAsync({
+        title: fragmentTitle,
+        key,
+        description: `Tạo từ khối ${standardBlockLabels[block.type]} trong trình biên tập trang.`,
+        value: block,
+        status: "draft",
+      })) as ReusableFragmentRow;
+      await queryClient.invalidateQueries(
+        trpc.content.reusableContent.list.queryFilter(),
+      );
+      onCreated(created);
+      setOpen(false);
+      setFragmentTitle("");
+      setFragmentKey("");
+      toast.success(
+        "Đã tạo bản nháp dùng chung. Hãy xuất bản trước khi public trang.",
+      );
+    } catch (caught) {
+      toast.error(
+        caught instanceof Error
+          ? caught.message
+          : "Không thể tạo nội dung dùng chung.",
+      );
+    }
+  };
+
+  if (!open) {
+    return (
+      <Button
+        size="sm"
+        type="button"
+        variant="outline"
+        onClick={() => setOpen(true)}
+      >
+        Tạo nội dung dùng chung từ khối này
+      </Button>
+    );
+  }
+  return (
+    <div className="grid gap-3 rounded-md border bg-muted/30 p-3">
+      <div className="grid gap-2">
+        <Label htmlFor="new-reusable-title">Tên nội dung dùng chung</Label>
+        <Input
+          id="new-reusable-title"
+          value={fragmentTitle}
+          onChange={(event) => setFragmentTitle(event.target.value)}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="new-reusable-key">Key ổn định</Label>
+        <Input
+          id="new-reusable-key"
+          placeholder={suggestedKey || "shared-content-key"}
+          value={fragmentKey}
+          onChange={(event) => setFragmentKey(event.target.value)}
+        />
+      </div>
+      <div className="flex gap-2">
+        <Button
+          disabled={createFragment.isPending}
+          size="sm"
+          type="button"
+          onClick={() => void create()}
+        >
+          Tạo và thay bằng tham chiếu
+        </Button>
+        <Button
+          size="sm"
+          type="button"
+          variant="ghost"
+          onClick={() => setOpen(false)}
+        >
+          Hủy
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 const standardBlockEditorRegistry =
   createRemVietStandardBlockEditorRegistry<StandardEditorContext>({
     richText: RichTextEditor,
     productGrid: ProductGridEditor,
     cta: CtaEditor,
+    reusableContent: ReusableContentEditor,
   });
 
 function AdminPagesRoute() {
@@ -2207,12 +2689,35 @@ function AdminPagesRoute() {
                         block={canonicalSelected.data}
                         context={{
                           key: `${editingPage?._id ?? "new"}-${selectedIndex}`,
+                          onDetach: (detached) =>
+                            updateSelected({
+                              ...detached,
+                              id: blocks[selectedIndex]?.id ?? detached.id,
+                            }),
                         }}
                         registry={standardBlockEditorRegistry}
                         onChange={(next) =>
                           updateSelected({
                             ...toLegacyRemVietStandardBlock(next),
                             id: next.id,
+                          })
+                        }
+                      />
+                    ) : null}
+                    {selected && selected.type !== "reusableContent" ? (
+                      <SaveBlockAsReusable
+                        block={selected}
+                        onCreated={(fragment) =>
+                          updateSelected({
+                            id: selected.id,
+                            type: "reusableContent",
+                            reference: {
+                              kind: "cms.reusable-reference",
+                              fragmentId: fragment.id,
+                              contentType: "standard-page-block",
+                              revisionId: null,
+                              overrides: [],
+                            },
                           })
                         }
                       />

@@ -5,6 +5,7 @@ import {
   toRemVietStandardBlock,
   type ProductGridBlock,
   type RemVietStandardBlock,
+  type ReusableContentBlock,
   type RichTextBlock,
   type StandardCtaBlock,
 } from "@agency/cms-template-rem-viet";
@@ -229,11 +230,47 @@ function CmsCtaBlock({
   );
 }
 
+function CmsReusableContentBlock({
+  block,
+  context,
+}: BlockRendererProps<ReusableContentBlock, StandardRenderContext>) {
+  const trpc = useTRPC();
+  const resolved = useQuery({
+    ...trpc.content.reusableContent.resolve.queryOptions({
+      reference: block.data.reference,
+      mode: context.authoring ? "draft" : "published",
+      blockId: block.id,
+    }),
+    enabled: Boolean(context.authoring),
+  });
+  if (resolved.data?.block) {
+    return renderBlock(resolved.data.block, 0, context.authoring);
+  }
+  return (
+    <section className="relative mx-auto w-full max-w-3xl px-4 py-12">
+      <div className="rounded-md border border-dashed p-6 text-sm text-muted-foreground">
+        {context.authoring
+          ? resolved.isError
+            ? "Không thể tải nội dung tái sử dụng."
+            : "Đang tải nội dung tái sử dụng…"
+          : "Nội dung tái sử dụng chưa sẵn sàng."}
+      </div>
+      <StandardAuthoringTarget
+        authoring={context.authoring}
+        blockId={block.id}
+        className="inset-0"
+        label="Chỉnh sửa nội dung tái sử dụng"
+      />
+    </section>
+  );
+}
+
 const standardBlockRegistry =
   createRemVietStandardBlockRegistry<StandardRenderContext>({
     richText: CmsRichTextBlock,
     productGrid: CmsProductGridBlock,
     cta: CmsCtaBlock,
+    reusableContent: CmsReusableContentBlock,
   });
 
 function renderBlock(

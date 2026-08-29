@@ -109,6 +109,26 @@ import {
   startDamRehearsal,
   startDamRehearsalInputSchema,
 } from "../services/dam-rehearsal";
+import {
+  createReusableContent,
+  deleteReusableContent,
+  detachReusableStandardPageBlock,
+  getReusableContent,
+  listReusableContent,
+  listReusableContentRevisions,
+  publishReusableContent,
+  resolveReusableStandardPageBlock,
+  restoreReusableContent,
+  reusableContentCreateInputSchema,
+  reusableContentIdInputSchema,
+  reusableContentResolveInputSchema,
+  reusableContentRestoreInputSchema,
+  reusableContentUpdateInputSchema,
+  reusableContentUsageGraph,
+  reusableContentVersionInputSchema,
+  unpublishReusableContent,
+  updateReusableContent,
+} from "../services/reusable-content-runtime";
 
 type StaffContext = {
   actor: CmsActor;
@@ -422,12 +442,70 @@ export const editorialCommentsRouter = router({
     ),
 });
 
+export const reusableContentRouter = router({
+  list: capabilityProcedure("content.readDraft").query(() =>
+    listReusableContent(),
+  ),
+  byId: capabilityProcedure("content.readDraft")
+    .input(reusableContentIdInputSchema)
+    .query(({ input }) => getReusableContent(input.fragmentId)),
+  revisions: capabilityProcedure("content.readDraft")
+    .input(reusableContentIdInputSchema)
+    .query(({ input }) => listReusableContentRevisions(input.fragmentId)),
+  usage: capabilityProcedure("content.readDraft").query(() =>
+    reusableContentUsageGraph(),
+  ),
+  resolve: capabilityProcedure("content.readDraft")
+    .input(reusableContentResolveInputSchema)
+    .query(({ input }) => resolveReusableStandardPageBlock(input)),
+  detach: capabilityProcedure("content.write")
+    .input(reusableContentResolveInputSchema)
+    .mutation(({ input }) => detachReusableStandardPageBlock(input)),
+  create: capabilityProcedure("content.write")
+    .input(reusableContentCreateInputSchema)
+    .mutation(({ ctx, input }) =>
+      runCmsWorkflow(() => createReusableContent(input, actorFromContext(ctx))),
+    ),
+  update: capabilityProcedure("content.write")
+    .input(reusableContentUpdateInputSchema)
+    .mutation(({ ctx, input }) =>
+      runCmsWorkflow(() => updateReusableContent(input, actorFromContext(ctx))),
+    ),
+  publish: capabilityProcedure("content.publish")
+    .input(reusableContentVersionInputSchema)
+    .mutation(({ ctx, input }) =>
+      runCmsWorkflow(() =>
+        publishReusableContent(input, actorFromContext(ctx)),
+      ),
+    ),
+  unpublish: capabilityProcedure("content.publish")
+    .input(reusableContentVersionInputSchema)
+    .mutation(({ ctx, input }) =>
+      runCmsWorkflow(() =>
+        unpublishReusableContent(input, actorFromContext(ctx)),
+      ),
+    ),
+  restore: capabilityProcedure("content.restore")
+    .input(reusableContentRestoreInputSchema)
+    .mutation(({ ctx, input }) =>
+      runCmsWorkflow(() =>
+        restoreReusableContent(input, actorFromContext(ctx)),
+      ),
+    ),
+  delete: capabilityProcedure("content.delete")
+    .input(reusableContentVersionInputSchema)
+    .mutation(({ ctx, input }) =>
+      runCmsWorkflow(() => deleteReusableContent(input, actorFromContext(ctx))),
+    ),
+});
+
 export const contentRouter = router({
   posts: postsRouter,
   pages: pagesRouter,
   campaigns: campaignsRouter,
   reviews: editorialReviewsRouter,
   comments: editorialCommentsRouter,
+  reusableContent: reusableContentRouter,
   media: mediaRouter,
   menus: menusRouter,
   siteSettings: siteSettingsRouter,

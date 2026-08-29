@@ -1,4 +1,5 @@
 import {
+  cmsReusableContentReferenceSchema,
   createCmsBlockSchema,
   safePublicLinkSchema,
   type CmsBlockMigration,
@@ -24,9 +25,18 @@ export const standardCtaBlockDataSchema = z.object({
   title: z.string().min(1),
   href: safePublicLinkSchema,
 });
+export const reusableContentBlockDataSchema = z.object({
+  reference: cmsReusableContentReferenceSchema.refine(
+    (reference) => reference.contentType === "standard-page-block",
+    "Reusable standard-page blocks require the standard-page-block content type.",
+  ),
+});
 export type RichTextBlockData = z.infer<typeof richTextBlockDataSchema>;
 export type ProductGridBlockData = z.infer<typeof productGridBlockDataSchema>;
 export type StandardCtaBlockData = z.infer<typeof standardCtaBlockDataSchema>;
+export type ReusableContentBlockData = z.infer<
+  typeof reusableContentBlockDataSchema
+>;
 
 export const richTextBlockSchema = createCmsBlockSchema(
   "richText",
@@ -40,15 +50,21 @@ export const standardCtaBlockSchema = createCmsBlockSchema(
   "cta",
   standardCtaBlockDataSchema,
 );
+export const reusableContentBlockSchema = createCmsBlockSchema(
+  "reusableContent",
+  reusableContentBlockDataSchema,
+);
 
 export type RichTextBlock = z.infer<typeof richTextBlockSchema>;
 export type ProductGridBlock = z.infer<typeof productGridBlockSchema>;
 export type StandardCtaBlock = z.infer<typeof standardCtaBlockSchema>;
+export type ReusableContentBlock = z.infer<typeof reusableContentBlockSchema>;
 
 export const remVietStandardBlockSchema = z.union([
   richTextBlockSchema,
   productGridBlockSchema,
   standardCtaBlockSchema,
+  reusableContentBlockSchema,
 ]);
 export type RemVietStandardBlock = z.infer<typeof remVietStandardBlockSchema>;
 export type RemVietStandardBlockType = RemVietStandardBlock["type"];
@@ -76,6 +92,14 @@ const remVietStandardBlockAuthoringCatalogSource = [
     description: "Tiêu đề chuyển đổi và liên kết tới bước tiếp theo của khách.",
     category: "Chuyển đổi",
     keywords: ["cta", "button", "contact", "conversion", "liên hệ", "nút"],
+  },
+  {
+    type: "reusableContent",
+    label: "Nội dung tái sử dụng",
+    description:
+      "Tham chiếu đồng bộ tới một khối đã xuất bản, có thể ghi đè hoặc tách bản sao.",
+    category: "Nội dung",
+    keywords: ["reusable", "synced", "shared", "reference", "dùng lại"],
   },
 ] as const satisfies readonly CmsBlockAuthoringDefinition<RemVietStandardBlockType>[];
 
@@ -139,6 +163,21 @@ export const defaultStandardCtaBlock: StandardCtaBlock = {
   enabled: true,
   data: { title: "Liên hệ với chúng tôi", href: "/lien-he" },
 };
+export const defaultReusableContentBlock: ReusableContentBlock = {
+  id: "standard-reusable-content",
+  type: "reusableContent",
+  schemaVersion: REM_VIET_BLOCK_SCHEMA_VERSION,
+  enabled: true,
+  data: {
+    reference: {
+      kind: "cms.reusable-reference",
+      fragmentId: "select-fragment",
+      contentType: "standard-page-block",
+      revisionId: null,
+      overrides: [],
+    },
+  },
+};
 
 export const richTextBlockMigrations =
   [] as const satisfies readonly CmsBlockMigration<RichTextBlockData>[];
@@ -146,6 +185,8 @@ export const productGridBlockMigrations =
   [] as const satisfies readonly CmsBlockMigration<ProductGridBlockData>[];
 export const standardCtaBlockMigrations =
   [] as const satisfies readonly CmsBlockMigration<StandardCtaBlockData>[];
+export const reusableContentBlockMigrations =
+  [] as const satisfies readonly CmsBlockMigration<ReusableContentBlockData>[];
 
 export const legacyStandardBlockSchema = z.union([
   z.object({
@@ -162,6 +203,11 @@ export const legacyStandardBlockSchema = z.union([
     id: z.string().trim().min(1).max(128).optional(),
     type: z.literal("cta"),
     ...standardCtaBlockDataSchema.shape,
+  }),
+  z.object({
+    id: z.string().trim().min(1).max(128).optional(),
+    type: z.literal("reusableContent"),
+    ...reusableContentBlockDataSchema.shape,
   }),
 ]);
 export type LegacyStandardBlock = z.infer<typeof legacyStandardBlockSchema>;
@@ -182,7 +228,9 @@ export function toRemVietStandardBlock(input: unknown, index = 0) {
         ? { content: value.content }
         : value.type === "productGrid"
           ? { categoryId: value.categoryId, limit: value.limit }
-          : { title: value.title, href: value.href },
+          : value.type === "cta"
+            ? { title: value.title, href: value.href }
+            : { reference: value.reference },
   });
 }
 
@@ -198,6 +246,9 @@ export type RemVietStandardRenderers<TContext> = {
   richText: ComponentType<BlockRendererProps<RichTextBlock, TContext>>;
   productGrid: ComponentType<BlockRendererProps<ProductGridBlock, TContext>>;
   cta: ComponentType<BlockRendererProps<StandardCtaBlock, TContext>>;
+  reusableContent: ComponentType<
+    BlockRendererProps<ReusableContentBlock, TContext>
+  >;
 };
 
 export function createRemVietStandardBlockRegistry<TContext>(
@@ -218,6 +269,11 @@ export function createRemVietStandardBlockRegistry<TContext>(
       schema: standardCtaBlockSchema,
       defaults: defaultStandardCtaBlock,
       Renderer: renderers.cta,
+    },
+    reusableContent: {
+      schema: reusableContentBlockSchema,
+      defaults: defaultReusableContentBlock,
+      Renderer: renderers.reusableContent,
     },
   });
 }

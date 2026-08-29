@@ -98,7 +98,7 @@ export const remVietStandardPagesCollection = defineCollection({
       label: "Content blocks",
       required: true,
       defaultValue: [],
-      allowedBlocks: ["richText", "productGrid", "cta"],
+      allowedBlocks: ["richText", "productGrid", "cta", "reusableContent"],
     }),
     textField({
       name: "seoTitle",

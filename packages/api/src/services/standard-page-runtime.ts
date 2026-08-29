@@ -8,7 +8,9 @@ import {
 } from "@agency/cms-provider-cloudflare";
 import { createCmsExtensionRegistry } from "@agency/cms-core";
 import {
+  cmsReusableContentModule,
   createCmsPageCollectionAdapter,
+  createCmsReusableContentRuntime,
   type CmsPageContent,
 } from "@agency/cms-runtime";
 import {
@@ -133,8 +135,34 @@ export function encodeRemVietStandardPageRevision(
 }
 
 const remVietExtensions = createCmsExtensionRegistry({
-  modules: [remVietStandardPagesModule],
+  modules: [remVietStandardPagesModule, cmsReusableContentModule],
 });
+
+export async function resolveRemVietStandardPageBlocks(
+  blocks: readonly RemVietStandardBlock[],
+  mode: "draft" | "published" = "published",
+) {
+  const runtime = createCmsReusableContentRuntime(
+    createRemVietCollectionProvider(),
+  );
+  return Promise.all(
+    blocks.map(async (block, index) => {
+      if (block.type !== "reusableContent") return block;
+      const resolved = await runtime.resolve({
+        value: block.data.reference,
+        mode,
+      });
+      const parsed = toRemVietStandardBlock(resolved.value, index);
+      if (!parsed.success) throw parsed.error;
+      if (parsed.data.type === "reusableContent") {
+        throw new Error(
+          "Nested reusable block wrappers must resolve before render.",
+        );
+      }
+      return { ...parsed.data, id: block.id };
+    }),
+  );
+}
 
 function legacyPageValues(content: RemVietStandardPageContent) {
   return [
@@ -459,6 +487,9 @@ export async function createRemVietStandardPage(
     robotsIndex: input.robotsIndex,
     robotsFollow: input.robotsFollow,
   });
+  if (input.status === "published") {
+    await resolveRemVietStandardPageBlocks(content.blocks, "published");
+  }
   const provider = createRemVietStandardPageProvider(actor);
   const created = await provider.createDraft({
     content,
@@ -517,6 +548,10 @@ export async function getPublishedRemVietStandardPage(slug: string) {
   });
   if (!published) return null;
   const { content } = published;
+  const resolvedBlocks = await resolveRemVietStandardPageBlocks(
+    content.blocks,
+    "published",
+  );
   return {
     id: published.id,
     _id: published.id,
@@ -524,7 +559,7 @@ export async function getPublishedRemVietStandardPage(slug: string) {
     slug: content.slug,
     folder: content.folder,
     template: content.template,
-    blocks: encodeRemVietStandardPageBlocks(content),
+    blocks: resolvedBlocks.map(toLegacyRemVietStandardBlock),
     status: "published" as const,
     seoTitle: content.seo.title,
     seoDescription: content.seo.description,
@@ -626,6 +661,7 @@ export async function publishRemVietStandardPage(
   const provider = createRemVietStandardPageProvider(actor);
   const document = await provider.getDraft({ id: input.pageId });
   if (!document) throw new Error("Page not found");
+  await resolveRemVietStandardPageBlocks(document.content.blocks, "published");
   const published = await provider.publish({
     id: input.pageId,
     expectedVersion: input.expectedVersion ?? document.version,

@@ -579,9 +579,10 @@ browser matrix hoặc human receipt sau mỗi increment.
 
 Implementation gate hiện đã có local/hosted evidence trong
 [`perfect-cms-plugin-completion-audit.md`](./perfect-cms-plugin-completion-audit.md).
-Increment mới nhất là generated collection CRUD localization tại `50b3c9c`,
-tiếp nối reusable content tại `baf899a`; các checkbox final acceptance bên dưới
-vẫn để mở cho exact implementation-freeze candidate.
+Increment mới nhất là complete Admin Platform v2 localization tại `982f3a4`
+(generated CRUD tại `50b3c9c` và breadcrumb landmark follow-up), tiếp nối
+reusable content tại `baf899a`; các checkbox final acceptance bên dưới vẫn để
+mở cho exact implementation-freeze candidate.
 
 ### 10.2 Final E2E và human acceptance — chạy sau implementation freeze
 

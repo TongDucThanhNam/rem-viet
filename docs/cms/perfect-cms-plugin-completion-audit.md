@@ -59,11 +59,13 @@ requirements have the following local/external disposition:
 ## Latest repeatable evidence
 
 Current implementation head:
-`50b3c9c6c8adec06beab8bdec204e9b85fb28a5a`. It was pushed to `origin/main` on
+`982f3a4e06747ded030c181e0415e1585b01599f`. It was pushed to `origin/main` on
 2026-08-30 and contains the reusable-content slice, reusable-content `en`/`vi`
 follow-up, and generated collection CRUD localization through the same Admin
-Platform v2 packs. The code-bearing commit `baf899a` passes all affected
-core/runtime/admin/template/local/API/web suites, the full 22-case Cloudflare
+Platform v2 packs. Follow-up `982f3a4` removes the last hardcoded package UI
+landmark by routing breadcrumbs through those packs too. The code-bearing commit
+`baf899a` passes all affected core/runtime/admin/template/local/API/web suites,
+the full 22-case Cloudflare
 provider suite, API/Cloudflare/PostgreSQL typechecks, the web production build,
 Prettier, and `git diff --check`; current head passes the full 38-case Admin
 package suite with 227 expectations and typecheck. On current head,

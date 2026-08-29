@@ -62,7 +62,7 @@ function StandardInlineText({
   fieldPath: string;
   value: string;
 }) {
-  const elementRef = useRef<HTMLHeadingElement>(null);
+  const elementRef = useRef<HTMLSpanElement>(null);
   const target = getInlineTextTarget(authoring, blockId, fieldPath);
   const editable = Boolean(target && authoring?.onInlineTextCommit);
 
@@ -78,55 +78,58 @@ function StandardInlineText({
   };
 
   return (
-    <h2
-      aria-label={editable ? `Chỉnh sửa trực tiếp ${target!.label}` : undefined}
-      aria-multiline={editable ? target!.multiline : undefined}
-      className={cn(
-        className,
-        editable &&
-          "cursor-text rounded-sm outline-none focus-visible:ring-4 focus-visible:ring-amber-400",
-      )}
-      contentEditable={editable ? true : undefined}
-      data-cms-inline-field={editable ? fieldPath : undefined}
-      ref={elementRef}
-      role={editable ? "textbox" : undefined}
-      spellCheck={editable ? true : undefined}
-      suppressContentEditableWarning={editable}
-      tabIndex={editable ? 0 : undefined}
-      onBlur={(event) => {
-        if (!editable || !target || !authoring?.onInlineTextCommit) return;
-        const next = (event.currentTarget.textContent ?? "")
-          .normalize("NFC")
-          .replace(/\r\n?/gu, "\n")
-          .trim();
-        if (
-          !next ||
-          [...next].length > target.maxLength ||
-          (!target.multiline && next.includes("\n"))
-        ) {
-          reset();
-          return;
+    <h2 className={className}>
+      <span
+        aria-label={
+          editable ? `Chỉnh sửa trực tiếp ${target!.label}` : undefined
         }
-        if (next !== value) {
-          authoring.onInlineTextCommit(blockId, fieldPath, next);
-        }
-      }}
-      onFocus={() => authoring?.onSelect(blockId, `data.${fieldPath}`)}
-      onKeyDown={(event) => {
-        if (!editable || !target) return;
-        if (event.key === "Escape") {
-          event.preventDefault();
-          reset();
-          event.currentTarget.blur();
-          return;
-        }
-        if (event.key === "Enter" && !target.multiline) {
-          event.preventDefault();
-          event.currentTarget.blur();
-        }
-      }}
-    >
-      {value}
+        aria-multiline={editable ? target!.multiline : undefined}
+        className={cn(
+          editable &&
+            "block cursor-text rounded-sm outline-none focus-visible:ring-4 focus-visible:ring-amber-400",
+        )}
+        contentEditable={editable ? true : undefined}
+        data-cms-inline-field={editable ? fieldPath : undefined}
+        ref={elementRef}
+        role={editable ? "textbox" : undefined}
+        spellCheck={editable ? true : undefined}
+        suppressContentEditableWarning={editable}
+        tabIndex={editable ? 0 : undefined}
+        onBlur={(event) => {
+          if (!editable || !target || !authoring?.onInlineTextCommit) return;
+          const next = (event.currentTarget.textContent ?? "")
+            .normalize("NFC")
+            .replace(/\r\n?/gu, "\n")
+            .trim();
+          if (
+            !next ||
+            [...next].length > target.maxLength ||
+            (!target.multiline && next.includes("\n"))
+          ) {
+            reset();
+            return;
+          }
+          if (next !== value) {
+            authoring.onInlineTextCommit(blockId, fieldPath, next);
+          }
+        }}
+        onFocus={() => authoring?.onSelect(blockId, `data.${fieldPath}`)}
+        onKeyDown={(event) => {
+          if (!editable || !target) return;
+          if (event.key === "Escape") {
+            event.preventDefault();
+            reset();
+            event.currentTarget.blur();
+            return;
+          }
+          if (event.key === "Enter" && !target.multiline) {
+            event.preventDefault();
+            event.currentTarget.blur();
+          }
+        }}
+      >
+        {value}
+      </span>
     </h2>
   );
 }

@@ -310,7 +310,10 @@ export function CmsVisualOutline({
           onKeyDown={(event) => handleKeyDown(event, item)}
         >
           <div {...attributes} className={classFor(itemClassName, item)}>
-            <span className={classFor(treeItemClassName, item)}>
+            <span
+              className={classFor(treeItemClassName, item)}
+              data-cms-outline-label={item.id}
+            >
               {hasChildren ? (
                 <span aria-hidden data-cms-outline-toggle={item.id}>
                   {itemExpanded ? "−" : "+"}

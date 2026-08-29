@@ -875,14 +875,14 @@ test.describe("authenticated CMS workflow", () => {
         ),
         top: Math.round(window.scrollY),
       }));
-    await page.getByRole("button", { name: "10. CTA cuối trang" }).click();
+    await page.getByRole("treeitem", { name: "10. CTA cuối trang" }).click();
     await expect
       .poll(async () => (await previewScrollPosition()).fromBottom, {
         message:
           "sidebar selection should navigate the live canvas to the fixed footer",
       })
       .toBeLessThanOrEqual(1);
-    await page.getByRole("button", { name: "1. Hero mở đầu" }).click();
+    await page.getByRole("treeitem", { name: "1. Hero mở đầu" }).click();
     await expect
       .poll(async () => (await previewScrollPosition()).top)
       .toBeLessThanOrEqual(1);
@@ -891,7 +891,7 @@ test.describe("authenticated CMS workflow", () => {
       .evaluate((element) =>
         element.scrollIntoView({ behavior: "auto", block: "end" }),
       );
-    await page.getByRole("button", { name: "1. Hero mở đầu" }).click();
+    await page.getByRole("treeitem", { name: "1. Hero mở đầu" }).click();
     await expect
       .poll(async () => (await previewScrollPosition()).top, {
         message:
@@ -1407,9 +1407,10 @@ test.describe("authenticated CMS workflow", () => {
     const faqToggle = page.getByLabel("Bật Câu hỏi thường gặp");
     await expect(faqToggle).toBeVisible();
     const faqRow = faqToggle.locator("..");
+    const faqLabel = faqRow.locator("[data-cms-outline-label]");
     const originalEnabled = await faqToggle.isChecked();
     const originalPosition = Number.parseInt(
-      ((await faqRow.locator("button").first().textContent()) ?? "").trim(),
+      ((await faqLabel.textContent()) ?? "").trim(),
       10,
     );
     expect(originalPosition).toBeGreaterThan(1);
@@ -1420,15 +1421,11 @@ test.describe("authenticated CMS workflow", () => {
     await expect(faqToggle).toBeChecked({ checked: originalEnabled });
 
     await faqRow.getByRole("button", { name: "Đưa block lên" }).click();
-    await expect(faqRow.locator("button").first()).toContainText(
-      `${originalPosition - 1}.`,
-    );
+    await expect(faqLabel).toContainText(`${originalPosition - 1}.`);
     await faqRow.getByRole("button", { name: "Đưa block xuống" }).click();
-    await expect(faqRow.locator("button").first()).toContainText(
-      `${originalPosition}.`,
-    );
+    await expect(faqLabel).toContainText(`${originalPosition}.`);
 
-    await faqRow.locator("button").first().click();
+    await faqLabel.click();
     const groups = page.getByRole("group", { name: /^FAQ \d+$/ });
     const originalCount = await groups.count();
     await page.getByRole("button", { name: "Thêm FAQ" }).click();
@@ -3175,12 +3172,11 @@ test.describe("authenticated CMS workflow", () => {
         exact: true,
       }),
     ).toBeVisible();
-    await expect(
-      unsavedStandardCanvas.getByRole("heading", { name: firstCta }),
-    ).toBeVisible();
-    await unsavedStandardCanvas
-      .getByRole("button", { name: "Chỉnh sửa tiêu đề CTA" })
-      .click();
+    const unsavedInlineCtaTitle = unsavedStandardCanvas.getByRole("textbox", {
+      name: "Chỉnh sửa trực tiếp Tiêu đề",
+    });
+    await expect(unsavedInlineCtaTitle).toHaveText(firstCta);
+    await unsavedInlineCtaTitle.click();
     await expect(page.locator("#cta-title")).toBeFocused();
     const unsavedObserver = await page.context().newPage();
     try {
@@ -3261,7 +3257,7 @@ test.describe("authenticated CMS workflow", () => {
     expect(pageId).toBeTruthy();
     await page.reload();
     await expect(page.locator("#page-title")).toHaveValue(title);
-    await page.getByRole("button", { name: "1. Văn bản" }).click();
+    await page.getByRole("treeitem", { name: "1. Văn bản" }).click();
     const originalNestedRichTextId = await page
       .locator("[data-cms-rich-text-block-id]")
       .first()
@@ -3336,8 +3332,8 @@ test.describe("authenticated CMS workflow", () => {
     );
     await expect(page.locator("#cta-href")).toBeFocused();
     await firstCtaCanvasBlock
-      .getByRole("button", { name: "Chỉnh sửa tiêu đề CTA" })
-      .press("Enter");
+      .getByRole("textbox", { name: "Chỉnh sửa trực tiếp Tiêu đề" })
+      .focus();
     await expect(page.locator("[data-cms-canvas-field-path]")).toHaveAttribute(
       "data-cms-canvas-field-path",
       "data.title",
@@ -3346,14 +3342,14 @@ test.describe("authenticated CMS workflow", () => {
     await authoringCanvas
       .locator("[data-cms-standard-block]")
       .nth(1)
-      .getByRole("button", { name: "Sao chép khối" })
+      .getByRole("button", { name: "Nhân bản khối" })
       .press("Enter");
     await expect(page.locator("[data-cms-canvas-last-intent]")).toHaveAttribute(
       "data-cms-canvas-last-intent",
       "duplicate",
     );
     await expect(
-      page.getByRole("button", { name: "3. Kêu gọi hành động" }),
+      page.getByRole("treeitem", { name: "3. Kêu gọi hành động" }),
     ).toBeVisible();
     await expect(
       authoringCanvas.locator("[data-cms-standard-block]"),
@@ -3392,9 +3388,9 @@ test.describe("authenticated CMS workflow", () => {
     await expect(
       authoringCanvas.locator("[data-cms-standard-block]"),
     ).toHaveCount(4);
-    await expect(page.getByRole("button", { name: "4. Văn bản" })).toBeVisible({
-      timeout: 20_000,
-    });
+    await expect(
+      page.getByRole("treeitem", { name: "4. Văn bản" }),
+    ).toBeVisible({ timeout: 20_000 });
     await authoringCanvas
       .locator("[data-cms-standard-block]")
       .nth(3)
@@ -3407,17 +3403,17 @@ test.describe("authenticated CMS workflow", () => {
       "move",
     );
     await expect(
-      page.getByRole("button", { name: "3. Văn bản" }),
+      page.getByRole("treeitem", { name: "3. Văn bản" }),
     ).toBeVisible();
     await expect(undoStandardPage).toBeEnabled();
     await undoStandardPage.click();
     await expect(
-      page.getByRole("button", { name: "4. Văn bản" }),
+      page.getByRole("treeitem", { name: "4. Văn bản" }),
     ).toBeVisible();
     await expect(redoStandardPage).toBeEnabled();
     await page.keyboard.press("Control+Shift+Z");
     await expect(
-      page.getByRole("button", { name: "3. Văn bản" }),
+      page.getByRole("treeitem", { name: "3. Văn bản" }),
     ).toBeVisible();
     await authoringCanvas
       .locator("[data-cms-standard-block]")
@@ -3427,17 +3423,17 @@ test.describe("authenticated CMS workflow", () => {
     await authoringCanvas
       .locator("[data-cms-standard-block]")
       .nth(2)
-      .getByRole("button", { name: "Chỉnh sửa tiêu đề CTA" })
-      .press("Enter");
+      .getByRole("textbox", { name: "Chỉnh sửa trực tiếp Tiêu đề" })
+      .focus();
     await authoringCanvas
       .locator("[data-cms-standard-block]")
       .nth(2)
       .getByRole("button", { name: "Xóa khối" })
       .press("Enter");
     await expect(
-      page.getByRole("button", { name: "3. Kêu gọi hành động" }),
+      page.getByRole("treeitem", { name: "3. Kêu gọi hành động" }),
     ).toHaveCount(0);
-    await page.getByRole("button", { name: "2. Kêu gọi hành động" }).click();
+    await page.getByRole("treeitem", { name: "2. Kêu gọi hành động" }).click();
     await page.locator("#cta-title").fill(secondCta);
     await undoStandardPage.click();
     await expect(page.locator("#cta-title")).toHaveValue(firstCta);
@@ -3447,8 +3443,10 @@ test.describe("authenticated CMS workflow", () => {
       'iframe[title="Xem trước trang Desktop"]',
     );
     await expect(
-      livePreview.getByRole("heading", { name: secondCta }),
-    ).toBeVisible({ timeout: 20_000 });
+      livePreview.getByRole("textbox", {
+        name: "Chỉnh sửa trực tiếp Tiêu đề",
+      }),
+    ).toHaveText(secondCta, { timeout: 20_000 });
     await page.getByRole("button", { name: "Xem trước Mobile" }).click();
     await expect(
       page.getByRole("button", { name: "Xem trước Mobile" }),
@@ -3471,11 +3469,11 @@ test.describe("authenticated CMS workflow", () => {
     await expect(
       reloadedAuthoringCanvas.locator("[data-cms-standard-block]").nth(1),
     ).toHaveAttribute("data-cms-standard-block", firstCtaBlockId!);
-    await page.getByRole("button", { name: "1. Văn bản" }).click();
+    await page.getByRole("treeitem", { name: "1. Văn bản" }).click();
     await expect(
       page.locator("[data-cms-rich-text-block-id]").first(),
     ).toHaveAttribute("data-cms-rich-text-block-id", originalNestedRichTextId!);
-    await page.getByRole("button", { name: "2. Kêu gọi hành động" }).click();
+    await page.getByRole("treeitem", { name: "2. Kêu gọi hành động" }).click();
     await expect(page.locator("#cta-title")).toHaveValue(secondCta);
     await expect(
       page.getByRole("button", { name: "Hoàn tác thay đổi trang" }),

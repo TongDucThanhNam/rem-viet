@@ -3116,7 +3116,7 @@ function AdminPagesRoute() {
 
           <Card className="rounded-md">
             <CardContent className="grid gap-4">
-              <h3 className="font-semibold">SEO</h3>
+              <h2 className="font-semibold">SEO</h2>
               <div className="grid gap-2">
                 <Label htmlFor="page-seo-title">Tiêu đề SEO</Label>
                 <Input
@@ -3202,7 +3202,7 @@ function AdminPagesRoute() {
             <Card className="rounded-md">
               <CardContent className="grid gap-4">
                 <div>
-                  <h3 className="font-semibold">Lịch xuất bản</h3>
+                  <h2 className="font-semibold">Lịch xuất bản</h2>
                   <p className="mt-1 text-xs text-muted-foreground">
                     Lưu bản nháp trước, sau đó đặt lịch cho phiên bản hiện có
                     trên máy chủ.
@@ -3266,7 +3266,7 @@ function AdminPagesRoute() {
               <CardContent className="grid gap-3">
                 <div className="flex items-center gap-2">
                   <History className="size-4" />
-                  <h3 className="font-semibold">Phiên bản đã xuất bản</h3>
+                  <h2 className="font-semibold">Phiên bản đã xuất bản</h2>
                 </div>
                 <CmsRevisionList
                   empty={

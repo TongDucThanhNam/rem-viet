@@ -1458,7 +1458,7 @@ function AdminHomeRoute() {
                         <input
                           aria-label={`Bật ${item.label}`}
                           checked={block.enabled}
-                          className="col-start-2 row-start-1"
+                          className="col-start-2 row-start-1 size-6"
                           disabled={!item.actions.edit}
                           type="checkbox"
                           onChange={(event) =>

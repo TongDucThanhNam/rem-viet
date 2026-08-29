@@ -10,6 +10,7 @@ const englishMessages = {
   addFieldRow: "Add {label} row",
   applyFilter: "Apply filter",
   archive: "Archive",
+  breadcrumb: "Breadcrumb",
   bulkEdit: "Bulk edit",
   cancel: "Cancel",
   close: "Close",
@@ -101,6 +102,7 @@ export const cmsAdminLocalePacks = Object.freeze({
     addFieldRow: "Thêm hàng vào {label}",
     applyFilter: "Áp dụng bộ lọc",
     archive: "Lưu trữ",
+    breadcrumb: "Đường dẫn điều hướng",
     bulkEdit: "Sửa hàng loạt",
     cancel: "Hủy",
     close: "Đóng",
@@ -715,7 +717,7 @@ export function CmsAdminDocumentTree({
   return (
     <Fragment>
       {breadcrumbs.length ? (
-        <nav aria-label="Breadcrumb">
+        <nav aria-label={messages.breadcrumb}>
           <ol>
             {breadcrumbs.map((record) => (
               <li key={record.id}>

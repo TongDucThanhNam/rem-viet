@@ -172,7 +172,7 @@ describe("CMS admin platform v2", () => {
         />
       </>,
     );
-    expect(html).toContain('aria-label="Breadcrumb"');
+    expect(html).toContain('aria-label="Đường dẫn điều hướng"');
     expect(html).toContain('aria-label="Cây tài liệu"');
     expect(html).toContain('aria-current="page"');
     expect(html).toContain('data-cms-taxonomy-manager=""');

@@ -83,6 +83,8 @@ live inline-text consumer, and its live canvas consumes structured copy/paste
 through the secure preview protocol. Its live homepage and standard-page block
 lists consume the shared outline with Vietnamese labels; the homepage adapter
 also proves pinned and min/max constraints before rendering structural actions.
+The structured post body adapts seven rich-text block types to the same tree,
+including stable-ID canvas/inspector focus and a total-document node ceiling.
 Atelier registers nine independent editorial
 block types, a two-slot nested layout, two editorial patterns, and inline-enabled
 masthead/nested-story titles through the factory; its nested-slot fixture

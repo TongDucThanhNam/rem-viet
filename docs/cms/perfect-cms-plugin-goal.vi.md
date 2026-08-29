@@ -324,6 +324,15 @@ cùng affected typechecks và production build. Exact-commit packed 24-artifact
 consumer pass toàn bộ matrix; homepage/post/generic route adoption và browser
 E2E vẫn còn mở.
 
+Follow-up `e8bf942ebeb7c9e13aba06f0c24c311f89892d33` migrate live homepage
+block list sang packaged outline và gộp pinned, global min/max, slot cardinality
+vào action availability. Follow-up `2346996a60445d91259485d4911ff2e10659f580`
+migrate structured post body sang cùng tree, thêm adapter cho bảy rich-text block
+type, stable-ID selection/focus, permission-aware add/duplicate/move/delete và
+optional total-node limit để phản ánh đúng ceiling 500 block. Targeted kernel,
+post adapter/protocol, typecheck, production build và exact-commit packed
+consumer đều pass. Generic-collection adoption và final browser E2E vẫn còn mở.
+
 Acceptance evidence:
 
 - authenticated E2E cho mỗi document type trên desktop/mobile;
@@ -621,18 +630,18 @@ browser matrix hoặc human receipt sau mỗi increment.
 
 Implementation gate hiện đã có local/hosted evidence trong
 [`perfect-cms-plugin-completion-audit.md`](./perfect-cms-plugin-completion-audit.md).
-Increment mới nhất là homepage shared-outline adoption tại `e8bf942`, tiếp nối
-shared visual outline kernel tại `07bc320`, structured clipboard tại `51e6ec3`,
-permissioned inline text tại `8fc914c` và visual component patterns/presets tại
-`c67f225`. Outline kernel giờ gộp capability grant với pinned, global min/max và
-slot cardinality để UI không quảng cáo action mà canonical composition sẽ từ
-chối. Rèm live homepage, standard-page list và Atelier nested-layout proof dùng
+Increment mới nhất là post shared-outline adoption tại `2346996`, tiếp nối
+homepage adoption tại `e8bf942`, shared visual outline kernel tại `07bc320`,
+structured clipboard tại `51e6ec3`, permissioned inline text tại `8fc914c` và
+visual component patterns/presets tại `c67f225`. Outline kernel giờ gộp
+capability grant với pinned, global min/max, slot cardinality và optional total
+node ceiling để UI không quảng cáo action mà canonical composition sẽ từ chối.
+Rèm live post, homepage, standard-page list và Atelier nested-layout proof dùng
 cùng selection/nesting/capability contract; targeted tests, production build và
-exact-commit packed consumer đều pass. Post và generic-collection adoption tiếp
-tục trong implementation phase. Các increment này tiếp nối complete Admin
-Platform v2 localization tại `982f3a4` và reusable content tại `baf899a`; các
-checkbox final acceptance bên dưới vẫn để mở cho exact implementation-freeze
-candidate.
+exact-commit packed consumer đều pass. Generic-collection adoption tiếp tục
+trong implementation phase. Các increment này tiếp nối complete Admin Platform
+v2 localization tại `982f3a4` và reusable content tại `baf899a`; các checkbox
+final acceptance bên dưới vẫn để mở cho exact implementation-freeze candidate.
 
 ### 10.2 Final E2E và human acceptance — chạy sau implementation freeze
 

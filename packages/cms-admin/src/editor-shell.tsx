@@ -1,4 +1,20 @@
-import { forwardRef, type HTMLAttributes, type ReactNode } from "react";
+import {
+  forwardRef,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type HTMLAttributes,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
+import {
+  flattenCmsVisualOutline,
+  getCmsVisualOutlineExpandableNodeIds,
+  reduceCmsVisualOutlineKeyboard,
+  type CmsVisualOutlineItem,
+  type CmsVisualOutlineKeyboardKey,
+} from "@agency/cms-visual-editor";
 
 export type CmsEditorShellMode = "standard" | "focused";
 export type CmsEditorShellProps = Omit<
@@ -88,5 +104,224 @@ export function CmsEditorShellPanel({
     >
       {children}
     </Element>
+  );
+}
+
+const cmsVisualOutlineKeyboardKeys = new Set<CmsVisualOutlineKeyboardKey>([
+  "ArrowDown",
+  "ArrowUp",
+  "ArrowLeft",
+  "ArrowRight",
+  "Home",
+  "End",
+  "Enter",
+  " ",
+]);
+
+function sameIds(left: readonly string[], right: readonly string[]): boolean {
+  return (
+    left.length === right.length &&
+    left.every((value, index) => value === right[index])
+  );
+}
+
+function classFor<T>(
+  value: string | ((item: T) => string) | undefined,
+  item: T,
+): string | undefined {
+  return typeof value === "function" ? value(item) : value;
+}
+
+export type CmsVisualOutlineProps = Omit<
+  HTMLAttributes<HTMLUListElement>,
+  "aria-label" | "children" | "onSelect"
+> &
+  Readonly<{
+    label: string;
+    items: readonly CmsVisualOutlineItem[];
+    onSelectNode: (nodeId: string) => void;
+    empty?: ReactNode;
+    itemClassName?: string | ((item: CmsVisualOutlineItem) => string);
+    treeItemClassName?: string | ((item: CmsVisualOutlineItem) => string);
+    groupClassName?: string;
+    renderLabel?: (item: CmsVisualOutlineItem) => ReactNode;
+    renderActions?: (item: CmsVisualOutlineItem) => ReactNode;
+  }>;
+
+/**
+ * Accessible template-neutral document outline. It implements WAI-ARIA tree
+ * keyboard navigation and exposes permission state while leaving labels,
+ * visual styling, and document-specific action controls to the consumer.
+ */
+export function CmsVisualOutline({
+  empty = null,
+  groupClassName,
+  itemClassName,
+  items,
+  label,
+  onSelectNode,
+  renderActions,
+  renderLabel = (item) => item.label,
+  treeItemClassName,
+  ...props
+}: CmsVisualOutlineProps) {
+  const allItems = useMemo(() => flattenCmsVisualOutline(items), [items]);
+  const selectedNodeId = allItems.find(({ selected }) => selected)?.id ?? null;
+  const expandableNodeIds = useMemo(
+    () => getCmsVisualOutlineExpandableNodeIds(items),
+    [items],
+  );
+  const [expandedNodeIds, setExpandedNodeIds] =
+    useState<readonly string[]>(expandableNodeIds);
+  const [focusedNodeId, setFocusedNodeId] = useState<string | null>(
+    selectedNodeId ?? allItems[0]?.id ?? null,
+  );
+  const itemRefs = useRef(new Map<string, HTMLButtonElement>());
+  const previousSelectedNodeId = useRef<string | null>(null);
+
+  useEffect(() => {
+    const validIds = new Set(allItems.map(({ id }) => id));
+    const expandable = new Set(expandableNodeIds);
+    const nextExpanded = expandedNodeIds.filter((id) => expandable.has(id));
+    const selectionChanged = previousSelectedNodeId.current !== selectedNodeId;
+    previousSelectedNodeId.current = selectedNodeId;
+    if (selectionChanged && selectedNodeId && validIds.has(selectedNodeId)) {
+      let current = allItems.find(({ id }) => id === selectedNodeId);
+      while (current?.parentId) {
+        if (!nextExpanded.includes(current.parentId)) {
+          nextExpanded.push(current.parentId);
+        }
+        current = allItems.find(({ id }) => id === current?.parentId);
+      }
+    }
+    const ordered = expandableNodeIds.filter((id) => nextExpanded.includes(id));
+    if (!sameIds(expandedNodeIds, ordered)) setExpandedNodeIds(ordered);
+    const nextFocus =
+      selectionChanged && selectedNodeId && validIds.has(selectedNodeId)
+        ? selectedNodeId
+        : focusedNodeId && validIds.has(focusedNodeId)
+          ? focusedNodeId
+          : (allItems[0]?.id ?? null);
+    if (nextFocus !== focusedNodeId) setFocusedNodeId(nextFocus);
+  }, [
+    allItems,
+    expandableNodeIds,
+    expandedNodeIds,
+    focusedNodeId,
+    selectedNodeId,
+  ]);
+
+  const expanded = useMemo(() => new Set(expandedNodeIds), [expandedNodeIds]);
+
+  const focusItem = (nodeId: string | null) => {
+    if (!nodeId) return;
+    queueMicrotask(() => itemRefs.current.get(nodeId)?.focus());
+  };
+
+  const toggle = (item: CmsVisualOutlineItem) => {
+    if (item.children.length === 0) return;
+    const next = new Set(expandedNodeIds);
+    if (next.has(item.id)) next.delete(item.id);
+    else next.add(item.id);
+    setExpandedNodeIds(expandableNodeIds.filter((nodeId) => next.has(nodeId)));
+    setFocusedNodeId(item.id);
+    focusItem(item.id);
+  };
+
+  const handleKeyDown = (
+    event: KeyboardEvent<HTMLButtonElement>,
+    item: CmsVisualOutlineItem,
+  ) => {
+    if (
+      !cmsVisualOutlineKeyboardKeys.has(
+        event.key as CmsVisualOutlineKeyboardKey,
+      )
+    ) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    const result = reduceCmsVisualOutlineKeyboard({
+      items,
+      focusedNodeId: item.id,
+      expandedNodeIds: expanded,
+      key: event.key as CmsVisualOutlineKeyboardKey,
+    });
+    setFocusedNodeId(result.focusNodeId);
+    setExpandedNodeIds(result.expandedNodeIds);
+    if (result.activateNodeId) onSelectNode(result.activateNodeId);
+    focusItem(result.focusNodeId);
+  };
+
+  const renderItems = (outlineItems: readonly CmsVisualOutlineItem[]) =>
+    outlineItems.map((item) => {
+      const hasChildren = item.children.length > 0;
+      const itemExpanded = hasChildren && expanded.has(item.id);
+      return (
+        <li
+          data-cms-outline-depth={item.depth}
+          data-cms-outline-enabled={item.enabled ? "true" : "false"}
+          data-cms-outline-node-id={item.id}
+          data-cms-outline-node-type={item.type}
+          data-cms-outline-can-duplicate={
+            item.actions.duplicate ? "true" : "false"
+          }
+          data-cms-outline-can-edit={item.actions.edit ? "true" : "false"}
+          data-cms-outline-can-insert={item.actions.insert ? "true" : "false"}
+          data-cms-outline-can-move={item.actions.move ? "true" : "false"}
+          data-cms-outline-can-remove={item.actions.remove ? "true" : "false"}
+          key={item.id}
+          role="none"
+        >
+          <div className={classFor(itemClassName, item)}>
+            <button
+              aria-expanded={hasChildren ? itemExpanded : undefined}
+              aria-level={item.depth + 1}
+              aria-selected={item.selected}
+              className={classFor(treeItemClassName, item)}
+              data-cms-outline-tree-item={item.id}
+              ref={(element) => {
+                if (element) itemRefs.current.set(item.id, element);
+                else itemRefs.current.delete(item.id);
+              }}
+              role="treeitem"
+              tabIndex={focusedNodeId === item.id ? 0 : -1}
+              type="button"
+              onClick={(event) => {
+                setFocusedNodeId(item.id);
+                if (
+                  hasChildren &&
+                  event.target instanceof Element &&
+                  event.target.closest("[data-cms-outline-toggle]")
+                ) {
+                  toggle(item);
+                }
+                onSelectNode(item.id);
+              }}
+              onKeyDown={(event) => handleKeyDown(event, item)}
+            >
+              {hasChildren ? (
+                <span aria-hidden data-cms-outline-toggle={item.id}>
+                  {itemExpanded ? "−" : "+"}
+                </span>
+              ) : null}
+              {renderLabel(item)}
+            </button>
+            {renderActions?.(item)}
+          </div>
+          {itemExpanded ? (
+            <ul className={groupClassName} role="group">
+              {renderItems(item.children)}
+            </ul>
+          ) : null}
+        </li>
+      );
+    });
+
+  if (items.length === 0) return <>{empty}</>;
+  return (
+    <ul {...props} aria-label={label} role="tree">
+      {renderItems(items)}
+    </ul>
   );
 }

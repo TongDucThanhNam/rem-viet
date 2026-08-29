@@ -97,6 +97,19 @@ Rèm's standard-page host and canvas expose structured Copy and Paste-after
 actions plus `Ctrl/Cmd+C` and `Ctrl/Cmd+V` when focus is outside a text control.
 The iframe emits bounded v1-compatible intents only inside its authenticated v2
 session; the host owns the internal editor clipboard and canonical history
-commit. Atelier independently proves nested-slot paste with a fresh ID. Shared
-outline/workspace extraction and final-candidate browser acceptance remain the
-next P0-03 work; broad E2E is still deferred until implementation freeze.
+commit. Atelier independently proves nested-slot paste with a fresh ID.
+
+The shared outline extraction now derives nested parent/slot/depth, normalized
+selection, enabled state, localized labels, and insert/edit/move/duplicate/remove
+availability from the canonical document, registry, and current grants. Its pure
+keyboard reducer defines visible-node Arrow/Home/End traversal, Left/Right
+collapse/expand, and Enter/Space activation. `@agency/cms-admin` renders that
+model as one roving-focus ARIA tree while templates/apps inject styling and
+document-specific action controls.
+
+Rèm's live standard-page list adopts the shared tree with Vietnamese labels and
+permission-disabled move controls. Atelier independently maps its nested
+primary/sidebar layout and renders the same component with its own labels.
+Homepage, post, and generic-collection route adoption plus the final-candidate
+browser acceptance remain follow-up P0-03 work; broad E2E is still deferred
+until implementation freeze.

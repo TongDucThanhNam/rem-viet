@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
+import { CmsVisualOutline } from "@agency/cms-admin";
 import {
   applyCmsVisualClipboardPaste,
   applyCmsVisualInlineTextUpdate,
@@ -13,6 +14,7 @@ import { createAtelierBootstrapPlan } from "../src/bootstrap";
 import {
   atelierTemplateFactory,
   createAtelierDefaultDocument,
+  createAtelierVisualOutline,
 } from "../src/visual-authoring";
 
 describe("Atelier second template", () => {
@@ -128,6 +130,49 @@ describe("Atelier second template", () => {
       type: "storyCard",
       data: { title: "The useful edge" },
     });
+  });
+
+  test("renders its nested document through the shared accessible outline", () => {
+    const document = createAtelierDefaultDocument("atelier-demo");
+    const outline = createAtelierVisualOutline({
+      document,
+      selection: { nodeId: "home-story" },
+      grants: new Set([
+        "content.compose.insert",
+        "content.component.edit",
+        "content.compose.move",
+        "content.compose.duplicate",
+        "content.compose.remove",
+      ]),
+    });
+    expect(outline[1]).toMatchObject({
+      id: "home-columns",
+      label: "Column layout",
+      depth: 0,
+    });
+    expect(outline[1]?.children[0]).toMatchObject({
+      id: "home-story",
+      label: "Story",
+      depth: 1,
+      parentId: "home-columns",
+      slot: "primary",
+      selected: true,
+      actions: { move: true, remove: true },
+    });
+
+    const html = renderToStaticMarkup(
+      <CmsVisualOutline
+        items={outline}
+        label="Atelier document outline"
+        onSelectNode={() => undefined}
+      />,
+    );
+    expect(html).toContain('role="tree"');
+    expect(html).toContain('aria-label="Atelier document outline"');
+    expect(html).toContain('data-cms-outline-node-id="home-story"');
+    expect(html).toContain('aria-level="2"');
+    expect(html).toContain('aria-selected="true"');
+    expect(html).toContain('data-cms-outline-can-move="true"');
   });
 
   test("renders a distinct editorial information architecture", () => {

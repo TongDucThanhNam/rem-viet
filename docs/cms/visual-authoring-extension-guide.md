@@ -39,6 +39,12 @@ If the visual UI needs a new behavior, extend the neutral adapter/command
 contract only when both templates can use it. Template-specific presentation,
 copy, CSS and animation stay in the template.
 
+Build document navigation with `createCmsVisualOutline()` and render it through
+`CmsVisualOutline` (or an adapter that preserves its model and keyboard
+semantics). Templates supply localized type labels and applications inject
+document-specific controls. Do not rebuild parent/slot traversal, roving focus,
+selection normalization, or capability visibility independently in each route.
+
 ## Permission and security review
 
 Client-side controls are presentation only. Repeat capability, tenant/site,
@@ -59,6 +65,11 @@ bounded channel, regenerate every nested node ID, and apply paste through
 slot/cardinality constraints, and insert grants are checked recursively. Commit
 the returned document as one history step. Never insert deserialized clipboard
 nodes directly into route state or trust IDs supplied by a source document.
+
+Outline action flags are presentation metadata, not server authority. They must
+come from the registered component capabilities and current grants, and every
+resulting mutation must still pass the canonical command plus provider/server
+authorization path.
 
 ## Required verification
 

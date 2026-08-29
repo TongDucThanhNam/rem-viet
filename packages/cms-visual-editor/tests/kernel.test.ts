@@ -16,6 +16,7 @@ import {
   createCmsVisualEditorPasteMessage,
   createCmsVisualEditorStateMessage,
   createCmsVisualMigrationRegistry,
+  createCmsVisualOutline,
   createCmsVisualPatternRegistry,
   createCmsVisualPreviewEnvelope,
   createCmsVisualPreviewResponseHeaders,
@@ -23,6 +24,8 @@ import {
   defineCmsVisualComponent,
   defineCmsVisualPattern,
   filterCmsVisualPatterns,
+  flattenCmsVisualOutline,
+  getCmsVisualOutlineExpandableNodeIds,
   getCmsVisualInlineTextTargets,
   initialCmsVisualPreviewReplayState,
   isCmsVisualEditorMessage,
@@ -31,6 +34,7 @@ import {
   parseCmsVisualClipboardText,
   parseCmsVisualDocument,
   redoCmsDraftHistory,
+  reduceCmsVisualOutlineKeyboard,
   serializeCmsVisualClipboardPayload,
   undoCmsDraftHistory,
   validateCmsVisualPreviewEnvelope,
@@ -214,6 +218,75 @@ describe("visual component registry", () => {
         nodeIds: new Set(["hero-1"]),
       }),
     ).toEqual({ nodeId: null });
+  });
+
+  test("builds a nested permission-aware outline with deterministic keyboard navigation", () => {
+    const outline = createCmsVisualOutline({
+      document: document(),
+      registry,
+      grants: new Set(["visual.component.edit", "visual.component.move"]),
+      selection: { nodeId: "text-1", fieldPath: "text" },
+      label: (node) => ` ${node.type} label `,
+    });
+    expect(outline[0]).toMatchObject({
+      id: "hero-1",
+      label: "hero label",
+      depth: 0,
+      actions: {
+        insert: true,
+        edit: true,
+        move: true,
+        duplicate: true,
+        remove: false,
+      },
+    });
+    expect(outline[1]?.children[0]).toMatchObject({
+      id: "text-1",
+      parentId: "layout-1",
+      slot: "content",
+      depth: 1,
+      selected: true,
+    });
+    expect(getCmsVisualOutlineExpandableNodeIds(outline)).toEqual(["layout-1"]);
+    expect(
+      flattenCmsVisualOutline(outline, new Set()).map(({ id }) => id),
+    ).toEqual(["hero-1", "layout-1"]);
+
+    const expanded = reduceCmsVisualOutlineKeyboard({
+      items: outline,
+      focusedNodeId: "layout-1",
+      expandedNodeIds: new Set(),
+      key: "ArrowRight",
+    });
+    expect(expanded).toEqual({
+      focusNodeId: "layout-1",
+      expandedNodeIds: ["layout-1"],
+      activateNodeId: null,
+    });
+    expect(
+      reduceCmsVisualOutlineKeyboard({
+        items: outline,
+        focusedNodeId: "layout-1",
+        expandedNodeIds: new Set(expanded.expandedNodeIds),
+        key: "ArrowRight",
+      }).focusNodeId,
+    ).toBe("text-1");
+    expect(
+      reduceCmsVisualOutlineKeyboard({
+        items: outline,
+        focusedNodeId: "text-1",
+        expandedNodeIds: new Set(expanded.expandedNodeIds),
+        key: "ArrowLeft",
+      }).focusNodeId,
+    ).toBe("layout-1");
+    expect(
+      reduceCmsVisualOutlineKeyboard({
+        items: outline,
+        focusedNodeId: "text-1",
+        expandedNodeIds: new Set(expanded.expandedNodeIds),
+        key: "Enter",
+      }).activateNodeId,
+    ).toBe("text-1");
   });
 });
 

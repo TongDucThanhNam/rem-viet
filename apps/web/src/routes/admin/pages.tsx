@@ -2,6 +2,7 @@ import {
   CmsBlockEditor,
   CmsDraftStatusSlots,
   CmsRevisionList,
+  CmsVisualOutline,
   CmsWorkflowActionSlots,
   areCmsRevisionValuesEqual,
   compareCmsRevisionFieldDetails,
@@ -138,6 +139,7 @@ import {
   pasteStandardPageBlocks,
 } from "@/lib/standard-page-clipboard";
 import { applyStandardPagePattern } from "@/lib/standard-page-patterns";
+import { createStandardPageVisualOutline } from "@/lib/standard-page-outline";
 import { siteManifest } from "@/lib/site-config";
 import { useTRPC } from "@/utils/trpc";
 
@@ -2466,6 +2468,22 @@ function AdminPagesRoute() {
   const canonicalSelected = selected
     ? toRemVietStandardBlock(selected, selectedIndex)
     : null;
+  const standardPageOutline = useMemo(
+    () =>
+      createStandardPageVisualOutline({
+        blocks,
+        selectedBlockId: selected?.id ?? null,
+        version: workingVersion ?? editingPage?.version ?? 0,
+        canWrite: session?.capabilities.includes("content.write") ?? false,
+      }),
+    [
+      blocks,
+      editingPage?.version,
+      selected?.id,
+      session?.capabilities,
+      workingVersion,
+    ],
+  );
   const filteredStandardCatalog = filterCmsBlockAuthoringCatalog(
     remVietStandardBlockAuthoringCatalog,
     blockCatalogQuery,
@@ -2902,50 +2920,66 @@ function AdminPagesRoute() {
                       workspaceFocused && "hidden",
                     )}
                   >
-                    {blocks.map((block, index) => (
-                      <div
-                        className={cn(
+                    <CmsVisualOutline
+                      className="grid gap-2"
+                      itemClassName={(item) =>
+                        cn(
                           "flex items-center gap-2 rounded-md border p-2 text-left text-xs",
-                          index === selectedIndex &&
-                            "border-primary bg-primary/5",
-                        )}
-                        key={`${block.type}-${index}`}
-                      >
-                        <button
-                          className="min-w-0 flex-1 truncate text-left"
-                          type="button"
-                          onClick={() => selectStandardBlock(index)}
-                        >
-                          {index + 1}. {standardBlockLabels[block.type]}
-                        </button>
-                        <Button
-                          aria-label="Lên"
-                          disabled={index === 0}
-                          size="icon-sm"
-                          type="button"
-                          variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            moveBlockFromCanvas(index, index - 1, "before");
-                          }}
-                        >
-                          <ChevronUp />
-                        </Button>
-                        <Button
-                          aria-label="Xuống"
-                          disabled={index === blocks.length - 1}
-                          size="icon-sm"
-                          type="button"
-                          variant="ghost"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            moveBlockFromCanvas(index, index + 1, "after");
-                          }}
-                        >
-                          <ChevronDown />
-                        </Button>
-                      </div>
-                    ))}
+                          item.selected && "border-primary bg-primary/5",
+                        )
+                      }
+                      items={standardPageOutline}
+                      label="Cấu trúc trang nội dung"
+                      treeItemClassName="min-w-0 flex-1 truncate text-left"
+                      onSelectNode={(nodeId) => {
+                        const index = blocks.findIndex(
+                          (block) => block.id === nodeId,
+                        );
+                        if (index >= 0) selectStandardBlock(index);
+                      }}
+                      renderActions={(item) => (
+                        <>
+                          <Button
+                            aria-label={`Đưa ${item.label} lên`}
+                            disabled={!item.actions.move || item.index === 0}
+                            size="icon-sm"
+                            type="button"
+                            variant="ghost"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              moveBlockFromCanvas(
+                                item.index,
+                                item.index - 1,
+                                "before",
+                              );
+                            }}
+                          >
+                            <ChevronUp />
+                          </Button>
+                          <Button
+                            aria-label={`Đưa ${item.label} xuống`}
+                            disabled={
+                              !item.actions.move ||
+                              item.index === blocks.length - 1
+                            }
+                            size="icon-sm"
+                            type="button"
+                            variant="ghost"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              moveBlockFromCanvas(
+                                item.index,
+                                item.index + 1,
+                                "after",
+                              );
+                            }}
+                          >
+                            <ChevronDown />
+                          </Button>
+                        </>
+                      )}
+                      renderLabel={(item) => `${item.index + 1}. ${item.label}`}
+                    />
                   </div>
                   <div
                     className={cn(

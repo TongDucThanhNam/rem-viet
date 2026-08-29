@@ -16,4 +16,6 @@ declares content semantics and bounds without importing any app route or React
 editing implementation. Its nested story fixture also proves the shared
 structured clipboard can paste into a declared layout slot with fresh IDs and
 one document version while preserving Atelier's independent schema and
-constraints. `./bootstrap` generates a complete client plan.
+constraints. The same nested fixture maps its primary/sidebar slots into the
+shared permission-aware outline and renders the packaged ARIA tree without Rèm
+labels or route code. `./bootstrap` generates a complete client plan.

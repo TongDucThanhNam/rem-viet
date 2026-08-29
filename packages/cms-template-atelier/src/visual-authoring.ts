@@ -4,10 +4,15 @@ import {
 } from "@agency/cms-template-factory";
 import type {
   CmsVisualComponentConstraints,
+  CmsVisualDocument,
   CmsVisualFieldDefinition,
   CmsVisualNode,
+  CmsVisualSelection,
 } from "@agency/cms-visual-editor";
-import { defineCmsVisualPattern } from "@agency/cms-visual-editor";
+import {
+  createCmsVisualOutline,
+  defineCmsVisualPattern,
+} from "@agency/cms-visual-editor";
 
 import { atelierDataSchemas, type AtelierBlockType } from "./contracts.js";
 
@@ -212,6 +217,18 @@ export const atelierTemplateBlocks = Object.freeze([
   columnLayoutBlock,
 ]);
 
+export const atelierVisualOutlineLabels = Object.freeze({
+  masthead: "Masthead",
+  issueIndex: "Issue index",
+  storyCard: "Story",
+  mediaFeature: "Media feature",
+  quotePull: "Pull quote",
+  scheduleGrid: "Schedule",
+  membershipCta: "Membership callout",
+  siteFooter: "Footer",
+  columnLayout: "Column layout",
+} satisfies Record<AtelierBlockType, string>);
+
 export const atelierEditorialFeaturePattern = defineCmsVisualPattern({
   id: "editorial-feature",
   label: "Editorial feature",
@@ -259,6 +276,22 @@ export const atelierTemplateFactory = createCmsTemplateFactory({
   blocks: atelierTemplateBlocks,
   patterns: atelierVisualPatterns,
 });
+
+/** Independent template adapter for the shared permission-aware outline. */
+export function createAtelierVisualOutline(input: {
+  document: CmsVisualDocument;
+  selection: CmsVisualSelection;
+  grants: ReadonlySet<string>;
+}) {
+  return createCmsVisualOutline({
+    document: input.document,
+    registry: atelierTemplateFactory.registry,
+    selection: input.selection,
+    grants: input.grants,
+    label: (node) =>
+      atelierVisualOutlineLabels[node.type as AtelierBlockType] ?? node.type,
+  });
+}
 
 export function createAtelierDefaultDocument(
   siteId: string,

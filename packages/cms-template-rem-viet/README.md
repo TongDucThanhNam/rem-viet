@@ -51,6 +51,12 @@ inserted roots as one undoable history entry. Canvas and host shortcuts travel
 through the authenticated preview session; the clipboard payload itself never
 bypasses the canonical command path.
 
+The live standard-page block list is also backed by the shared visual outline
+instead of a route-local list algorithm. The Rèm adapter supplies Vietnamese
+labels and maps the application write capability to the template's explicit
+composition grants; selection, stable IDs, action availability, and keyboard
+tree behavior come from the packaged kernel/admin contract.
+
 The `./bootstrap` export is the installed-template initializer consumed by
 `agency-cms plan-init`. It generates a schema-v2 plan containing the canonical
 site manifest, empty environment example, all-ten-block draft seed, handover

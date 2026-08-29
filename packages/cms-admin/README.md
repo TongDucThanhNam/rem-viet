@@ -12,6 +12,12 @@ stable-ID block revision summaries, value-safe metadata-field comparison, and a
 provider-neutral media-selection resolver that adopts reviewed library alt text
 without retaining stale descriptions while allowing explicit decorative-image
 preservation.
+`CmsVisualOutline` renders the kernel's nested outline as an accessible ARIA
+tree with roving focus, Arrow/Home/End traversal, Left/Right collapse and expand,
+and Enter/Space selection. Templates inject labels, styling, and action controls;
+the component exposes canonical depth, slot, enabled state, and permission-
+resolved insert/edit/move/duplicate/remove availability through typed items and
+stable data attributes.
 Reusable-content primitives add accent-insensitive library discovery, published
 and draft-only status, inbound usage counts, synced/pinned reference state,
 override reset, and guarded detach actions. They consume the same complete

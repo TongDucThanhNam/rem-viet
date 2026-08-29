@@ -315,7 +315,8 @@ export type CmsReusableContentRuntime = ReturnType<
 
 /**
  * First-class reusable-content lifecycle over the portable collection provider.
- * The same runtime therefore works with local, Cloudflare D1, and Postgres.
+ * The same runtime therefore works across embedded, edge, and server SQL
+ * adapters without importing any provider-specific contract.
  */
 export function createCmsReusableContentRuntime(
   provider: CmsCollectionProvider,

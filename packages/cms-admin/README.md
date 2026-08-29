@@ -43,10 +43,14 @@ filter/search controls, list tables, and create/edit forms from a core registry.
 Built-in controls cover every core field kind, relationship options are supplied
 by the application, conditional visibility is shared with validation, and field-
 or kind-level control registries allow template-owned premium UX without forking
-the workflow shell. Transport, URLs, state, localization, and mutations remain
-consumer callbacks.
+the workflow shell. Generated interface copy resolves through the shared complete
+English/Vietnamese locale packs; consumers select it with `uiLocale`, may provide
+bounded `messageOverrides`, and receive the same resolved messages in custom field
+controls. Transport, URLs, content locale state, collection/field labels, and
+mutations remain consumer callbacks.
 
 For localized collections the generated list and forms expose an accessible
 locale selector, label fields as shared or localized, show locale/fallback
 state in result rows, and preserve locale in edit and preview callbacks. The
-application still owns routing and translated interface copy.
+application still owns routing, content-locale state, and translated collection
+and field labels.

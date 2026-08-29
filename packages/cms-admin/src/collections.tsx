@@ -16,6 +16,12 @@ import {
   type CmsCollectionRegistry,
 } from "@agency/cms-core";
 
+import {
+  resolveCmsAdminMessages,
+  type CmsAdminLocale,
+  type CmsAdminMessages,
+} from "./platform.js";
+
 export type CmsCollectionAdminDocument = {
   readonly id: string;
   readonly version: number;
@@ -46,6 +52,8 @@ export type CmsCollectionFieldControlProps = {
   >;
   readonly controls?: CmsCollectionFieldControlRegistry;
   readonly fieldPath?: string;
+  readonly uiLocale: CmsAdminLocale;
+  readonly messages: CmsAdminMessages;
   readonly setValue: (value: unknown) => void;
 };
 
@@ -139,12 +147,22 @@ function definitionFor(
   >;
 }
 
-function displayValue(value: unknown) {
+function displayValue(value: unknown, messages: CmsAdminMessages) {
   if (value === undefined || value === null || value === "") return "—";
-  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "boolean") return value ? messages.yes : messages.no;
   if (Array.isArray(value)) return value.join(", ") || "—";
   if (typeof value === "object") return JSON.stringify(value);
   return String(value);
+}
+
+function formatCmsAdminMessage(
+  template: string,
+  values: Readonly<Record<string, string | number>>,
+) {
+  return Object.entries(values).reduce(
+    (message, [key, value]) => message.replaceAll(`{${key}}`, String(value)),
+    template,
+  );
 }
 
 function defaultColumns(collection: CmsCollectionDefinition) {
@@ -162,15 +180,20 @@ export type CmsCollectionNavigationProps = {
   readonly registry: CmsCollectionRegistry;
   readonly current: string;
   readonly collectionHref: (slug: string) => string;
+  readonly uiLocale?: CmsAdminLocale;
+  readonly messageOverrides?: Partial<CmsAdminMessages>;
 };
 
 export function CmsCollectionNavigation({
   registry,
   current,
   collectionHref,
+  uiLocale = "en",
+  messageOverrides,
 }: CmsCollectionNavigationProps): ReactElement {
+  const messages = resolveCmsAdminMessages(uiLocale, messageOverrides);
   return (
-    <nav aria-label="Collections">
+    <nav aria-label={messages.collections}>
       <ul>
         {registry.collections.map((collection) => (
           <li key={collection.slug}>
@@ -205,6 +228,8 @@ export type CmsCollectionListProps = {
   readonly locale?: string;
   readonly onLocaleChange?: (locale: string) => void;
   readonly empty?: ReactNode;
+  readonly uiLocale?: CmsAdminLocale;
+  readonly messageOverrides?: Partial<CmsAdminMessages>;
 };
 
 export function CmsCollectionList({
@@ -218,8 +243,11 @@ export function CmsCollectionList({
   previewHref,
   locale,
   onLocaleChange,
-  empty = "No documents found.",
+  empty,
+  uiLocale = "en",
+  messageOverrides,
 }: CmsCollectionListProps): ReactElement {
+  const messages = resolveCmsAdminMessages(uiLocale, messageOverrides);
   const headingId = `cms-${collection.slug}-heading`;
   const filterable = collection.fields.filter(
     (field) =>
@@ -234,11 +262,17 @@ export function CmsCollectionList({
     <section aria-labelledby={headingId}>
       <header>
         <h1 id={headingId}>{collection.labels.plural}</h1>
-        <a href={createHref}>Create {collection.labels.singular}</a>
+        <a href={createHref}>
+          {formatCmsAdminMessage(messages.createItem, {
+            label: collection.labels.singular,
+          })}
+        </a>
       </header>
       {collection.localization ? (
         <div>
-          <label htmlFor={`cms-${collection.slug}-locale`}>Locale</label>
+          <label htmlFor={`cms-${collection.slug}-locale`}>
+            {messages.locale}
+          </label>
           <select
             id={`cms-${collection.slug}-locale`}
             value={locale ?? collection.localization.defaultLocale}
@@ -251,18 +285,22 @@ export function CmsCollectionList({
             ))}
           </select>
           <p aria-live="polite">
-            Showing {locale ?? collection.localization.defaultLocale} locale
+            {formatCmsAdminMessage(messages.showingLocale, {
+              locale: locale ?? collection.localization.defaultLocale,
+            })}
           </p>
         </div>
       ) : null}
       {filterable.length ? (
         <form
-          aria-label={`Filter ${collection.labels.plural}`}
+          aria-label={formatCmsAdminMessage(messages.filterCollection, {
+            label: collection.labels.plural,
+          })}
           role="search"
           onSubmit={(event) => event.preventDefault()}
         >
           <label htmlFor={`cms-${collection.slug}-filter-field`}>
-            Filter field
+            {messages.filterField}
           </label>
           <select
             id={`cms-${collection.slug}-filter-field`}
@@ -278,7 +316,7 @@ export function CmsCollectionList({
             ))}
           </select>
           <label htmlFor={`cms-${collection.slug}-filter-operator`}>
-            Filter operator
+            {messages.filterOperator}
           </label>
           <select
             id={`cms-${collection.slug}-filter-operator`}
@@ -290,11 +328,11 @@ export function CmsCollectionList({
               })
             }
           >
-            <option value="contains">Contains</option>
-            <option value="equals">Equals</option>
+            <option value="contains">{messages.contains}</option>
+            <option value="equals">{messages.equals}</option>
           </select>
           <label htmlFor={`cms-${collection.slug}-filter-value`}>
-            Filter value
+            {messages.filterValue}
           </label>
           <input
             id={`cms-${collection.slug}-filter-value`}
@@ -304,13 +342,19 @@ export function CmsCollectionList({
               onFilterChange({ ...filter, value: event.currentTarget.value })
             }
           />
-          <button type="submit">Apply filter</button>
+          <button type="submit">{messages.applyFilter}</button>
         </form>
       ) : null}
-      <p aria-live="polite">{total} total</p>
+      <p aria-live="polite">
+        {formatCmsAdminMessage(messages.totalDocuments, { total })}
+      </p>
       {documents.length ? (
         <table>
-          <caption>{collection.labels.plural} collection</caption>
+          <caption>
+            {formatCmsAdminMessage(messages.collectionCaption, {
+              label: collection.labels.plural,
+            })}
+          </caption>
           <thead>
             <tr>
               {columns.map((name) => (
@@ -319,39 +363,65 @@ export function CmsCollectionList({
                     ?.label ?? name}
                 </th>
               ))}
-              <th scope="col">Status</th>
-              {collection.localization ? <th scope="col">Locale</th> : null}
-              <th scope="col">Actions</th>
+              <th scope="col">{messages.status}</th>
+              {collection.localization ? (
+                <th scope="col">{messages.locale}</th>
+              ) : null}
+              <th scope="col">{messages.actions}</th>
             </tr>
           </thead>
           <tbody>
             {documents.map((document) => (
               <tr key={`${document.id}:${document.locale ?? "shared"}`}>
                 {columns.map((name) => (
-                  <td key={name}>{displayValue(document.data[name])}</td>
+                  <td key={name}>
+                    {displayValue(document.data[name], messages)}
+                  </td>
                 ))}
-                <td>{document.status}</td>
+                <td>
+                  {(document.status === "published"
+                    ? messages.published
+                    : messages.draft
+                  ).toLocaleLowerCase(uiLocale)}
+                </td>
                 {collection.localization ? (
                   <td>
                     {document.locale ?? locale}
                     {document.fallbackFrom
-                      ? ` (fallback for ${document.fallbackFrom})`
+                      ? ` (${formatCmsAdminMessage(messages.fallbackLocale, {
+                          locale: document.fallbackFrom,
+                        })})`
                       : ""}
                   </td>
                 ) : null}
                 <td>
                   <a
-                    aria-label={`Edit ${displayValue(document.data[useAsTitle(collection)])}`}
+                    aria-label={formatCmsAdminMessage(messages.editItem, {
+                      label: displayValue(
+                        document.data[useAsTitle(collection)],
+                        messages,
+                      ),
+                    })}
                     href={editHref(document.id, document.locale ?? locale)}
                   >
-                    Edit
+                    {messages.edit}
                   </a>
                   {previewHref ? (
                     <a
-                      aria-label={`Preview ${displayValue(document.data[useAsTitle(collection)])} in ${document.locale ?? locale ?? "default"}`}
+                      aria-label={formatCmsAdminMessage(
+                        messages.previewItemInLocale,
+                        {
+                          label: displayValue(
+                            document.data[useAsTitle(collection)],
+                            messages,
+                          ),
+                          locale:
+                            document.locale ?? locale ?? messages.defaultLocale,
+                        },
+                      )}
                       href={previewHref(document.id, document.locale ?? locale)}
                     >
-                      Preview
+                      {messages.preview}
                     </a>
                   ) : null}
                 </td>
@@ -360,7 +430,7 @@ export function CmsCollectionList({
           </tbody>
         </table>
       ) : (
-        <p role="status">{empty}</p>
+        <p role="status">{empty ?? messages.noDocumentsFound}</p>
       )}
     </section>
   );
@@ -445,7 +515,7 @@ function nestedFieldControls(input: {
 function BuiltInCollectionFieldControl(
   props: CmsCollectionFieldControlProps,
 ): ReactElement {
-  const { field, controlId, value, disabled, setValue } = props;
+  const { field, controlId, value, disabled, messages, setValue } = props;
   const common = {
     id: controlId,
     name: field.name,
@@ -577,7 +647,7 @@ function BuiltInCollectionFieldControl(
       );
       break;
     case "json":
-      return jsonControl(props, "Structured JSON value");
+      return jsonControl(props, messages.structuredJsonValue);
     case "color":
       control = (
         <input
@@ -624,7 +694,7 @@ function BuiltInCollectionFieldControl(
           {field.admin?.description ? (
             <p id={`${controlId}-description`}>{field.admin.description}</p>
           ) : null}
-          <label htmlFor={`${controlId}-latitude`}>Latitude</label>
+          <label htmlFor={`${controlId}-latitude`}>{messages.latitude}</label>
           <input
             id={`${controlId}-latitude`}
             name={`${field.name}.latitude`}
@@ -643,7 +713,7 @@ function BuiltInCollectionFieldControl(
               )
             }
           />
-          <label htmlFor={`${controlId}-longitude`}>Longitude</label>
+          <label htmlFor={`${controlId}-longitude`}>{messages.longitude}</label>
           <input
             id={`${controlId}-longitude`}
             name={`${field.name}.longitude`}
@@ -676,7 +746,12 @@ function BuiltInCollectionFieldControl(
           ? (value as Readonly<Record<string, unknown>>)
           : {};
       return (
-        <div aria-label={`${field.label} fields`} role="group">
+        <div
+          aria-label={formatCmsAdminMessage(messages.fieldGroup, {
+            label: field.label,
+          })}
+          role="group"
+        >
           {nestedFieldControls({
             props,
             fields: field.fields as readonly CmsBuiltInField[],
@@ -695,7 +770,12 @@ function BuiltInCollectionFieldControl(
           )
         : [];
       return (
-        <div aria-label={`${field.label} rows`} role="group">
+        <div
+          aria-label={formatCmsAdminMessage(messages.fieldRows, {
+            label: field.label,
+          })}
+          role="group"
+        >
           {rows.map((row, index) => (
             <fieldset key={index}>
               <legend>
@@ -716,12 +796,15 @@ function BuiltInCollectionFieldControl(
               <button
                 type="button"
                 disabled={disabled}
-                aria-label={`Remove ${field.label} row ${index + 1}`}
+                aria-label={formatCmsAdminMessage(messages.removeFieldRow, {
+                  label: field.label,
+                  index: index + 1,
+                })}
                 onClick={() =>
                   setValue(rows.filter((_, candidate) => candidate !== index))
                 }
               >
-                Remove row
+                {messages.removeRow}
               </button>
             </fieldset>
           ))}
@@ -734,7 +817,9 @@ function BuiltInCollectionFieldControl(
             }
             onClick={() => setValue([...rows, {}])}
           >
-            Add {field.label} row
+            {formatCmsAdminMessage(messages.addFieldRow, {
+              label: field.label,
+            })}
           </button>
         </div>
       );
@@ -761,7 +846,7 @@ function BuiltInCollectionFieldControl(
         >
           {!field.multiple ? (
             <option value="" disabled={field.required}>
-              {field.required ? "Select an option" : "None"}
+              {field.required ? messages.selectAnOption : messages.none}
             </option>
           ) : null}
           {field.options.map((option) => (
@@ -795,7 +880,7 @@ function BuiltInCollectionFieldControl(
         >
           {!field.hasMany ? (
             <option value="" disabled={field.required}>
-              {field.required ? "Select a related document" : "None"}
+              {field.required ? messages.selectRelatedDocument : messages.none}
             </option>
           ) : null}
           {props.relationshipOptions.map((option) => (
@@ -872,7 +957,7 @@ function BuiltInCollectionFieldControl(
         >
           {!field.hasMany ? (
             <option value="" disabled={field.required}>
-              {field.required ? "Select a related document" : "None"}
+              {field.required ? messages.selectRelatedDocument : messages.none}
             </option>
           ) : null}
           {field.relationTo.map((target) => (
@@ -898,7 +983,7 @@ function BuiltInCollectionFieldControl(
     case "join":
       control = (
         <output id={controlId} data-cms-derived={field.kind}>
-          {displayValue(value)}
+          {displayValue(value, messages)}
         </output>
       );
       break;
@@ -924,9 +1009,9 @@ function BuiltInCollectionFieldControl(
       break;
     }
     case "rich-text":
-      return jsonControl(props, "Structured rich-text JSON fallback");
+      return jsonControl(props, messages.structuredRichTextJsonFallback);
     case "blocks":
-      return jsonControl(props, "Structured blocks JSON fallback");
+      return jsonControl(props, messages.structuredBlocksJsonFallback);
   }
   return (
     <Fragment>
@@ -960,6 +1045,8 @@ export type CmsCollectionFormProps = {
   readonly locale?: string;
   readonly onLocaleChange?: (locale: string) => void;
   readonly previewHref?: string;
+  readonly uiLocale?: CmsAdminLocale;
+  readonly messageOverrides?: Partial<CmsAdminMessages>;
 };
 
 function CollectionFormField(input: {
@@ -972,6 +1059,8 @@ function CollectionFormField(input: {
   relationshipOptions: Readonly<
     Record<string, readonly CmsRelationshipOption[]>
   >;
+  uiLocale: CmsAdminLocale;
+  messages: CmsAdminMessages;
   onChange: (data: Readonly<Record<string, unknown>>) => void;
 }) {
   const { collection, field, data, errors, saving, controls } = input;
@@ -987,8 +1076,8 @@ function CollectionFormField(input: {
         {field.label}
         {collection.localization
           ? field.localized
-            ? " (localized)"
-            : " (shared)"
+            ? ` (${input.messages.localized})`
+            : ` (${input.messages.shared})`
           : ""}
       </legend>
       <Control
@@ -1007,6 +1096,8 @@ function CollectionFormField(input: {
             : []
         }
         relationshipOptionsByCollection={input.relationshipOptions}
+        uiLocale={input.uiLocale}
+        messages={input.messages}
         setValue={(value) => {
           const next = { ...data };
           if (value === undefined) delete next[field.name];
@@ -1036,7 +1127,10 @@ export function CmsCollectionForm({
   locale,
   onLocaleChange,
   previewHref,
+  uiLocale = "en",
+  messageOverrides,
 }: CmsCollectionFormProps): ReactElement {
+  const messages = resolveCmsAdminMessages(uiLocale, messageOverrides);
   const headingId = `cms-${collection.slug}-${mode}-heading`;
   const errorEntries = Object.entries(errors);
   const layout = collection.admin?.layout ?? [];
@@ -1077,6 +1171,8 @@ export function CmsCollectionForm({
       saving={saving}
       controls={controls}
       relationshipOptions={relationshipOptions}
+      uiLocale={uiLocale}
+      messages={messages}
       onChange={onChange}
     />
   );
@@ -1097,12 +1193,15 @@ export function CmsCollectionForm({
   return (
     <section aria-labelledby={headingId}>
       <h1 id={headingId}>
-        {mode === "create" ? "Create" : "Edit"} {collection.labels.singular}
+        {formatCmsAdminMessage(
+          mode === "create" ? messages.createItem : messages.editItem,
+          { label: collection.labels.singular },
+        )}
       </h1>
       {collection.localization ? (
         <div>
           <label htmlFor={`cms-${collection.slug}-${mode}-locale`}>
-            Editing locale
+            {messages.editingLocale}
           </label>
           <select
             id={`cms-${collection.slug}-${mode}-locale`}
@@ -1119,7 +1218,7 @@ export function CmsCollectionForm({
       ) : null}
       {errorEntries.length ? (
         <div role="alert" tabIndex={-1}>
-          <h2>Fix the following fields</h2>
+          <h2>{messages.fixFollowingFields}</h2>
           <ul>
             {errorEntries.map(([name, message]) => (
               <li key={name}>
@@ -1133,7 +1232,9 @@ export function CmsCollectionForm({
         {tabGroups.length ? (
           <div data-cms-layout="tabs">
             <div
-              aria-label={`${collection.labels.singular} sections`}
+              aria-label={formatCmsAdminMessage(messages.collectionSections, {
+                label: collection.labels.singular,
+              })}
               role="tablist"
             >
               {tabGroups.map((group) => (
@@ -1200,11 +1301,15 @@ export function CmsCollectionForm({
           .filter((field) => !groupedFields.has(field.name))
           .map((field) => renderField(field as CmsBuiltInField))}
         <button type="submit" disabled={saving}>
-          {saving ? "Saving…" : mode === "create" ? "Create" : "Save changes"}
+          {saving
+            ? messages.saving
+            : mode === "create"
+              ? messages.create
+              : messages.saveChanges}
         </button>
-        <a href={cancelHref}>Cancel</a>
+        <a href={cancelHref}>{messages.cancel}</a>
         {mode === "edit" && previewHref ? (
-          <a href={previewHref}>Preview this locale</a>
+          <a href={previewHref}>{messages.previewThisLocale}</a>
         ) : null}
       </form>
     </section>
@@ -1241,6 +1346,8 @@ export type CmsCollectionAdminShellProps = {
   ) => void;
   readonly locale?: string;
   readonly onLocaleChange?: (locale: string) => void;
+  readonly uiLocale?: CmsAdminLocale;
+  readonly messageOverrides?: Partial<CmsAdminMessages>;
 };
 
 export function CmsCollectionAdminShell(
@@ -1253,6 +1360,8 @@ export function CmsCollectionAdminShell(
         registry={props.registry}
         current={collection.slug}
         collectionHref={props.collectionHref}
+        uiLocale={props.uiLocale}
+        messageOverrides={props.messageOverrides}
       />
       {props.mode === "list" ? (
         <CmsCollectionList
@@ -1272,6 +1381,8 @@ export function CmsCollectionAdminShell(
           previewHref={props.previewHref}
           locale={props.locale}
           onLocaleChange={props.onLocaleChange}
+          uiLocale={props.uiLocale}
+          messageOverrides={props.messageOverrides}
         />
       ) : (
         <CmsCollectionForm
@@ -1288,6 +1399,8 @@ export function CmsCollectionAdminShell(
           cancelHref={props.cancelHref}
           locale={props.locale}
           onLocaleChange={props.onLocaleChange}
+          uiLocale={props.uiLocale}
+          messageOverrides={props.messageOverrides}
           previewHref={
             props.mode === "edit" && props.previewHref && props.documentId
               ? props.previewHref(props.documentId, props.locale)

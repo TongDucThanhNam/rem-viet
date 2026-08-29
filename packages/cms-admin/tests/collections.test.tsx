@@ -392,6 +392,67 @@ describe("generated collection admin", () => {
     expect(html).toContain("Author");
   });
 
+  test("localizes generated CRUD and passes the resolved pack to custom controls", () => {
+    function LocaleAwareTitle({
+      controlId,
+      messages,
+      uiLocale,
+    }: CmsCollectionFieldControlProps) {
+      return (
+        <input
+          id={controlId}
+          aria-label={`${uiLocale}:${messages.saveChanges}`}
+        />
+      );
+    }
+    const list = renderToStaticMarkup(
+      <CmsCollectionAdminShell
+        {...shellBase}
+        mode="list"
+        uiLocale="vi"
+        documents={[
+          {
+            id: "article-vi",
+            version: 1,
+            status: "published",
+            data: {
+              title: "Ra mắt",
+              audience: "public",
+              author: "author-1",
+            },
+            updatedAt: "2026-08-30T00:00:00.000Z",
+          },
+        ]}
+      />,
+    );
+    expect(list).toContain('<nav aria-label="Bộ sưu tập">');
+    expect(list).toContain("Lọc Articles");
+    expect(list).toContain("Áp dụng bộ lọc");
+    expect(list).toContain("Bộ sưu tập Articles");
+    expect(list).toContain("Trạng thái");
+    expect(list).toContain("đã xuất bản");
+    expect(list).toContain('aria-label="Chỉnh sửa Ra mắt"');
+    expect(list).toContain("Tạo Article");
+
+    const form = renderToStaticMarkup(
+      <CmsCollectionAdminShell
+        {...shellBase}
+        mode="edit"
+        uiLocale="vi"
+        messageOverrides={{ saveChanges: "Ghi lại" }}
+        controls={createCollectionFieldControlRegistry({
+          byField: { "admin-articles.title": LocaleAwareTitle },
+        })}
+        data={{ title: "Ra mắt", audience: "public" }}
+      />,
+    );
+    expect(form).toContain("Chỉnh sửa Article");
+    expect(form).toContain('aria-label="vi:Ghi lại"');
+    expect(form).toContain("Chọn tài liệu liên quan");
+    expect(form).toContain("Ghi lại");
+    expect(form).toContain("Hủy");
+  });
+
   test("maps the shared collection validator to accessible field errors", () => {
     expect(
       validateCmsCollectionAdminData(articles, {
@@ -465,5 +526,42 @@ describe("generated collection admin", () => {
     expect(form).toContain("Slug (shared)");
     expect(form).toContain("Preview this locale");
     expect(form).toContain("/preview/localized-1?locale=en-US");
+
+    const vietnameseList = renderToStaticMarkup(
+      <CmsCollectionAdminShell
+        {...common}
+        mode="list"
+        uiLocale="vi"
+        documents={[
+          {
+            id: "localized-1",
+            locale: "en-US",
+            fallbackFrom: "vi-VN",
+            version: 2,
+            status: "draft",
+            data: { slug: "shared", title: "English" },
+            updatedAt: "2026-08-18T00:00:00.000Z",
+          },
+        ]}
+      />,
+    );
+    expect(vietnameseList).toContain("Đang hiển thị ngôn ngữ en-US");
+    expect(vietnameseList).toContain("(dự phòng cho vi-VN)");
+    expect(vietnameseList).toContain("bản nháp");
+    expect(vietnameseList).toContain("Xem trước English bằng ngôn ngữ en-US");
+
+    const vietnameseForm = renderToStaticMarkup(
+      <CmsCollectionAdminShell
+        {...common}
+        mode="edit"
+        uiLocale="vi"
+        documentId="localized-1"
+        data={{ slug: "shared", title: "English" }}
+      />,
+    );
+    expect(vietnameseForm).toContain("Ngôn ngữ đang chỉnh sửa");
+    expect(vietnameseForm).toContain("Title (theo ngôn ngữ)");
+    expect(vietnameseForm).toContain("Slug (dùng chung)");
+    expect(vietnameseForm).toContain("Xem trước ngôn ngữ này");
   });
 });

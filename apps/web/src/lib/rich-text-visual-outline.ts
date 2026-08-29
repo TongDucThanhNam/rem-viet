@@ -60,26 +60,25 @@ function toVisualData(block: RichTextDocument["blocks"][number]) {
   return data;
 }
 
-export const richTextVisualComponentRegistry =
-  createCmsVisualComponentRegistry(
-    remVietRichTextBlockTypes.map((type) => ({
-      type,
-      schemaVersion: 1,
-      fields: [],
-      defaults: () => structuredClone(richTextDefaults[type]),
-      validate: (value: unknown) => validateRichTextBlockData(type, value),
-      renderer: `rem-viet-rich-text-${type}-renderer`,
-      editor: `rem-viet-rich-text-${type}-editor`,
-      constraints: { max: MAX_RICH_TEXT_BLOCKS },
-      actionCapabilities: {
-        insert: ["content.compose.insert"],
-        edit: ["content.component.edit"],
-        move: ["content.compose.move"],
-        duplicate: ["content.compose.duplicate"],
-        remove: ["content.compose.remove"],
-      },
-    })),
-  );
+export const richTextVisualComponentRegistry = createCmsVisualComponentRegistry(
+  remVietRichTextBlockTypes.map((type) => ({
+    type,
+    schemaVersion: 1,
+    fields: [],
+    defaults: () => structuredClone(richTextDefaults[type]),
+    validate: (value: unknown) => validateRichTextBlockData(type, value),
+    renderer: `rem-viet-rich-text-${type}-renderer`,
+    editor: `rem-viet-rich-text-${type}-editor`,
+    constraints: { max: MAX_RICH_TEXT_BLOCKS },
+    actionCapabilities: {
+      insert: ["content.compose.insert"],
+      edit: ["content.component.edit"],
+      move: ["content.compose.move"],
+      duplicate: ["content.compose.duplicate"],
+      remove: ["content.compose.remove"],
+    },
+  })),
+);
 
 /** Adapts the persisted structured post body to the shared visual outline. */
 export function createRichTextVisualOutline(input: {

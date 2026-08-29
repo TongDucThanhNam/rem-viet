@@ -436,11 +436,11 @@ export default function CmsRichTextEditor({
 
   function remove(index: number) {
     if (!canWrite || index < 0 || index >= document.blocks.length) return;
-    const blocks = document.blocks.filter(
-      (_, position) => position !== index,
-    );
+    const blocks = document.blocks.filter((_, position) => position !== index);
     commit({ ...document, blocks });
-    selectBlock(blocks.length === 0 ? null : Math.min(index, blocks.length - 1));
+    selectBlock(
+      blocks.length === 0 ? null : Math.min(index, blocks.length - 1),
+    );
   }
 
   return (

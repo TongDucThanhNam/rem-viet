@@ -1,15 +1,17 @@
 import { describe, expect, test } from "bun:test";
-import {
-  MAX_RICH_TEXT_BLOCKS,
-  richTextDocumentSchema,
-} from "@rem-viet/cms";
+import { MAX_RICH_TEXT_BLOCKS, richTextDocumentSchema } from "@rem-viet/cms";
 
 import { createRichTextVisualOutline } from "./rich-text-visual-outline";
 
 const document = richTextDocumentSchema.parse({
   version: 1,
   blocks: [
-    { id: "post-heading", type: "heading", level: 2, children: [{ text: "A" }] },
+    {
+      id: "post-heading",
+      type: "heading",
+      level: 2,
+      children: [{ text: "A" }],
+    },
     { id: "post-paragraph", type: "paragraph", children: [{ text: "B" }] },
     { id: "post-quote", type: "quote", children: [{ text: "C" }] },
   ],

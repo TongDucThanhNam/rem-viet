@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 
 export * from "./collections.js";
+export * from "./collection-outline.js";
 export * from "./editor-shell.js";
 export * from "./platform.js";
 export * from "./reusable-content.js";

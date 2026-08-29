@@ -1,10 +1,12 @@
 import {
   Fragment,
   type ComponentType,
+  type FocusEvent,
   type FormEvent,
   type KeyboardEvent,
   type ReactElement,
   type ReactNode,
+  useMemo,
   useState,
 } from "react";
 import {
@@ -21,6 +23,8 @@ import {
   type CmsAdminLocale,
   type CmsAdminMessages,
 } from "./platform.js";
+import { createCmsCollectionFieldOutline } from "./collection-outline.js";
+import { CmsVisualOutline } from "./editor-shell.js";
 
 export type CmsCollectionAdminDocument = {
   readonly id: string;
@@ -484,7 +488,7 @@ function nestedFieldControls(input: {
       input.props.controls?.byKind?.[field.kind] ??
       BuiltInCollectionFieldControl;
     return (
-      <div key={field.name} data-cms-field-path={fieldPath}>
+      <div key={field.name} data-cms-field-path={fieldPath} tabIndex={-1}>
         <Control
           {...input.props}
           field={field}
@@ -492,6 +496,7 @@ function nestedFieldControls(input: {
           controlId={controlId}
           data={input.record}
           value={input.record[field.name] ?? field.defaultValue}
+          disabled={input.props.disabled || Boolean(field.admin?.readOnly)}
           error={undefined}
           relationshipOptions={
             field.kind === "relationship"
@@ -777,7 +782,11 @@ function BuiltInCollectionFieldControl(
           role="group"
         >
           {rows.map((row, index) => (
-            <fieldset key={index}>
+            <fieldset
+              key={index}
+              data-cms-field-path={`${props.fieldPath ?? field.name}.${index}`}
+              tabIndex={-1}
+            >
               <legend>
                 {field.label} {index + 1}
               </legend>
@@ -1030,6 +1039,10 @@ export type CmsCollectionFormProps = {
   readonly data: Readonly<Record<string, unknown>>;
   readonly errors?: Readonly<Record<string, string>>;
   readonly saving?: boolean;
+  readonly canWrite?: boolean;
+  readonly selectedFieldPath?: string | null;
+  readonly onSelectedFieldPathChange?: (fieldPath: string | null) => void;
+  readonly showFieldOutline?: boolean;
   readonly controls?: CmsCollectionFieldControlRegistry;
   readonly relationshipOptions?: Readonly<
     Record<string, readonly CmsRelationshipOption[]>
@@ -1071,7 +1084,11 @@ function CollectionFormField(input: {
     controls?.byKind?.[field.kind] ??
     BuiltInCollectionFieldControl;
   return (
-    <fieldset disabled={saving || field.admin?.readOnly}>
+    <fieldset
+      data-cms-field-path={field.name}
+      disabled={saving || field.admin?.readOnly}
+      tabIndex={-1}
+    >
       <legend>
         {field.label}
         {collection.localization
@@ -1118,6 +1135,10 @@ export function CmsCollectionForm({
   data,
   errors = {},
   saving = false,
+  canWrite = true,
+  selectedFieldPath,
+  onSelectedFieldPathChange,
+  showFieldOutline = true,
   controls,
   relationshipOptions = {},
   onChange,
@@ -1136,6 +1157,67 @@ export function CmsCollectionForm({
   const layout = collection.admin?.layout ?? [];
   const tabGroups = layout.filter((group) => group.type === "tab");
   const [activeTab, setActiveTab] = useState(tabGroups[0]?.id ?? "");
+  const [localSelectedFieldPath, setLocalSelectedFieldPath] = useState<
+    string | null
+  >(selectedFieldPath ?? null);
+  const effectiveSelectedFieldPath =
+    selectedFieldPath === undefined
+      ? localSelectedFieldPath
+      : selectedFieldPath;
+  const outlineModel = useMemo(
+    () =>
+      createCmsCollectionFieldOutline({
+        collection,
+        data,
+        selectedFieldPath: effectiveSelectedFieldPath,
+        canWrite,
+      }),
+    [canWrite, collection, data, effectiveSelectedFieldPath],
+  );
+  const setSelectedFieldPath = (fieldPath: string | null) => {
+    if (selectedFieldPath === undefined) setLocalSelectedFieldPath(fieldPath);
+    if (effectiveSelectedFieldPath !== fieldPath) {
+      onSelectedFieldPathChange?.(fieldPath);
+    }
+  };
+  const activateFieldPath = (fieldPath: string) => {
+    if (!outlineModel.nodeIdByFieldPath[fieldPath]) return;
+    setSelectedFieldPath(fieldPath);
+    const topLevelField = fieldPath.split(".")[0];
+    const targetTab = tabGroups.find((group) =>
+      topLevelField ? group.fields.includes(topLevelField) : false,
+    );
+    if (targetTab) setActiveTab(targetTab.id);
+    const focusField = () => {
+      const container = Array.from(
+        document.querySelectorAll<HTMLElement>("[data-cms-field-path]"),
+      ).find((element) => element.dataset.cmsFieldPath === fieldPath);
+      if (!container) return;
+      const containsNestedField = Boolean(
+        container.querySelector("[data-cms-field-path]"),
+      );
+      const control = containsNestedField
+        ? null
+        : container.querySelector<HTMLElement>(
+            'input:not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          );
+      (control ?? container).focus();
+    };
+    if (typeof globalThis.requestAnimationFrame === "function") {
+      globalThis.requestAnimationFrame(focusField);
+    } else {
+      queueMicrotask(focusField);
+    }
+  };
+  const handleFieldFocus = (event: FocusEvent<HTMLFormElement>) => {
+    const target = event.target as HTMLElement;
+    const container = target.closest?.<HTMLElement>("[data-cms-field-path]");
+    const fieldPath = container?.dataset.cmsFieldPath;
+    if (fieldPath && outlineModel.nodeIdByFieldPath[fieldPath]) {
+      setSelectedFieldPath(fieldPath);
+    }
+  };
+  const formDisabled = saving || !canWrite;
   const fieldByName = new Map(
     collection.fields.map((field) => [field.name, field as CmsBuiltInField]),
   );
@@ -1168,7 +1250,7 @@ export function CmsCollectionForm({
       field={field}
       data={data}
       errors={errors}
-      saving={saving}
+      saving={formDisabled}
       controls={controls}
       relationshipOptions={relationshipOptions}
       uiLocale={uiLocale}
@@ -1183,6 +1265,7 @@ export function CmsCollectionForm({
       .map(renderField);
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    if (formDisabled) return;
     const validation = validateCmsCollectionAdminData(collection, data);
     if (!validation.success) {
       onValidationError?.(validation.errors);
@@ -1228,7 +1311,24 @@ export function CmsCollectionForm({
           </ul>
         </div>
       ) : null}
-      <form onSubmit={submit} noValidate>
+      {showFieldOutline ? (
+        <aside data-cms-collection-field-outline="true">
+          <CmsVisualOutline
+            label={messages.fieldOutline}
+            items={outlineModel.items}
+            onSelectNode={(nodeId) => {
+              const fieldPath = outlineModel.fieldPathByNodeId[nodeId];
+              if (fieldPath) activateFieldPath(fieldPath);
+            }}
+          />
+          {!canWrite ? (
+            <p data-cms-collection-field-outline-readonly="true">
+              {messages.fieldOutlineReadOnly}
+            </p>
+          ) : null}
+        </aside>
+      ) : null}
+      <form onFocusCapture={handleFieldFocus} onSubmit={submit} noValidate>
         {tabGroups.length ? (
           <div data-cms-layout="tabs">
             <div
@@ -1300,7 +1400,7 @@ export function CmsCollectionForm({
         {collection.fields
           .filter((field) => !groupedFields.has(field.name))
           .map((field) => renderField(field as CmsBuiltInField))}
-        <button type="submit" disabled={saving}>
+        <button type="submit" disabled={formDisabled}>
           {saving
             ? messages.saving
             : mode === "create"
@@ -1333,6 +1433,10 @@ export type CmsCollectionAdminShellProps = {
   readonly data?: Readonly<Record<string, unknown>>;
   readonly errors?: Readonly<Record<string, string>>;
   readonly saving?: boolean;
+  readonly canWrite?: boolean;
+  readonly selectedFieldPath?: string | null;
+  readonly onSelectedFieldPathChange?: (fieldPath: string | null) => void;
+  readonly showFieldOutline?: boolean;
   readonly controls?: CmsCollectionFieldControlRegistry;
   readonly relationshipOptions?: Readonly<
     Record<string, readonly CmsRelationshipOption[]>
@@ -1391,6 +1495,10 @@ export function CmsCollectionAdminShell(
           data={props.data ?? {}}
           errors={props.errors}
           saving={props.saving}
+          canWrite={props.canWrite}
+          selectedFieldPath={props.selectedFieldPath}
+          onSelectedFieldPathChange={props.onSelectedFieldPathChange}
+          showFieldOutline={props.showFieldOutline}
           controls={props.controls}
           relationshipOptions={props.relationshipOptions}
           onChange={props.onChange ?? (() => undefined)}

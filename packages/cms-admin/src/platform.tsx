@@ -32,6 +32,9 @@ const englishMessages = {
   equals: "Equals",
   fallbackLocale: "fallback for {locale}",
   fieldGroup: "{label} fields",
+  fieldOutline: "Field outline",
+  fieldOutlineReadOnly:
+    "You can inspect fields, but you do not have permission to edit this document.",
   fieldRows: "{label} rows",
   filterCollection: "Filter {label}",
   filterField: "Filter field",
@@ -124,6 +127,9 @@ export const cmsAdminLocalePacks = Object.freeze({
     equals: "Bằng",
     fallbackLocale: "dự phòng cho {locale}",
     fieldGroup: "Các trường của {label}",
+    fieldOutline: "Cấu trúc trường",
+    fieldOutlineReadOnly:
+      "Bạn có thể xem các trường nhưng không có quyền chỉnh sửa tài liệu này.",
     fieldRows: "Các hàng của {label}",
     filterCollection: "Lọc {label}",
     filterField: "Trường lọc",

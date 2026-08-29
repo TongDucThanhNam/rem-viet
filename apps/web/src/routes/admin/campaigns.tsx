@@ -18,14 +18,7 @@ import { Card, CardContent } from "@rem-viet/ui/components/card";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ExternalLink, Languages, Send, Undo2 } from "lucide-react";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type FocusEvent,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import AdminShell from "@/components/admin-shell";
@@ -366,6 +359,7 @@ function AdminCampaignsRoute() {
     trpc.content.campaigns.delete.mutationOptions(),
   );
   const saving = createCampaign.isPending || saveCampaign.isPending;
+  const canWrite = session?.capabilities.includes("content.write") ?? false;
   const canPublish = session?.capabilities.includes("content.publish");
   const canDelete = session?.capabilities.includes("content.delete");
 
@@ -397,11 +391,6 @@ function AdminCampaignsRoute() {
         ?.focus(),
     );
   }, []);
-
-  const handleFocus = (event: FocusEvent<HTMLDivElement>) => {
-    const name = (event.target as HTMLInputElement).name;
-    if (name === "code" || name === "headline") setSelectedField(name);
-  };
 
   const submit = async (value: Readonly<Record<string, unknown>>) => {
     try {
@@ -557,7 +546,7 @@ function AdminCampaignsRoute() {
 
   return (
     <AdminShell actions={actions}>
-      <div className="grid gap-6" onFocusCapture={handleFocus}>
+      <div className="grid gap-6">
         {mode !== "list" ? (
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <Languages aria-hidden className="size-4" />
@@ -578,6 +567,7 @@ function AdminCampaignsRoute() {
           <section className="min-w-0 overflow-x-auto">
             <CmsCollectionAdminShell
               cancelHref={campaignHref({ locale })}
+              canWrite={canWrite}
               collection={REM_VIET_LOCALIZED_CAMPAIGNS_COLLECTION}
               collectionHref={() => campaignHref({ locale })}
               createHref={campaignHref({ locale, mode: "create" })}
@@ -600,6 +590,8 @@ function AdminCampaignsRoute() {
               registry={campaignRegistry}
               saving={saving}
               total={listQuery.data?.total}
+              selectedFieldPath={selectedField}
+              uiLocale="vi"
               onChange={(value) => setData(campaignData(value))}
               onFilterChange={setFilter}
               onLocaleChange={(nextLocale) =>
@@ -613,6 +605,13 @@ function AdminCampaignsRoute() {
                 })
               }
               onSubmit={submit}
+              onSelectedFieldPathChange={(fieldPath) =>
+                setSelectedField(
+                  fieldPath === "code" || fieldPath === "headline"
+                    ? fieldPath
+                    : null,
+                )
+              }
               onValidationError={setErrors}
             />
           </section>

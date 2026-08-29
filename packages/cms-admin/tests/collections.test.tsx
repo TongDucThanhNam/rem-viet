@@ -246,7 +246,13 @@ describe("generated collection admin", () => {
           address: { street: "1 Nguyễn Huệ", city: "Hồ Chí Minh" },
           contributors: [{ name: "Nam", email: "nam@example.com" }],
         }}
+        selectedFieldPath="address.city"
       />,
+    );
+    expect(html).toContain('data-cms-collection-field-outline="true"');
+    expect(html).toContain('aria-label="Field outline"');
+    expect(html).toMatch(
+      /aria-selected="true"[^>]*data-cms-outline-tree-item="field:address\.city"/u,
     );
     expect(html).toContain('data-cms-field-path="address.street"');
     expect(html).toContain('aria-label="Street override"');
@@ -255,6 +261,28 @@ describe("generated collection admin", () => {
     expect(html).toContain('data-cms-field-path="contributors.0.email"');
     expect(html).toContain('aria-label="Remove Contributors row 1"');
     expect(html).toContain("Add Contributors row");
+  });
+
+  test("fails the collection form and field outline closed without write permission", () => {
+    const html = renderToStaticMarkup(
+      <CmsCollectionAdminShell
+        registry={structuredRegistry}
+        collection={structuredRecords.slug}
+        collectionHref={(slug) => `/admin/collections/${slug}`}
+        createHref="/admin/collections/structured-records/create"
+        editHref={(id) => `/admin/collections/structured-records/${id}`}
+        cancelHref="/admin/collections/structured-records"
+        mode="create"
+        canWrite={false}
+        uiLocale="vi"
+        data={{ address: { street: "1 Nguyễn Huệ" } }}
+      />,
+    );
+    expect(html).toContain(
+      "Bạn có thể xem các trường nhưng không có quyền chỉnh sửa tài liệu này.",
+    );
+    expect(html).not.toContain('data-cms-outline-can-edit="true"');
+    expect(html).toContain('<button type="submit" disabled="">Tạo</button>');
   });
 
   test("renders accessible controls for scalar field v2", () => {

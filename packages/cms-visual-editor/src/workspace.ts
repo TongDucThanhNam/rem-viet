@@ -99,6 +99,11 @@ export function createCmsVisualOutline(input: {
   grants: ReadonlySet<string>;
   selection: CmsVisualSelection;
   maxNodes?: number;
+  actionFilter?: (
+    node: CmsVisualNode,
+    definition: CmsVisualComponentDefinition,
+    action: CmsVisualAction,
+  ) => boolean;
   label?: (
     node: CmsVisualNode,
     definition: CmsVisualComponentDefinition,
@@ -187,8 +192,7 @@ export function createCmsVisualOutline(input: {
       ? input.registry.require(parent.type).constraints?.slots?.[slot]
       : undefined;
     return {
-      canAdd:
-        siblingCount < (constraint?.max ?? Number.MAX_SAFE_INTEGER),
+      canAdd: siblingCount < (constraint?.max ?? Number.MAX_SAFE_INTEGER),
       canRemove: siblingCount > (constraint?.min ?? 0),
     } as const;
   };
@@ -212,7 +216,8 @@ export function createCmsVisualOutline(input: {
             nodeType: node.type,
             action: value,
             grants: input.grants,
-          });
+          }) &&
+          (input.actionFilter?.(node, definition, value) ?? true);
         const bounds = slotBounds(parentId, slot, nodes.length);
         const pinned = Boolean(definition.constraints?.pinned);
         const movableSiblingCount = nodes.filter(

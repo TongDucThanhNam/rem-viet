@@ -354,6 +354,17 @@ describe("visual component registry", () => {
         maxNodes: 2,
       }),
     ).toThrow("maxNodes");
+
+    const filteredOutline = createCmsVisualOutline({
+      document: document(),
+      registry,
+      grants: new Set(["visual.component.edit", "visual.component.move"]),
+      selection: { nodeId: "hero-1" },
+      actionFilter: (node, _definition, action) =>
+        node.id !== "hero-1" || action !== "edit",
+    });
+    expect(filteredOutline[0]?.actions.edit).toBe(false);
+    expect(filteredOutline[1]?.actions.edit).toBe(true);
   });
 });
 

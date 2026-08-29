@@ -105,9 +105,13 @@ export function createCmsVisualOutline(input: {
 }): readonly CmsVisualOutlineItem[] {
   const document = parseCmsVisualDocument(input.document, input.registry);
   const nodeIds = new Set<string>();
+  const nodesById = new Map<string, CmsVisualNode>();
+  const typeCounts = new Map<string, number>();
   const collectIds = (nodes: readonly CmsVisualNode[]) => {
     for (const node of nodes) {
       nodeIds.add(node.id);
+      nodesById.set(node.id, node);
+      typeCounts.set(node.type, (typeCounts.get(node.type) ?? 0) + 1);
       for (const children of Object.values(node.slots ?? {})) {
         collectIds(children);
       }
@@ -118,6 +122,56 @@ export function createCmsVisualOutline(input: {
     selection: input.selection,
     nodeIds,
   });
+
+  const subtreeTypeCounts = (root: CmsVisualNode) => {
+    const counts = new Map<string, number>();
+    const pending = [root];
+    while (pending.length > 0) {
+      const node = pending.pop()!;
+      counts.set(node.type, (counts.get(node.type) ?? 0) + 1);
+      for (const children of Object.values(node.slots ?? {})) {
+        pending.push(...children);
+      }
+    }
+    return counts;
+  };
+
+  const respectsGlobalCounts = (
+    node: CmsVisualNode,
+    direction: "add" | "remove",
+  ) => {
+    for (const [type, delta] of subtreeTypeCounts(node)) {
+      const definition = input.registry.require(type);
+      const current = typeCounts.get(type) ?? 0;
+      const next = current + (direction === "add" ? delta : -delta);
+      if (
+        next < (definition.constraints?.min ?? 0) ||
+        next > (definition.constraints?.max ?? Number.MAX_SAFE_INTEGER)
+      ) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const slotBounds = (
+    parentId: string | null,
+    slot: string | undefined,
+    siblingCount: number,
+  ) => {
+    if (!parentId || !slot) {
+      return { canAdd: true, canRemove: true } as const;
+    }
+    const parent = nodesById.get(parentId);
+    const constraint = parent
+      ? input.registry.require(parent.type).constraints?.slots?.[slot]
+      : undefined;
+    return {
+      canAdd:
+        siblingCount < (constraint?.max ?? Number.MAX_SAFE_INTEGER),
+      canRemove: siblingCount > (constraint?.min ?? 0),
+    } as const;
+  };
 
   const build = (
     nodes: readonly CmsVisualNode[],
@@ -139,6 +193,12 @@ export function createCmsVisualOutline(input: {
             action: value,
             grants: input.grants,
           });
+        const bounds = slotBounds(parentId, slot, nodes.length);
+        const pinned = Boolean(definition.constraints?.pinned);
+        const movableSiblingCount = nodes.filter(
+          (candidate) =>
+            !input.registry.require(candidate.type).constraints?.pinned,
+        ).length;
         return Object.freeze({
           id: node.id,
           type: node.type,
@@ -153,11 +213,22 @@ export function createCmsVisualOutline(input: {
           depth,
           selected: selection.nodeId === node.id,
           actions: Object.freeze({
-            insert: action("insert"),
+            insert:
+              action("insert") &&
+              bounds.canAdd &&
+              respectsGlobalCounts(node, "add"),
             edit: action("edit"),
-            move: action("move"),
-            duplicate: action("duplicate"),
-            remove: action("remove"),
+            move: action("move") && !pinned && movableSiblingCount > 1,
+            duplicate:
+              action("duplicate") &&
+              !pinned &&
+              bounds.canAdd &&
+              respectsGlobalCounts(node, "add"),
+            remove:
+              action("remove") &&
+              !pinned &&
+              bounds.canRemove &&
+              respectsGlobalCounts(node, "remove"),
           }),
           children: Object.freeze(children),
         });

@@ -233,10 +233,10 @@ describe("visual component registry", () => {
       label: "hero label",
       depth: 0,
       actions: {
-        insert: true,
+        insert: false,
         edit: true,
-        move: true,
-        duplicate: true,
+        move: false,
+        duplicate: false,
         remove: false,
       },
     });
@@ -246,6 +246,13 @@ describe("visual component registry", () => {
       slot: "content",
       depth: 1,
       selected: true,
+      actions: {
+        insert: true,
+        edit: true,
+        move: false,
+        duplicate: true,
+        remove: false,
+      },
     });
     expect(getCmsVisualOutlineExpandableNodeIds(outline)).toEqual(["layout-1"]);
     expect(
@@ -287,6 +294,41 @@ describe("visual component registry", () => {
         key: "Enter",
       }).activateNodeId,
     ).toBe("text-1");
+
+    const fullSlotOutline = createCmsVisualOutline({
+      document: {
+        ...document(),
+        nodes: [
+          document().nodes[0] as CmsVisualNode,
+          {
+            ...(document().nodes[1] as CmsVisualNode),
+            slots: {
+              content: [
+                (document().nodes[1] as CmsVisualNode).slots
+                  ?.content?.[0] as CmsVisualNode,
+                {
+                  id: "text-2",
+                  type: "textBlock",
+                  schemaVersion: 1,
+                  enabled: true,
+                  data: { text: "Two" },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      registry,
+      grants: new Set(["visual.component.edit", "visual.component.move"]),
+      selection: { nodeId: null },
+    });
+    expect(fullSlotOutline[1]?.children[0]?.actions).toEqual({
+      insert: false,
+      edit: true,
+      move: true,
+      duplicate: false,
+      remove: true,
+    });
   });
 });
 

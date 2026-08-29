@@ -1,6 +1,7 @@
 import {
   CmsDraftStatusSlots,
   CmsRevisionList,
+  CmsVisualOutline,
   CmsWorkflowActionSlots,
   compareCmsBlockRevisions,
   compareCmsRevisionFieldDetails,
@@ -94,6 +95,7 @@ import RevisionFieldComparison from "@/components/revision-field-comparison";
 import { getAdminUser } from "@/functions/get-admin-user";
 import { useSaveBeforeNavigation } from "@/hooks/use-save-before-navigation";
 import { getHomeVisualFieldTarget } from "@/lib/home-visual-editing";
+import { createHomeVisualOutline } from "@/lib/home-visual-outline";
 import {
   canDuplicateHomeBlock,
   canRemoveHomeBlock,
@@ -272,6 +274,7 @@ function AdminHomeRoute() {
     published: page?.status === "published",
     scheduled: Boolean(page?.scheduledAt),
   });
+  const canWrite = session?.capabilities.includes("content.write") ?? false;
   const showDebug = import.meta.env.DEV || session?.staffRole === "owner";
 
   const [blockHistory, setBlockHistory] = useState(() =>
@@ -428,6 +431,16 @@ function AdminHomeRoute() {
 
   const selectedBlock =
     blocks.find((block) => block.id === selectedId) ?? blocks[0];
+  const homeVisualOutline = useMemo(
+    () =>
+      createHomeVisualOutline({
+        blocks,
+        selectedBlockId: selectedBlock?.id ?? null,
+        version: workingVersion,
+        canWrite,
+      }),
+    [blocks, canWrite, selectedBlock?.id, workingVersion],
+  );
   const selectedVisualFieldTarget =
     selectedBlock && selectedFieldPath
       ? getHomeVisualFieldTarget(selectedBlock, selectedFieldPath)
@@ -1399,123 +1412,142 @@ function AdminHomeRoute() {
                     </div>
                   ) : null}
                 </div>
-                {blocks.map((block, index) => (
-                  <div
-                    className={`group/block grid grid-cols-[auto_auto_minmax(0,1fr)] items-start gap-x-2 gap-y-1 rounded-md border p-2 transition-colors ${selectedBlock?.id === block.id ? "border-primary bg-primary/10 shadow-sm" : "bg-background hover:border-primary/40"} ${draggedBlockId === block.id ? "opacity-50" : ""}`}
-                    draggable={
-                      block.type !== "hero" && block.type !== "footerCta"
-                    }
-                    key={block.id}
-                    onDragEnd={() => setDraggedBlockId(null)}
-                    onDragOver={(event) => {
+                <CmsVisualOutline
+                  className="grid gap-1"
+                  itemAttributes={(item) => ({
+                    draggable: item.actions.move,
+                    onDragEnd: () => setDraggedBlockId(null),
+                    onDragOver: (event) => {
                       if (draggedBlockId) event.preventDefault();
-                    }}
-                    onDragStart={() => setDraggedBlockId(block.id)}
-                    onDrop={(event) => {
+                    },
+                    onDragStart: () => {
+                      if (item.actions.move) setDraggedBlockId(item.id);
+                    },
+                    onDrop: (event) => {
                       event.preventDefault();
-                      reorderBlock(block.id);
-                    }}
-                  >
-                    <GripVertical
-                      aria-label={`Kéo để đổi thứ tự ${homeBlockLabels[block.type]}`}
-                      className={`mt-1 size-3.5 text-muted-foreground ${block.type === "hero" || block.type === "footerCta" ? "opacity-25" : "cursor-grab group-active/block:cursor-grabbing"}`}
-                    />
-                    <input
-                      aria-label={`Bật ${homeBlockLabels[block.type]}`}
-                      checked={block.enabled}
-                      type="checkbox"
-                      onChange={(event) =>
-                        markEdited(
-                          blocks.map((entry) =>
-                            entry.id === block.id
-                              ? { ...entry, enabled: event.target.checked }
-                              : entry,
-                          ),
-                        )
-                      }
-                    />
-                    <button
-                      className="min-h-7 min-w-0 py-1 text-left text-xs font-medium leading-snug"
-                      type="button"
-                      onClick={() => {
-                        setSelectedId(block.id);
-                        setSelectedFieldPath(null);
-                        setVisualSelectionRevision((current) =>
-                          current >= Number.MAX_SAFE_INTEGER ? 0 : current + 1,
-                        );
-                      }}
-                    >
-                      <span className="block">
-                        {index + 1}. {homeBlockLabels[block.type]}
-                      </span>
-                    </button>
-                    <div className="col-start-3 flex min-w-0 items-center justify-between gap-1">
-                      <span
-                        className={`truncate text-[10px] font-normal ${selectedBlock?.id === block.id ? "text-foreground" : "text-muted-foreground"}`}
-                      >
-                        {block.enabled ? "Đang hiển thị" : "Đã ẩn"}
-                      </span>
-                      <div className="flex shrink-0">
-                        <Button
-                          aria-label={`Nhân bản ${homeBlockLabels[block.type]}`}
-                          className="size-6"
-                          disabled={!canDuplicateHomeBlock(blocks, block)}
-                          size="icon"
-                          type="button"
-                          variant="ghost"
-                          onClick={() => duplicateBlockFromSidebar(block)}
-                        >
-                          <Copy aria-hidden />
-                        </Button>
-                        <Button
-                          aria-label={`Xóa ${homeBlockLabels[block.type]}`}
-                          className="size-6 text-destructive hover:text-destructive"
-                          disabled={!canRemoveHomeBlock(blocks, block)}
-                          size="icon"
-                          type="button"
-                          variant="ghost"
-                          onClick={() => removeBlockFromSidebar(block)}
-                        >
-                          <Trash2 aria-hidden />
-                        </Button>
-                        <Button
-                          aria-label="Đưa block lên"
-                          className="size-6"
-                          disabled={
-                            block.type === "hero" ||
-                            block.type === "footerCta" ||
-                            index <= 1
+                      reorderBlock(item.id);
+                    },
+                  })}
+                  itemClassName={(item) =>
+                    `group/block grid grid-cols-[auto_auto_minmax(0,1fr)] items-start gap-x-2 gap-y-1 rounded-md border p-2 transition-colors ${item.selected ? "border-primary bg-primary/10 shadow-sm" : "bg-background hover:border-primary/40"} ${draggedBlockId === item.id ? "opacity-50" : ""}`
+                  }
+                  items={homeVisualOutline}
+                  label="Cấu trúc section Trang chủ"
+                  treeItemClassName="col-start-3 row-start-1 min-h-7 min-w-0 py-1 text-left text-xs font-medium leading-snug"
+                  onSelectNode={(nodeId) => {
+                    setSelectedId(nodeId);
+                    setSelectedFieldPath(null);
+                    setVisualSelectionRevision((current) =>
+                      current >= Number.MAX_SAFE_INTEGER ? 0 : current + 1,
+                    );
+                  }}
+                  renderLabel={(item) => (
+                    <span className="block">
+                      {item.index + 1}. {item.label}
+                    </span>
+                  )}
+                  renderActions={(item) => {
+                    const block = blocks[item.index];
+                    if (!block) return null;
+                    return (
+                      <>
+                        <GripVertical
+                          aria-label={`Kéo để đổi thứ tự ${item.label}`}
+                          className={`col-start-1 row-start-1 mt-1 size-3.5 text-muted-foreground ${item.actions.move ? "cursor-grab group-active/block:cursor-grabbing" : "opacity-25"}`}
+                        />
+                        <input
+                          aria-label={`Bật ${item.label}`}
+                          checked={block.enabled}
+                          className="col-start-2 row-start-1"
+                          disabled={!item.actions.edit}
+                          type="checkbox"
+                          onChange={(event) =>
+                            markEdited(
+                              blocks.map((entry) =>
+                                entry.id === block.id
+                                  ? {
+                                      ...entry,
+                                      enabled: event.target.checked,
+                                    }
+                                  : entry,
+                              ),
+                            )
                           }
-                          size="icon"
-                          type="button"
-                          variant="ghost"
-                          onClick={() =>
-                            markEdited(moveItem(blocks, index, index - 1))
-                          }
-                        >
-                          <ChevronUp aria-hidden />
-                        </Button>
-                        <Button
-                          aria-label="Đưa block xuống"
-                          className="size-6"
-                          disabled={
-                            block.type === "hero" ||
-                            block.type === "footerCta" ||
-                            index >= blocks.length - 2
-                          }
-                          size="icon"
-                          type="button"
-                          variant="ghost"
-                          onClick={() =>
-                            markEdited(moveItem(blocks, index, index + 1))
-                          }
-                        >
-                          <ChevronDown aria-hidden />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                        />
+                        <div className="col-start-3 flex min-w-0 items-center justify-between gap-1">
+                          <span
+                            className={`truncate text-[10px] font-normal ${item.selected ? "text-foreground" : "text-muted-foreground"}`}
+                          >
+                            {block.enabled ? "Đang hiển thị" : "Đã ẩn"}
+                          </span>
+                          <div className="flex shrink-0">
+                            <Button
+                              aria-label={`Nhân bản ${item.label}`}
+                              className="size-6"
+                              disabled={
+                                !item.actions.duplicate ||
+                                !canDuplicateHomeBlock(blocks, block)
+                              }
+                              size="icon"
+                              type="button"
+                              variant="ghost"
+                              onClick={() => duplicateBlockFromSidebar(block)}
+                            >
+                              <Copy aria-hidden />
+                            </Button>
+                            <Button
+                              aria-label={`Xóa ${item.label}`}
+                              className="size-6 text-destructive hover:text-destructive"
+                              disabled={
+                                !item.actions.remove ||
+                                !canRemoveHomeBlock(blocks, block)
+                              }
+                              size="icon"
+                              type="button"
+                              variant="ghost"
+                              onClick={() => removeBlockFromSidebar(block)}
+                            >
+                              <Trash2 aria-hidden />
+                            </Button>
+                            <Button
+                              aria-label="Đưa block lên"
+                              className="size-6"
+                              disabled={!item.actions.move || item.index <= 1}
+                              size="icon"
+                              type="button"
+                              variant="ghost"
+                              onClick={() =>
+                                markEdited(
+                                  moveItem(blocks, item.index, item.index - 1),
+                                )
+                              }
+                            >
+                              <ChevronUp aria-hidden />
+                            </Button>
+                            <Button
+                              aria-label="Đưa block xuống"
+                              className="size-6"
+                              disabled={
+                                !item.actions.move ||
+                                item.index >= blocks.length - 2
+                              }
+                              size="icon"
+                              type="button"
+                              variant="ghost"
+                              onClick={() =>
+                                markEdited(
+                                  moveItem(blocks, item.index, item.index + 1),
+                                )
+                              }
+                            >
+                              <ChevronDown aria-hidden />
+                            </Button>
+                          </div>
+                        </div>
+                      </>
+                    );
+                  }}
+                />
               </CardContent>
             </Card>
 

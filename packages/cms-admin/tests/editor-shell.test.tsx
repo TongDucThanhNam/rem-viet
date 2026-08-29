@@ -124,6 +124,10 @@ describe("visual editor shell", () => {
         items={outline}
         label="Document outline"
         onSelectNode={() => undefined}
+        itemAttributes={(item) => ({
+          draggable: item.actions.move,
+          title: `Outline item ${item.label}`,
+        })}
         renderActions={(item) => <span>Actions for {item.label}</span>}
       />,
     );
@@ -133,6 +137,7 @@ describe("visual editor shell", () => {
     expect(html).toContain('aria-selected="true"');
     expect(html).toContain('data-cms-outline-node-id="text-1"');
     expect(html).toContain('data-cms-outline-can-edit="false"');
+    expect(html).toContain('title="Outline item Text"');
     expect(html).toContain("Actions for Text");
   });
 });

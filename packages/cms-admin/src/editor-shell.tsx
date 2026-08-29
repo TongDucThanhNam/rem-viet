@@ -142,6 +142,9 @@ export type CmsVisualOutlineProps = Omit<
     onSelectNode: (nodeId: string) => void;
     empty?: ReactNode;
     itemClassName?: string | ((item: CmsVisualOutlineItem) => string);
+    itemAttributes?: (
+      item: CmsVisualOutlineItem,
+    ) => Omit<HTMLAttributes<HTMLDivElement>, "children" | "className">;
     treeItemClassName?: string | ((item: CmsVisualOutlineItem) => string);
     groupClassName?: string;
     renderLabel?: (item: CmsVisualOutlineItem) => ReactNode;
@@ -156,6 +159,7 @@ export type CmsVisualOutlineProps = Omit<
 export function CmsVisualOutline({
   empty = null,
   groupClassName,
+  itemAttributes,
   itemClassName,
   items,
   label,
@@ -257,6 +261,7 @@ export function CmsVisualOutline({
     outlineItems.map((item) => {
       const hasChildren = item.children.length > 0;
       const itemExpanded = hasChildren && expanded.has(item.id);
+      const attributes = itemAttributes?.(item);
       return (
         <li
           data-cms-outline-depth={item.depth}
@@ -273,7 +278,7 @@ export function CmsVisualOutline({
           key={item.id}
           role="none"
         >
-          <div className={classFor(itemClassName, item)}>
+          <div {...attributes} className={classFor(itemClassName, item)}>
             <button
               aria-expanded={hasChildren ? itemExpanded : undefined}
               aria-level={item.depth + 1}

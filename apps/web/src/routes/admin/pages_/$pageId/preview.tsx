@@ -1,9 +1,11 @@
 import { filterCmsBlockAuthoringCatalog } from "@agency/cms-admin";
 import {
+  createCmsVisualEditorCopyMessage,
   createCmsVisualEditorDuplicateMessage,
   createCmsVisualEditorInlineTextMessage,
   createCmsVisualEditorInsertMessage,
   createCmsVisualEditorMoveMessage,
+  createCmsVisualEditorPasteMessage,
   createCmsVisualEditorRemoveMessage,
   createCmsVisualEditorSelectionMessage,
   createCmsVisualPreviewResponseHeaders,
@@ -22,6 +24,8 @@ import {
   ArrowDown,
   ArrowLeft,
   ArrowUp,
+  ClipboardCopy,
+  ClipboardPaste,
   Copy,
   FileText,
   GripVertical,
@@ -269,6 +273,38 @@ function StandardPagePreviewRoute() {
   );
 
   const postAuthoringMessage = postPreviewCommand;
+  useEffect(() => {
+    const handleClipboardShortcut = (event: globalThis.KeyboardEvent) => {
+      if (
+        (!event.ctrlKey && !event.metaKey) ||
+        event.altKey ||
+        event.shiftKey ||
+        !selectedBlockId
+      ) {
+        return;
+      }
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest('input, textarea, [contenteditable="true"]')
+      ) {
+        return;
+      }
+      const key = event.key.toLowerCase();
+      if (key === "c") {
+        event.preventDefault();
+        postAuthoringMessage(createCmsVisualEditorCopyMessage(selectedBlockId));
+      }
+      if (key === "v") {
+        event.preventDefault();
+        postAuthoringMessage(
+          createCmsVisualEditorPasteMessage(selectedBlockId, "after"),
+        );
+      }
+    };
+    window.addEventListener("keydown", handleClipboardShortcut);
+    return () => window.removeEventListener("keydown", handleClipboardShortcut);
+  }, [postAuthoringMessage, selectedBlockId]);
   const postToolbarIntent = (
     event: MouseEvent<HTMLButtonElement> | KeyboardEvent<HTMLButtonElement>,
     intent: CmsVisualEditorMessage,
@@ -456,7 +492,51 @@ function StandardPagePreviewRoute() {
                         <ArrowDown aria-hidden className="size-3.5" />
                       </button>
                       <button
-                        aria-label="Sao chép khối"
+                        aria-label="Sao chép khối vào bộ nhớ biên tập"
+                        className="grid size-7 place-items-center rounded hover:bg-white/15"
+                        type="button"
+                        onMouseDown={(event) =>
+                          postToolbarIntent(
+                            event,
+                            createCmsVisualEditorCopyMessage(visualBlock.id),
+                          )
+                        }
+                        onKeyDown={(event) =>
+                          postToolbarKeyIntent(
+                            event,
+                            createCmsVisualEditorCopyMessage(visualBlock.id),
+                          )
+                        }
+                      >
+                        <ClipboardCopy aria-hidden className="size-3.5" />
+                      </button>
+                      <button
+                        aria-label="Dán khối sau khối này"
+                        className="grid size-7 place-items-center rounded hover:bg-white/15"
+                        type="button"
+                        onMouseDown={(event) =>
+                          postToolbarIntent(
+                            event,
+                            createCmsVisualEditorPasteMessage(
+                              visualBlock.id,
+                              "after",
+                            ),
+                          )
+                        }
+                        onKeyDown={(event) =>
+                          postToolbarKeyIntent(
+                            event,
+                            createCmsVisualEditorPasteMessage(
+                              visualBlock.id,
+                              "after",
+                            ),
+                          )
+                        }
+                      >
+                        <ClipboardPaste aria-hidden className="size-3.5" />
+                      </button>
+                      <button
+                        aria-label="Nhân bản khối"
                         className="grid size-7 place-items-center rounded hover:bg-white/15"
                         type="button"
                         onMouseDown={(event) =>

@@ -34,6 +34,17 @@ export type CmsVisualEditorRemoveMessage = Readonly<{
   type: "remove";
   blockId: string;
 }>;
+export type CmsVisualEditorCopyMessage = Readonly<{
+  channel: typeof CMS_VISUAL_EDITOR_CHANNEL;
+  type: "copy";
+  blockId: string;
+}>;
+export type CmsVisualEditorPasteMessage = Readonly<{
+  channel: typeof CMS_VISUAL_EDITOR_CHANNEL;
+  type: "paste";
+  targetBlockId: string;
+  placement: "before" | "after";
+}>;
 export type CmsVisualEditorInlineTextMessage = Readonly<{
   channel: typeof CMS_VISUAL_EDITOR_CHANNEL;
   type: "inline-text";
@@ -65,6 +76,8 @@ export type CmsVisualEditorMessage<TBlock = unknown> =
   | CmsVisualEditorInsertMessage
   | CmsVisualEditorDuplicateMessage
   | CmsVisualEditorRemoveMessage
+  | CmsVisualEditorCopyMessage
+  | CmsVisualEditorPasteMessage
   | CmsVisualEditorInlineTextMessage
   | CmsVisualEditorStateMessage<TBlock>;
 
@@ -195,6 +208,37 @@ export function createCmsVisualEditorRemoveMessage(
   });
 }
 
+export function createCmsVisualEditorCopyMessage(
+  blockId: string,
+): CmsVisualEditorCopyMessage {
+  if (!isValidBlockId(blockId)) {
+    throw new Error("Visual editor copy requires a valid block ID.");
+  }
+  return Object.freeze({
+    channel: CMS_VISUAL_EDITOR_CHANNEL,
+    type: "copy",
+    blockId,
+  });
+}
+
+export function createCmsVisualEditorPasteMessage(
+  targetBlockId: string,
+  placement: CmsVisualEditorPasteMessage["placement"],
+): CmsVisualEditorPasteMessage {
+  if (!isValidBlockId(targetBlockId)) {
+    throw new Error("Visual editor paste requires a valid target block ID.");
+  }
+  if (placement !== "before" && placement !== "after") {
+    throw new Error("Visual editor paste placement is invalid.");
+  }
+  return Object.freeze({
+    channel: CMS_VISUAL_EDITOR_CHANNEL,
+    type: "paste",
+    targetBlockId,
+    placement,
+  });
+}
+
 export function createCmsVisualEditorInlineTextMessage(input: {
   blockId: string;
   fieldPath: string;
@@ -283,8 +327,18 @@ export function isCmsVisualEditorMessage(
       (candidate.placement === "before" || candidate.placement === "after")
     );
   }
-  if (candidate.type === "duplicate" || candidate.type === "remove") {
+  if (
+    candidate.type === "duplicate" ||
+    candidate.type === "remove" ||
+    candidate.type === "copy"
+  ) {
     return isValidBlockId(candidate.blockId);
+  }
+  if (candidate.type === "paste") {
+    return (
+      isValidBlockId(candidate.targetBlockId) &&
+      (candidate.placement === "before" || candidate.placement === "after")
+    );
   }
   if (candidate.type === "inline-text") {
     return (

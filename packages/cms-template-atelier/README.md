@@ -13,4 +13,7 @@ insertion exercises the same nested constraints and permissions as manual
 composition. Masthead and nested story titles also opt into the same
 permission-filtered inline-text contract used by the Rèm template; the template
 declares content semantics and bounds without importing any app route or React
-editing implementation. `./bootstrap` generates a complete client plan.
+editing implementation. Its nested story fixture also proves the shared
+structured clipboard can paste into a declared layout slot with fresh IDs and
+one document version while preserving Atelier's independent schema and
+constraints. `./bootstrap` generates a complete client plan.

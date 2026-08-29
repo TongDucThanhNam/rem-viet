@@ -10,6 +10,7 @@ documents, not a second page database and not an unrestricted page builder.
 - canonical document/node identity and named slots;
 - typed component registrations, fields, defaults and validation;
 - searchable, bounded component-pattern registries and atomic insertion;
+- a versioned, bounded structured clipboard with fresh-ID atomic insertion;
 - template-declared inline-text targets, normalization and atomic updates;
 - component/field capabilities and bounded layout constraints;
 - insert, edit, move, duplicate and remove commands;
@@ -37,14 +38,17 @@ template entry graphs.
 2. The template factory creates the component and optional multi-block pattern
    registries, seed path and fail-closed document parser from those definitions.
 3. An editor adapter maps the canonical document into replaceable UI state.
-4. The host publishes only permission-granted inline targets. A rendered field
+4. Copy captures canonical nodes in a bounded versioned payload. Paste treats
+   that payload as untrusted input, regenerates every nested ID, and re-runs the
+   destination registry, schema, slot, constraint, and insert-grant checks.
+5. The host publishes only permission-granted inline targets. A rendered field
    can emit a bounded text intent, but the host repeats target, capability,
    normalization and schema checks before accepting it.
-5. Every accepted command returns a new canonical document and revalidates the
+6. Every accepted command returns a new canonical document and revalidates the
    whole registry/constraint contract before persistence.
-6. Provider writes authorize on the server, validate expected version and site
+7. Provider writes authorize on the server, validate expected version and site
    identity, then preserve immutable published revisions.
-7. Production renderers consume canonical blocks; no editor-library state is
+8. Production renderers consume canonical blocks; no editor-library state is
    stored or required by the public bundle.
 
 Puck and Craft.js remain possible future adapters. ADR 0035 records why the
@@ -70,9 +74,11 @@ proves their authenticated origin/session/site/document/version/replay boundary.
 Rèm registers ten existing homepage block types through a compatibility adapter
 without rewriting persisted content, plus four standard-page block types and
 two template-owned starter patterns. Its standard-page CTA title is the first
-live inline-text consumer. Atelier registers nine independent editorial block
-types, a two-slot nested layout, two editorial patterns, and inline-enabled
-masthead/nested-story titles through the factory. Packed-consumer tests run both
-against the same Cloudflare provider lifecycle. Thus shared registry, inline
-contract, pattern, constraint, provider and packaging fixes reach both templates
-without copying their production components.
+live inline-text consumer, and its live canvas consumes structured copy/paste
+through the secure preview protocol. Atelier registers nine independent
+editorial block types, a two-slot nested layout, two editorial patterns, and
+inline-enabled masthead/nested-story titles through the factory; its nested-slot
+fixture independently exercises the same clipboard kernel. Packed-consumer
+tests run both against the same Cloudflare provider lifecycle. Thus shared
+registry, inline, clipboard, pattern, constraint, provider and packaging fixes
+reach both templates without copying their production components.

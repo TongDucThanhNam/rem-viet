@@ -43,6 +43,14 @@ revalidates the field declaration, grants, normalization, schema, and canonical
 command before committing one draft-history entry. Other fields remain
 inspector-only until the template explicitly opts them in.
 
+The live standard-page canvas also consumes the shared structured clipboard.
+Copy serializes the selected canonical block into the versioned, bounded kernel
+format. Paste creates fresh stable IDs, revalidates the Rèm standard-page
+registry and `content.compose.insert` grant at the destination, and commits all
+inserted roots as one undoable history entry. Canvas and host shortcuts travel
+through the authenticated preview session; the clipboard payload itself never
+bypasses the canonical command path.
+
 The `./bootstrap` export is the installed-template initializer consumed by
 `agency-cms plan-init`. It generates a schema-v2 plan containing the canonical
 site manifest, empty environment example, all-ten-block draft seed, handover

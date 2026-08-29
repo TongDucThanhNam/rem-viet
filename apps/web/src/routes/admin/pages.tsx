@@ -79,6 +79,8 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
+  ClipboardCopy,
+  ClipboardPaste,
   Clock3,
   Copy,
   ExternalLink,
@@ -131,6 +133,10 @@ import {
   unsavedStandardPagePreviewId,
 } from "@/lib/standard-page-preview";
 import { applyStandardPageInlineText } from "@/lib/standard-page-inline-edit";
+import {
+  copyStandardPageBlock,
+  pasteStandardPageBlocks,
+} from "@/lib/standard-page-clipboard";
 import { applyStandardPagePattern } from "@/lib/standard-page-patterns";
 import { siteManifest } from "@/lib/site-config";
 import { useTRPC } from "@/utils/trpc";
@@ -422,10 +428,12 @@ function StandardPageResponsivePreview({
   canInlineEdit,
   canRedo,
   canUndo,
+  onCopy,
   onDuplicate,
   onInsert,
   onInlineText,
   onMove,
+  onPaste,
   onRedo,
   onRemove,
   onSelect,
@@ -444,6 +452,7 @@ function StandardPageResponsivePreview({
   canInlineEdit: boolean;
   canRedo: boolean;
   canUndo: boolean;
+  onCopy: (index: number) => void;
   onDuplicate: (index: number) => void;
   onInsert: (type: StandardBlock["type"], targetIndex: number) => void;
   onInlineText: (index: number, fieldPath: string, value: string) => void;
@@ -452,6 +461,7 @@ function StandardPageResponsivePreview({
     targetIndex: number,
     placement: "before" | "after",
   ) => void;
+  onPaste: (targetIndex: number, placement: "before" | "after") => void;
   onRedo: () => void;
   onRemove: (index: number) => void;
   onSelect: (index: number, fieldPath?: string) => void;
@@ -587,20 +597,24 @@ function StandardPageResponsivePreview({
     visualBlocks,
   ]);
   const visualRuntimeRef = useRef({
+    onCopy,
     onDuplicate,
     onInsert,
     onInlineText,
     onMove,
+    onPaste,
     onRemove,
     onSelect,
     sendWorkingCopy,
     visualBlocks,
   });
   visualRuntimeRef.current = {
+    onCopy,
     onDuplicate,
     onInsert,
     onInlineText,
     onMove,
+    onPaste,
     onRemove,
     onSelect,
     sendWorkingCopy,
@@ -686,6 +700,20 @@ function StandardPageResponsivePreview({
             visualMessage.fieldPath,
             visualMessage.value,
           );
+        }
+      }
+      if (visualMessage.type === "copy") {
+        const index = runtime.visualBlocks.findIndex(
+          (block) => block.id === visualMessage.blockId,
+        );
+        if (index >= 0) runtime.onCopy(index);
+      }
+      if (visualMessage.type === "paste") {
+        const index = runtime.visualBlocks.findIndex(
+          (block) => block.id === visualMessage.targetBlockId,
+        );
+        if (index >= 0) {
+          runtime.onPaste(index, visualMessage.placement);
         }
       }
       if (visualMessage.type === "duplicate") {
@@ -1492,6 +1520,9 @@ function AdminPagesRoute() {
   } = draft;
   const baselineDraftRef = useRef(draft);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [visualClipboardText, setVisualClipboardText] = useState<string | null>(
+    null,
+  );
   const [selectedCanvasFieldPath, setSelectedCanvasFieldPath] = useState<
     string | null
   >(null);
@@ -1907,6 +1938,101 @@ function AdminPagesRoute() {
     },
     [blocks, commitBlocks],
   );
+
+  const copyBlockToEditorClipboard = useCallback(
+    (index: number) => {
+      const source = blocks[index];
+      if (!source) return;
+      try {
+        setVisualClipboardText(
+          copyStandardPageBlock({
+            blocks,
+            blockId: source.id,
+            version: workingVersion ?? editingPage?.version ?? 0,
+          }),
+        );
+        setSelectedIndex(index);
+        setSelectedCanvasFieldPath(null);
+        toast.success("Đã sao chép khối vào bộ nhớ biên tập.");
+      } catch (caught) {
+        toast.error(
+          caught instanceof Error ? caught.message : "Không thể sao chép khối.",
+        );
+      }
+    },
+    [blocks, editingPage?.version, workingVersion],
+  );
+
+  const pasteBlocksFromEditorClipboard = useCallback(
+    (targetIndex: number, placement: "before" | "after") => {
+      if (!visualClipboardText) {
+        toast.error("Bộ nhớ biên tập chưa có khối để dán.");
+        return;
+      }
+      try {
+        const result = pasteStandardPageBlocks({
+          blocks,
+          clipboardText: visualClipboardText,
+          targetIndex,
+          placement,
+          version: workingVersion ?? editingPage?.version ?? 0,
+          canInsert: session?.capabilities.includes("content.write") ?? false,
+        });
+        commitBlocks([...result.blocks]);
+        setSelectedIndex(result.firstInsertedIndex);
+        setSelectedCanvasFieldPath(null);
+        toast.success("Đã dán khối trong một bước hoàn tác.");
+      } catch (caught) {
+        toast.error(
+          caught instanceof Error ? caught.message : "Không thể dán khối.",
+        );
+      }
+    },
+    [
+      blocks,
+      commitBlocks,
+      editingPage?.version,
+      session?.capabilities,
+      visualClipboardText,
+      workingVersion,
+    ],
+  );
+
+  useEffect(() => {
+    const handleClipboardShortcut = (event: KeyboardEvent) => {
+      if (
+        (!event.ctrlKey && !event.metaKey) ||
+        event.altKey ||
+        event.shiftKey
+      ) {
+        return;
+      }
+      const target = event.target;
+      if (
+        target instanceof Element &&
+        target.closest('input, textarea, [contenteditable="true"]')
+      ) {
+        return;
+      }
+      const key = event.key.toLowerCase();
+      if (key === "c" && blocks[selectedIndex]) {
+        event.preventDefault();
+        copyBlockToEditorClipboard(selectedIndex);
+      }
+      if (key === "v" && visualClipboardText && blocks[selectedIndex]) {
+        event.preventDefault();
+        pasteBlocksFromEditorClipboard(selectedIndex, "after");
+      }
+    };
+    window.addEventListener("keydown", handleClipboardShortcut);
+    return () => window.removeEventListener("keydown", handleClipboardShortcut);
+  }, [
+    blocks,
+    copyBlockToEditorClipboard,
+    pasteBlocksFromEditorClipboard,
+    selectedIndex,
+    visualClipboardText,
+  ]);
 
   const removeBlockFromCanvas = useCallback(
     (index: number) => {
@@ -2868,13 +2994,36 @@ function AdminPagesRoute() {
                     ) : null}
                     <div className="flex gap-2 border-t pt-3">
                       <Button
+                        size="sm"
+                        type="button"
+                        variant="secondary"
+                        onClick={() =>
+                          copyBlockToEditorClipboard(selectedIndex)
+                        }
+                      >
+                        <ClipboardCopy />
+                        Sao chép
+                      </Button>
+                      <Button
+                        disabled={!visualClipboardText}
+                        size="sm"
+                        type="button"
+                        variant="secondary"
+                        onClick={() =>
+                          pasteBlocksFromEditorClipboard(selectedIndex, "after")
+                        }
+                      >
+                        <ClipboardPaste />
+                        Dán sau
+                      </Button>
+                      <Button
                         type="button"
                         size="sm"
                         variant="secondary"
                         onClick={() => duplicateBlockFromCanvas(selectedIndex)}
                       >
                         <Copy />
-                        Sao chép
+                        Nhân bản
                       </Button>
                       <Button
                         type="button"
@@ -2907,10 +3056,12 @@ function AdminPagesRoute() {
                   }
                   canRedo={canRedoDraft}
                   canUndo={canUndoDraft}
+                  onCopy={copyBlockToEditorClipboard}
                   onDuplicate={duplicateBlockFromCanvas}
                   onInsert={insertBlockFromCanvas}
                   onInlineText={updateInlineTextFromCanvas}
                   onMove={moveBlockFromCanvas}
+                  onPaste={pasteBlocksFromEditorClipboard}
                   onRedo={() => navigateDraftHistory("redo")}
                   onRemove={removeBlockFromCanvas}
                   onSelect={selectBlockFromCanvas}

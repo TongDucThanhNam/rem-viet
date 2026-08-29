@@ -53,6 +53,13 @@ backward-compatible, and process returned text through
 `applyCmsVisualInlineTextUpdate()` (or an adapter that preserves its checks)
 before draft history or persistence. Never accept an arbitrary DOM field path.
 
+Structured clipboard payloads are data, not authority. Parse only the versioned
+bounded channel, regenerate every nested node ID, and apply paste through
+`applyCmsVisualClipboardPaste()` so the destination component registry, schema,
+slot/cardinality constraints, and insert grants are checked recursively. Commit
+the returned document as one history step. Never insert deserialized clipboard
+nodes directly into route state or trust IDs supplied by a source document.
+
 ## Required verification
 
 Run the affected package type/tests, boundary and public-bundle tests, packed

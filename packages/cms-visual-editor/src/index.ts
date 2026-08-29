@@ -1,4 +1,5 @@
 export * from "./adapter.js";
+export * from "./clipboard.js";
 export * from "./commands.js";
 export * from "./history.js";
 export * from "./inline-edit.js";

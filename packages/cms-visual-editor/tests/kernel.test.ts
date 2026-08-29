@@ -1,15 +1,19 @@
 import { describe, expect, test } from "bun:test";
 import {
+  applyCmsVisualClipboardPaste,
   applyCmsVisualPattern,
   applyCmsVisualCommand,
   applyCmsVisualInlineTextUpdate,
   assertCmsVisualAdapterRoundTrip,
   canCmsVisualAction,
   commitCmsDraftHistory,
+  createCmsVisualClipboardPayload,
   createCmsDraftHistory,
   createCmsVisualComponentRegistry,
+  createCmsVisualEditorCopyMessage,
   createCmsVisualEditorSelectionMessage,
   createCmsVisualEditorInlineTextMessage,
+  createCmsVisualEditorPasteMessage,
   createCmsVisualEditorStateMessage,
   createCmsVisualMigrationRegistry,
   createCmsVisualPatternRegistry,
@@ -24,8 +28,10 @@ import {
   isCmsVisualEditorMessage,
   migrateCmsVisualDocument,
   normalizeCmsVisualSelection,
+  parseCmsVisualClipboardText,
   parseCmsVisualDocument,
   redoCmsDraftHistory,
+  serializeCmsVisualClipboardPayload,
   undoCmsDraftHistory,
   validateCmsVisualPreviewEnvelope,
   type CmsVisualDocument,
@@ -397,6 +403,115 @@ describe("inline text editing", () => {
         editor: "invalid-editor",
       }),
     ).toThrow("optional boolean multiline flag");
+  });
+});
+
+describe("visual clipboard", () => {
+  test("serializes and pastes a nested-compatible node as one version", () => {
+    const payload = createCmsVisualClipboardPayload({
+      document: document(),
+      registry,
+      nodeIds: ["text-1"],
+    });
+    const parsed = parseCmsVisualClipboardText(
+      serializeCmsVisualClipboardPayload(payload),
+    );
+    expect(parsed.nodes).toHaveLength(1);
+    expect(parsed.nodes[0]).toMatchObject({
+      id: "text-1",
+      type: "textBlock",
+      data: { text: "One" },
+    });
+
+    const pasted = applyCmsVisualClipboardPaste({
+      document: document(),
+      registry,
+      payload: parsed,
+      location: { parentId: "layout-1", slot: "content", index: 1 },
+      createId: ({ id }) => `pasted-${id}`,
+      grants: new Set(),
+    });
+    expect(pasted.rootNodeIds).toEqual(["pasted-text-1"]);
+    expect(pasted.document.version).toBe(3);
+    expect(pasted.document.nodes[1]?.slots?.content).toEqual([
+      expect.objectContaining({ id: "text-1", data: { text: "One" } }),
+      expect.objectContaining({
+        id: "pasted-text-1",
+        data: { text: "One" },
+      }),
+    ]);
+  });
+
+  test("rejects malformed, unauthorized, incompatible, and colliding paste", () => {
+    expect(() => parseCmsVisualClipboardText("not-json")).toThrow(
+      "not valid JSON",
+    );
+    expect(() =>
+      parseCmsVisualClipboardText(
+        JSON.stringify({
+          channel: "foreign",
+          schemaVersion: 1,
+          nodes: [],
+        }),
+      ),
+    ).toThrow("channel or schema version");
+
+    const payload = createCmsVisualClipboardPayload({
+      document: document(),
+      registry,
+      nodeIds: ["text-1"],
+    });
+    expect(() =>
+      applyCmsVisualClipboardPaste({
+        document: document(),
+        registry,
+        payload,
+        location: { parentId: "layout-1", slot: "content", index: 1 },
+        createId: () => "hero-1",
+        grants: new Set(),
+      }),
+    ).toThrow("invalid or duplicate ID");
+
+    const restricted = createCmsVisualComponentRegistry(
+      registry.definitions.map((definition) =>
+        definition.type === "textBlock"
+          ? defineCmsVisualComponent({
+              ...definition,
+              actionCapabilities: {
+                ...definition.actionCapabilities,
+                insert: ["visual.clipboard.paste"],
+              },
+            })
+          : definition,
+      ),
+    );
+    expect(() =>
+      applyCmsVisualClipboardPaste({
+        document: document(),
+        registry: restricted,
+        payload,
+        location: { parentId: "layout-1", slot: "content", index: 1 },
+        createId: ({ id }) => `restricted-${id}`,
+        grants: new Set(),
+      }),
+    ).toThrow("permission denied for insert on textBlock");
+
+    const incompatible = parseCmsVisualClipboardText(
+      serializeCmsVisualClipboardPayload({
+        ...payload,
+        nodes: [{ ...payload.nodes[0]!, type: "foreignBlock" }],
+      }),
+    );
+    expect(() =>
+      applyCmsVisualClipboardPaste({
+        document: document(),
+        registry,
+        payload: incompatible,
+        location: { parentId: "layout-1", slot: "content", index: 1 },
+        createId: ({ id }) => `foreign-${id}`,
+        grants: new Set(),
+      }),
+    ).toThrow("permission denied for insert on foreignBlock");
   });
 });
 
@@ -805,6 +920,15 @@ describe("preview security", () => {
     const legacyState: Record<string, unknown> = { ...currentState };
     delete legacyState.inlineTextTargets;
     expect(isCmsVisualEditorMessage(legacyState)).toBe(true);
+    const copy = createCmsVisualEditorCopyMessage("hero-1");
+    const paste = createCmsVisualEditorPasteMessage("hero-1", "after");
+    expect(isCmsVisualEditorMessage(copy)).toBe(true);
+    expect(isCmsVisualEditorMessage(paste)).toBe(true);
+    expect(paste).toMatchObject({
+      type: "paste",
+      targetBlockId: "hero-1",
+      placement: "after",
+    });
   });
 
   test("keeps replay and document-version state inside a preview peer session", () => {

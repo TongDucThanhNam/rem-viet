@@ -85,3 +85,18 @@ schema, and canonical-command validation before one draft-history commit.
 Atelier independently declares masthead and nested story titles through the same
 kernel contract. Browser-wide acceptance remains scheduled for the exact
 implementation-freeze candidate rather than this targeted increment.
+
+The kernel now also owns a versioned structured clipboard. Copy selects
+canonical roots; parse rejects foreign channels, oversized payloads, malformed
+envelopes, duplicate IDs, shared node objects, cycles, and excessive nesting
+counts. Paste regenerates every nested ID and delegates insertion to the same
+recursive destination-registry, schema, slot, constraint, and permission path
+used by patterns, producing exactly one new document version.
+
+Rèm's standard-page host and canvas expose structured Copy and Paste-after
+actions plus `Ctrl/Cmd+C` and `Ctrl/Cmd+V` when focus is outside a text control.
+The iframe emits bounded v1-compatible intents only inside its authenticated v2
+session; the host owns the internal editor clipboard and canonical history
+commit. Atelier independently proves nested-slot paste with a fresh ID. Shared
+outline/workspace extraction and final-candidate browser acceptance remain the
+next P0-03 work; broad E2E is still deferred until implementation freeze.

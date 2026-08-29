@@ -1,8 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
+  applyCmsVisualClipboardPaste,
   applyCmsVisualInlineTextUpdate,
   applyCmsVisualPattern,
+  createCmsVisualClipboardPayload,
   getCmsVisualInlineTextTargets,
 } from "@agency/cms-visual-editor";
 
@@ -100,6 +102,31 @@ describe("Atelier second template", () => {
     expect(updated.version).toBe(1);
     expect(updated.nodes[1]?.slots?.primary[0]?.data).toMatchObject({
       title: "A durable public room",
+    });
+  });
+
+  test("copies and pastes nested editorial content through the shared clipboard", () => {
+    const document = createAtelierDefaultDocument("atelier-demo");
+    const payload = createCmsVisualClipboardPayload({
+      document,
+      registry: atelierTemplateFactory.registry,
+      nodeIds: ["home-story"],
+    });
+    const pasted = applyCmsVisualClipboardPaste({
+      document,
+      registry: atelierTemplateFactory.registry,
+      payload,
+      location: { parentId: "home-columns", slot: "primary", index: 1 },
+      createId: ({ id }) => `clipboard-${id}`,
+      grants: new Set(["content.compose.insert"]),
+    });
+    expect(pasted.rootNodeIds).toEqual(["clipboard-home-story"]);
+    expect(pasted.document.version).toBe(1);
+    expect(pasted.document.nodes[1]?.slots?.primary).toHaveLength(4);
+    expect(pasted.document.nodes[1]?.slots?.primary[1]).toMatchObject({
+      id: "clipboard-home-story",
+      type: "storyCard",
+      data: { title: "The useful edge" },
     });
   });
 

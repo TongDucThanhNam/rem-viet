@@ -365,7 +365,9 @@ async function cleanupInterruptedCampaignFixtures(page: Page) {
   while ((await staleRows.count()) > 0) {
     const staleRow = staleRows.first();
     await staleRow
-      .getByRole("link", { name: /Edit Collection E2E [0-9a-f]{8}/ })
+      .getByRole("link", {
+        name: /Chỉnh sửa Collection E2E [0-9a-f]{8}/,
+      })
       .click();
     await waitForAdminHydration(page);
     const unpublish = page.getByRole("button", {
@@ -2913,7 +2915,7 @@ test.describe("authenticated CMS workflow", () => {
         )
         .toBe(0);
 
-      await page.getByRole("button", { name: "Create", exact: true }).click();
+      await page.getByRole("button", { name: "Tạo", exact: true }).click();
       await expect(
         page.getByText("Đã tạo chiến dịch.", { exact: true }),
       ).toBeVisible();
@@ -2921,7 +2923,7 @@ test.describe("authenticated CMS workflow", () => {
       const campaignId = new URL(page.url()).searchParams.get("campaignId");
       expect(campaignId).toMatch(/^[0-9a-f-]+$/);
       await expect(
-        page.getByRole("button", { name: "Save changes", exact: true }),
+        page.getByRole("button", { name: "Lưu thay đổi", exact: true }),
       ).toBeVisible();
       await expect(headlineInput).toHaveValue(headline);
       await expect(
@@ -2933,7 +2935,7 @@ test.describe("authenticated CMS workflow", () => {
         preview.getByText(changedHeadline, { exact: true }),
       ).toBeVisible();
       await page
-        .getByRole("button", { name: "Save changes", exact: true })
+        .getByRole("button", { name: "Lưu thay đổi", exact: true })
         .click();
       await expect(
         page.getByText("Đã lưu bản nháp chiến dịch.", { exact: true }),

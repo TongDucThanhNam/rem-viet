@@ -697,6 +697,7 @@ function PostResponsivePreview({
 function EditPostRoute() {
   const { postId } = Route.useParams();
   const { session } = Route.useRouteContext();
+  const canWrite = session?.capabilities.includes("content.write") ?? false;
   const canPublish = session?.capabilities.includes("content.publish") ?? false;
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -1289,12 +1290,15 @@ function EditPostRoute() {
               }
             >
               <CmsPostForm
+                canWrite={canWrite}
                 contentValue={draftValues?.content}
+                contentVersion={workingVersion}
                 key={`${postId}-${formEpoch}`}
                 initialValues={formSeed}
                 isSubmitDisabled={saveState === "conflict"}
                 isSubmitting={saveState === "saving"}
                 onChange={handleFormChange}
+                onSelectedBlockChange={setSelectedPostBlockIndex}
                 selectedBlockIndex={selectedPostBlockIndex}
                 submitLabel="Lưu thay đổi"
                 status={

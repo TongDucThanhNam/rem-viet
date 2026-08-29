@@ -329,6 +329,31 @@ describe("visual component registry", () => {
       duplicate: false,
       remove: true,
     });
+
+    const nodeLimitedOutline = createCmsVisualOutline({
+      document: document(),
+      registry,
+      grants: new Set(["visual.component.edit", "visual.component.move"]),
+      selection: { nodeId: null },
+      maxNodes: 3,
+    });
+    expect(nodeLimitedOutline[1]?.actions).toMatchObject({
+      insert: false,
+      duplicate: false,
+    });
+    expect(nodeLimitedOutline[1]?.children[0]?.actions).toMatchObject({
+      insert: false,
+      duplicate: false,
+    });
+    expect(() =>
+      createCmsVisualOutline({
+        document: document(),
+        registry,
+        grants: new Set(),
+        selection: { nodeId: null },
+        maxNodes: 2,
+      }),
+    ).toThrow("maxNodes");
   });
 });
 

@@ -98,6 +98,7 @@ export function createCmsVisualOutline(input: {
   registry: CmsVisualComponentRegistry;
   grants: ReadonlySet<string>;
   selection: CmsVisualSelection;
+  maxNodes?: number;
   label?: (
     node: CmsVisualNode,
     definition: CmsVisualComponentDefinition,
@@ -118,6 +119,16 @@ export function createCmsVisualOutline(input: {
     }
   };
   collectIds(document.nodes);
+  if (
+    input.maxNodes !== undefined &&
+    (!Number.isSafeInteger(input.maxNodes) ||
+      input.maxNodes < 1 ||
+      nodeIds.size > input.maxNodes)
+  ) {
+    throw new Error(
+      "Visual outline maxNodes must be a positive integer no smaller than the current document.",
+    );
+  }
   const selection = normalizeCmsVisualSelection({
     selection: input.selection,
     nodeIds,
@@ -152,6 +163,15 @@ export function createCmsVisualOutline(input: {
       }
     }
     return true;
+  };
+
+  const respectsDocumentNodeLimit = (node: CmsVisualNode) => {
+    if (input.maxNodes === undefined) return true;
+    const subtreeSize = [...subtreeTypeCounts(node).values()].reduce(
+      (total, count) => total + count,
+      0,
+    );
+    return nodeIds.size + subtreeSize <= input.maxNodes;
   };
 
   const slotBounds = (
@@ -216,14 +236,16 @@ export function createCmsVisualOutline(input: {
             insert:
               action("insert") &&
               bounds.canAdd &&
-              respectsGlobalCounts(node, "add"),
+              respectsGlobalCounts(node, "add") &&
+              respectsDocumentNodeLimit(node),
             edit: action("edit"),
             move: action("move") && !pinned && movableSiblingCount > 1,
             duplicate:
               action("duplicate") &&
               !pinned &&
               bounds.canAdd &&
-              respectsGlobalCounts(node, "add"),
+              respectsGlobalCounts(node, "add") &&
+              respectsDocumentNodeLimit(node),
             remove:
               action("remove") &&
               !pinned &&

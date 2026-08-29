@@ -8,6 +8,7 @@ import {
   type RichTextSpan,
 } from "@rem-viet/cms";
 import {
+  CmsVisualOutline,
   applyCmsPlainTextPaste,
   filterCmsBlockAuthoringCatalog,
   resolveCmsMediaSelection,
@@ -19,10 +20,25 @@ import {
 import { Button } from "@rem-viet/ui/components/button";
 import { Input } from "@rem-viet/ui/components/input";
 import { Label } from "@rem-viet/ui/components/label";
-import { ChevronDown, ChevronUp, Plus, Search, Trash2 } from "lucide-react";
-import { useEffect, useId, useRef, useState, type ClipboardEvent } from "react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  Plus,
+  Search,
+  Trash2,
+} from "lucide-react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type ClipboardEvent,
+} from "react";
 
 import MediaPickerField from "@/components/media-picker-field";
+import { createRichTextVisualOutline } from "@/lib/rich-text-visual-outline";
 
 type Block = RichTextDocument["blocks"][number];
 
@@ -238,16 +254,27 @@ function InlineEditor({
 }
 
 export default function CmsRichTextEditor({
+  canWrite = true,
+  contentVersion = 0,
+  onSelectedBlockChange,
+  showOutline = false,
   value,
   onChange,
   selectedBlockIndex,
 }: {
+  canWrite?: boolean;
+  contentVersion?: number;
+  onSelectedBlockChange?: (index: number | null) => void;
+  showOutline?: boolean;
   value: string;
   onChange: (value: string, historyGroup?: string) => void;
   selectedBlockIndex?: number | null;
 }) {
   const [document, setDocument] = useState(() => initialDocument(value));
   const [catalogQuery, setCatalogQuery] = useState("");
+  const [localSelectedBlockIndex, setLocalSelectedBlockIndex] = useState<
+    number | null
+  >(selectedBlockIndex ?? null);
   const catalogDisclosure = useRef<HTMLDetailsElement>(null);
   const catalogSearchId = useId();
   const catalogResultId = `${catalogSearchId}-results`;
@@ -258,6 +285,28 @@ export default function CmsRichTextEditor({
     catalogQuery,
   );
   const blockLimitReached = document.blocks.length >= MAX_RICH_TEXT_BLOCKS;
+  const effectiveSelectedBlockIndex =
+    selectedBlockIndex === undefined
+      ? localSelectedBlockIndex
+      : selectedBlockIndex;
+  const visualOutline = useMemo(
+    () =>
+      showOutline
+        ? createRichTextVisualOutline({
+            document,
+            selectedBlockIndex: effectiveSelectedBlockIndex,
+            version: contentVersion,
+            canWrite,
+          })
+        : [],
+    [
+      canWrite,
+      contentVersion,
+      document,
+      effectiveSelectedBlockIndex,
+      showOutline,
+    ],
+  );
 
   useEffect(() => {
     if (parseRichTextDocument(value)) return;
@@ -279,11 +328,23 @@ export default function CmsRichTextEditor({
   }
 
   useEffect(() => {
-    if (selectedBlockIndex === null || selectedBlockIndex === undefined) return;
+    if (effectiveSelectedBlockIndex === null) return;
     globalThis.document
-      .getElementById(`post-content-block-${selectedBlockIndex}`)
+      .getElementById(`post-content-block-${effectiveSelectedBlockIndex}`)
       ?.focus();
-  }, [selectedBlockIndex]);
+  }, [effectiveSelectedBlockIndex]);
+
+  function selectBlock(index: number | null) {
+    setLocalSelectedBlockIndex(index);
+    onSelectedBlockChange?.(index);
+    if (index !== null) {
+      queueMicrotask(() =>
+        globalThis.document
+          .getElementById(`post-content-block-${index}`)
+          ?.focus(),
+      );
+    }
+  }
 
   function replace(index: number, block: Block) {
     commit(
@@ -298,7 +359,7 @@ export default function CmsRichTextEditor({
   }
 
   function add(type: Block["type"]) {
-    if (blockLimitReached) return;
+    if (!canWrite || blockLimitReached) return;
     const id = createRichTextBlockId(
       type,
       document.blocks.map((block) => block.id),
@@ -329,8 +390,57 @@ export default function CmsRichTextEditor({
                     }
                   : { id, type: "paragraph", children: [{ text: "" }] };
     commit({ ...document, blocks: [...document.blocks, block] });
+    selectBlock(document.blocks.length);
     setCatalogQuery("");
     catalogDisclosure.current?.removeAttribute("open");
+  }
+
+  function move(index: number, targetIndex: number) {
+    if (
+      !canWrite ||
+      index < 0 ||
+      targetIndex < 0 ||
+      index >= document.blocks.length ||
+      targetIndex >= document.blocks.length
+    ) {
+      return;
+    }
+    const blocks = [...document.blocks];
+    [blocks[index], blocks[targetIndex]] = [
+      blocks[targetIndex]!,
+      blocks[index]!,
+    ];
+    commit({ ...document, blocks });
+    selectBlock(targetIndex);
+  }
+
+  function duplicate(index: number) {
+    if (!canWrite || blockLimitReached) return;
+    const source = document.blocks[index];
+    if (!source) return;
+    const id = createRichTextBlockId(
+      source.type,
+      document.blocks.map((block) => block.id),
+    );
+    const copy = { ...structuredClone(source), id };
+    commit({
+      ...document,
+      blocks: [
+        ...document.blocks.slice(0, index + 1),
+        copy,
+        ...document.blocks.slice(index + 1),
+      ],
+    });
+    selectBlock(index + 1);
+  }
+
+  function remove(index: number) {
+    if (!canWrite || index < 0 || index >= document.blocks.length) return;
+    const blocks = document.blocks.filter(
+      (_, position) => position !== index,
+    );
+    commit({ ...document, blocks });
+    selectBlock(blocks.length === 0 ? null : Math.min(index, blocks.length - 1));
   }
 
   return (
@@ -373,9 +483,11 @@ export default function CmsRichTextEditor({
             className="text-xs text-muted-foreground"
             id={catalogResultId}
           >
-            {blockLimitReached
-              ? `Đã đạt giới hạn ${MAX_RICH_TEXT_BLOCKS.toLocaleString("vi-VN")} block.`
-              : `${filteredCatalog.length} lựa chọn phù hợp.`}
+            {!canWrite
+              ? "Phiên làm việc chỉ đọc; thao tác cấu trúc đã bị khóa."
+              : blockLimitReached
+                ? `Đã đạt giới hạn ${MAX_RICH_TEXT_BLOCKS.toLocaleString("vi-VN")} block.`
+                : `${filteredCatalog.length} lựa chọn phù hợp.`}
           </p>
           {filteredCatalog.length ? (
             <div
@@ -388,7 +500,7 @@ export default function CmsRichTextEditor({
                   <Button
                     aria-label={`Thêm ${definition.label.toLocaleLowerCase("vi")}`}
                     className="h-auto min-h-20 w-full items-start justify-start whitespace-normal px-3 py-3 text-left"
-                    disabled={blockLimitReached}
+                    disabled={!canWrite || blockLimitReached}
                     onClick={() => add(definition.type)}
                     type="button"
                     variant="outline"
@@ -419,13 +531,100 @@ export default function CmsRichTextEditor({
         Có thể dán trực tiếp từ Google Docs. Trình soạn thảo chỉ nhận văn bản
         thuần, chuẩn hóa khoảng trắng và loại bỏ style hoặc metadata ẩn.
       </p>
+      {showOutline ? (
+        <section
+          aria-label="Cấu trúc block nội dung bài viết"
+          className="grid gap-2 rounded-xl border bg-muted/20 p-3"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <strong className="text-xs uppercase tracking-wider">
+              Cấu trúc nội dung
+            </strong>
+            <span className="text-[11px] text-muted-foreground">
+              {document.blocks.length.toLocaleString("vi-VN")} block
+            </span>
+          </div>
+          <CmsVisualOutline
+            className="grid gap-1"
+            empty={
+              <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+                Chưa có block nội dung. Chọn một block từ danh mục phía trên.
+              </p>
+            }
+            itemClassName={(item) =>
+              `grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-md border px-2 py-1.5 ${item.selected ? "border-primary bg-primary/10" : "bg-background"}`
+            }
+            items={visualOutline}
+            label="Outline block nội dung bài viết"
+            treeItemClassName="min-w-0 truncate text-left text-xs font-medium"
+            onSelectNode={(nodeId) => {
+              const index = document.blocks.findIndex(
+                (block) => block.id === nodeId,
+              );
+              if (index >= 0) selectBlock(index);
+            }}
+            renderLabel={(item) => (
+              <span>
+                {item.index + 1}. {item.label}
+              </span>
+            )}
+            renderActions={(item) => (
+              <div className="flex shrink-0">
+                <Button
+                  aria-label={`Nhân bản ${item.label}`}
+                  disabled={!item.actions.duplicate}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
+                  onClick={() => duplicate(item.index)}
+                >
+                  <Copy aria-hidden />
+                </Button>
+                <Button
+                  aria-label={`Đưa ${item.label} lên`}
+                  disabled={!item.actions.move || item.index === 0}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
+                  onClick={() => move(item.index, item.index - 1)}
+                >
+                  <ChevronUp aria-hidden />
+                </Button>
+                <Button
+                  aria-label={`Đưa ${item.label} xuống`}
+                  disabled={
+                    !item.actions.move ||
+                    item.index === document.blocks.length - 1
+                  }
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
+                  onClick={() => move(item.index, item.index + 1)}
+                >
+                  <ChevronDown aria-hidden />
+                </Button>
+                <Button
+                  aria-label={`Xóa ${item.label}`}
+                  disabled={!item.actions.remove}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
+                  onClick={() => remove(item.index)}
+                >
+                  <Trash2 aria-hidden />
+                </Button>
+              </div>
+            )}
+          />
+        </section>
+      ) : null}
       {document.blocks.map((block, index) => (
         <section
           aria-label={`Block ${index + 1}: ${blockLabel(block)}`}
           className="grid gap-3 rounded-md border p-4"
           data-cms-rich-text-block-id={block.id}
           id={`post-content-block-${index}`}
-          key={`${block.type}-${index}`}
+          key={block.id}
           role="group"
           tabIndex={-1}
         >
@@ -433,58 +632,43 @@ export default function CmsRichTextEditor({
             <strong className="text-xs uppercase tracking-wider">
               {index + 1}. {blockLabel(block)}
             </strong>
-            <div className="flex">
-              <Button
-                aria-label="Đưa lên"
-                disabled={index === 0}
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-                onClick={() => {
-                  const blocks = [...document.blocks];
-                  [blocks[index - 1], blocks[index]] = [
-                    blocks[index]!,
-                    blocks[index - 1]!,
-                  ];
-                  commit({ ...document, blocks });
-                }}
-              >
-                <ChevronUp />
-              </Button>
-              <Button
-                aria-label="Đưa xuống"
-                disabled={index === document.blocks.length - 1}
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-                onClick={() => {
-                  const blocks = [...document.blocks];
-                  [blocks[index], blocks[index + 1]] = [
-                    blocks[index + 1]!,
-                    blocks[index]!,
-                  ];
-                  commit({ ...document, blocks });
-                }}
-              >
-                <ChevronDown />
-              </Button>
-              <Button
-                aria-label="Xóa block"
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-                onClick={() =>
-                  commit({
-                    ...document,
-                    blocks: document.blocks.filter(
-                      (_, position) => position !== index,
-                    ),
-                  })
-                }
-              >
-                <Trash2 />
-              </Button>
-            </div>
+            {showOutline ? null : (
+              <div className="flex">
+                <Button
+                  aria-label="Đưa lên"
+                  disabled={index === 0}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    move(index, index - 1);
+                  }}
+                >
+                  <ChevronUp />
+                </Button>
+                <Button
+                  aria-label="Đưa xuống"
+                  disabled={index === document.blocks.length - 1}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    move(index, index + 1);
+                  }}
+                >
+                  <ChevronDown />
+                </Button>
+                <Button
+                  aria-label="Xóa block"
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
+                  onClick={() => remove(index)}
+                >
+                  <Trash2 />
+                </Button>
+              </div>
+            )}
           </header>
           {block.type === "paragraph" || block.type === "quote" ? (
             <InlineEditor

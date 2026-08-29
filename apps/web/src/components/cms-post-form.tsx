@@ -34,11 +34,14 @@ export type CmsPostFormValues = {
 };
 
 type CmsPostFormProps = {
+  canWrite?: boolean;
   contentValue?: string;
+  contentVersion?: number;
   initialValues?: Partial<CmsPostFormValues>;
   isSubmitDisabled?: boolean;
   isSubmitting?: boolean;
   onChange?: (values: CmsPostFormValues, historyGroup?: string) => void;
+  onSelectedBlockChange?: (index: number | null) => void;
   selectedBlockIndex?: number | null;
   submitLabel: string;
   status?: ReactNode;
@@ -100,11 +103,14 @@ export function validateCmsPostFormValues(values: CmsPostFormValues) {
 }
 
 export default function CmsPostForm({
+  canWrite = true,
   contentValue,
+  contentVersion = 0,
   initialValues,
   isSubmitDisabled = false,
   isSubmitting = false,
   onChange,
+  onSelectedBlockChange,
   selectedBlockIndex,
   submitLabel,
   status,
@@ -279,7 +285,11 @@ export default function CmsPostForm({
         <div className="grid gap-2">
           <Label>Nội dung</Label>
           <CmsRichTextEditor
+            canWrite={canWrite}
+            contentVersion={contentVersion}
+            onSelectedBlockChange={onSelectedBlockChange}
             selectedBlockIndex={selectedBlockIndex}
+            showOutline
             value={form.content}
             onChange={(content, historyGroup) =>
               updateForm({ content }, historyGroup)

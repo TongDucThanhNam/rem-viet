@@ -558,24 +558,29 @@ candidate.
 
 ### 10.1 Implementation gate
 
-- [ ] Cài bằng packed package vào hai repo TanStack Start độc lập, trong đó một
+- [x] Cài bằng packed package vào hai repo TanStack Start độc lập, trong đó một
       repo đã có auth/routes/styles.
-- [ ] Core chạy hoàn toàn không có Sanity dependency/configuration.
-- [ ] Homepage, page, post và generic collection dùng secure preview v2.
-- [ ] Rèm và Atelier dùng chung editor shell đã package hóa.
-- [ ] Local + Cloudflare + Postgres provider chạy cùng required conformance.
-- [ ] Durable jobs/outbox/webhook có crash/retry/idempotency/dead-letter tests.
-- [ ] Release nhiều document có preview, validation, schedule và atomic outcome.
-- [ ] Field v2 và generated controls có parser/migration/a11y/API evidence.
-- [ ] DAM có folder/tag/focal/variant/trash/usage/replace.
-- [ ] SEO/search/redirect/form modules cài và gỡ độc lập.
-- [ ] Auth có invite/reset/MFA/session revoke/API key rotation.
-- [ ] Import/export/backup/restore/upgrade/rollback đều chạy từ clean checkout.
-- [ ] Security review bao gồm CSRF/XSS/SSRF, preview origin/session/replay,
+- [x] Core chạy hoàn toàn không có Sanity dependency/configuration.
+- [x] Homepage, page, post và generic collection dùng secure preview v2.
+- [x] Rèm và Atelier dùng chung editor shell đã package hóa.
+- [x] Local + Cloudflare + Postgres provider chạy cùng required conformance.
+- [x] Durable jobs/outbox/webhook có crash/retry/idempotency/dead-letter tests.
+- [x] Release nhiều document có preview, validation, schedule và atomic outcome.
+- [x] Field v2 và generated controls có parser/migration/a11y/API evidence.
+- [x] DAM có folder/tag/focal/variant/trash/usage/replace.
+- [x] SEO/search/redirect/form modules cài và gỡ độc lập.
+- [x] Auth có invite/reset/MFA/session revoke/API key rotation.
+- [x] Import/export/backup/restore/upgrade/rollback đều chạy từ clean checkout.
+- [x] Security review bao gồm CSRF/XSS/SSRF, preview origin/session/replay,
       upload magic bytes, rate limits, secret exposure và dependency audit.
 
 Trong phase này chạy targeted verification cho code vừa đổi. Không yêu cầu full
 browser matrix hoặc human receipt sau mỗi increment.
+
+Implementation gate hiện đã có local/hosted evidence trong
+[`perfect-cms-plugin-completion-audit.md`](./perfect-cms-plugin-completion-audit.md).
+Increment mới nhất là reusable content tại `baf899a`; các checkbox final
+acceptance bên dưới vẫn để mở cho exact implementation-freeze candidate.
 
 ### 10.2 Final E2E và human acceptance — chạy sau implementation freeze
 

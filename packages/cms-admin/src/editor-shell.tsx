@@ -180,7 +180,7 @@ export function CmsVisualOutline({
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(
     selectedNodeId ?? allItems[0]?.id ?? null,
   );
-  const itemRefs = useRef(new Map<string, HTMLButtonElement>());
+  const itemRefs = useRef(new Map<string, HTMLLIElement>());
   const previousSelectedNodeId = useRef<string | null>(null);
 
   useEffect(() => {
@@ -233,9 +233,10 @@ export function CmsVisualOutline({
   };
 
   const handleKeyDown = (
-    event: KeyboardEvent<HTMLButtonElement>,
+    event: KeyboardEvent<HTMLLIElement>,
     item: CmsVisualOutlineItem,
   ) => {
+    if (event.target !== event.currentTarget) return;
     if (
       !cmsVisualOutlineKeyboardKeys.has(
         event.key as CmsVisualOutlineKeyboardKey,
@@ -264,6 +265,9 @@ export function CmsVisualOutline({
       const attributes = itemAttributes?.(item);
       return (
         <li
+          aria-expanded={hasChildren ? itemExpanded : undefined}
+          aria-level={item.depth + 1}
+          aria-selected={item.selected}
           data-cms-outline-depth={item.depth}
           data-cms-outline-enabled={item.enabled ? "true" : "false"}
           data-cms-outline-node-id={item.id}
@@ -275,43 +279,45 @@ export function CmsVisualOutline({
           data-cms-outline-can-insert={item.actions.insert ? "true" : "false"}
           data-cms-outline-can-move={item.actions.move ? "true" : "false"}
           data-cms-outline-can-remove={item.actions.remove ? "true" : "false"}
+          data-cms-outline-tree-item={item.id}
           key={item.id}
-          role="none"
+          ref={(element) => {
+            if (element) itemRefs.current.set(item.id, element);
+            else itemRefs.current.delete(item.id);
+          }}
+          role="treeitem"
+          tabIndex={focusedNodeId === item.id ? 0 : -1}
+          onClick={(event) => {
+            const target = event.target;
+            if (!(target instanceof Element)) return;
+            if (target.closest('[role="treeitem"]') !== event.currentTarget) {
+              return;
+            }
+            if (
+              target.closest(
+                'button, a, input, select, textarea, [role="button"]',
+              )
+            ) {
+              return;
+            }
+            setFocusedNodeId(item.id);
+            event.currentTarget.focus();
+            if (hasChildren && target.closest("[data-cms-outline-toggle]")) {
+              toggle(item);
+            }
+            onSelectNode(item.id);
+          }}
+          onKeyDown={(event) => handleKeyDown(event, item)}
         >
           <div {...attributes} className={classFor(itemClassName, item)}>
-            <button
-              aria-expanded={hasChildren ? itemExpanded : undefined}
-              aria-level={item.depth + 1}
-              aria-selected={item.selected}
-              className={classFor(treeItemClassName, item)}
-              data-cms-outline-tree-item={item.id}
-              ref={(element) => {
-                if (element) itemRefs.current.set(item.id, element);
-                else itemRefs.current.delete(item.id);
-              }}
-              role="treeitem"
-              tabIndex={focusedNodeId === item.id ? 0 : -1}
-              type="button"
-              onClick={(event) => {
-                setFocusedNodeId(item.id);
-                if (
-                  hasChildren &&
-                  event.target instanceof Element &&
-                  event.target.closest("[data-cms-outline-toggle]")
-                ) {
-                  toggle(item);
-                }
-                onSelectNode(item.id);
-              }}
-              onKeyDown={(event) => handleKeyDown(event, item)}
-            >
+            <span className={classFor(treeItemClassName, item)}>
               {hasChildren ? (
                 <span aria-hidden data-cms-outline-toggle={item.id}>
                   {itemExpanded ? "−" : "+"}
                 </span>
               ) : null}
               {renderLabel(item)}
-            </button>
+            </span>
             {renderActions?.(item)}
           </div>
           {itemExpanded ? (

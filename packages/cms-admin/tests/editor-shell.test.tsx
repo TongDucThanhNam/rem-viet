@@ -128,11 +128,19 @@ describe("visual editor shell", () => {
           draggable: item.actions.move,
           title: `Outline item ${item.label}`,
         })}
-        renderActions={(item) => <span>Actions for {item.label}</span>}
+        renderActions={(item) => (
+          <button aria-label={`Actions for ${item.label}`} type="button">
+            Actions
+          </button>
+        )}
       />,
     );
     expect(html).toContain('role="tree"');
     expect(html).toContain('role="group"');
+    expect(html).toMatch(
+      /<li[^>]*role="treeitem"[^>]*>.*aria-label="Actions for Text"/u,
+    );
+    expect(html).not.toMatch(/<button[^>]*role="treeitem"/u);
     expect(html).toContain('aria-level="2"');
     expect(html).toContain('aria-selected="true"');
     expect(html).toContain('data-cms-outline-node-id="text-1"');

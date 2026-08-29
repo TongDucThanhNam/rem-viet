@@ -21,12 +21,13 @@ documents, not a second page database and not an unrestricted page builder.
 - authenticated preview envelopes, replay state and response headers.
 
 `@agency/cms-admin` owns React authoring primitives such as the accessible
-outline tree, autosave, draft flush, preview connection state, generated
-collection controls and workflow presentation. Provider packages own
-persistence, authorization, tenant/site isolation, versions and immutable
-revisions. Templates own concrete schemas, outline labels, production React
-components, editor mappings, design tokens, assets and migrations. Applications
-own transport, routing, injected outline actions and server-session binding.
+outline tree, the schema-field outline adapter, autosave, draft flush, preview
+connection state, generated collection controls and workflow presentation.
+Provider packages own persistence, authorization, tenant/site isolation,
+versions and immutable revisions. Templates own concrete schemas, outline
+labels, production React components, editor mappings, design tokens, assets and
+migrations. Applications own transport, routing, injected outline actions and
+server-session binding.
 
 The public renderer imports only a template's public entry. Authoring mappings
 live in explicit `./visual-authoring` or `./admin` subpaths, and the browser
@@ -41,8 +42,9 @@ template entry graphs.
    registries, seed path and fail-closed document parser from those definitions.
 3. An editor adapter maps the canonical document into replaceable UI state.
 4. The outline derives validated parent/slot/depth/selection metadata and action
-   availability from the same registry/grants. The admin tree applies shared
-   keyboard semantics while the template supplies presentation labels.
+   availability from the same registry/grants. A consumer may only further
+   restrict those actions. The admin tree applies shared keyboard semantics
+   while the template supplies presentation labels.
 5. Copy captures canonical nodes in a bounded versioned payload. Paste treats
    that payload as untrusted input, regenerates every nested ID, and re-runs the
    destination registry, schema, slot, constraint, and insert-grant checks.
@@ -85,6 +87,11 @@ lists consume the shared outline with Vietnamese labels; the homepage adapter
 also proves pinned and min/max constraints before rendering structural actions.
 The structured post body adapts seven rich-text block types to the same tree,
 including stable-ID canvas/inspector focus and a total-document node ceiling.
+The generated collection form adapts visible schema fields, nested groups and
+concrete array rows to the same tree with stable field paths. Conditional fields
+follow current record visibility; derived/read-only fields and missing write
+grants fail closed. Collection insert/move/duplicate/delete remain unavailable
+because instance structure is owned by the registered schema, not the outline.
 Atelier registers nine independent editorial
 block types, a two-slot nested layout, two editorial patterns, and inline-enabled
 masthead/nested-story titles through the factory; its nested-slot fixture

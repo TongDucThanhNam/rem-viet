@@ -105,11 +105,15 @@ availability from the canonical document, registry, and current grants. Its pure
 keyboard reducer defines visible-node Arrow/Home/End traversal, Left/Right
 collapse/expand, and Enter/Space activation. `@agency/cms-admin` renders that
 model as one roving-focus ARIA tree while templates/apps inject styling and
-document-specific action controls.
+document-specific action controls. A consumer action filter may only narrow the
+already granted result and cannot advertise an unauthorized operation.
 
 Rèm's live standard-page list adopts the shared tree with Vietnamese labels and
 permission-disabled move controls. Atelier independently maps its nested
 primary/sidebar layout and renders the same component with its own labels.
-Homepage, post, and generic-collection route adoption plus the final-candidate
-browser acceptance remain follow-up P0-03 work; broad E2E is still deferred
+Rèm's homepage and seven-type structured post adapters now use the same model.
+The packaged generic collection form maps visible fields, nested groups and
+concrete array rows by stable field path, while schema-owned structural actions,
+read-only fields and missing write grants fail closed. Only final-candidate
+browser acceptance remains follow-up P0-03 work; broad E2E is still deferred
 until implementation freeze.

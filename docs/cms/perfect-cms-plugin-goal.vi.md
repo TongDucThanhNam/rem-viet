@@ -201,7 +201,7 @@ Quy ước:
 | Local development                 | PARTIAL  | chạy không cần SaaS/credential ngoài                                                          | core không cần Sanity nhưng workspace/provider thử nghiệm vẫn dễ làm người dùng hiểu nhầm; cần optional isolation tuyệt đối     |
 | Field catalog                     | PARTIAL  | nested array/group/tabs, JSON, email, URL, code, slug, color, point, computed/virtual         | core hiện chỉ có 9 nhóm field cơ bản                                                                                            |
 | Generated admin                   | PROVEN   | bulk actions, saved views, configurable columns, tree/hierarchy, custom views/dashboard       | Admin Platform v2 và generated collection CRUD đã có executable package evidence; final-candidate browser rerun để ở phase 10.2 |
-| Visual editor                     | PARTIAL  | một protocol và UX cho mọi document type, inline edit, outline, patterns, copy/paste          | homepage/page/post chưa dùng cùng secure transport; Atelier chưa có full authenticated editor shell                             |
+| Visual editor                     | PARTIAL  | một protocol và UX cho mọi document type, inline edit, outline, patterns, copy/paste          | secure preview v2 và patterns đã proven; còn inline edit, UX chung đầy đủ và final-candidate browser matrix                     |
 | Reusable content                  | PROVEN   | synced block/global reference, detach/override, usage graph                                   | provider-neutral refs/override/detach/usage và first-class authoring, proven tại `baf899a`                                      |
 | Layout governance                 | PARTIAL  | content-only mode, lock insert/move/delete/edit/style theo role/instance                      | kernel có permission/constraint nhưng UX và test matrix chưa đầy đủ trên mọi editor                                             |
 | Editorial collaboration           | PARTIAL  | configurable stages, assignee, due date, comments, notifications                              | workflow hiện cố định request/decision, chưa có task/comment model                                                              |
@@ -281,6 +281,11 @@ Acceptance evidence:
 - Bổ sung inline text editing khi component cho phép.
 - Có component patterns/presets và empty-state tốt.
 - Permission/constraint phải hiển thị đúng nhưng server vẫn là authority.
+
+Progress evidence: commit `c67f2253792b44a65fe7d6d5210745cbaab487d0`
+thêm pattern registry dùng chung, tìm kiếm không dấu, atomic multi-node insert,
+bounded/cycle-safe validation, nested permission enforcement, hai pattern cho
+Rèm standard page, hai pattern cho Atelier và empty-state trực tiếp trong admin.
 
 Acceptance evidence:
 
@@ -579,10 +584,12 @@ browser matrix hoặc human receipt sau mỗi increment.
 
 Implementation gate hiện đã có local/hosted evidence trong
 [`perfect-cms-plugin-completion-audit.md`](./perfect-cms-plugin-completion-audit.md).
-Increment mới nhất là complete Admin Platform v2 localization tại `982f3a4`
-(generated CRUD tại `50b3c9c` và breadcrumb landmark follow-up), tiếp nối
-reusable content tại `baf899a`; các checkbox final acceptance bên dưới vẫn để
-mở cho exact implementation-freeze candidate.
+Increment mới nhất là visual component patterns/presets tại `c67f225` với atomic
+insert, bounded/cycle-safe validation, nested permission enforcement, Rèm admin
+integration và Atelier reuse proof. Increment này tiếp nối complete Admin
+Platform v2 localization tại `982f3a4` và reusable content tại `baf899a`; các
+checkbox final acceptance bên dưới vẫn để mở cho exact implementation-freeze
+candidate.
 
 ### 10.2 Final E2E và human acceptance — chạy sau implementation freeze
 

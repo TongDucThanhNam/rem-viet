@@ -57,8 +57,9 @@ adapter payload. Preview responses are private, no-store, noindex and carry an
 explicit `frame-ancestors` policy.
 
 Rèm's homepage host/preview pair uses v2 around its established v1 intent shapes
-as a compatibility adapter. Standard-page and post routes remain incremental
-follow-up migrations; they are not silently claimed as v2 adopters.
+as a compatibility adapter. Standard-page, post and localized generic-collection
+hosts/previews also create bound v2 peer sessions; the retained staging matrix
+proves their authenticated origin/session/site/document/version/replay boundary.
 
 ## Reuse proof
 

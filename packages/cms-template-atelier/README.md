@@ -10,4 +10,7 @@ The public entry exports schemas and production React components. The
 template factory and visual kernel, including a named two-column layout with
 bounded primary/sidebar slots and two searchable editorial patterns. Pattern
 insertion exercises the same nested constraints and permissions as manual
-composition. `./bootstrap` generates a complete client plan.
+composition. Masthead and nested story titles also opt into the same
+permission-filtered inline-text contract used by the Rèm template; the template
+declares content semantics and bounds without importing any app route or React
+editing implementation. `./bootstrap` generates a complete client plan.

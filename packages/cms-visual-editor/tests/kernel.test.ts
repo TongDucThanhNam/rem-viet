@@ -2,12 +2,15 @@ import { describe, expect, test } from "bun:test";
 import {
   applyCmsVisualPattern,
   applyCmsVisualCommand,
+  applyCmsVisualInlineTextUpdate,
   assertCmsVisualAdapterRoundTrip,
   canCmsVisualAction,
   commitCmsDraftHistory,
   createCmsDraftHistory,
   createCmsVisualComponentRegistry,
   createCmsVisualEditorSelectionMessage,
+  createCmsVisualEditorInlineTextMessage,
+  createCmsVisualEditorStateMessage,
   createCmsVisualMigrationRegistry,
   createCmsVisualPatternRegistry,
   createCmsVisualPreviewEnvelope,
@@ -16,6 +19,7 @@ import {
   defineCmsVisualComponent,
   defineCmsVisualPattern,
   filterCmsVisualPatterns,
+  getCmsVisualInlineTextTargets,
   initialCmsVisualPreviewReplayState,
   isCmsVisualEditorMessage,
   migrateCmsVisualDocument,
@@ -51,7 +55,9 @@ const registry = createCmsVisualComponentRegistry([
         path: "text",
         label: "Heading",
         kind: "text",
+        required: true,
         editCapabilities: ["visual.field.edit"],
+        inlineText: { maxLength: 80 },
       },
     ],
     defaults: () => ({ text: "Hero" }),
@@ -280,6 +286,117 @@ describe("permissions and commands", () => {
         command: { type: "remove", nodeId: "hero-1" },
       }),
     ).toThrow("permission denied");
+  });
+});
+
+describe("inline text editing", () => {
+  const editGrants = new Set(["visual.component.edit", "visual.field.edit"]);
+
+  test("discovers only permission-granted inline targets and updates atomically", () => {
+    expect(
+      getCmsVisualInlineTextTargets({
+        nodes: document().nodes,
+        registry,
+        grants: new Set(),
+      }),
+    ).toEqual([]);
+    expect(
+      getCmsVisualInlineTextTargets({
+        nodes: document().nodes,
+        registry,
+        grants: editGrants,
+      }),
+    ).toEqual([
+      {
+        blockId: "hero-1",
+        fieldPath: "text",
+        label: "Heading",
+        maxLength: 80,
+        multiline: false,
+      },
+    ]);
+
+    const updated = applyCmsVisualInlineTextUpdate({
+      document: document(),
+      registry,
+      nodeId: "hero-1",
+      fieldPath: "text",
+      value: "  Inline heading  ",
+      grants: editGrants,
+    });
+    expect(updated.version).toBe(3);
+    expect(updated.nodes[0]?.data).toEqual({ text: "Inline heading" });
+  });
+
+  test("rejects undeclared, multiline, oversized, and unauthorized updates", () => {
+    expect(() =>
+      applyCmsVisualInlineTextUpdate({
+        document: document(),
+        registry,
+        nodeId: "hero-1",
+        fieldPath: "missing",
+        value: "Text",
+        grants: editGrants,
+      }),
+    ).toThrow("does not allow inline text editing");
+    for (const value of ["Line one\nLine two", "x".repeat(81)]) {
+      expect(() =>
+        applyCmsVisualInlineTextUpdate({
+          document: document(),
+          registry,
+          nodeId: "hero-1",
+          fieldPath: "text",
+          value,
+          grants: editGrants,
+        }),
+      ).toThrow("Visual inline text field");
+    }
+    expect(() =>
+      applyCmsVisualInlineTextUpdate({
+        document: document(),
+        registry,
+        nodeId: "hero-1",
+        fieldPath: "text",
+        value: "Denied",
+        grants: new Set(),
+      }),
+    ).toThrow("permission denied");
+    expect(() =>
+      defineCmsVisualComponent({
+        type: "invalidInline",
+        schemaVersion: 1,
+        fields: [
+          {
+            path: "count",
+            label: "Count",
+            kind: "number",
+            inlineText: { maxLength: 20 },
+          },
+        ],
+        defaults: () => ({ count: 1 }),
+        validate: (value) => value,
+        renderer: "invalid-renderer",
+        editor: "invalid-editor",
+      }),
+    ).toThrow("requires a text field");
+    expect(() =>
+      defineCmsVisualComponent({
+        type: "invalidMultiline",
+        schemaVersion: 1,
+        fields: [
+          {
+            path: "text",
+            label: "Text",
+            kind: "text",
+            inlineText: { multiline: "yes" } as never,
+          },
+        ],
+        defaults: () => ({ text: "Copy" }),
+        validate: (value) => value,
+        renderer: "invalid-renderer",
+        editor: "invalid-editor",
+      }),
+    ).toThrow("optional boolean multiline flag");
   });
 });
 
@@ -659,6 +776,35 @@ describe("preview security", () => {
         createCmsVisualEditorSelectionMessage("hero-1", "title.prefix"),
       ),
     ).toBe(true);
+    const inline = createCmsVisualEditorInlineTextMessage({
+      blockId: "hero-1",
+      fieldPath: "text",
+      value: "Edited on canvas",
+    });
+    expect(isCmsVisualEditorMessage(inline)).toBe(true);
+    expect(inline).toMatchObject({
+      type: "inline-text",
+      value: "Edited on canvas",
+    });
+    expect(() =>
+      createCmsVisualEditorInlineTextMessage({
+        blockId: "hero-1",
+        fieldPath: "text",
+        value: "x".repeat(10_001),
+      }),
+    ).toThrow("too large");
+
+    const currentState = createCmsVisualEditorStateMessage({
+      blocks: [],
+      selectedBlockId: null,
+      selectedFieldPath: null,
+      selectionRevision: 0,
+      revision: 0,
+    });
+    expect(currentState.inlineTextTargets).toEqual([]);
+    const legacyState: Record<string, unknown> = { ...currentState };
+    delete legacyState.inlineTextTargets;
+    expect(isCmsVisualEditorMessage(legacyState)).toBe(true);
   });
 
   test("keeps replay and document-version state inside a preview peer session", () => {

@@ -22,6 +22,7 @@ import {
   createCmsVisualEditorStateMessage,
   createCmsVisualPreviewSession,
   filterCmsVisualPatterns,
+  getCmsVisualInlineTextTargets,
   isCmsVisualEditorMessage,
   redoCmsDraftHistory,
   undoCmsDraftHistory,
@@ -41,7 +42,10 @@ import {
   type ReusableContentBlock,
   type StandardCtaBlock,
 } from "@agency/cms-template-rem-viet";
-import { remVietStandardVisualPatternRegistry } from "@agency/cms-template-rem-viet/visual-authoring";
+import {
+  remVietStandardVisualComponentRegistry,
+  remVietStandardVisualPatternRegistry,
+} from "@agency/cms-template-rem-viet/visual-authoring";
 import {
   createStandardPageBlockId,
   emptyRichTextDocument,
@@ -126,6 +130,7 @@ import {
   isUnsavedStandardPagePreviewId,
   unsavedStandardPagePreviewId,
 } from "@/lib/standard-page-preview";
+import { applyStandardPageInlineText } from "@/lib/standard-page-inline-edit";
 import { applyStandardPagePattern } from "@/lib/standard-page-patterns";
 import { siteManifest } from "@/lib/site-config";
 import { useTRPC } from "@/utils/trpc";
@@ -414,10 +419,12 @@ const standardPagePreviewProfiles = {
 
 function StandardPageResponsivePreview({
   blocks,
+  canInlineEdit,
   canRedo,
   canUndo,
   onDuplicate,
   onInsert,
+  onInlineText,
   onMove,
   onRedo,
   onRemove,
@@ -434,10 +441,12 @@ function StandardPageResponsivePreview({
   workspaceFocused,
 }: {
   blocks: StandardBlock[];
+  canInlineEdit: boolean;
   canRedo: boolean;
   canUndo: boolean;
   onDuplicate: (index: number) => void;
   onInsert: (type: StandardBlock["type"], targetIndex: number) => void;
+  onInlineText: (index: number, fieldPath: string, value: string) => void;
   onMove: (
     sourceIndex: number,
     targetIndex: number,
@@ -530,6 +539,17 @@ function StandardPageResponsivePreview({
       }),
     [blocks],
   );
+  const inlineTextTargets = useMemo(
+    () =>
+      getCmsVisualInlineTextTargets({
+        nodes: visualBlocks,
+        registry: remVietStandardVisualComponentRegistry,
+        grants: new Set(
+          canInlineEdit ? ["content.component.edit", "content.field.edit"] : [],
+        ),
+      }),
+    [canInlineEdit, visualBlocks],
+  );
 
   const sendWorkingCopy = useCallback(() => {
     if (!channelReadyRef.current) return;
@@ -542,6 +562,7 @@ function StandardPageResponsivePreview({
       selectedFieldPath,
       selectionRevision: 0,
       revision: version,
+      inlineTextTargets,
     });
     const envelope = session.createVersionedState(
       {
@@ -557,6 +578,7 @@ function StandardPageResponsivePreview({
   }, [
     blocks,
     getPreviewSession,
+    inlineTextTargets,
     pageId,
     selectedFieldPath,
     selectedIndex,
@@ -567,6 +589,7 @@ function StandardPageResponsivePreview({
   const visualRuntimeRef = useRef({
     onDuplicate,
     onInsert,
+    onInlineText,
     onMove,
     onRemove,
     onSelect,
@@ -576,6 +599,7 @@ function StandardPageResponsivePreview({
   visualRuntimeRef.current = {
     onDuplicate,
     onInsert,
+    onInlineText,
     onMove,
     onRemove,
     onSelect,
@@ -651,6 +675,18 @@ function StandardPageResponsivePreview({
             visualMessage.blockType as StandardBlock["type"],
             targetIndex,
           );
+      }
+      if (visualMessage.type === "inline-text") {
+        const index = runtime.visualBlocks.findIndex(
+          (block) => block.id === visualMessage.blockId,
+        );
+        if (index >= 0) {
+          runtime.onInlineText(
+            index,
+            visualMessage.fieldPath,
+            visualMessage.value,
+          );
+        }
       }
       if (visualMessage.type === "duplicate") {
         const index = runtime.visualBlocks.findIndex(
@@ -1817,6 +1853,42 @@ function AdminPagesRoute() {
     [blocks, commitBlocks],
   );
 
+  const updateInlineTextFromCanvas = useCallback(
+    (index: number, fieldPath: string, value: string) => {
+      const block = blocks[index];
+      if (!block) return;
+      try {
+        const result = applyStandardPageInlineText({
+          blocks,
+          blockId: block.id,
+          fieldPath,
+          value,
+          version: workingVersion ?? editingPage?.version ?? 0,
+          canEdit: session?.capabilities.includes("content.write") ?? false,
+        });
+        commitBlocks(
+          [...result.blocks],
+          `inline-text:${block.id}:${fieldPath}`,
+        );
+        setSelectedIndex(index);
+        setSelectedCanvasFieldPath(`data.${fieldPath}`);
+      } catch (caught) {
+        toast.error(
+          caught instanceof Error
+            ? caught.message
+            : "Không thể cập nhật nội dung trực tiếp.",
+        );
+      }
+    },
+    [
+      blocks,
+      commitBlocks,
+      editingPage?.version,
+      session?.capabilities,
+      workingVersion,
+    ],
+  );
+
   const duplicateBlockFromCanvas = useCallback(
     (index: number) => {
       const source = blocks[index];
@@ -2830,10 +2902,14 @@ function AdminPagesRoute() {
               {workflow.preview.available ? (
                 <StandardPageResponsivePreview
                   blocks={blocks}
+                  canInlineEdit={
+                    session?.capabilities.includes("content.write") ?? false
+                  }
                   canRedo={canRedoDraft}
                   canUndo={canUndoDraft}
                   onDuplicate={duplicateBlockFromCanvas}
                   onInsert={insertBlockFromCanvas}
+                  onInlineText={updateInlineTextFromCanvas}
                   onMove={moveBlockFromCanvas}
                   onRedo={() => navigateDraftHistory("redo")}
                   onRemove={removeBlockFromCanvas}

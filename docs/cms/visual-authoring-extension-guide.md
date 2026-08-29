@@ -10,7 +10,9 @@ types, fields, children and counts declared by the template.
 2. Define one strict parser and reviewed defaults. Reject unknown future schema
    versions and unsafe links/media values.
 3. Declare inspector fields, including required reviewed alt text for editable
-   media.
+   media. A plain-text field may opt into rendered-surface editing with
+   `inlineText: { maxLength, multiline }`; do not infer inline editability from
+   its renderer or field kind.
 4. Point to production renderer and editor mapping keys. Keep both mappings out
    of the public entry unless the renderer itself is needed publicly.
 5. Declare insert/edit/move/duplicate/remove capabilities and any field-specific
@@ -44,6 +46,12 @@ schema and expected-version enforcement at the server/provider boundary. New
 preview messages must use the v2 envelope, validate the inner payload after the
 envelope, and never use `*` as the target origin. Render user content through
 React or a reviewed sanitizer; do not introduce raw HTML sinks.
+
+Inline-text target lists are presentation metadata, not authority. Generate
+them from the registered component and field grants, keep the v1 state addition
+backward-compatible, and process returned text through
+`applyCmsVisualInlineTextUpdate()` (or an adapter that preserves its checks)
+before draft history or persistence. Never accept an arbitrary DOM field path.
 
 ## Required verification
 

@@ -173,7 +173,9 @@ export const remVietStandardVisualComponentRegistry =
           path: "title",
           label: "Tiêu đề",
           kind: "text",
+          required: true,
           editCapabilities: standardFieldCapability,
+          inlineText: { maxLength: 120 },
         },
         {
           path: "href",

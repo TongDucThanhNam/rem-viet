@@ -40,6 +40,10 @@ export type CmsVisualFieldDefinition = Readonly<{
   kind: CmsVisualFieldKind;
   required?: boolean;
   editCapabilities?: readonly string[];
+  inlineText?: Readonly<{
+    maxLength?: number;
+    multiline?: boolean;
+  }>;
 }>;
 
 export type CmsVisualComponentConstraints = Readonly<{
@@ -152,6 +156,21 @@ export function defineCmsVisualComponent<TData>(
       throw new Error(`Duplicate visual field path: ${field.path}`);
     paths.add(field.path);
     validateCapabilities(field.editCapabilities);
+    if (field.inlineText) {
+      const maxLength = field.inlineText.maxLength ?? 256;
+      if (
+        field.kind !== "text" ||
+        !Number.isSafeInteger(maxLength) ||
+        maxLength < 1 ||
+        maxLength > 10_000 ||
+        (field.inlineText.multiline !== undefined &&
+          typeof field.inlineText.multiline !== "boolean")
+      ) {
+        throw new Error(
+          `Visual inline text field ${definition.type}.${field.path} requires a text field, maxLength between 1 and 10000, and an optional boolean multiline flag.`,
+        );
+      }
+    }
   }
   for (const values of Object.values(definition.actionCapabilities ?? {})) {
     validateCapabilities(values);

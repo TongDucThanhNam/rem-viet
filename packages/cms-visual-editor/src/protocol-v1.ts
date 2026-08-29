@@ -34,6 +34,20 @@ export type CmsVisualEditorRemoveMessage = Readonly<{
   type: "remove";
   blockId: string;
 }>;
+export type CmsVisualEditorInlineTextMessage = Readonly<{
+  channel: typeof CMS_VISUAL_EDITOR_CHANNEL;
+  type: "inline-text";
+  blockId: string;
+  fieldPath: string;
+  value: string;
+}>;
+export type CmsVisualEditorInlineTextTarget = Readonly<{
+  blockId: string;
+  fieldPath: string;
+  label: string;
+  maxLength: number;
+  multiline: boolean;
+}>;
 export type CmsVisualEditorStateMessage<TBlock> = Readonly<{
   channel: typeof CMS_VISUAL_EDITOR_CHANNEL;
   type: "state";
@@ -42,6 +56,7 @@ export type CmsVisualEditorStateMessage<TBlock> = Readonly<{
   selectedFieldPath: string | null;
   selectionRevision: number;
   revision: number;
+  inlineTextTargets?: readonly CmsVisualEditorInlineTextTarget[];
 }>;
 export type CmsVisualEditorMessage<TBlock = unknown> =
   | CmsVisualEditorReadyMessage
@@ -50,6 +65,7 @@ export type CmsVisualEditorMessage<TBlock = unknown> =
   | CmsVisualEditorInsertMessage
   | CmsVisualEditorDuplicateMessage
   | CmsVisualEditorRemoveMessage
+  | CmsVisualEditorInlineTextMessage
   | CmsVisualEditorStateMessage<TBlock>;
 
 const isValidFieldPath = (value: string) => {
@@ -67,6 +83,29 @@ const isValidBlockId = (value: unknown): value is string =>
   !/[\u0000-\u001f]/.test(value);
 const isValidBlockType = (value: unknown): value is string =>
   typeof value === "string" && /^[a-z][A-Za-z0-9]{0,63}$/.test(value);
+const isValidInlineText = (value: unknown): value is string =>
+  typeof value === "string" &&
+  [...value].length <= 10_000 &&
+  !value.includes("\u0000");
+
+function isValidInlineTextTarget(
+  value: unknown,
+): value is CmsVisualEditorInlineTextTarget {
+  if (!value || typeof value !== "object") return false;
+  const target = value as Record<string, unknown>;
+  return (
+    isValidBlockId(target.blockId) &&
+    typeof target.fieldPath === "string" &&
+    isValidFieldPath(target.fieldPath) &&
+    typeof target.label === "string" &&
+    target.label.trim().length > 0 &&
+    target.label.length <= 120 &&
+    Number.isSafeInteger(target.maxLength) &&
+    Number(target.maxLength) >= 1 &&
+    Number(target.maxLength) <= 10_000 &&
+    typeof target.multiline === "boolean"
+  );
+}
 
 export function createCmsVisualEditorReadyMessage(): CmsVisualEditorReadyMessage {
   return Object.freeze({ channel: CMS_VISUAL_EDITOR_CHANNEL, type: "ready" });
@@ -156,12 +195,36 @@ export function createCmsVisualEditorRemoveMessage(
   });
 }
 
+export function createCmsVisualEditorInlineTextMessage(input: {
+  blockId: string;
+  fieldPath: string;
+  value: string;
+}): CmsVisualEditorInlineTextMessage {
+  if (!isValidBlockId(input.blockId)) {
+    throw new Error("Visual editor inline text requires a valid block ID.");
+  }
+  if (!isValidFieldPath(input.fieldPath)) {
+    throw new Error("Visual editor inline text field path is invalid.");
+  }
+  if (!isValidInlineText(input.value)) {
+    throw new Error("Visual editor inline text value is invalid or too large.");
+  }
+  return Object.freeze({
+    channel: CMS_VISUAL_EDITOR_CHANNEL,
+    type: "inline-text",
+    blockId: input.blockId,
+    fieldPath: input.fieldPath,
+    value: input.value,
+  });
+}
+
 export function createCmsVisualEditorStateMessage<TBlock>(input: {
   blocks: readonly TBlock[];
   selectedBlockId: string | null;
   selectedFieldPath: string | null;
   selectionRevision: number;
   revision: number;
+  inlineTextTargets?: readonly CmsVisualEditorInlineTextTarget[];
 }): CmsVisualEditorStateMessage<TBlock> {
   if (
     !Number.isSafeInteger(input.revision) ||
@@ -179,6 +242,14 @@ export function createCmsVisualEditorStateMessage<TBlock>(input: {
     selectedFieldPath: input.selectedFieldPath,
     selectionRevision: input.selectionRevision,
     revision: input.revision,
+    inlineTextTargets: Object.freeze(
+      (input.inlineTextTargets ?? []).map((target) => {
+        if (!isValidInlineTextTarget(target)) {
+          throw new Error("Visual editor inline text target is invalid.");
+        }
+        return Object.freeze({ ...target });
+      }),
+    ),
   });
 }
 
@@ -215,6 +286,14 @@ export function isCmsVisualEditorMessage(
   if (candidate.type === "duplicate" || candidate.type === "remove") {
     return isValidBlockId(candidate.blockId);
   }
+  if (candidate.type === "inline-text") {
+    return (
+      isValidBlockId(candidate.blockId) &&
+      typeof candidate.fieldPath === "string" &&
+      isValidFieldPath(candidate.fieldPath) &&
+      isValidInlineText(candidate.value)
+    );
+  }
   return (
     candidate.type === "state" &&
     Array.isArray(candidate.blocks) &&
@@ -226,6 +305,9 @@ export function isCmsVisualEditorMessage(
     Number.isSafeInteger(candidate.selectionRevision) &&
     Number(candidate.selectionRevision) >= 0 &&
     Number.isSafeInteger(candidate.revision) &&
-    Number(candidate.revision) >= 0
+    Number(candidate.revision) >= 0 &&
+    (candidate.inlineTextTargets === undefined ||
+      (Array.isArray(candidate.inlineTextTargets) &&
+        candidate.inlineTextTargets.every(isValidInlineTextTarget)))
   );
 }

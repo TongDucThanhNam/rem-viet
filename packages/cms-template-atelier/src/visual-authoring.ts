@@ -44,7 +44,13 @@ export const mastheadBlock = block({
   type: "masthead",
   fields: [
     { path: "issue", label: "Issue", kind: "text" },
-    { path: "title", label: "Title", kind: "text" },
+    {
+      path: "title",
+      label: "Title",
+      kind: "text",
+      required: true,
+      inlineText: { maxLength: 160 },
+    },
     { path: "summary", label: "Summary", kind: "richText" },
   ],
   defaults: () => ({
@@ -75,7 +81,13 @@ export const storyCardBlock = block({
   type: "storyCard",
   fields: [
     { path: "kicker", label: "Kicker", kind: "text" },
-    { path: "title", label: "Title", kind: "text" },
+    {
+      path: "title",
+      label: "Title",
+      kind: "text",
+      required: true,
+      inlineText: { maxLength: 160 },
+    },
     { path: "dek", label: "Introduction", kind: "richText" },
     { path: "href", label: "Story link", kind: "relationship" },
   ],

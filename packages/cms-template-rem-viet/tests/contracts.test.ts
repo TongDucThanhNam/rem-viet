@@ -8,6 +8,7 @@ import {
 import {
   applyCmsVisualPattern,
   assertCmsVisualAdapterRoundTrip,
+  getCmsVisualInlineTextTargets,
 } from "@agency/cms-visual-editor";
 
 import faqFixture from "./fixtures/faq-v1.json";
@@ -168,6 +169,41 @@ describe("Rem Viet flagship template contracts", () => {
     expect(patterned.nodes[1]?.data).toMatchObject({
       content: expect.stringContaining("Sản phẩm nổi bật"),
     });
+  });
+
+  test("declares only the permission-granted CTA title as inline text", () => {
+    const cta = remVietStandardVisualComponentRegistry.require("cta");
+    const nodes = [
+      {
+        id: "standard-inline-cta",
+        type: cta.type,
+        schemaVersion: cta.schemaVersion,
+        enabled: true,
+        data: cta.defaults(),
+      },
+    ];
+    expect(
+      getCmsVisualInlineTextTargets({
+        nodes,
+        registry: remVietStandardVisualComponentRegistry,
+        grants: new Set(["content.component.edit"]),
+      }),
+    ).toEqual([]);
+    expect(
+      getCmsVisualInlineTextTargets({
+        nodes,
+        registry: remVietStandardVisualComponentRegistry,
+        grants: new Set(["content.component.edit", "content.field.edit"]),
+      }),
+    ).toEqual([
+      {
+        blockId: "standard-inline-cta",
+        fieldPath: "title",
+        label: "Tiêu đề",
+        maxLength: 120,
+        multiline: false,
+      },
+    ]);
   });
 
   test("round-trips the canonical Hero golden fixture", () => {

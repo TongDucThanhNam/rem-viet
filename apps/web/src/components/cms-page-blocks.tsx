@@ -1,5 +1,6 @@
 import type { PageBlock } from "@rem-viet/cms";
 import { CmsBlockRenderer, type BlockRendererProps } from "@agency/cms-react";
+import type { CmsVisualEditorInlineTextTarget } from "@agency/cms-visual-editor";
 import {
   createRemVietStandardBlockRegistry,
   toRemVietStandardBlock,
@@ -14,6 +15,7 @@ import { cn } from "@rem-viet/ui/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, PackageSearch } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 import ProductCard from "@/components/product-card";
 import PostContent from "@/components/post-content";
@@ -26,10 +28,108 @@ type CmsPageBlocksProps = {
 };
 
 type CmsPageBlocksAuthoring = {
+  inlineTextTargets?: readonly CmsVisualEditorInlineTextTarget[];
+  onInlineTextCommit?: (
+    blockId: string,
+    fieldPath: string,
+    value: string,
+  ) => void;
   onSelect: (blockId: string, fieldPath?: string) => void;
   selectedBlockId: string | null;
   selectedFieldPath: string | null;
 };
+
+function getInlineTextTarget(
+  authoring: CmsPageBlocksAuthoring | undefined,
+  blockId: string,
+  fieldPath: string,
+) {
+  return authoring?.inlineTextTargets?.find(
+    (target) => target.blockId === blockId && target.fieldPath === fieldPath,
+  );
+}
+
+function StandardInlineText({
+  authoring,
+  blockId,
+  className,
+  fieldPath,
+  value,
+}: {
+  authoring: CmsPageBlocksAuthoring | undefined;
+  blockId: string;
+  className: string;
+  fieldPath: string;
+  value: string;
+}) {
+  const elementRef = useRef<HTMLHeadingElement>(null);
+  const target = getInlineTextTarget(authoring, blockId, fieldPath);
+  const editable = Boolean(target && authoring?.onInlineTextCommit);
+
+  useEffect(() => {
+    const element = elementRef.current;
+    if (element && document.activeElement !== element) {
+      element.textContent = value;
+    }
+  }, [value]);
+
+  const reset = () => {
+    if (elementRef.current) elementRef.current.textContent = value;
+  };
+
+  return (
+    <h2
+      aria-label={editable ? `Chỉnh sửa trực tiếp ${target!.label}` : undefined}
+      aria-multiline={editable ? target!.multiline : undefined}
+      className={cn(
+        className,
+        editable &&
+          "cursor-text rounded-sm outline-none focus-visible:ring-4 focus-visible:ring-amber-400",
+      )}
+      contentEditable={editable ? true : undefined}
+      data-cms-inline-field={editable ? fieldPath : undefined}
+      ref={elementRef}
+      role={editable ? "textbox" : undefined}
+      spellCheck={editable ? true : undefined}
+      suppressContentEditableWarning={editable}
+      tabIndex={editable ? 0 : undefined}
+      onBlur={(event) => {
+        if (!editable || !target || !authoring?.onInlineTextCommit) return;
+        const next = (event.currentTarget.textContent ?? "")
+          .normalize("NFC")
+          .replace(/\r\n?/gu, "\n")
+          .trim();
+        if (
+          !next ||
+          [...next].length > target.maxLength ||
+          (!target.multiline && next.includes("\n"))
+        ) {
+          reset();
+          return;
+        }
+        if (next !== value) {
+          authoring.onInlineTextCommit(blockId, fieldPath, next);
+        }
+      }}
+      onFocus={() => authoring?.onSelect(blockId, `data.${fieldPath}`)}
+      onKeyDown={(event) => {
+        if (!editable || !target) return;
+        if (event.key === "Escape") {
+          event.preventDefault();
+          reset();
+          event.currentTarget.blur();
+          return;
+        }
+        if (event.key === "Enter" && !target.multiline) {
+          event.preventDefault();
+          event.currentTarget.blur();
+        }
+      }}
+    >
+      {value}
+    </h2>
+  );
+}
 
 type StandardRenderContext = {
   authoring?: CmsPageBlocksAuthoring;
@@ -198,14 +298,22 @@ function CmsCtaBlock({
     <section className="mx-auto w-full max-w-7xl px-4 py-12">
       <div className="flex flex-col items-start justify-between gap-5 rounded-md border bg-primary p-6 text-primary-foreground md:flex-row md:items-center">
         <div className="relative max-w-3xl flex-1">
-          <h2 className="text-2xl font-bold tracking-normal">{title}</h2>
-          <StandardAuthoringTarget
+          <StandardInlineText
             authoring={context.authoring}
             blockId={block.id}
-            className="-inset-2"
-            fieldPath="data.title"
-            label="Chỉnh sửa tiêu đề CTA"
+            className="text-2xl font-bold tracking-normal"
+            fieldPath="title"
+            value={title}
           />
+          {getInlineTextTarget(context.authoring, block.id, "title") ? null : (
+            <StandardAuthoringTarget
+              authoring={context.authoring}
+              blockId={block.id}
+              className="-inset-2"
+              fieldPath="data.title"
+              label="Chỉnh sửa tiêu đề CTA"
+            />
+          )}
         </div>
         <div className="relative shrink-0">
           <a

@@ -36,6 +36,13 @@ section presets for the standard-page editor. They create canonical blocks with
 fresh stable IDs, pass through the shared visual command and permission path,
 and are committed by the app as one undoable history entry.
 
+The standard-page CTA title opts into the shared inline-text contract. The live
+canvas receives only permission-granted target metadata, emits a bounded v1
+compatibility intent inside the authenticated v2 preview envelope, and the host
+revalidates the field declaration, grants, normalization, schema, and canonical
+command before committing one draft-history entry. Other fields remain
+inspector-only until the template explicitly opts them in.
+
 The `./bootstrap` export is the installed-template initializer consumed by
 `agency-cms plan-init`. It generates a schema-v2 plan containing the canonical
 site manifest, empty environment example, all-ten-block draft seed, handover

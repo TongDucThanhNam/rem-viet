@@ -1,6 +1,7 @@
 export * from "./adapter.js";
 export * from "./commands.js";
 export * from "./history.js";
+export * from "./inline-edit.js";
 export * from "./migrations.js";
 export * from "./patterns.js";
 export * from "./preview-security.js";

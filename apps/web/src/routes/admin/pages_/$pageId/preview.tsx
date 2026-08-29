@@ -1,6 +1,7 @@
 import { filterCmsBlockAuthoringCatalog } from "@agency/cms-admin";
 import {
   createCmsVisualEditorDuplicateMessage,
+  createCmsVisualEditorInlineTextMessage,
   createCmsVisualEditorInsertMessage,
   createCmsVisualEditorMoveMessage,
   createCmsVisualEditorRemoveMessage,
@@ -351,8 +352,17 @@ function StandardPagePreviewRoute() {
                 >
                   <CmsPageBlocks
                     authoring={{
+                      inlineTextTargets: visualState?.inlineTextTargets ?? [],
                       selectedBlockId,
                       selectedFieldPath,
+                      onInlineTextCommit: (blockId, fieldPath, value) =>
+                        postAuthoringMessage(
+                          createCmsVisualEditorInlineTextMessage({
+                            blockId,
+                            fieldPath,
+                            value,
+                          }),
+                        ),
                       onSelect: (blockId, fieldPath) =>
                         postAuthoringMessage(
                           createCmsVisualEditorSelectionMessage(

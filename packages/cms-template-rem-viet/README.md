@@ -12,8 +12,9 @@ The root export is safe for public rendering and does not import admin or visual
 editor code. Authoring consumers opt into two isolated subpaths:
 
 - `./admin` contains React editor-registry factories.
-- `./visual-authoring` contains the ten-component kernel registry and the custom
-  editor compatibility adapter.
+- `./visual-authoring` contains the ten-component homepage kernel registry, the
+  four-component standard-page registry, template-owned searchable patterns,
+  and the custom editor compatibility adapter.
 
 `toRemVietVisualDocument()` and `fromRemVietVisualDocument()` preserve the
 existing block envelopes exactly. The established flattened homepage seed still
@@ -29,6 +30,11 @@ safe add, duplicate, remove, and reorder actions.
 metadata for those blocks. Admin surfaces should consume its labels,
 descriptions, categories, and keywords instead of maintaining app-local copies;
 the same catalog can power searchable section libraries across provider modes.
+
+`remVietStandardVisualPatternRegistry` supplies starter content/CTA and catalog
+section presets for the standard-page editor. They create canonical blocks with
+fresh stable IDs, pass through the shared visual command and permission path,
+and are committed by the app as one undoable history entry.
 
 The `./bootstrap` export is the installed-template initializer consumed by
 `agency-cms plan-init`. It generates a schema-v2 plan containing the canonical

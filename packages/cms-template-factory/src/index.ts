@@ -2,6 +2,7 @@ import { cmsSiteManifestSchema, type CmsSiteManifest } from "@agency/cms-core";
 import {
   createCmsVisualComponentRegistry,
   createCmsVisualMigrationRegistry,
+  createCmsVisualPatternRegistry,
   defineCmsVisualComponent,
   migrateCmsVisualDocument,
   parseCmsVisualDocument,
@@ -11,6 +12,8 @@ import {
   type CmsVisualDocumentMigration,
   type CmsVisualFieldDefinition,
   type CmsVisualNode,
+  type CmsVisualPatternDefinition,
+  type CmsVisualPatternRegistry,
 } from "@agency/cms-visual-editor";
 
 export type CmsTemplateBlockMigration<TData> = Readonly<{
@@ -145,6 +148,7 @@ export type CmsTemplateFactory = Readonly<{
   schemaVersion: number;
   blocks: readonly CmsTemplateBlock[];
   registry: ReturnType<typeof createCmsVisualComponentRegistry>;
+  patterns: CmsVisualPatternRegistry;
   createDocument(input: {
     id: string;
     siteId: string;
@@ -184,6 +188,7 @@ export function createCmsTemplateFactory(input: {
   schemaVersion: number;
   blocks: readonly CmsTemplateBlock[];
   documentMigrations?: readonly CmsVisualDocumentMigration[];
+  patterns?: readonly CmsVisualPatternDefinition[];
 }): CmsTemplateFactory {
   if (!/^@agency\/cms-template-[a-z0-9-]+$/.test(input.id)) {
     throw new Error(
@@ -204,6 +209,7 @@ export function createCmsTemplateFactory(input: {
   const registry = createCmsVisualComponentRegistry(
     input.blocks.map((block) => block.component),
   );
+  const patterns = createCmsVisualPatternRegistry(input.patterns ?? []);
   const documentMigrations = createCmsVisualMigrationRegistry({
     currentVersion: input.schemaVersion,
     migrations: input.documentMigrations ?? [],
@@ -228,6 +234,7 @@ export function createCmsTemplateFactory(input: {
     schemaVersion: input.schemaVersion,
     blocks: Object.freeze([...input.blocks]),
     registry,
+    patterns,
     createDocument: (value) =>
       parseDocument({
         id: value.id,

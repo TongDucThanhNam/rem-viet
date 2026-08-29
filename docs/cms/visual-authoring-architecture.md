@@ -9,6 +9,7 @@ documents, not a second page database and not an unrestricted page builder.
 
 - canonical document/node identity and named slots;
 - typed component registrations, fields, defaults and validation;
+- searchable, bounded component-pattern registries and atomic insertion;
 - component/field capabilities and bounded layout constraints;
 - insert, edit, move, duplicate and remove commands;
 - branch-safe bounded undo/redo;
@@ -32,8 +33,8 @@ template entry graphs.
 
 1. A developer defines a block once with schema version, fields, defaults,
    parser, renderer/editor keys, permissions, migrations and constraints.
-2. The template factory creates the registry, seed path and fail-closed document
-   parser from that definition.
+2. The template factory creates the component and optional multi-block pattern
+   registries, seed path and fail-closed document parser from those definitions.
 3. An editor adapter maps the canonical document into replaceable UI state.
 4. Every accepted command returns a new canonical document and revalidates the
    whole registry/constraint contract before persistence.
@@ -61,9 +62,11 @@ follow-up migrations; they are not silently claimed as v2 adopters.
 
 ## Reuse proof
 
-Rèm registers ten existing block types through a compatibility adapter without
-rewriting persisted content. Atelier registers nine independent editorial block
-types and a two-slot nested layout through the factory. Packed-consumer tests
-run both against the same Cloudflare provider lifecycle. Thus shared registry,
-constraint, provider and packaging fixes reach both templates without copying
-their production components.
+Rèm registers ten existing homepage block types through a compatibility adapter
+without rewriting persisted content, plus four standard-page block types and
+two template-owned starter patterns. Atelier registers nine independent
+editorial block types, a two-slot nested layout and two editorial patterns
+through the factory. Packed-consumer tests run both against the same Cloudflare
+provider lifecycle. Thus shared registry, pattern, constraint, provider and
+packaging fixes reach both templates without copying their production
+components.

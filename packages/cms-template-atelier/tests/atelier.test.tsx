@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
+import { applyCmsVisualPattern } from "@agency/cms-visual-editor";
 
 import { AtelierDocument } from "../src";
 import { createAtelierBootstrapPlan } from "../src/bootstrap";
@@ -30,6 +31,26 @@ describe("Atelier second template", () => {
         ),
       }),
     ).toThrow("requires 1-4 children");
+  });
+
+  test("ships reusable, permission-checked editorial patterns", () => {
+    const document = createAtelierDefaultDocument("atelier-demo");
+    let serial = 0;
+    const patterned = applyCmsVisualPattern({
+      document,
+      registry: atelierTemplateFactory.registry,
+      patterns: atelierTemplateFactory.patterns,
+      patternId: "editorial-feature",
+      location: { parentId: null, index: 3 },
+      createId: (type) => `${type}-pattern-${++serial}`,
+      grants: new Set(["content.compose.insert"]),
+    });
+    expect(atelierTemplateFactory.patterns.patterns).toHaveLength(2);
+    expect(patterned.version).toBe(1);
+    expect(patterned.nodes).toHaveLength(5);
+    expect(patterned.nodes[3]?.type).toBe("columnLayout");
+    expect(patterned.nodes[3]?.slots?.primary).toHaveLength(2);
+    expect(patterned.nodes.at(-1)?.type).toBe("siteFooter");
   });
 
   test("renders a distinct editorial information architecture", () => {

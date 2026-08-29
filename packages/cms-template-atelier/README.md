@@ -8,4 +8,6 @@ Việt landing component, asset, CSS, copy, or animation.
 The public entry exports schemas and production React components. The
 `./visual-authoring` entry composes nine block definitions through the shared
 template factory and visual kernel, including a named two-column layout with
-bounded primary/sidebar slots. `./bootstrap` generates a complete client plan.
+bounded primary/sidebar slots and two searchable editorial patterns. Pattern
+insertion exercises the same nested constraints and permissions as manual
+composition. `./bootstrap` generates a complete client plan.

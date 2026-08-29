@@ -5,13 +5,17 @@ import {
   createCmsExtensionRegistry,
   migrateCollectionData,
 } from "@agency/cms-core";
-import { assertCmsVisualAdapterRoundTrip } from "@agency/cms-visual-editor";
+import {
+  applyCmsVisualPattern,
+  assertCmsVisualAdapterRoundTrip,
+} from "@agency/cms-visual-editor";
 
 import faqFixture from "./fixtures/faq-v1.json";
 import heroFixture from "./fixtures/hero-v1.json";
 import {
   defaultFaqBlock,
   defaultHeroBlock,
+  defaultRichTextBlock,
   defaultRemVietTemplateBlocks,
   encodeRemVietSanityPageContent,
   faqBlockSchema,
@@ -43,6 +47,8 @@ import {
 import {
   fromRemVietVisualDocument,
   remVietCustomVisualEditorAdapter,
+  remVietStandardVisualComponentRegistry,
+  remVietStandardVisualPatternRegistry,
   remVietVisualComponentRegistry,
   toRemVietVisualDocument,
 } from "../src/visual-authoring";
@@ -132,6 +138,36 @@ describe("Rem Viet flagship template contracts", () => {
         1,
       ),
     ).toMatchObject({ folder: "" });
+  });
+
+  test("ships standard-page starter patterns as atomic canonical composition", () => {
+    let serial = 0;
+    const patterned = applyCmsVisualPattern({
+      document: {
+        id: "about-page",
+        siteId: "rem-viet",
+        schemaVersion: 1,
+        version: 0,
+        nodes: [defaultRichTextBlock],
+      },
+      registry: remVietStandardVisualComponentRegistry,
+      patterns: remVietStandardVisualPatternRegistry,
+      patternId: "catalog-section",
+      location: { parentId: null, index: 1 },
+      createId: (type) => `${type}-pattern-${++serial}`,
+      grants: new Set(["content.compose.insert"]),
+    });
+    expect(remVietStandardVisualPatternRegistry.patterns).toHaveLength(2);
+    expect(patterned.version).toBe(1);
+    expect(patterned.nodes.map(({ type }) => type)).toEqual([
+      "richText",
+      "richText",
+      "productGrid",
+      "cta",
+    ]);
+    expect(patterned.nodes[1]?.data).toMatchObject({
+      content: expect.stringContaining("Sản phẩm nổi bật"),
+    });
   });
 
   test("round-trips the canonical Hero golden fixture", () => {

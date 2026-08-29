@@ -5,6 +5,7 @@ import {
   type CmsVisualDocument,
   type CmsVisualNode,
 } from "./registry.js";
+import { assertCmsVisualPatternNodeBounds } from "./pattern-limits.js";
 
 export type CmsVisualInsertLocation = Readonly<{
   parentId: string | null;
@@ -23,6 +24,11 @@ export type CmsVisualCommand =
       type: "insert";
       location: CmsVisualInsertLocation;
       node: CmsVisualNode;
+    }>
+  | Readonly<{
+      type: "insert-pattern";
+      location: CmsVisualInsertLocation;
+      nodes: readonly CmsVisualNode[];
     }>
   | Readonly<{
       type: "move";
@@ -139,6 +145,37 @@ function insertNode(
   );
 }
 
+function insertNodes(
+  nodes: readonly CmsVisualNode[],
+  location: CmsVisualInsertLocation,
+  inserted: readonly CmsVisualNode[],
+): readonly CmsVisualNode[] {
+  if (inserted.length === 0) {
+    throw new Error("Visual patterns must insert at least one node.");
+  }
+  return replaceChildren(
+    nodes,
+    location.parentId,
+    location.slot,
+    (children) => {
+      if (
+        !Number.isSafeInteger(location.index) ||
+        location.index < 0 ||
+        location.index > children.length
+      ) {
+        throw new Error(
+          `Visual insert index is out of bounds: ${location.index}`,
+        );
+      }
+      return [
+        ...children.slice(0, location.index),
+        ...inserted,
+        ...children.slice(location.index),
+      ];
+    },
+  );
+}
+
 function cloneNode(
   node: CmsVisualNode,
   createId: (sourceId: string) => string,
@@ -198,6 +235,33 @@ function requireAction(input: {
   }
 }
 
+function requireInsertTrees(input: {
+  registry: CmsVisualComponentRegistry;
+  nodes: readonly CmsVisualNode[];
+  grants: ReadonlySet<string>;
+}): void {
+  const pending = [...input.nodes];
+  const visited = new Set<CmsVisualNode>();
+  while (pending.length > 0) {
+    const node = pending.pop()!;
+    if (visited.has(node)) {
+      throw new Error(
+        "Visual insert cannot contain cyclic or shared node objects.",
+      );
+    }
+    visited.add(node);
+    requireAction({
+      registry: input.registry,
+      nodeType: node.type,
+      action: "insert",
+      grants: input.grants,
+    });
+    for (const children of Object.values(node.slots ?? {})) {
+      pending.push(...children);
+    }
+  }
+}
+
 export function applyCmsVisualCommand<TNode extends CmsVisualNode>(input: {
   document: CmsVisualDocument<TNode>;
   command: CmsVisualCommand;
@@ -223,13 +287,20 @@ export function applyCmsVisualCommand<TNode extends CmsVisualNode>(input: {
       data: setFieldValue(node.data, command.fieldPath, command.value),
     }));
   } else if (command.type === "insert") {
-    requireAction({
+    requireInsertTrees({
       registry: input.registry,
-      nodeType: command.node.type,
-      action: "insert",
+      nodes: [command.node],
       grants: input.grants,
     });
     nodes = insertNode(nodes, command.location, command.node);
+  } else if (command.type === "insert-pattern") {
+    assertCmsVisualPatternNodeBounds(command.nodes, "Visual pattern command");
+    requireInsertTrees({
+      registry: input.registry,
+      nodes: command.nodes,
+      grants: input.grants,
+    });
+    nodes = insertNodes(nodes, command.location, command.nodes);
   } else {
     const match = findNode(nodes, command.nodeId);
     if (!match) throw new Error(`Unknown visual node: ${command.nodeId}`);

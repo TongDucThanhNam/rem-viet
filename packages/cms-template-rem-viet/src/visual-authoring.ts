@@ -1,6 +1,8 @@
 import {
   createCmsVisualComponentRegistry,
+  createCmsVisualPatternRegistry,
   defineCmsVisualComponent,
+  defineCmsVisualPattern,
   parseCmsVisualDocument,
   type CmsVisualDocument,
   type CmsVisualEditorAdapter,
@@ -9,10 +11,18 @@ import {
 
 import {
   defaultRemVietTemplateBlocks,
+  defaultProductGridBlock,
+  defaultReusableContentBlock,
+  defaultRichTextBlock,
+  defaultStandardCtaBlock,
+  productGridBlockDataSchema,
+  reusableContentBlockDataSchema,
   REM_VIET_BLOCK_SCHEMA_VERSION,
+  richTextBlockDataSchema,
   remVietTemplateBlockSchema,
   remVietTemplateBlockTypes,
   remVietTemplateComposition,
+  standardCtaBlockDataSchema,
   type RemVietTemplateBlock,
   type RemVietTemplateBlockType,
 } from "./index.js";
@@ -100,6 +110,180 @@ export const remVietVisualComponentRegistry = createCmsVisualComponentRegistry(
     });
   }),
 );
+
+const standardVisualPermissions = {
+  insert: ["content.compose.insert"],
+  edit: ["content.component.edit"],
+  move: ["content.compose.move"],
+  duplicate: ["content.compose.duplicate"],
+  remove: ["content.compose.remove"],
+} as const;
+
+const standardFieldCapability = ["content.field.edit"] as const;
+
+export const remVietStandardVisualComponentRegistry =
+  createCmsVisualComponentRegistry([
+    defineCmsVisualComponent({
+      type: "richText",
+      schemaVersion: REM_VIET_BLOCK_SCHEMA_VERSION,
+      fields: [
+        {
+          path: "content",
+          label: "Nội dung",
+          kind: "richText",
+          editCapabilities: standardFieldCapability,
+        },
+      ],
+      defaults: () => structuredClone(defaultRichTextBlock.data),
+      validate: (value) => richTextBlockDataSchema.parse(value),
+      renderer: "@agency/cms-template-rem-viet/richText/renderer",
+      editor: "@agency/cms-template-rem-viet/richText/editor",
+      constraints: { allowedParents: [null] },
+      actionCapabilities: standardVisualPermissions,
+    }),
+    defineCmsVisualComponent({
+      type: "productGrid",
+      schemaVersion: REM_VIET_BLOCK_SCHEMA_VERSION,
+      fields: [
+        {
+          path: "categoryId",
+          label: "Danh mục",
+          kind: "relationship",
+          editCapabilities: standardFieldCapability,
+        },
+        {
+          path: "limit",
+          label: "Số sản phẩm",
+          kind: "number",
+          editCapabilities: standardFieldCapability,
+        },
+      ],
+      defaults: () => structuredClone(defaultProductGridBlock.data),
+      validate: (value) => productGridBlockDataSchema.parse(value),
+      renderer: "@agency/cms-template-rem-viet/productGrid/renderer",
+      editor: "@agency/cms-template-rem-viet/productGrid/editor",
+      constraints: { allowedParents: [null] },
+      actionCapabilities: standardVisualPermissions,
+    }),
+    defineCmsVisualComponent({
+      type: "cta",
+      schemaVersion: REM_VIET_BLOCK_SCHEMA_VERSION,
+      fields: [
+        {
+          path: "title",
+          label: "Tiêu đề",
+          kind: "text",
+          editCapabilities: standardFieldCapability,
+        },
+        {
+          path: "href",
+          label: "Liên kết",
+          kind: "relationship",
+          editCapabilities: standardFieldCapability,
+        },
+      ],
+      defaults: () => structuredClone(defaultStandardCtaBlock.data),
+      validate: (value) => standardCtaBlockDataSchema.parse(value),
+      renderer: "@agency/cms-template-rem-viet/cta/renderer",
+      editor: "@agency/cms-template-rem-viet/cta/editor",
+      constraints: { allowedParents: [null] },
+      actionCapabilities: standardVisualPermissions,
+    }),
+    defineCmsVisualComponent({
+      type: "reusableContent",
+      schemaVersion: REM_VIET_BLOCK_SCHEMA_VERSION,
+      fields: [
+        {
+          path: "reference",
+          label: "Nội dung tái sử dụng",
+          kind: "custom",
+          editCapabilities: standardFieldCapability,
+        },
+      ],
+      defaults: () => structuredClone(defaultReusableContentBlock.data),
+      validate: (value) => reusableContentBlockDataSchema.parse(value),
+      renderer: "@agency/cms-template-rem-viet/reusableContent/renderer",
+      editor: "@agency/cms-template-rem-viet/reusableContent/editor",
+      constraints: { allowedParents: [null] },
+      actionCapabilities: standardVisualPermissions,
+    }),
+  ]);
+
+function starterRichText(title: string, body: string) {
+  return JSON.stringify({
+    version: 1,
+    blocks: [
+      {
+        id: "pattern-heading",
+        type: "heading",
+        level: 2,
+        children: [{ text: title }],
+      },
+      {
+        id: "pattern-paragraph",
+        type: "paragraph",
+        children: [{ text: body }],
+      },
+    ],
+  });
+}
+
+export const remVietStandardVisualPatternRegistry =
+  createCmsVisualPatternRegistry([
+    defineCmsVisualPattern({
+      id: "content-and-cta",
+      label: "Nội dung và kêu gọi hành động",
+      description:
+        "Khởi tạo một phần giới thiệu có văn bản và nút chuyển đổi tiếp theo.",
+      category: "Bố cục",
+      keywords: ["intro", "text", "cta", "giới thiệu", "liên hệ"],
+      createNodes: ({ createId }) => [
+        {
+          ...structuredClone(defaultRichTextBlock),
+          id: createId("richText"),
+          data: {
+            content: starterRichText(
+              "Tiêu đề phần nội dung",
+              "Thay đoạn giới thiệu này bằng thông tin hữu ích cho khách hàng.",
+            ),
+          },
+        },
+        {
+          ...structuredClone(defaultStandardCtaBlock),
+          id: createId("cta"),
+        },
+      ],
+    }),
+    defineCmsVisualPattern({
+      id: "catalog-section",
+      label: "Giới thiệu danh mục sản phẩm",
+      description:
+        "Khởi tạo tiêu đề, lưới sản phẩm và lời kêu gọi hành động đồng bộ.",
+      category: "Thương mại",
+      keywords: ["catalog", "products", "grid", "sản phẩm", "danh mục"],
+      createNodes: ({ createId }) => [
+        {
+          ...structuredClone(defaultRichTextBlock),
+          id: createId("richText"),
+          data: {
+            content: starterRichText(
+              "Sản phẩm nổi bật",
+              "Giới thiệu ngắn gọn lý do khách hàng nên khám phá danh mục này.",
+            ),
+          },
+        },
+        {
+          ...structuredClone(defaultProductGridBlock),
+          id: createId("productGrid"),
+        },
+        {
+          ...structuredClone(defaultStandardCtaBlock),
+          id: createId("cta"),
+          data: { title: "Xem toàn bộ sản phẩm", href: "/san-pham" },
+        },
+      ],
+    }),
+  ]);
 
 export type RemVietVisualEditorState = Readonly<{
   id: string;

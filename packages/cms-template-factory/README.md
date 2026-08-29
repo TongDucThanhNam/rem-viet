@@ -3,7 +3,8 @@
 Schema-first factory for bounded Agency CMS templates. One block definition
 provides its canonical schema, generated inspector fields, defaults, renderer
 and editor mapping keys, seed hook, migrations, permissions, and layout rules.
-The factory composes those definitions into the shared visual-authoring kernel.
+The factory composes those definitions and optional template-owned multi-block
+patterns into the shared visual-authoring kernel.
 
 Site definitions bind a canonical manifest to versioned theme tokens, reviewed
 asset contracts, seed documents, and fail-closed lifecycle workflow plans. The

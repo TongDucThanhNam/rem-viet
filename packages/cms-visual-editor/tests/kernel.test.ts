@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+  applyCmsVisualPattern,
   applyCmsVisualCommand,
   assertCmsVisualAdapterRoundTrip,
   canCmsVisualAction,
@@ -8,10 +9,13 @@ import {
   createCmsVisualComponentRegistry,
   createCmsVisualEditorSelectionMessage,
   createCmsVisualMigrationRegistry,
+  createCmsVisualPatternRegistry,
   createCmsVisualPreviewEnvelope,
   createCmsVisualPreviewResponseHeaders,
   createCmsVisualPreviewSession,
   defineCmsVisualComponent,
+  defineCmsVisualPattern,
+  filterCmsVisualPatterns,
   initialCmsVisualPreviewReplayState,
   isCmsVisualEditorMessage,
   migrateCmsVisualDocument,
@@ -276,6 +280,139 @@ describe("permissions and commands", () => {
         command: { type: "remove", nodeId: "hero-1" },
       }),
     ).toThrow("permission denied");
+  });
+});
+
+describe("component patterns", () => {
+  const patterns = createCmsVisualPatternRegistry([
+    defineCmsVisualPattern({
+      id: "editorial-callout",
+      label: "Lời kêu gọi biên tập",
+      description: "Bố cục lồng ghép cho một điểm nhấn nội dung.",
+      category: "Bố cục",
+      keywords: ["editorial", "noi dung"],
+      createNodes: ({ createId }) => [
+        {
+          id: createId("layout"),
+          type: "layout",
+          schemaVersion: 1,
+          enabled: true,
+          data: {},
+          slots: {
+            content: [
+              {
+                id: createId("textBlock"),
+                type: "textBlock",
+                schemaVersion: 1,
+                enabled: true,
+                data: { text: "Pattern copy" },
+              },
+            ],
+          },
+        },
+      ],
+    }),
+  ]);
+
+  test("finds patterns accent-insensitively and inserts one atomic history step", () => {
+    expect(filterCmsVisualPatterns(patterns.patterns, "bo cuc")).toHaveLength(
+      1,
+    );
+    let serial = 1;
+    const applied = applyCmsVisualPattern({
+      document: document(),
+      registry,
+      patterns,
+      patternId: "editorial-callout",
+      location: { parentId: null, index: 2 },
+      createId: (type) => `${type}-${++serial}`,
+      grants: new Set(),
+    });
+    expect(applied.version).toBe(3);
+    expect(applied.nodes).toHaveLength(3);
+    expect(applied.nodes[2]?.slots?.content?.[0]?.data).toEqual({
+      text: "Pattern copy",
+    });
+
+    const history = commitCmsDraftHistory(
+      createCmsDraftHistory(document()),
+      applied,
+    );
+    expect(undoCmsDraftHistory(history).present).toEqual(document());
+  });
+
+  test("fails closed when a nested pattern node lacks insert permission", () => {
+    const restricted = createCmsVisualComponentRegistry(
+      registry.definitions.map((definition) =>
+        definition.type === "textBlock"
+          ? defineCmsVisualComponent({
+              ...definition,
+              actionCapabilities: {
+                ...definition.actionCapabilities,
+                insert: ["visual.child.insert"],
+              },
+            })
+          : definition,
+      ),
+    );
+    expect(() =>
+      applyCmsVisualPattern({
+        document: document(),
+        registry: restricted,
+        patterns,
+        patternId: "editorial-callout",
+        location: { parentId: null, index: 2 },
+        createId: (type) => `${type}-pattern`,
+        grants: new Set(),
+      }),
+    ).toThrow("permission denied for insert on textBlock");
+  });
+
+  test("rejects duplicate registrations and empty pattern output", () => {
+    expect(() =>
+      createCmsVisualPatternRegistry([
+        patterns.patterns[0]!,
+        patterns.patterns[0]!,
+      ]),
+    ).toThrow("Duplicate visual pattern id");
+    const empty = createCmsVisualPatternRegistry([
+      {
+        id: "empty-pattern",
+        label: "Empty",
+        description: "Invalid empty pattern output.",
+        category: "Test",
+        createNodes: () => [],
+      },
+    ]);
+    expect(() =>
+      applyCmsVisualPattern({
+        document: document(),
+        registry,
+        patterns: empty,
+        patternId: "empty-pattern",
+        location: { parentId: null, index: 2 },
+        createId: (type) => `${type}-empty`,
+        grants: new Set(),
+      }),
+    ).toThrow("must create 1-32 roots");
+    expect(() =>
+      applyCmsVisualCommand({
+        document: document(),
+        registry,
+        grants: new Set(),
+        command: {
+          type: "insert-pattern",
+          location: { parentId: null, index: 2 },
+          nodes: Array.from({ length: 33 }, (_, index) => ({
+            id: `oversized-${index}`,
+            type: "textBlock",
+            schemaVersion: 1,
+            enabled: true,
+            data: { text: "Oversized" },
+          })),
+        },
+      }),
+    ).toThrow("must create 1-32 roots");
   });
 });
 

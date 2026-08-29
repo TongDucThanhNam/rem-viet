@@ -21,6 +21,7 @@ import {
   createCmsDraftHistory,
   createCmsVisualEditorStateMessage,
   createCmsVisualPreviewSession,
+  filterCmsVisualPatterns,
   isCmsVisualEditorMessage,
   redoCmsDraftHistory,
   undoCmsDraftHistory,
@@ -40,6 +41,7 @@ import {
   type ReusableContentBlock,
   type StandardCtaBlock,
 } from "@agency/cms-template-rem-viet";
+import { remVietStandardVisualPatternRegistry } from "@agency/cms-template-rem-viet/visual-authoring";
 import {
   createStandardPageBlockId,
   emptyRichTextDocument,
@@ -124,6 +126,7 @@ import {
   isUnsavedStandardPagePreviewId,
   unsavedStandardPagePreviewId,
 } from "@/lib/standard-page-preview";
+import { applyStandardPagePattern } from "@/lib/standard-page-patterns";
 import { siteManifest } from "@/lib/site-config";
 import { useTRPC } from "@/utils/trpc";
 
@@ -1724,6 +1727,24 @@ function AdminPagesRoute() {
     setSelectedCanvasFieldPath(null);
   }
 
+  function addPattern(patternId: string) {
+    try {
+      const patterned = applyStandardPagePattern({
+        blocks,
+        patternId,
+        version: workingVersion ?? editingPage?.version ?? 0,
+        canInsert: session?.capabilities.includes("content.write") ?? false,
+      });
+      commitBlocks([...patterned.blocks], `pattern:${patternId}`);
+      setSelectedIndex(patterned.firstInsertedIndex);
+      setSelectedCanvasFieldPath(null);
+    } catch (caught) {
+      toast.error(
+        caught instanceof Error ? caught.message : "Không thể thêm mẫu bố cục.",
+      );
+    }
+  }
+
   function selectStandardBlock(index: number) {
     setSelectedIndex(index);
     setSelectedCanvasFieldPath(null);
@@ -2251,6 +2272,10 @@ function AdminPagesRoute() {
     remVietStandardBlockAuthoringCatalog,
     blockCatalogQuery,
   );
+  const filteredStandardPatterns = filterCmsVisualPatterns(
+    remVietStandardVisualPatternRegistry.patterns,
+    blockCatalogQuery,
+  );
   const shouldOfferRedirect = Boolean(
     publishedRevisionId && slug.trim() && slug.trim() !== serverSlug,
   );
@@ -2588,6 +2613,53 @@ function AdminPagesRoute() {
                       }
                     />
                   </div>
+                  <section
+                    aria-labelledby="standard-patterns-heading"
+                    className="grid gap-2"
+                  >
+                    <div>
+                      <h3
+                        className="text-sm font-semibold"
+                        id="standard-patterns-heading"
+                      >
+                        Mẫu bố cục
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        Thêm nhiều khối đã cấu hình trong một bước hoàn tác.
+                      </p>
+                    </div>
+                    {filteredStandardPatterns.length ? (
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {filteredStandardPatterns.map((pattern) => (
+                          <button
+                            aria-label={`Thêm mẫu ${pattern.label.toLocaleLowerCase("vi-VN")}`}
+                            className="grid min-h-24 content-start gap-1 rounded-md border border-primary/20 bg-primary/5 p-3 text-left transition-colors hover:border-primary/60 hover:bg-primary/10"
+                            key={pattern.id}
+                            type="button"
+                            onClick={() => addPattern(pattern.id)}
+                          >
+                            <span className="flex items-center gap-1.5 text-sm font-semibold">
+                              <Plus aria-hidden className="size-3.5" />
+                              {pattern.label}
+                            </span>
+                            <span className="text-[10px] font-medium uppercase tracking-wider text-primary">
+                              {pattern.category}
+                            </span>
+                            <span className="text-xs leading-5 text-muted-foreground">
+                              {pattern.description}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p
+                        className="rounded-md border border-dashed p-3 text-xs text-muted-foreground"
+                        role="status"
+                      >
+                        Không có mẫu bố cục phù hợp với “{blockCatalogQuery}”.
+                      </p>
+                    )}
+                  </section>
                   {filteredStandardCatalog.length ? (
                     <div
                       aria-label="Danh mục khối cho trang nội dung"

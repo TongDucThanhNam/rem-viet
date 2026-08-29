@@ -7,6 +7,7 @@ import {
   defineCmsAgencySite,
   defineCmsTemplateBlock,
 } from "../src";
+import { instantiateCmsVisualPattern } from "@agency/cms-visual-editor";
 
 const textBlock = defineCmsTemplateBlock({
   type: "textBlock",
@@ -41,6 +42,20 @@ const factory = createCmsTemplateFactory({
   version: "0.1.0",
   schemaVersion: 1,
   blocks: [textBlock],
+  patterns: [
+    {
+      id: "text-intro",
+      label: "Text intro",
+      description: "A configured introductory text block.",
+      category: "Editorial",
+      createNodes: ({ createId }) => [
+        textBlock.createSeed({
+          id: createId("textBlock"),
+          data: { text: "Pattern intro" },
+        }),
+      ],
+    },
+  ],
 });
 
 const manifest = {
@@ -81,6 +96,19 @@ describe("agency template factory", () => {
       schemaVersion: 2,
       data: { text: "Hello" },
     });
+    expect(
+      instantiateCmsVisualPattern({
+        patterns: factory.patterns,
+        patternId: "text-intro",
+        createId: () => "pattern-text",
+      }),
+    ).toMatchObject([
+      {
+        id: "pattern-text",
+        type: "textBlock",
+        data: { text: "Pattern intro" },
+      },
+    ]);
     expect(
       textBlock.migrateNode({
         id: "text-1",

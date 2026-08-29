@@ -7,6 +7,7 @@ import type {
   CmsVisualFieldDefinition,
   CmsVisualNode,
 } from "@agency/cms-visual-editor";
+import { defineCmsVisualPattern } from "@agency/cms-visual-editor";
 
 import { atelierDataSchemas, type AtelierBlockType } from "./contracts.js";
 
@@ -199,11 +200,52 @@ export const atelierTemplateBlocks = Object.freeze([
   columnLayoutBlock,
 ]);
 
+export const atelierEditorialFeaturePattern = defineCmsVisualPattern({
+  id: "editorial-feature",
+  label: "Editorial feature",
+  description:
+    "A two-column feature with story, media, issue index, and membership callout.",
+  category: "Editorial",
+  keywords: ["feature", "story", "media", "columns"],
+  createNodes: ({ createId }) => [
+    {
+      ...columnLayoutBlock.createSeed({ id: createId("columnLayout") }),
+      slots: {
+        primary: [
+          storyCardBlock.createSeed({ id: createId("storyCard") }),
+          mediaFeatureBlock.createSeed({ id: createId("mediaFeature") }),
+        ],
+        sidebar: [
+          issueIndexBlock.createSeed({ id: createId("issueIndex") }),
+          membershipCtaBlock.createSeed({ id: createId("membershipCta") }),
+        ],
+      },
+    },
+  ],
+});
+
+export const atelierQuoteHighlightPattern = defineCmsVisualPattern({
+  id: "quote-highlight",
+  label: "Quote highlight",
+  description: "A standalone editorial quotation with attribution.",
+  category: "Editorial",
+  keywords: ["quote", "quotation", "pull quote"],
+  createNodes: ({ createId }) => [
+    quotePullBlock.createSeed({ id: createId("quotePull") }),
+  ],
+});
+
+export const atelierVisualPatterns = Object.freeze([
+  atelierEditorialFeaturePattern,
+  atelierQuoteHighlightPattern,
+]);
+
 export const atelierTemplateFactory = createCmsTemplateFactory({
   id: "@agency/cms-template-atelier",
   version: "0.1.0",
   schemaVersion: 1,
   blocks: atelierTemplateBlocks,
+  patterns: atelierVisualPatterns,
 });
 
 export function createAtelierDefaultDocument(

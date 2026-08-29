@@ -621,15 +621,18 @@ browser matrix hoặc human receipt sau mỗi increment.
 
 Implementation gate hiện đã có local/hosted evidence trong
 [`perfect-cms-plugin-completion-audit.md`](./perfect-cms-plugin-completion-audit.md).
-Increment mới nhất là shared visual outline tại `07bc320`, tiếp nối structured
-clipboard tại `51e6ec3`, permissioned inline text tại `8fc914c` và visual
-component patterns/presets tại `c67f225`. Kernel, packaged ARIA tree, Rèm live
-standard-page list và Atelier nested-layout proof dùng cùng selection/nesting/
-capability contract; exact-commit packed consumer đã pass. Homepage, post và
-generic-collection adoption tiếp tục trong implementation phase. Các increment
-này tiếp nối complete Admin Platform v2 localization tại `982f3a4` và reusable
-content tại `baf899a`; các checkbox final acceptance bên dưới vẫn để mở cho exact
-implementation-freeze candidate.
+Increment mới nhất là homepage shared-outline adoption tại `e8bf942`, tiếp nối
+shared visual outline kernel tại `07bc320`, structured clipboard tại `51e6ec3`,
+permissioned inline text tại `8fc914c` và visual component patterns/presets tại
+`c67f225`. Outline kernel giờ gộp capability grant với pinned, global min/max và
+slot cardinality để UI không quảng cáo action mà canonical composition sẽ từ
+chối. Rèm live homepage, standard-page list và Atelier nested-layout proof dùng
+cùng selection/nesting/capability contract; targeted tests, production build và
+exact-commit packed consumer đều pass. Post và generic-collection adoption tiếp
+tục trong implementation phase. Các increment này tiếp nối complete Admin
+Platform v2 localization tại `982f3a4` và reusable content tại `baf899a`; các
+checkbox final acceptance bên dưới vẫn để mở cho exact implementation-freeze
+candidate.
 
 ### 10.2 Final E2E và human acceptance — chạy sau implementation freeze
 

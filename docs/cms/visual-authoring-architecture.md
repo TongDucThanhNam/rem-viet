@@ -80,8 +80,10 @@ Rèm registers ten existing homepage block types through a compatibility adapter
 without rewriting persisted content, plus four standard-page block types and
 two template-owned starter patterns. Its standard-page CTA title is the first
 live inline-text consumer, and its live canvas consumes structured copy/paste
-through the secure preview protocol. Its live block list consumes the shared
-outline with Vietnamese labels. Atelier registers nine independent editorial
+through the secure preview protocol. Its live homepage and standard-page block
+lists consume the shared outline with Vietnamese labels; the homepage adapter
+also proves pinned and min/max constraints before rendering structural actions.
+Atelier registers nine independent editorial
 block types, a two-slot nested layout, two editorial patterns, and inline-enabled
 masthead/nested-story titles through the factory; its nested-slot fixture
 independently exercises both the clipboard and outline kernels and renders the

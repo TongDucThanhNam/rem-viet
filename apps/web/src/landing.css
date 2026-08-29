@@ -265,13 +265,6 @@ body.is-loading {
    These rules remain only for what Tailwind can't express: the kicker
    underline (GSAP-tweened --kicker-underline-w var), the SplitText mask
    (.hero-title-line), and the glassmorphism feature bar. */
-.hero-new-bg {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  overflow: hidden;
-}
-
 /* Kicker underline — draws in via --kicker-underline-w (tweened by GSAP).
    The kicker's other styles (color, font, spacing) are Tailwind utilities
    in hero.tsx; only the pseudo-element needs CSS. */
@@ -525,12 +518,7 @@ body.is-loading {
   color: var(--text-muted);
 }
 
-/* Measure Section — base styles migrated to Tailwind in measure-guide.tsx.
-   .measure-content + .reveal-item stay as hook classes (the reveal-item
-   animation reset + prefers-reduced-motion fallback below). */
-.measure-content .reveal-item {
-  will-change: transform, opacity;
-}
+/* Measure Section — base styles migrated to Tailwind in measure-guide.tsx. */
 .measure-media-shell {
   box-shadow: 0 32px 90px -42px rgba(0, 0, 0, 0.42);
   will-change: clip-path;
@@ -695,7 +683,6 @@ body.is-loading {
 }
 @media (prefers-reduced-motion: reduce) {
   body:not(.is-loading) .benefit-card,
-  body:not(.is-loading) .reveal-item,
   body:not(.is-loading) .acc-item,
   body:not(.is-loading) .reveal-mask,
   body:not(.is-loading) .portrait-mask {
@@ -1458,38 +1445,26 @@ body:not(.is-loading) .portrait-mask {
 body:not(.is-loading) .benefit-card {
   animation: fm-reveal-up 0.9s var(--ease-out-expo) both;
 }
-body:not(.is-loading) .benefit-card:nth-child(1) {
+body:not(.is-loading) .acc-item {
+  animation: fm-reveal-up 0.7s var(--ease-out-expo) both;
+}
+body:not(.is-loading) .acc-item:nth-of-type(1) {
+  animation-delay: 0.3s;
+}
+body:not(.is-loading) .benefit-card:nth-child(1),
+body:not(.is-loading) .acc-item:nth-of-type(2) {
   animation-delay: 0.4s;
 }
-body:not(.is-loading) .benefit-card:nth-child(2) {
+body:not(.is-loading) .benefit-card:nth-child(2),
+body:not(.is-loading) .acc-item:nth-of-type(3) {
   animation-delay: 0.5s;
 }
-body:not(.is-loading) .benefit-card:nth-child(3) {
+body:not(.is-loading) .benefit-card:nth-child(3),
+body:not(.is-loading) .acc-item:nth-of-type(4) {
   animation-delay: 0.6s;
 }
 body:not(.is-loading) .benefit-card:nth-child(4) {
   animation-delay: 0.7s;
-}
-
-body:not(.is-loading) .measure-content .reveal-item,
-body:not(.is-loading) .measure-content .acc-item {
-  animation: fm-reveal-up 0.7s var(--ease-out-expo) both;
-}
-body:not(.is-loading) .measure-content .reveal-item:nth-of-type(1),
-body:not(.is-loading) .measure-content .acc-item:nth-of-type(1) {
-  animation-delay: 0.3s;
-}
-body:not(.is-loading) .measure-content .reveal-item:nth-of-type(2),
-body:not(.is-loading) .measure-content .acc-item:nth-of-type(2) {
-  animation-delay: 0.4s;
-}
-body:not(.is-loading) .measure-content .reveal-item:nth-of-type(3),
-body:not(.is-loading) .measure-content .acc-item:nth-of-type(3) {
-  animation-delay: 0.5s;
-}
-body:not(.is-loading) .measure-content .reveal-item:nth-of-type(4),
-body:not(.is-loading) .measure-content .acc-item:nth-of-type(4) {
-  animation-delay: 0.6s;
 }
 
 /* ---- Keyframes ---- */
@@ -1561,7 +1536,6 @@ body:not(.is-loading) .measure-content .acc-item:nth-of-type(4) {
   }
 
   body:not(.is-loading) .benefit-card,
-  body:not(.is-loading) .reveal-item,
   body:not(.is-loading) .acc-item,
   body:not(.is-loading) .reveal-mask,
   body:not(.is-loading) .portrait-mask {

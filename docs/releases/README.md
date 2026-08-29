@@ -281,6 +281,15 @@ SHA-256. Commit the resulting promotion-readiness receipt; it authorizes a
 technical review but does not itself remove the package's experimental version
 or provide commercial approval.
 
+## Final acceptance boundary
+
+Full browser E2E, the non-developer pilot and the independent documentation
+walkthrough are executed after the implementation-freeze commit is selected.
+Their absence does not block continuing implementation. Follow the ordered
+procedure in `docs/cms/final-acceptance-plan.md`; any later code or documentation
+change invalidates the old freeze and requires final acceptance on the new
+candidate.
+
 ## Pilot evidence before final assembly
 
 The pilot can be validated independently before the other external gates are

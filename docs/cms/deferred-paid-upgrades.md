@@ -33,12 +33,15 @@ Cloudflare entitlement tham chiếu:
 
 ## 3. Những gì vẫn thuộc active goal
 
-Các hạng mục sau không cần paid upgrade nên vẫn là completion gate:
+Các hạng mục sau không cần paid upgrade nên vẫn thuộc goal, nhưng phase của
+chúng được định nghĩa riêng:
 
 - toàn bộ implementation, security, migration và conformance của CMS core;
 - packed install/remove trong các repo TanStack Start độc lập;
 - Local, Cloudflare free-tier/reference và Postgres conformance;
-- non-developer pilot và independent documentation walkthrough;
+- non-developer pilot và independent documentation walkthrough là final
+  acceptance sau implementation freeze, không phải implementation blocker; xem
+  [`final-acceptance-plan.md`](./final-acceptance-plan.md);
 - provider-neutral alerts/health contracts và local/hosted evidence nào thực
   hiện được không cần entitlement trả phí;
 - registry/extension manifest, provenance, compatibility và lifecycle ở cấp

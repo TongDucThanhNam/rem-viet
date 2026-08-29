@@ -6,6 +6,8 @@
 > Phạm vi: CMS code-first, self-hosted, có visual authoring, tái sử dụng được cho nhiều website
 > Paid upgrade/commercial evidence: defer riêng tại
 > [`deferred-paid-upgrades.md`](./deferred-paid-upgrades.md), không chặn active goal
+> Full E2E + human acceptance: chạy sau implementation freeze theo
+> [`final-acceptance-plan.md`](./final-acceptance-plan.md), không chặn implementation đang tiếp tục
 
 ## 1. Kết luận ngắn
 
@@ -62,7 +64,7 @@ CMS được xem là hoàn chỉnh cho use case này khi một developer có th�
     integration đúng;
 12. không cần Sanity, Payload hoặc dịch vụ trả phí nào để chạy core product.
 
-### 2.1 Ranh giới completion không phụ thuộc paid upgrade
+### 2.1 Ranh giới implementation, final acceptance và paid upgrade
 
 Definition of Done của goal này chỉ yêu cầu evidence có thể tạo bằng code,
 fixture, repository độc lập, local/self-hosted/free-tier và human pilot. Mọi
@@ -73,6 +75,14 @@ Việc defer không làm yếu implementation contract tương ứng: health/ale
 extension registry, package provenance, provider adapter và handover vẫn phải
 được implement/test ở phạm vi provider-neutral. Chỉ managed-provider dispatch,
 publication và commercial receipt được loại khỏi completion gate hiện tại.
+
+Trong lúc implementation còn thay đổi, mỗi thay đổi vẫn phải chạy targeted
+unit/integration test, typecheck và build tương xứng với rủi ro. Full browser E2E,
+non-developer pilot và independent documentation walkthrough được gom vào final
+acceptance sau khi chốt một exact clean commit; xem
+[`final-acceptance-plan.md`](./final-acceptance-plan.md). Việc chưa có ba evidence
+này không được block `/goal resume` hoặc công việc implementation. Chúng chỉ
+được phép block tuyên bố hoàn thành sau khi implementation freeze đã được chốt.
 
 ## 3. Baseline đã được chứng minh trong repository
 
@@ -542,7 +552,11 @@ security, migration và support discipline lâu dài.
 
 ## 10. Definition of Done cho CMS Platform v1 kế tiếp
 
-Chỉ được gọi là hoàn thành khi có đủ bằng chứng sau:
+Không dùng final acceptance để chặn implementation đang tiếp tục. Chỉ được gọi
+là hoàn thành khi cả hai phase dưới đây có đủ bằng chứng trên cùng final
+candidate.
+
+### 10.1 Implementation gate
 
 - [ ] Cài bằng packed package vào hai repo TanStack Start độc lập, trong đó một
       repo đã có auth/routes/styles.
@@ -557,15 +571,30 @@ Chỉ được gọi là hoàn thành khi có đủ bằng chứng sau:
 - [ ] SEO/search/redirect/form modules cài và gỡ độc lập.
 - [ ] Auth có invite/reset/MFA/session revoke/API key rotation.
 - [ ] Import/export/backup/restore/upgrade/rollback đều chạy từ clean checkout.
-- [ ] Admin desktop + mobile vượt keyboard/axe/overflow/task E2E.
-- [ ] Một non-developer pilot trên site độc lập có signed handover receipt;
-      không dùng local test để thay human evidence.
 - [ ] Security review bao gồm CSRF/XSS/SSRF, preview origin/session/replay,
       upload magic bytes, rate limits, secret exposure và dependency audit.
+
+Trong phase này chạy targeted verification cho code vừa đổi. Không yêu cầu full
+browser matrix hoặc human receipt sau mỗi increment.
+
+### 10.2 Final E2E và human acceptance — chạy sau implementation freeze
+
+- [ ] Chốt exact clean Git commit, không còn implementation change dự kiến cho
+      candidate; mọi evidence bên dưới bind đúng commit này.
+- [ ] Chạy lại full quality và Admin desktop + mobile
+      keyboard/axe/overflow/task E2E trên final candidate.
+- [ ] Deploy chính final candidate lên staging với clean provenance.
+- [ ] Một non-developer pilot trên site độc lập có signed handover receipt;
+      không dùng local test/AI/project owner để thay human evidence.
 - [ ] Tài liệu install, schema, editor, provider, extension, migration,
       backup/restore, incident và handover đã được người khác làm theo thành công;
       dùng receipt contract tại [`documentation-walkthrough.md`](./documentation-walkthrough.md),
       không tự xác nhận thay operator độc lập.
+
+Thứ tự, command và stop condition của phase này nằm tại
+[`final-acceptance-plan.md`](./final-acceptance-plan.md). Nếu implementation được
+mở lại sau khi test, freeze cũ mất hiệu lực và final acceptance phải chạy lại
+trên candidate mới.
 
 ## 11. Nguồn nghiên cứu chính thức
 

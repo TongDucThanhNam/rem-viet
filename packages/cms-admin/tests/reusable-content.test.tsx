@@ -101,5 +101,39 @@ describe("reusable content admin", () => {
     );
     expect(actions).toContain("Pin published revision");
     expect(actions.match(/disabled/g)).toHaveLength(3);
+
+    const localized = renderToStaticMarkup(
+      <>
+        <CmsReusableContentLibrary
+          fragments={fragments}
+          query=""
+          locale="vi"
+          onQueryChange={mock()}
+          onSelect={mock()}
+        />
+        <CmsReusableContentReferenceActions
+          locale="vi"
+          messages={{ detachLocalCopy: "Tạo bản riêng" }}
+          state={{
+            fragmentId: "cta",
+            synced: true,
+            pinned: false,
+            revisionId: null,
+            overrideCount: 1,
+            canDetach: true,
+            status: "published",
+          }}
+          onDetach={mock()}
+          onResetOverrides={mock()}
+          onSetPinned={mock()}
+        />
+      </>,
+    );
+    expect(localized).toContain("Thư viện nội dung tái sử dụng");
+    expect(localized).toContain("4 lượt dùng");
+    expect(localized).toContain("Đã xuất bản");
+    expect(localized).toContain("Ghim phiên bản đã xuất bản");
+    expect(localized).toContain("Đặt lại ghi đè (1)");
+    expect(localized).toContain("Tạo bản riêng");
   });
 });

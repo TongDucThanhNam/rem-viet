@@ -9,6 +9,12 @@ import {
 
 import type { CmsReusableContentReference } from "@agency/cms-core";
 
+import {
+  resolveCmsAdminMessages,
+  type CmsAdminLocale,
+  type CmsAdminMessages,
+} from "./platform.js";
+
 export type CmsReusableContentAdminFragment = Readonly<{
   id: string;
   title: string;
@@ -82,6 +88,8 @@ export type CmsReusableContentLibraryProps = Readonly<{
   selectedFragmentId?: string | null;
   loading?: boolean;
   empty?: ReactNode;
+  locale?: CmsAdminLocale;
+  messages?: Partial<CmsAdminMessages>;
   onQueryChange: (query: string) => void;
   onSelect: (fragment: CmsReusableContentAdminFragment) => void;
   renderStatus?: (fragment: CmsReusableContentAdminFragment) => ReactNode;
@@ -96,19 +104,22 @@ export function CmsReusableContentLibrary({
   query,
   selectedFragmentId,
   loading = false,
-  empty = "No reusable content found.",
+  empty,
+  locale = "en",
+  messages: messageOverrides,
   onQueryChange,
   onSelect,
   renderStatus,
 }: CmsReusableContentLibraryProps): ReactElement {
+  const messages = resolveCmsAdminMessages(locale, messageOverrides);
   const visible = filterCmsReusableContentFragments(fragments, query);
   return createElement(
     "section",
-    { "aria-label": "Reusable content library" },
+    { "aria-label": messages.reusableContentLibrary },
     createElement(
       "label",
       null,
-      "Search reusable content",
+      messages.searchReusableContent,
       createElement("input", {
         type: "search",
         value: query,
@@ -117,7 +128,7 @@ export function CmsReusableContentLibrary({
       }),
     ),
     loading
-      ? createElement("p", { role: "status" }, "Loading reusable content…")
+      ? createElement("p", { role: "status" }, messages.loadingReusableContent)
       : visible.length
         ? createElement(
             "ul",
@@ -138,24 +149,32 @@ export function CmsReusableContentLibrary({
                   createElement(
                     "span",
                     null,
-                    ` ${fragment.usageCount} usage${fragment.usageCount === 1 ? "" : "s"}`,
+                    ` ${fragment.usageCount} ${
+                      fragment.usageCount === 1
+                        ? messages.usage
+                        : messages.usages
+                    }`,
                   ),
                   renderStatus?.(fragment) ??
                     createElement(
                       "span",
                       null,
-                      fragment.publishedRevisionId ? " Published" : " Draft",
+                      fragment.publishedRevisionId
+                        ? ` ${messages.published}`
+                        : ` ${messages.draft}`,
                     ),
                 ),
               ),
             ),
           )
-        : createElement("div", null, empty),
+        : createElement("div", null, empty ?? messages.noReusableContent),
   );
 }
 
 export type CmsReusableContentReferenceActionsProps = Readonly<{
   state: CmsReusableContentReferenceState;
+  locale?: CmsAdminLocale;
+  messages?: Partial<CmsAdminMessages>;
   onDetach: () => void;
   onResetOverrides: () => void;
   onSetPinned: (pinned: boolean) => void;
@@ -163,13 +182,16 @@ export type CmsReusableContentReferenceActionsProps = Readonly<{
 
 export function CmsReusableContentReferenceActions({
   state,
+  locale = "en",
+  messages: messageOverrides,
   onDetach,
   onResetOverrides,
   onSetPinned,
 }: CmsReusableContentReferenceActionsProps): ReactElement {
+  const messages = resolveCmsAdminMessages(locale, messageOverrides);
   return createElement(
     "fieldset",
-    { "aria-label": "Reusable content reference actions" },
+    { "aria-label": messages.reusableContentReferenceActions },
     createElement(
       "label",
       null,
@@ -180,7 +202,7 @@ export function CmsReusableContentReferenceActions({
         onChange: (event: ChangeEvent<HTMLInputElement>) =>
           onSetPinned(event.target.checked),
       }),
-      "Pin published revision",
+      messages.pinPublishedRevision,
     ),
     createElement(
       "button",
@@ -189,12 +211,12 @@ export function CmsReusableContentReferenceActions({
         disabled: state.overrideCount === 0,
         onClick: onResetOverrides,
       },
-      `Reset overrides (${state.overrideCount})`,
+      `${messages.resetOverrides} (${state.overrideCount})`,
     ),
     createElement(
       "button",
       { type: "button", disabled: !state.canDetach, onClick: onDetach },
-      "Detach local copy",
+      messages.detachLocalCopy,
     ),
   );
 }

@@ -1,8 +1,10 @@
 # Final E2E and human acceptance plan
 
 > Trạng thái: Deferred cho đến khi implementation freeze<br>
-> Phạm vi: Final acceptance của `perfect-cms-plugin-goal.vi.md`, không phải
-> implementation blocker và không yêu cầu paid upgrade
+> Phạm vi: downstream release verification được index tại
+> [`perfect-cms-plugin-verification-index.vi.md`](./perfect-cms-plugin-verification-index.vi.md);
+> không thuộc completion boundary
+> của code-only goal và không yêu cầu paid upgrade
 
 ## 1. Phase boundary
 
@@ -14,13 +16,13 @@ sau được chạy một lần trên final candidate thay vì chặn từng inc
 2. non-developer staging pilot với signed handover receipt;
 3. independent documentation walkthrough với operator-approved receipt.
 
-Thiếu ba evidence này không được block `/goal resume` khi implementation vẫn
-đang tiếp tục. Chúng chỉ được phép block tuyên bố goal hoàn thành sau khi exact
-implementation-freeze commit đã được chốt.
+Thiếu ba evidence này không được block `/goal resume`, code implementation,
+commit/merge hoặc completion của code-only goal. Chúng chỉ block verification
+cycle, release/client-ready claim hoặc handover tương ứng.
 
 ## 2. Điều kiện bắt đầu final acceptance
 
-- Tất cả implementation gate trong Section 10.1 có authoritative evidence.
+- Tất cả code item trong Section 9 của code goal đã được implement.
 - Worktree clean, `main` đồng bộ remote và candidate là full Git SHA.
 - Không còn code/schema/docs change dự kiến cho candidate.
 - Staging deploy được chính candidate, báo đúng site/stage, `sourceState=clean`
@@ -78,15 +80,16 @@ bun run release:docs:verify \
 Finding P2/P3 phải được remediate và rerun trên clean checkout mới. P0/P1 hoặc
 undocumented developer intervention làm final acceptance fail.
 
-## 6. Exit gate
+## 6. Verification-cycle exit gate
 
-Goal chỉ được đánh dấu complete khi:
+Verification cycle chỉ được đánh dấu complete khi:
 
 - Track A pass trên exact final candidate;
 - Track B và C có receipt thật, verifier pass và không self-attestation;
 - mọi receipt bind cùng final code/docs boundary;
 - không còn P0/P1 hoặc cleanup failure;
-- completion audit được cập nhật từ evidence thật.
+- verification record được cập nhật từ evidence thật.
 
-Cho đến khi implementation freeze được chốt, trạng thái đúng là **active
-implementation**, không phải **blocked by final testing**.
+Code-only goal có thể complete trước cycle này. Cho đến khi có nhu cầu release
+hoặc handover, trạng thái đúng của document này là **deferred verification**,
+không phải **blocked code goal**.

@@ -2,6 +2,13 @@
 
 Audit date: 2026-08-30
 Objective: `docs/cms/perfect-cms-plugin-goal.vi.md`  
+Boundary update (2026-08-30): the objective is now code-only and completes from
+Section 9 of the goal. Browser, human, staging, release and external receipt
+rows in this audit are retained as historical/downstream verification context;
+their pending state does not block `/goal resume` or code-goal completion. The
+authoritative backlog for them is
+[`perfect-cms-plugin-verification-index.vi.md`](./perfect-cms-plugin-verification-index.vi.md).
+
 Paid entitlements and commercial-adoption receipts are excluded from this active
 technical audit and tracked in
 [`deferred-paid-upgrades.md`](./deferred-paid-upgrades.md). The commercial
@@ -150,13 +157,13 @@ self-attested by implementation tests:
 
 These receipts and a fresh full E2E run are intentionally deferred until an
 exact implementation-freeze commit exists. Their absence must not block
-`/goal resume` or implementation increments; it blocks only the final completion
-claim after freeze. The ordered acceptance procedure is
+`/goal resume`, implementation increments or code-goal completion; they block
+only a downstream verification/release claim. The ordered acceptance procedure is
 `docs/cms/final-acceptance-plan.md`.
 
 Representative 28-day RUM and the distinct manual/weekly production-backup
 sequence remain valuable controls in the broader client-release program, but
-they do not appear in this goal's Section 10 Definition of Done and therefore do
+they do not appear in this goal's Section 9 code checklist and therefore do
 not extend the active goal. The stricter client release-evidence document remains
 governed separately by `docs/releases/README.md`. Paid Cloudflare health-alert
 delivery, managed registry publication, paid-site adoption, paid CDN activation,

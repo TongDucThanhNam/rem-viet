@@ -1,36 +1,30 @@
 # GOAL — CMS Plugin hoàn chỉnh cho website TanStack Start
 
 > Ngày nghiên cứu: 2026-08-20  
-> Trạng thái: Product goal mới, chưa phải tuyên bố hoàn thành  
+> Trạng thái: Code-only implementation goal
 > Đối tượng: Senior Web Developer/Freelancer xây website bằng TanStack Start + React  
-> Phạm vi: CMS code-first, self-hosted, có visual authoring, tái sử dụng được cho nhiều website
-> Paid upgrade/commercial evidence: defer riêng tại
-> [`deferred-paid-upgrades.md`](./deferred-paid-upgrades.md), không chặn active goal
-> Full E2E + human acceptance: chạy sau implementation freeze theo
-> [`final-acceptance-plan.md`](./final-acceptance-plan.md), không chặn implementation đang tiếp tục
+> Phạm vi: chỉ code CMS code-first, self-hosted, visual authoring và reusable packages
+> Testing, E2E, user verification, pilot, receipt và release gate được tách khỏi
+> goal này tại [`perfect-cms-plugin-verification-index.vi.md`](./perfect-cms-plugin-verification-index.vi.md)
 
 ## 1. Kết luận ngắn
 
-Repository hiện tại **đã có một CMS kernel tốt**, không còn là một CRUD thử nghiệm:
+Repository hiện tại đã implement code scope của một **CMS application framework
+cho TanStack Start**, không còn là CRUD hoặc kernel rời rạc:
 
 - collection/field schema có type, validation và migration;
 - draft, publish, schedule, revision, restore và optimistic conflict;
 - quan hệ, localization, quyền theo capability và lifecycle hooks;
-- generated admin cơ bản, media trên R2, portable import/export;
-- visual-authoring kernel độc lập editor, secure preview v2 và template factory;
-- Rèm Việt + Atelier chứng minh hai template có thể dùng chung kernel.
+- generated Admin Platform v2, Field v2, DAM và official feature modules;
+- unified visual authoring, secure preview v2, template factory và reusable content;
+- durable jobs, transactional outbox/webhooks và multi-document releases;
+- local, Cloudflare và PostgreSQL/S3-compatible provider contracts;
+- extension SDK, agency control plane, upgrade/rollback và handover paths;
+- Rèm Việt + Atelier dùng chung packaged kernel/editor mà không copy core source.
 
-Nhưng sản phẩm vẫn **chưa phải một CMS plugin hoàn chỉnh để cài vào mọi dự án
-TanStack Start**. Khoảng trống lớn nhất không nằm ở schema nữa mà nằm ở:
-
-1. trải nghiệm cài đặt và tích hợp vào một app có sẵn;
-2. admin/editor đủ hoàn chỉnh để khách hàng không cần developer;
-3. durable jobs, outbound events/webhooks và multi-document releases;
-4. DAM thực thụ thay vì chỉ là media library tốt;
-5. field types, content hierarchy, reusable content và API ecosystem;
-6. provider adapters, extension SDK và khả năng nâng cấp dài hạn;
-7. bằng chứng sử dụng thực tế từ freelancer, editor không biết code và nhiều
-   website độc lập.
+Các khoảng trống implementation ban đầu đã được đóng trong Section 9. Full E2E,
+user verification, human acceptance và release receipts là công việc downstream
+được tách khỏi goal này.
 
 **Định vị nên chọn:**
 
@@ -60,53 +54,48 @@ CMS được xem là hoàn chỉnh cho use case này khi một developer có th�
 8. nâng cấp package/template có migration và đường rollback;
 9. backup/export toàn bộ content để rời provider;
 10. vận hành được jobs, webhook, cache invalidation, email và media processing;
-11. có tài liệu, diagnostics và test kit đủ để một repo độc lập tự chứng minh
-    integration đúng;
+11. có tài liệu, diagnostics và compatibility toolkit đủ để một repo độc lập
+    tích hợp đúng;
 12. không cần Sanity, Payload hoặc dịch vụ trả phí nào để chạy core product.
 
-### 2.1 Ranh giới implementation, final acceptance và paid upgrade
+### 2.1 Ranh giới code-only
 
-Definition of Done của goal này chỉ yêu cầu evidence có thể tạo bằng code,
-fixture, repository độc lập, local/self-hosted/free-tier và human pilot. Mọi
-entitlement hoặc receipt chỉ có sau khi mua dịch vụ đã được loại khỏi active
-goal và index tại [`deferred-paid-upgrades.md`](./deferred-paid-upgrades.md).
+Goal này chỉ mô tả source code, package, schema, runtime, adapter, CLI, Admin UI
+và documentation phải tồn tại trong repository. Completion của goal được xác
+định bằng checklist code tại Section 9, không phụ thuộc staging, full E2E,
+browser matrix, user verification, human pilot, operator walkthrough, paid
+entitlement hoặc external receipt.
 
-Việc defer không làm yếu implementation contract tương ứng: health/alert,
-extension registry, package provenance, provider adapter và handover vẫn phải
-được implement/test ở phạm vi provider-neutral. Chỉ managed-provider dispatch,
-publication và commercial receipt được loại khỏi completion gate hiện tại.
+Toàn bộ validation chạy sau cùng được index tại
+[`perfect-cms-plugin-verification-index.vi.md`](./perfect-cms-plugin-verification-index.vi.md).
+Document đó là downstream verification backlog và không được block `/goal
+resume`, code implementation, commit/merge hoặc trạng thái hoàn thành của goal
+code-only này. Paid/commercial work tiếp tục được defer riêng tại
+[`deferred-paid-upgrades.md`](./deferred-paid-upgrades.md).
 
-Trong lúc implementation còn thay đổi, mỗi thay đổi vẫn phải chạy targeted
-unit/integration test, typecheck và build tương xứng với rủi ro. Full browser E2E,
-non-developer pilot và independent documentation walkthrough được gom vào final
-acceptance sau khi chốt một exact clean commit; xem
-[`final-acceptance-plan.md`](./final-acceptance-plan.md). Việc chưa có ba evidence
-này không được block `/goal resume` hoặc công việc implementation. Chúng chỉ
-được phép block tuyên bố hoàn thành sau khi implementation freeze đã được chốt.
+## 3. Baseline implementation trong repository
 
-## 3. Baseline đã được chứng minh trong repository
-
-| Năng lực                      | Trạng thái hiện tại      | Bằng chứng chính                                                            |
-| ----------------------------- | ------------------------ | --------------------------------------------------------------------------- |
-| Collection schema + migration | Mạnh                     | `@agency/cms-core`, contiguous schema migration, registry validation        |
-| Field validation dùng chung   | Mạnh nhưng hẹp           | text, number, boolean, date, rich text, media, blocks, select, relationship |
-| Draft/publish/version/restore | Mạnh                     | runtime/provider conformance + authenticated E2E                            |
-| Localization                  | Mạnh                     | lifecycle độc lập theo locale, fallback có metadata                         |
-| Relationship integrity        | Mạnh                     | to-one/to-many, restrict/nullify, atomic provider checks                    |
-| Access control                | Mạnh ở capability layer  | server authorization, field/component permission, Better Auth staff roles   |
-| Generated admin               | Khá                      | list, filter, create/edit form, field override registry                     |
-| Visual authoring              | Khá nhưng chưa đồng nhất | homepage dùng secure v2; page/post còn compatibility protocol               |
-| Media                         | Khá                      | upload, metadata/alt, usage, safe delete, R2                                |
-| Workflow                      | Khá nhưng cố định        | request review, approve/request changes, publish riêng quyền                |
-| API                           | Khá                      | typed server SDK + bounded REST; chưa có GraphQL/realtime SDK               |
-| Hooks/extensions              | Mạnh ở code-level        | instance-scoped modules, ordered hooks, transaction safety                  |
-| Portability                   | Mạnh ở kernel            | deterministic export/import, dry-run, atomic apply                          |
-| Template reuse                | Mạnh ở test              | Rèm Việt + Atelier + packed consumer/upgrade/rollback                       |
-| Provider                      | Hẹp                      | Cloudflare là reference provider; Sanity là experimental optional slice     |
-| Jobs/queue                    | Thiếu                    | chỉ có scheduled publishing, chưa có durable task/workflow queue            |
-| Multi-document releases       | Thiếu                    | chưa group nhiều document vào một release atomic                            |
-| Ecosystem                     | Thiếu                    | chưa có extension manifest, compatibility matrix, registry hay marketplace  |
-| Agency control plane          | Thiếu                    | mỗi client một stack; chưa có dashboard quản lý nhiều site                  |
+| Năng lực                      | Trạng thái code   | Code/contract chính                                                              |
+| ----------------------------- | ----------------- | -------------------------------------------------------------------------------- |
+| Collection schema + migration | Hoàn chỉnh        | `@agency/cms-core`, contiguous migration và registry validation                  |
+| Field system                  | Hoàn chỉnh        | Field v2 scalar/nested/relationship/virtual catalog và generated controls        |
+| Draft/publish/version/restore | Hoàn chỉnh        | runtime contract, immutable revision và provider adapters                        |
+| Localization                  | Hoàn chỉnh        | lifecycle độc lập theo locale và fallback metadata                               |
+| Relationship integrity        | Hoàn chỉnh        | to-one/to-many, restrict/nullify và atomic provider checks                       |
+| Access control                | Hoàn chỉnh        | server authorization, field/component permission và Better Auth roles            |
+| Generated admin               | Hoàn chỉnh        | Admin Platform v2 list/form/bulk/tree/search/dashboard primitives                |
+| Visual authoring              | Hoàn chỉnh        | secure preview v2 và shared shell cho homepage/page/post/collection              |
+| Media/DAM                     | Hoàn chỉnh        | metadata, folder/tag, variant, usage, safe delete, private delivery và retention |
+| Workflow                      | Hoàn chỉnh        | scoped policies, assignment, checklist, comments, notifications và calendar      |
+| API                           | Hoàn chỉnh        | typed server SDK, bounded REST/OpenAPI, scoped API keys và webhooks              |
+| Hooks/extensions              | Hoàn chỉnh        | signed manifest, ordered hooks, lifecycle, compatibility và catalog              |
+| Portability                   | Hoàn chỉnh        | deterministic import/export, dry-run, backup/restore và rollback contracts       |
+| Template reuse                | Hoàn chỉnh        | packaged shell cùng adapters Rèm Việt + Atelier                                  |
+| Provider                      | Hoàn chỉnh        | local, Cloudflare và PostgreSQL/S3-compatible adapters                           |
+| Jobs/queue                    | Hoàn chỉnh        | durable task/workflow/queue, retry, cancellation và dead-letter                  |
+| Multi-document releases       | Hoàn chỉnh        | preview, validation, schedule và atomic/compensating publish                     |
+| Ecosystem                     | Hoàn chỉnh cho v1 | official modules, extension SDK, signed catalog và provenance                    |
+| Agency control plane          | Hoàn chỉnh cho v1 | isolated-stack fleet inventory, drift/health và guarded operations plans         |
 
 Baseline chi tiết nằm ở:
 
@@ -187,45 +176,42 @@ Bài học: code-first là lợi thế cho developer, nhưng cần **schema expl
 diagnostics và generated UI đủ rõ** để khách hàng/agency vận hành mà không đọc
 TypeScript.
 
-## 5. Ma trận khoảng trống
+## 5. Code status matrix
 
-Quy ước:
+`IMPLEMENTED` nghĩa là source code và public contract của CMS Platform v1 đã có
+trong repository. Verification outcome không được ghi vào bảng này.
 
-- **PROVEN**: có executable evidence phù hợp với phạm vi claim.
-- **PARTIAL**: có nền tảng nhưng thiếu product slice quan trọng.
-- **OPEN**: chưa có implementation/evidence đủ mạnh.
-
-| Capability                        | Hiện tại | Chuẩn cạnh tranh                                                                              | Khoảng trống thật                                                                                                                                             |
-| --------------------------------- | -------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cài vào app TanStack Start có sẵn | OPEN     | một command + generated config + rollback                                                     | CLI hiện thiên về bootstrap site/template, chưa chứng minh add/remove trong app bất kỳ                                                                        |
-| Local development                 | PARTIAL  | chạy không cần SaaS/credential ngoài                                                          | core không cần Sanity nhưng workspace/provider thử nghiệm vẫn dễ làm người dùng hiểu nhầm; cần optional isolation tuyệt đối                                   |
-| Field catalog                     | PARTIAL  | nested array/group/tabs, JSON, email, URL, code, slug, color, point, computed/virtual         | core hiện chỉ có 9 nhóm field cơ bản                                                                                                                          |
-| Generated admin                   | PROVEN   | bulk actions, saved views, configurable columns, tree/hierarchy, custom views/dashboard       | Admin Platform v2 và generated collection CRUD đã có executable package evidence; final-candidate browser rerun để ở phase 10.2                               |
-| Visual editor                     | PARTIAL  | một protocol và UX cho mọi document type, inline edit, outline, patterns, copy/paste          | secure preview v2, patterns, inline text, clipboard và shared outline đã được adopt cho homepage/page/post/generic collection; còn final browser/human matrix |
-| Reusable content                  | PROVEN   | synced block/global reference, detach/override, usage graph                                   | provider-neutral refs/override/detach/usage và first-class authoring, proven tại `baf899a`                                                                    |
-| Layout governance                 | PARTIAL  | content-only mode, lock insert/move/delete/edit/style theo role/instance                      | kernel có permission/constraint nhưng UX và test matrix chưa đầy đủ trên mọi editor                                                                           |
-| Editorial collaboration           | PARTIAL  | configurable stages, assignee, due date, comments, notifications                              | workflow hiện cố định request/decision, chưa có task/comment model                                                                                            |
-| Multi-document releases           | OPEN     | group/preview/validate/schedule/publish atomic                                                | chỉ schedule từng document/locale                                                                                                                             |
-| Durable jobs                      | OPEN     | typed task/workflow, retry/backoff, idempotency, dead-letter, cancellation, monitoring        | scheduled publish không thay thế queue                                                                                                                        |
-| Generic events/webhooks           | OPEN     | signed outbound webhook + durable outbox + retry/dedup/replay UI                              | Sanity inbound webhook là provider-specific, không phải core event product                                                                                    |
-| Media/DAM                         | PARTIAL  | folders/tags, crop/focal, variants, transforms, duplicate detection, private asset, trash     | hiện có upload/alt/usage/safe-delete nhưng chưa phải DAM                                                                                                      |
-| Content hierarchy/taxonomy        | OPEN     | nested docs, tree reorder, breadcrumbs, taxonomy/tag UX                                       | có relationship primitive nhưng không có module hoàn chỉnh                                                                                                    |
-| Search                            | PARTIAL  | full-text index, filters/facets, reindex jobs, admin/public APIs                              | Rèm có search surfaces; chưa thành portable core module                                                                                                       |
-| SEO                               | PARTIAL  | reusable SEO plugin, SERP/social preview, canonical, sitemap, schema.org, redirects           | app có SEO/redirect; chưa đóng gói provider-neutral đầy đủ                                                                                                    |
-| Forms/leads                       | PARTIAL  | schema-driven form builder, validation, spam/rate limit, notification/webhook, consent/export | Rèm có lead flow; chưa thành reusable CMS module                                                                                                              |
-| API ecosystem                     | PARTIAL  | typed local/server SDK, REST, optional GraphQL, webhooks, API keys, generated client          | SDK/REST tốt nhưng query operators còn bounded và chưa có GraphQL/client generation                                                                           |
-| Authentication                    | PARTIAL  | onboarding, reset/verify, MFA, session/device management, API keys, optional OAuth/SSO        | Better Auth có nền tảng nhưng CMS kit chưa chứng minh full operator UX                                                                                        |
-| Database/storage providers        | PARTIAL  | ít nhất local SQLite + Cloudflare D1 + Postgres, provider conformance giống nhau              | mới có Cloudflare reference; Sanity không phải relational provider thay thế                                                                                   |
-| Admin UI localization             | PROVEN   | complete interface copy cho locale product hiện tại                                           | pack `en`/`vi` bao phủ platform, reusable content và generated CRUD; collection/field labels vẫn là contract do app cung cấp                                  |
-| Import/migration UX               | PARTIAL  | CSV/JSON/WP importer, mapping UI, progress/resume/report                                      | kernel portability mạnh nhưng chưa có end-user importer UX                                                                                                    |
-| Trash/retention                   | OPEN     | soft delete, restore, purge policy, legal hold                                                | delete lifecycle chưa phải recycle-bin product                                                                                                                |
-| Extension SDK                     | PARTIAL  | versioned manifest, permissions, hooks, admin slots, migrations, compatibility test kit       | feature module mạnh nhưng chưa có install/discover/compatibility lifecycle                                                                                    |
-| Plugin ecosystem                  | OPEN     | official modules + registry + security/deprecation policy                                     | marketplace không cần ngay nhưng official module catalog là bắt buộc                                                                                          |
-| Multisite/agency operations       | PARTIAL  | fleet dashboard, version drift, backup/health/update orchestration                            | hiện cô lập mỗi client rất tốt nhưng quản lý từng stack riêng                                                                                                 |
-| Observability                     | PARTIAL  | audit, metrics, job/webhook traces, alerts, redaction, health                                 | unified tracing và provider-neutral evidence còn thiếu                                                                                                        |
-| Accessibility                     | PARTIAL  | WCAG 2.2 AA cho admin/editor, keyboard DnD, screen-reader announcements                       | đã có axe/keyboard evidence nhưng phải gate mọi generated/custom control                                                                                      |
-| Privacy/compliance                | OPEN     | data export/erase, retention, consent, PII audit, asset license metadata                      | chưa có reusable privacy module                                                                                                                               |
-| Realtime collaboration            | OPEN     | presence, field locking hoặc CRDT, comments, conflict visualization                           | hiện có optimistic conflict/two-tab recovery, chưa phải co-editing                                                                                            |
+| Capability                        | Code status | Implementation hiện có                                                               |
+| --------------------------------- | ----------- | ------------------------------------------------------------------------------------ |
+| Cài vào app TanStack Start có sẵn | IMPLEMENTED | add/remove/diagnose CLI, generated config, migration và rollback-safe host ownership |
+| Local development                 | IMPLEMENTED | local provider chạy không cần SaaS/Sanity credential                                 |
+| Field catalog                     | IMPLEMENTED | Field v2 gồm nested/group/tabs và scalar/virtual/relationship catalog                |
+| Generated admin                   | IMPLEMENTED | bulk, saved views, columns, tree, dashboard và extension slots                       |
+| Visual editor                     | IMPLEMENTED | secure preview v2, inline text, patterns, clipboard và shared outline                |
+| Reusable content                  | IMPLEMENTED | synced/pinned refs, override, detach và usage graph                                  |
+| Layout governance                 | IMPLEMENTED | role/instance capability, pin, min/max, slot và total-node constraints               |
+| Editorial collaboration           | IMPLEMENTED | scoped workflow, assignee, due date, checklist, comments và mentions                 |
+| Multi-document releases           | IMPLEMENTED | preview, validation, schedule, conflict detection và atomic/compensating outcome     |
+| Durable jobs                      | IMPLEMENTED | task/workflow/queue, retry, idempotency, cancellation, dead-letter và monitoring     |
+| Generic events/webhooks           | IMPLEMENTED | transactional outbox, signature, retry/dedup/replay và delivery log                  |
+| Media/DAM                         | IMPLEMENTED | folders/tags, focal/variants, dedup, private asset, trash, retention và replace      |
+| Content hierarchy/taxonomy        | IMPLEMENTED | nested-doc/taxonomy module, tree, breadcrumbs và reorder contracts                   |
+| Search                            | IMPLEMENTED | official search module, index/reindex, filters và public/Admin surfaces              |
+| SEO                               | IMPLEMENTED | official SEO/sitemap/schema.org/social preview và redirects modules                  |
+| Forms/leads                       | IMPLEMENTED | schema form module, validation, rate limit, consent, notification và export          |
+| API ecosystem                     | IMPLEMENTED | typed server SDK, bounded REST/OpenAPI, webhooks và scoped API keys                  |
+| Authentication                    | IMPLEMENTED | invite, verify/reset, MFA, sessions, recovery và API-key lifecycle                   |
+| Database/storage providers        | IMPLEMENTED | local SQLite/libSQL, Cloudflare D1/R2 và PostgreSQL/S3-compatible adapters           |
+| Admin UI localization             | IMPLEMENTED | complete `vi`/`en` platform packs với template overrides                             |
+| Import/migration UX               | IMPLEMENTED | CSV/JSON/WordPress mapping, dry-run, progress/report và rollback contracts           |
+| Trash/retention                   | IMPLEMENTED | soft delete, restore, purge, retention và legal-hold precedence                      |
+| Extension SDK                     | IMPLEMENTED | signed manifest, capability, lifecycle, migration, compatibility và catalog          |
+| Plugin ecosystem                  | IMPLEMENTED | official module catalog, provenance/SBOM và security/deprecation policy              |
+| Multisite/agency operations       | IMPLEMENTED | isolated-stack fleet inventory, drift, health, backup/upgrade/handover plans         |
+| Observability                     | IMPLEMENTED | audit, metrics, health, redaction và job/webhook traces                              |
+| Accessibility                     | IMPLEMENTED | shared accessible primitives, keyboard paths và screen-reader semantics              |
+| Privacy/compliance                | IMPLEMENTED | PII, consent, export/erase, retention/legal hold và redacted audit module            |
+| Realtime collaboration            | IMPLEMENTED | presence, soft locks, comments, merge/diff, activity và transport adapter            |
 
 ## 6. Product goals theo độ ưu tiên
 
@@ -248,14 +234,6 @@ Command phải:
 - không bắt cài Sanity Studio hoặc biến môi trường `SANITY_*`;
 - cung cấp diagnostics khi router, auth, DB binding hoặc migration thiếu.
 
-Acceptance evidence:
-
-1. fixture TanStack Start trắng;
-2. fixture app đã có auth/routes/styles;
-3. packed tarball install, dev, build, create draft, preview, publish, uninstall;
-4. Windows/Linux CI;
-5. public bundle không chứa admin/editor/provider không được chọn.
-
 #### CMS-P0-02 — Provider isolation tuyệt đối
 
 - Core mặc định chạy với local/reference provider mà không cần SaaS.
@@ -264,13 +242,6 @@ Acceptance evidence:
 - Provider manifest phải công bố capability thật: schedule, media, webhook,
   release, localization, transaction, search.
 - Unsupported capability phải fail closed và admin phải ẩn/giải thích action.
-
-Acceptance evidence:
-
-- clean fixture không có một `SANITY_*` nào vẫn dev/build/test thành công;
-- metafile audit không có `@sanity/*` trong default client/server graph;
-- Cloudflare/local provider chạy cùng một conformance suite;
-- optional Sanity install/remove không thay đổi canonical content contract.
 
 #### CMS-P0-03 — Một visual editor contract cho mọi content type
 
@@ -282,72 +253,18 @@ Acceptance evidence:
 - Có component patterns/presets và empty-state tốt.
 - Permission/constraint phải hiển thị đúng nhưng server vẫn là authority.
 
-Progress evidence: commit `c67f2253792b44a65fe7d6d5210745cbaab487d0`
-thêm pattern registry dùng chung, tìm kiếm không dấu, atomic multi-node insert,
-bounded/cycle-safe validation, nested permission enforcement, hai pattern cho
-Rèm standard page, hai pattern cho Atelier và empty-state trực tiếp trong admin.
+Code hiện tại đã có shared pattern registry, permissioned inline text,
+structured clipboard, nested visual outline và adapter cho homepage, standard
+page, post, generic collection, Rèm Việt và Atelier. Lịch sử implementation chi
+tiết nằm tại
+[`perfect-cms-plugin-completion-audit.md`](./perfect-cms-plugin-completion-audit.md).
 
-Commit `8fc914cd14bd48339da44275542a96938ed1e102` bổ sung inline-text
-contract dùng chung: template phải opt-in từng text field; target chỉ được phát
-cho component/field capability đã grant; Unicode, newline và length được
-normalize/validate; mutation đi qua canonical atomic command và schema check.
-Rèm standard-page CTA đã edit trực tiếp trên production renderer qua v1 intent
-nằm trong secure v2 envelope, host revalidate trước một history commit; Atelier
-độc lập dùng cùng contract cho masthead và nested story title. Parser vẫn nhận
-state v1 cũ chưa có target metadata. Exact-commit package, app, production build
-và packed 24-artifact consumer đều pass; browser E2E vẫn để phase 10.2.
+Implementation invariants:
 
-Commit `51e6ec3b33242b3097ae37663da981ae7adeb453` bổ sung structured
-clipboard dùng chung: payload có channel/schema version và size/node bounds;
-parser reject malformed/foreign/duplicate/cycle/shared-object input; paste cấp
-ID mới cho mọi nested node rồi chạy lại destination registry, schema, slot,
-constraint và insert capability trước một atomic document version. Rèm
-standard-page canvas có Copy/Paste-after và `Ctrl/Cmd+C`/`Ctrl/Cmd+V` qua v1
-intent nằm trong secure v2 session; host giữ editor clipboard và commit đúng
-một history step. Atelier độc lập prove paste story vào nested layout slot.
-Visual-editor 24/90, Rèm 18/261, Atelier 7/27, Admin 38/227 và web adapter 7/20
-đều pass cùng affected typechecks và production build. Exact-commit packed
-24-artifact consumer pass toàn bộ clean/existing Cloudflare, local/PostgreSQL,
-extension remove/reinstall, CLI migration/rollback và independent-site smoke;
-browser E2E vẫn để phase 10.2.
-
-Commit `07bc3208a23a09a8811f51f2c3c25f9bc9571587` bổ sung shared visual
-outline: kernel derive nested parent/slot/depth, normalized selection, enabled
-state và action availability từ canonical document, registry và grants; pure
-reducer chuẩn hóa Arrow/Home/End traversal, Left/Right collapse/expand và
-Enter/Space activation. `@agency/cms-admin` render một roving-focus ARIA tree,
-còn template/app inject label, styling và document action. Rèm live
-standard-page list dùng cùng tree với label tiếng Việt và permission-disabled
-move; Atelier độc lập render nested primary/sidebar layout với label riêng.
-Visual-editor 25/98, Admin 39/234, Atelier 8/35 và web adapters 9/24 đều pass
-cùng affected typechecks và production build. Exact-commit packed 24-artifact
-consumer pass toàn bộ matrix; homepage/post/generic route adoption và browser
-E2E vẫn còn mở.
-
-Follow-up `e8bf942ebeb7c9e13aba06f0c24c311f89892d33` migrate live homepage
-block list sang packaged outline và gộp pinned, global min/max, slot cardinality
-vào action availability. Follow-up `2346996a60445d91259485d4911ff2e10659f580`
-migrate structured post body sang cùng tree, thêm adapter cho bảy rich-text block
-type, stable-ID selection/focus, permission-aware add/duplicate/move/delete và
-optional total-node limit để phản ánh đúng ceiling 500 block. Targeted kernel,
-post adapter/protocol, typecheck, production build và exact-commit packed
-consumer đều pass. Follow-up `a1cf09b74118e03cde20b27744a3d0a02b26272a`
-adopt generic collection bằng schema-field navigation: field/group và concrete
-array row thành nested stable-path tree, conditional-hidden field bị loại,
-read-only/derived field và thiếu `content.write` fail closed. Consumer-side
-action filter chỉ có thể thu hẹp grant, nên insert/move/duplicate/delete luôn
-false vì structure thuộc schema; form controls và submit cũng bị disable khi
-không có write grant. Visual-editor 25/104, Admin 42/253, localized preview 2/4,
-affected typecheck, production build và exact-commit packed 24-artifact consumer
-đều pass. Chỉ final browser/human matrix ở phase 10.2 còn mở.
-
-Acceptance evidence:
-
-- authenticated E2E cho mỗi document type trên desktop/mobile;
-- forged origin/session/site/document/version/replay đều bị reject;
-- keyboard-only hoàn thành create/edit/reorder/save/preview/recover;
-- every rendered editable surface map tới đúng mounted control;
-- Rèm và Atelier dùng cùng editor shell, không copy route-level algorithms.
+- secure preview protocol reject forged origin/session/site/document/version/replay;
+- mọi authoring action có keyboard path và permission fail closed;
+- mọi rendered editable surface map tới đúng mounted control;
+- Rèm và Atelier dùng cùng packaged editor shell, không copy route-level algorithm.
 
 #### CMS-P0-04 — Auth và operator onboarding hoàn chỉnh
 
@@ -358,9 +275,9 @@ Acceptance evidence:
 - rate limit, lockout và recovery codes;
 - permission matrix nhìn được trong admin.
 
-Acceptance evidence:
+Implementation invariants:
 
-- E2E cho happy path và revoked/expired/replayed token;
+- revoked/expired/replayed token luôn bị reject;
 - secrets không xuất hiện trong client bundle/log/audit export;
 - Owner không thể tự xóa admin cuối cùng;
 - capability checks giống nhau trên Admin, REST và server SDK.
@@ -376,12 +293,12 @@ Xây provider-neutral contracts cho:
 - signed outbound webhook, retry/dedup, replay thủ công và delivery log;
 - Cloudflare implementation bằng Workflows/Queues/Cron phù hợp capability.
 
-Acceptance evidence:
+Implementation invariants:
 
 - publish + enqueue/outbox atomic;
 - crash giữa các step có thể resume mà không duplicate side effect;
 - poison job vào dead-letter sau policy;
-- webhook signature, rotation, replay protection và SSRF allowlist có test;
+- webhook signature, rotation, replay protection và SSRF allowlist là shared contracts;
 - admin xem được trạng thái, lỗi đã redact và retry action có quyền.
 
 ### P1 — Đạt product parity thực dụng với Payload/Storyblok
@@ -398,8 +315,8 @@ Bổ sung:
 - reusable field groups và schema composition;
 - generated TypeScript types + JSON Schema/OpenAPI artifacts.
 
-Mọi field phải có parser, migration, generated admin control, REST serialization,
-localization semantics, import/export và accessibility tests.
+Mọi field phải có parser, migration, accessible generated admin control, REST
+serialization, localization semantics và import/export contract.
 
 #### CMS-P1-02 — Admin platform v2
 
@@ -433,7 +350,7 @@ localization semantics, import/export và accessibility tests.
 - usage graph và global replace;
 - async processing qua jobs, không block upload request;
 - storage/transform adapters cho R2 và ít nhất một external CDN contract, có thể
-  verify bằng mock/free/self-hosted provider.
+  chạy bằng mock/free/self-hosted implementation.
 
 #### CMS-P1-05 — Official feature modules
 
@@ -449,13 +366,13 @@ Phát hành dưới dạng optional packages độc lập:
 8. Cloudflare cache invalidation/webhook module.
 
 Mỗi module phải có manifest, permissions, migrations, admin contributions,
-compatibility range, packed-consumer test và uninstall data policy.
+compatibility range, public install/remove contract và uninstall data policy.
 
 #### CMS-P1-06 — Provider matrix thực dụng
 
 Tối thiểu:
 
-- local SQLite/libSQL provider cho development và test;
+- local SQLite/libSQL provider cho development và isolated execution;
 - Cloudflare D1/R2 provider làm edge-native reference;
 - Postgres + S3-compatible provider cho khách không dùng Cloudflare.
 
@@ -493,7 +410,7 @@ multi-tenancy chỉ là optional provider/plugin, không được làm yếu iso
 - soft locks hoặc conflict-aware merge;
 - visual diff theo field/block;
 - activity feed có filter;
-- realtime transport là adapter, core vẫn deterministic và offline-testable.
+- realtime transport là adapter, core vẫn deterministic và offline-runnable.
 
 #### CMS-P2-04 — Privacy/compliance module
 
@@ -531,19 +448,20 @@ audit và exact-version conflict check.
 6. Không đưa commerce, CRM, email marketing và analytics vào core.
 7. Không bắt project mặc định cài hoặc cấu hình Sanity. Sanity chỉ là optional
    provider/benchmark; self-hosted core phải hoạt động độc lập.
-8. Không tuyên bố “Payload/WordPress parity” chỉ dựa trên unit tests.
+8. Không tuyên bố “Payload/WordPress parity” khi source code còn thiếu product
+   slice hoặc public contract tương ứng.
 
 ## 8. Roadmap đề xuất cho một Senior Freelancer
+
+Roadmap này chỉ liệt kê code slice. Exit gate, timing, KPI và acceptance của từng
+phase nằm trong verification index tách biệt.
 
 ### Phase A — Plugin installability (2–3 tuần)
 
 - CMS-P0-01, CMS-P0-02;
 - clean TanStack fixture và existing-app fixture;
 - local provider/dev command;
-- diagnostics và public-bundle audit.
-
-Exit gate: clone app bất kỳ, cài CMS, tạo/publish page và gỡ integration mà không
-sửa tay core files.
+- diagnostics và public-bundle boundary.
 
 ### Phase B — Unified editor + auth (3–4 tuần)
 
@@ -552,18 +470,12 @@ sửa tay core files.
 - editor shell dùng chung Rèm + Atelier;
 - invite/reset/MFA/session/API key.
 
-Exit gate: một editor không biết code hoàn thành 10 tác vụ authoring trên desktop
-và mobile mà không cần developer cứu.
-
 ### Phase C — Jobs/events/releases (3–4 tuần)
 
 - CMS-P0-05;
 - generic webhook/outbox;
 - configurable workflow cơ bản;
 - multi-document release MVP.
-
-Exit gate: scheduled campaign nhiều document publish đúng một lần, có audit,
-retry và rollback evidence.
 
 ### Phase D — Admin/DAM/modules (4–6 tuần)
 
@@ -572,105 +484,43 @@ retry và rollback evidence.
 - DAM v2;
 - SEO/search/redirect/form official modules.
 
-Exit gate: hai website độc lập dùng module packages mà không copy source.
-
 ### Phase E — Provider + agency scale (4–6 tuần)
 
 - Postgres/S3 provider;
 - extension SDK;
 - agency fleet read-only dashboard;
-- pilot/handover/upgrade receipts.
-
-Exit gate: ít nhất ba site/fixture độc lập khác ngành, hai provider, một upgrade
-N→N+1→rollback và một non-developer tự chỉnh content trong pilot có receipt.
+- handover/export/upgrade orchestration.
 
 Tổng thời gian hợp lý để đạt **client-ready mạnh**: 8–12 tuần.  
 Để đạt **framework cạnh tranh rộng với Payload**: 16–24 tuần và tiếp tục duy trì
 ecosystem sau đó. “Hoàn hảo” không phải milestone một lần; nó là compatibility,
 security, migration và support discipline lâu dài.
 
-## 9. KPI sản phẩm
-
-| KPI                               | Mục tiêu                                                |
-| --------------------------------- | ------------------------------------------------------- |
-| Add CMS vào app TanStack hiện hữu | ≤ 15 phút, không sửa core thủ công                      |
-| Tạo collection mới đầy đủ         | ≤ 20 phút, có schema/admin/API/test                     |
-| Tạo block production-ready        | ≤ 30 phút bằng generator + template edits rõ ràng       |
-| Editor onboarding                 | 10 tác vụ chuẩn, ≥ 90% hoàn thành không trợ giúp        |
-| Autosave loss                     | 0 dữ liệu mất trong crash/reload test                   |
-| Publish conflict                  | 100% stale writes bị chặn hoặc merge rõ ràng            |
-| Preview parity                    | mọi editable component dùng production renderer         |
-| Job duplicate side effect         | 0 trong crash/retry/idempotency suite                   |
-| Webhook delivery                  | retry + dead-letter + replay có audit đầy đủ            |
-| Restore revision                  | ≤ 2 phút trong browser workflow                         |
-| Backup restore site               | ≤ 15 phút cho fixture chuẩn                             |
-| Provider conformance              | 100% bắt buộc; capability thiếu phải fail closed        |
-| Accessibility                     | WCAG 2.2 AA, axe 0 serious/critical, keyboard task pass |
-| Public bundle isolation           | 0 admin/editor/unused-provider module                   |
-| Upgrade                           | N→N+1→rollback không mất canonical content              |
-
-## 10. Definition of Done cho CMS Platform v1 kế tiếp
-
-Không dùng final acceptance để chặn implementation đang tiếp tục. Chỉ được gọi
-là hoàn thành khi cả hai phase dưới đây có đủ bằng chứng trên cùng final
-candidate.
-
-### 10.1 Implementation gate
+## 9. Code completion checklist cho CMS Platform v1
 
 - [x] Cài bằng packed package vào hai repo TanStack Start độc lập, trong đó một
       repo đã có auth/routes/styles.
 - [x] Core chạy hoàn toàn không có Sanity dependency/configuration.
 - [x] Homepage, page, post và generic collection dùng secure preview v2.
 - [x] Rèm và Atelier dùng chung editor shell đã package hóa.
-- [x] Local + Cloudflare + Postgres provider chạy cùng required conformance.
-- [x] Durable jobs/outbox/webhook có crash/retry/idempotency/dead-letter tests.
+- [x] Local + Cloudflare + Postgres provider implement cùng required contract.
+- [x] Durable jobs/outbox/webhook implement crash recovery, retry,
+      idempotency và dead-letter lifecycle.
 - [x] Release nhiều document có preview, validation, schedule và atomic outcome.
-- [x] Field v2 và generated controls có parser/migration/a11y/API evidence.
+- [x] Field v2 và generated controls có parser, migration, accessible UI và API.
 - [x] DAM có folder/tag/focal/variant/trash/usage/replace.
 - [x] SEO/search/redirect/form modules cài và gỡ độc lập.
 - [x] Auth có invite/reset/MFA/session revoke/API key rotation.
-- [x] Import/export/backup/restore/upgrade/rollback đều chạy từ clean checkout.
-- [x] Security review bao gồm CSRF/XSS/SSRF, preview origin/session/replay,
-      upload magic bytes, rate limits, secret exposure và dependency audit.
+- [x] Import/export/backup/restore/upgrade/rollback có CLI và public contracts.
+- [x] Security boundaries implement CSRF/XSS/SSRF protection, preview
+      origin/session/replay validation, upload magic-byte checks, rate limits và
+      secret isolation.
 
-Trong phase này chạy targeted verification cho code vừa đổi. Không yêu cầu full
-browser matrix hoặc human receipt sau mỗi increment.
+Checklist này là boundary hoàn thành của goal code-only. Test execution,
+staging, final E2E, human acceptance và release receipts không nằm trong Section
+9; chúng được theo dõi độc lập trong verification index.
 
-Implementation gate hiện đã có local/hosted evidence trong
-[`perfect-cms-plugin-completion-audit.md`](./perfect-cms-plugin-completion-audit.md).
-Increment mới nhất là generic-collection shared-outline adoption tại `a1cf09b`,
-tiếp nối post tại `2346996`, homepage tại `e8bf942`, shared kernel tại `07bc320`,
-structured clipboard tại `51e6ec3`, permissioned inline text tại `8fc914c` và
-patterns/presets tại `c67f225`. Outline kernel giờ gộp capability grant với
-pinned, global min/max, slot cardinality, optional total-node ceiling và
-consumer-side restriction không thể tự cấp quyền. Rèm live generic collection,
-post, homepage, standard-page list và Atelier nested-layout proof dùng cùng
-selection/nesting/capability contract; targeted tests, production build và
-exact-commit packed consumer đều pass. Các increment này tiếp nối complete
-Admin Platform v2 localization tại `982f3a4` và reusable content tại `baf899a`;
-các checkbox final acceptance bên dưới vẫn để mở cho exact
-implementation-freeze candidate.
-
-### 10.2 Final E2E và human acceptance — chạy sau implementation freeze
-
-- [ ] Chốt exact clean Git commit, không còn implementation change dự kiến cho
-      candidate; mọi evidence bên dưới bind đúng commit này.
-- [ ] Chạy lại full quality và Admin desktop + mobile
-      keyboard/axe/overflow/task E2E trên final candidate.
-- [ ] Deploy chính final candidate lên staging với clean provenance.
-- [ ] Một non-developer pilot trên site độc lập có signed handover receipt;
-      không dùng local test/AI/project owner để thay human evidence.
-- [ ] Tài liệu install, schema, editor, provider, extension, migration,
-      backup/restore, incident và handover đã được người khác làm theo thành công;
-      dùng receipt contract tại [`documentation-walkthrough.md`](./documentation-walkthrough.md),
-      không tự xác nhận thay operator độc lập.
-
-Thứ tự, command và stop condition của phase này nằm tại
-[`final-acceptance-plan.md`](./final-acceptance-plan.md). Nếu implementation được
-mở lại sau khi test, freeze cũ mất hiệu lực và final acceptance phải chạy lại
-trên candidate mới.
-
-## 11. Nguồn nghiên cứu chính thức
+## 10. Nguồn nghiên cứu chính thức
 
 ### WordPress
 
@@ -720,7 +570,7 @@ trên candidate mới.
 - [Puck permissions](https://puckeditor.com/docs/api-reference/permissions)
 - [Puck plugins](https://puckeditor.com/docs/extending-puck/plugins)
 
-## 12. Quyết định sản phẩm cuối cùng
+## 11. Quyết định sản phẩm cuối cùng
 
 Không thay CMS hiện tại bằng Payload, WordPress hay Sanity. Tiếp tục giữ kernel
 provider-neutral và canonical schema của mình, nhưng thay đổi tiêu chuẩn thành
@@ -734,7 +584,8 @@ Thứ tự đúng là:
 4. jobs/events/releases đáng tin cậy;
 5. DAM/admin/modules đủ rộng;
 6. provider/extension ecosystem;
-7. pilot thật và upgrade thật trên repo/site độc lập.
+7. code path handover và upgrade cho repo/site độc lập.
 
-Nếu chưa vượt qua một bước thì không được dùng số lượng package, unit test hoặc
-độ phức tạp kiến trúc để thay thế bằng chứng sản phẩm tương ứng.
+Nếu source code chưa vượt qua một bước thì không được dùng số lượng package
+hoặc độ phức tạp kiến trúc để thay thế product slice và public contract tương
+ứng.

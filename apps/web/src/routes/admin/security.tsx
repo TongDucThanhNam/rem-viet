@@ -18,6 +18,7 @@ import {
   Smartphone,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 
 import AdminShell from "@/components/admin-shell";
@@ -257,36 +258,64 @@ function SecurityRoute() {
               <div className="grid gap-5">
                 <div className="grid gap-2 text-sm">
                   <p className="font-medium">
-                    1. Thêm tài khoản vào ứng dụng xác thực
+                    1. Quét mã QR bằng Google Authenticator
                   </p>
                   <p className="text-muted-foreground">
-                    Mở liên kết trên thiết bị có ứng dụng TOTP, hoặc nhập khóa
-                    thủ công bên dưới.
+                    Mở Google Authenticator, nhấn dấu <strong>+</strong>, chọn
+                    <strong> Quét mã QR</strong> rồi hướng camera vào mã bên
+                    dưới.
                   </p>
-                  <a
-                    className="w-fit text-primary underline underline-offset-4"
-                    href={mfaSetup.totpURI}
-                  >
-                    Mở trong ứng dụng xác thực
-                  </a>
-                  <div className="flex max-w-xl items-center gap-2">
-                    <code className="min-w-0 flex-1 overflow-x-auto rounded-md border bg-muted px-3 py-2 text-xs">
-                      {mfaSecret}
-                    </code>
-                    <Button
-                      aria-label="Sao chép khóa TOTP"
-                      size="icon"
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        if (!mfaSecret) return;
-                        void navigator.clipboard.writeText(mfaSecret);
-                        toast.success("Đã sao chép khóa TOTP.");
-                      }}
-                    >
-                      <Copy aria-hidden />
-                    </Button>
+
+                  <div className="mt-2 grid w-fit justify-items-center gap-3 rounded-lg border bg-background p-4 shadow-sm">
+                    <QRCodeSVG
+                      className="h-auto w-[min(68vw,16rem)]"
+                      level="M"
+                      marginSize={4}
+                      size={256}
+                      title="Mã QR thiết lập Google Authenticator"
+                      value={mfaSetup.totpURI}
+                    />
+                    <p className="max-w-64 text-center text-xs text-muted-foreground">
+                      Mã QR này chứa khóa bảo mật riêng của tài khoản. Không
+                      chia sẻ hoặc chụp màn hình gửi cho người khác.
+                    </p>
                   </div>
+
+                  <details className="mt-2 max-w-xl rounded-md border bg-muted/40 p-3">
+                    <summary className="cursor-pointer select-none font-medium text-foreground">
+                      Không quét được mã QR?
+                    </summary>
+                    <div className="mt-3 grid gap-3">
+                      <p className="text-xs text-muted-foreground">
+                        Bạn có thể mở trực tiếp trong ứng dụng xác thực trên
+                        thiết bị này hoặc nhập khóa thiết lập thủ công.
+                      </p>
+                      <a
+                        className="w-fit text-primary underline underline-offset-4"
+                        href={mfaSetup.totpURI}
+                      >
+                        Mở trong ứng dụng xác thực
+                      </a>
+                      <div className="flex items-center gap-2">
+                        <code className="min-w-0 flex-1 overflow-x-auto rounded-md border bg-background px-3 py-2 text-xs">
+                          {mfaSecret}
+                        </code>
+                        <Button
+                          aria-label="Sao chép khóa thiết lập"
+                          size="icon"
+                          type="button"
+                          variant="outline"
+                          onClick={() => {
+                            if (!mfaSecret) return;
+                            void navigator.clipboard.writeText(mfaSecret);
+                            toast.success("Đã sao chép khóa thiết lập.");
+                          }}
+                        >
+                          <Copy aria-hidden />
+                        </Button>
+                      </div>
+                    </div>
+                  </details>
                 </div>
 
                 <div className="grid gap-2 text-sm">

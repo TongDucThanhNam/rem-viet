@@ -1,0 +1,26 @@
+{
+  "brand": "Rèm Vina",
+  "createdAt": "2026-08-29",
+  "brandColors": {
+    "navy": "#0D1B2A",
+    "gold": "#C9A46B",
+    "cream": "#F7F3EC"
+  },
+  "generationJobs": {
+    "ciciSquare": "38d80cda-89da-4b4c-bb27-dc86c62cb82f",
+    "ciciVertical": "b406a6e7-82f0-4520-b55b-a146ce9c88d5",
+    "googleFlowVideo": "1e77daff-0823-4c6a-8c2f-6095441726a1"
+  },
+  "outputs": [
+    "final/profile-avatar-1080x1080.png",
+    "final/shopee/01-hero-2000x2000.png",
+    "final/shopee/02-benefits-2000x2000.png",
+    "final/shopee/03-measure-2000x2000.png",
+    "final/shopee/04-process-2000x2000.png",
+    "final/shopee/05-spaces-2000x2000.png",
+    "final/facebook/feed-1080x1350.png",
+    "final/facebook/banner-1200x628.png",
+    "final/facebook/story-1080x1920.png",
+    "final/tiktok/cover-1080x1920.png"
+  ]
+}

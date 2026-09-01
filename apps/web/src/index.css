@@ -16,3 +16,130 @@ body:has([data-admin-root]) {
   background-color: var(--background);
   color: var(--foreground);
 }
+
+form:has(> .cms-post-form-layout) {
+  container-name: cms-post-form;
+  container-type: inline-size;
+}
+
+.cms-post-form-layout {
+  display: grid;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@container cms-post-form (min-width: 70rem) {
+  .cms-post-form-layout {
+    grid-template-columns: minmax(0, 1fr) 21rem;
+  }
+}
+
+/* Continuous Tiptap writing surface. The persisted value remains the CMS
+   RichTextDocument schema; ProseMirror DOM is an editing projection only. */
+.cms-tiptap-prosemirror {
+  min-height: 56vh;
+  padding: clamp(32px, 5vw, 68px) clamp(20px, 7vw, 88px);
+  color: var(--foreground);
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 1rem;
+  line-height: 1.85;
+  outline: none;
+}
+
+.cms-tiptap-prosemirror > * {
+  max-width: 68ch;
+  margin-inline: auto;
+}
+
+.cms-tiptap-prosemirror > * + * {
+  margin-top: 1.15em;
+}
+
+.cms-tiptap-prosemirror h2,
+.cms-tiptap-prosemirror h3,
+.cms-tiptap-prosemirror h4 {
+  margin-top: 1.8em;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+}
+
+.cms-tiptap-prosemirror h2 {
+  font-size: clamp(1.65rem, 3vw, 2.35rem);
+}
+
+.cms-tiptap-prosemirror h3 {
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+}
+
+.cms-tiptap-prosemirror h4 {
+  font-size: 1.2rem;
+}
+
+.cms-tiptap-prosemirror blockquote {
+  padding-left: 1.25rem;
+  border-left: 3px solid var(--primary);
+  color: var(--muted-foreground);
+  font-size: 1.08em;
+}
+
+.cms-tiptap-prosemirror :is(ul, ol) {
+  padding-left: 1.5rem;
+}
+
+.cms-tiptap-prosemirror ul {
+  list-style: disc;
+}
+
+.cms-tiptap-prosemirror ol {
+  list-style: decimal;
+}
+
+.cms-tiptap-prosemirror :not(pre) > code {
+  border-radius: 0.3rem;
+  background: var(--muted);
+  padding: 0.12rem 0.35rem;
+  font-size: 0.9em;
+}
+
+.cms-tiptap-prosemirror pre {
+  overflow-x: auto;
+  border-radius: 0.75rem;
+  background: oklch(0.19 0.01 260);
+  padding: 1rem 1.2rem;
+  color: oklch(0.94 0.01 260);
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.cms-tiptap-prosemirror img {
+  width: 100%;
+  max-height: 720px;
+  border-radius: 0.75rem;
+  object-fit: cover;
+}
+
+.cms-tiptap-prosemirror .ProseMirror-selectednode {
+  outline: 3px solid color-mix(in oklab, var(--primary) 55%, transparent);
+  outline-offset: 4px;
+}
+
+.cms-tiptap-video {
+  display: grid;
+  min-height: 9rem;
+  place-items: center;
+  border: 1px dashed var(--border);
+  border-radius: 0.75rem;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.cms-tiptap-prosemirror p.is-editor-empty:first-child::before {
+  float: left;
+  height: 0;
+  color: var(--muted-foreground);
+  content: "Bắt đầu viết, hoặc gõ / để chèn nội dung…";
+  pointer-events: none;
+}

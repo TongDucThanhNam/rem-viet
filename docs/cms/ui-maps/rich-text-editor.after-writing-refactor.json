@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "sourceDirectory": "apps/web/src",
+  "entryFile": "apps/web/src/components/admin-shell.tsx",
+  "rootComponent": "AdminShell",
+  "focus": "CmsRichTextEditor",
+  "scope": "down",
+  "layoutOnly": true,
+  "ancestorPath": [],
+  "metrics": {
+    "components": 12,
+    "disclosures": 3,
+    "interactiveControls": 30,
+    "maxDepth": 21,
+    "nodes": 258
+  },
+  "diagnostics": []
+}

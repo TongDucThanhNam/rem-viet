@@ -2,7 +2,7 @@ import { Button } from "@rem-viet/ui/components/button";
 import { Input } from "@rem-viet/ui/components/input";
 import { Label } from "@rem-viet/ui/components/label";
 import { Textarea } from "@rem-viet/ui/components/textarea";
-import { ImagePlus } from "lucide-react";
+import { ChevronDown, Save } from "lucide-react";
 import {
   useEffect,
   useRef,
@@ -13,7 +13,6 @@ import {
 
 import MediaPickerField from "@/components/media-picker-field";
 import CmsRichTextEditor from "@/components/cms-rich-text-editor";
-import { FormSection } from "@/components/admin-ui";
 import { parseRichTextDocument } from "@rem-viet/cms";
 
 export type CmsPostFormValues = {
@@ -155,7 +154,10 @@ export default function CmsPostForm({
   }
 
   return (
-    <form className="mx-auto grid w-full max-w-4xl gap-4" onSubmit={submitForm}>
+    <form
+      className="mx-auto grid w-full max-w-[92rem] gap-4"
+      onSubmit={submitForm}
+    >
       {error ? (
         <div
           className="border border-destructive/60 bg-background p-3 text-xs text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -173,226 +175,238 @@ export default function CmsPostForm({
           </a>
         </div>
       ) : null}
-
-      <FormSection
-        description="Thông tin nhận diện, lịch xuất bản và ảnh đại diện của bài viết."
-        title="Thông tin bài viết"
-      >
-        <div className="grid gap-2">
-          <Label htmlFor="post-title">Tiêu đề</Label>
-          <Input
-            aria-describedby={
-              error?.startsWith("Tiêu đề") ? "post-form-error" : undefined
-            }
-            aria-invalid={error?.startsWith("Tiêu đề") || undefined}
-            id="post-title"
-            placeholder="Ví dụ: Cách chọn rèm chống muỗi"
-            value={form.title}
-            onChange={(event) =>
-              updateForm({ title: event.target.value }, "post-field:title")
-            }
-          />
-        </div>
-
-        <div className="grid gap-2 md:grid-cols-2">
-          <div className="grid gap-2">
-            <Label htmlFor="post-slug">Slug</Label>
+      <div className="cms-post-form-layout">
+        <main className="min-w-0">
+          <div className="mx-auto grid max-w-4xl gap-3 px-1 pb-5">
+            <Label className="sr-only" htmlFor="post-title">
+              Tiêu đề
+            </Label>
             <Input
-              id="post-slug"
-              placeholder="cach-chon-rem-chong-muoi"
-              value={form.slug}
+              aria-describedby={
+                error?.startsWith("Tiêu đề") ? "post-form-error" : undefined
+              }
+              aria-invalid={error?.startsWith("Tiêu đề") || undefined}
+              className="h-auto border-0 bg-transparent px-0 py-2 text-3xl font-semibold tracking-tight shadow-none focus-visible:ring-0 md:text-5xl"
+              id="post-title"
+              placeholder="Tiêu đề bài viết"
+              value={form.title}
               onChange={(event) =>
-                updateForm({ slug: event.target.value }, "post-field:slug")
+                updateForm({ title: event.target.value }, "post-field:title")
               }
             />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="post-folder">Thư mục workflow</Label>
-            <Input
-              id="post-folder"
-              placeholder="campaigns/summer"
-              value={form.folder}
-              onChange={(event) =>
-                updateForm({ folder: event.target.value }, "post-field:folder")
-              }
-            />
-          </div>
-          <div className="grid content-end gap-1 rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground md:col-span-2">
-            Biểu mẫu này luôn lưu bản nháp đang làm việc. Xuất bản là thao tác
-            riêng có xác nhận.
-          </div>
-        </div>
-
-        <div className="grid gap-2">
-          <Label htmlFor="post-description">Mô tả</Label>
-          <Textarea
-            className="min-h-24 text-xs"
-            id="post-description"
-            value={form.description}
-            onChange={(event) =>
-              updateForm(
-                { description: event.target.value },
-                "post-field:description",
-              )
-            }
-          />
-        </div>
-
-        <MediaPickerField
-          helpText="Tải ảnh mới hoặc chọn ảnh đã có trong thư viện."
-          id="post-cover"
-          label="Ảnh đại diện"
-          value={form.coverImage}
-          onChange={(coverImage) =>
-            updateForm({ coverImage }, "post-field:cover-image")
-          }
-        />
-
-        <div className="grid gap-2 md:grid-cols-2">
-          <div className="grid gap-2">
-            <Label htmlFor="post-tags">Thẻ</Label>
-            <Input
-              id="post-tags"
-              placeholder="rèm, chống muỗi, căn hộ"
-              value={form.tags}
-              onChange={(event) =>
-                updateForm({ tags: event.target.value }, "post-field:tags")
-              }
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="post-publish-date">Ngày xuất bản</Label>
-            <Input
-              id="post-publish-date"
-              placeholder="2026-06-27T09:00:00.000Z"
-              value={form.publishDate}
+            <Label className="sr-only" htmlFor="post-description">
+              Mô tả
+            </Label>
+            <Textarea
+              className="min-h-16 resize-none border-0 bg-transparent px-0 text-base leading-7 text-muted-foreground shadow-none focus-visible:ring-0"
+              id="post-description"
+              placeholder="Mô tả ngắn giúp người đọc biết bài viết này nói về điều gì…"
+              value={form.description}
               onChange={(event) =>
                 updateForm(
-                  { publishDate: event.target.value },
-                  "post-field:publish-date",
+                  { description: event.target.value },
+                  "post-field:description",
                 )
               }
             />
           </div>
-        </div>
-      </FormSection>
 
-      <FormSection
-        description="Soạn nội dung có cấu trúc; nội dung dán vào chỉ nhận plain text để tránh mang CSS ngoài vào CMS."
-        id="post-content"
-        title="Nội dung"
-      >
-        <div className="grid gap-2">
-          <Label>Nội dung</Label>
-          <CmsRichTextEditor
-            canWrite={canWrite}
-            contentVersion={contentVersion}
-            onSelectedBlockChange={onSelectedBlockChange}
-            selectedBlockIndex={selectedBlockIndex}
-            showOutline
-            value={form.content}
-            onChange={(content, historyGroup) =>
-              updateForm({ content }, historyGroup)
-            }
-          />
-        </div>
-      </FormSection>
-
-      <FormSection
-        description="Thiết lập cách bài viết xuất hiện trên công cụ tìm kiếm và mạng xã hội."
-        title="SEO và chia sẻ"
-      >
-        <div className="grid gap-2">
-          <Label htmlFor="post-seo-title">Tiêu đề SEO</Label>
-          <Input
-            id="post-seo-title"
-            value={form.seoTitle}
-            onChange={(event) =>
-              updateForm(
-                { seoTitle: event.target.value },
-                "post-field:seo-title",
-              )
-            }
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="post-canonical">Địa chỉ chính tắc (canonical)</Label>
-          <Input
-            id="post-canonical"
-            placeholder="Để trống để dùng URL mặc định"
-            value={form.canonicalUrl}
-            onChange={(event) =>
-              updateForm(
-                { canonicalUrl: event.target.value },
-                "post-field:canonical-url",
-              )
-            }
-          />
-        </div>
-        <MediaPickerField
-          id="post-og-image"
-          label="Ảnh chia sẻ mạng xã hội"
-          value={form.ogImage}
-          onChange={(ogImage) => updateForm({ ogImage }, "post-field:og-image")}
-          helpText="Để trống để dùng ảnh đại diện."
-        />
-        <div className="flex flex-wrap gap-5 text-sm">
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={form.robotsIndex}
-              onChange={(event) =>
-                updateForm(
-                  { robotsIndex: event.target.checked },
-                  "post-field:robots-index",
-                )
+          <section id="post-content">
+            <CmsRichTextEditor
+              canWrite={canWrite}
+              contentVersion={contentVersion}
+              onSelectedBlockChange={onSelectedBlockChange}
+              selectedBlockIndex={selectedBlockIndex}
+              showOutline
+              value={form.content}
+              onChange={(content, historyGroup) =>
+                updateForm({ content }, historyGroup)
               }
             />
-            Cho phép lập chỉ mục
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={form.robotsFollow}
-              onChange={(event) =>
-                updateForm(
-                  { robotsFollow: event.target.checked },
-                  "post-field:robots-follow",
-                )
-              }
-            />
-            Cho phép theo liên kết
-          </label>
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="post-seo-description">Mô tả SEO</Label>
-          <Textarea
-            className="min-h-20 text-xs"
-            id="post-seo-description"
-            value={form.seoDescription}
-            onChange={(event) =>
-              updateForm(
-                { seoDescription: event.target.value },
-                "post-field:seo-description",
-              )
-            }
-          />
-        </div>
-      </FormSection>
+          </section>
+        </main>
 
-      <div className="sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-3 border bg-background/95 p-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/85">
-        <div aria-live="polite">{status ?? <span />}</div>
-        <Button
-          disabled={isSubmitDisabled || isSubmitting}
-          onClick={(event) => {
-            event.preventDefault();
-            submitValues();
-          }}
-          type="submit"
-        >
-          <ImagePlus aria-hidden />
-          {isSubmitting ? "Đang lưu..." : submitLabel}
-        </Button>
+        <aside className="grid content-start gap-3">
+          <details
+            className="group overflow-hidden rounded-xl border bg-background"
+            open
+          >
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium marker:hidden">
+              Thiết lập bài viết
+              <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="grid gap-4 border-t p-4">
+              <MediaPickerField
+                helpText="Ảnh đại diện trong danh sách và khi chia sẻ."
+                id="post-cover"
+                label="Ảnh đại diện"
+                value={form.coverImage}
+                onChange={(coverImage) =>
+                  updateForm({ coverImage }, "post-field:cover-image")
+                }
+              />
+              <div className="grid gap-2">
+                <Label htmlFor="post-slug">Slug</Label>
+                <Input
+                  id="post-slug"
+                  placeholder="cach-chon-rem-chong-muoi"
+                  value={form.slug}
+                  onChange={(event) =>
+                    updateForm({ slug: event.target.value }, "post-field:slug")
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="post-tags">Thẻ</Label>
+                <Input
+                  id="post-tags"
+                  placeholder="rèm, chống muỗi, căn hộ"
+                  value={form.tags}
+                  onChange={(event) =>
+                    updateForm({ tags: event.target.value }, "post-field:tags")
+                  }
+                />
+              </div>
+              <details className="group/advanced rounded-lg border bg-muted/15 px-3 py-2">
+                <summary className="cursor-pointer list-none text-xs font-medium marker:hidden">
+                  Workflow nâng cao
+                </summary>
+                <div className="mt-3 grid gap-3 border-t pt-3">
+                  <div className="grid gap-2">
+                    <Label htmlFor="post-folder">Thư mục workflow</Label>
+                    <Input
+                      id="post-folder"
+                      placeholder="campaigns/summer"
+                      value={form.folder}
+                      onChange={(event) =>
+                        updateForm(
+                          { folder: event.target.value },
+                          "post-field:folder",
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="post-publish-date">Ngày nội dung</Label>
+                    <Input
+                      id="post-publish-date"
+                      placeholder="2026-06-27T09:00:00.000Z"
+                      value={form.publishDate}
+                      onChange={(event) =>
+                        updateForm(
+                          { publishDate: event.target.value },
+                          "post-field:publish-date",
+                        )
+                      }
+                    />
+                  </div>
+                </div>
+              </details>
+            </div>
+          </details>
+
+          <details className="group overflow-hidden rounded-xl border bg-background">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium marker:hidden">
+              SEO và chia sẻ
+              <ChevronDown className="size-4 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="grid gap-4 border-t p-4">
+              <div className="grid gap-2">
+                <Label htmlFor="post-seo-title">Tiêu đề SEO</Label>
+                <Input
+                  id="post-seo-title"
+                  value={form.seoTitle}
+                  onChange={(event) =>
+                    updateForm(
+                      { seoTitle: event.target.value },
+                      "post-field:seo-title",
+                    )
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="post-seo-description">Mô tả SEO</Label>
+                <Textarea
+                  className="min-h-20 text-xs"
+                  id="post-seo-description"
+                  value={form.seoDescription}
+                  onChange={(event) =>
+                    updateForm(
+                      { seoDescription: event.target.value },
+                      "post-field:seo-description",
+                    )
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="post-canonical">Canonical URL</Label>
+                <Input
+                  id="post-canonical"
+                  placeholder="Để trống để dùng URL mặc định"
+                  value={form.canonicalUrl}
+                  onChange={(event) =>
+                    updateForm(
+                      { canonicalUrl: event.target.value },
+                      "post-field:canonical-url",
+                    )
+                  }
+                />
+              </div>
+              <MediaPickerField
+                helpText="Để trống để dùng ảnh đại diện."
+                id="post-og-image"
+                label="Ảnh chia sẻ"
+                value={form.ogImage}
+                onChange={(ogImage) =>
+                  updateForm({ ogImage }, "post-field:og-image")
+                }
+              />
+              <div className="grid gap-2 text-xs">
+                <label className="flex items-center gap-2">
+                  <input
+                    checked={form.robotsIndex}
+                    type="checkbox"
+                    onChange={(event) =>
+                      updateForm(
+                        { robotsIndex: event.target.checked },
+                        "post-field:robots-index",
+                      )
+                    }
+                  />
+                  Cho phép lập chỉ mục
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    checked={form.robotsFollow}
+                    type="checkbox"
+                    onChange={(event) =>
+                      updateForm(
+                        { robotsFollow: event.target.checked },
+                        "post-field:robots-follow",
+                      )
+                    }
+                  />
+                  Cho phép theo liên kết
+                </label>
+              </div>
+            </div>
+          </details>
+
+          <div className="sticky bottom-3 z-10 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-background/95 p-3 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/85">
+            <div aria-live="polite">{status ?? <span />}</div>
+            <Button
+              disabled={isSubmitDisabled || isSubmitting}
+              type="submit"
+              onClick={(event) => {
+                event.preventDefault();
+                submitValues();
+              }}
+            >
+              <Save aria-hidden />
+              {isSubmitting ? "Đang lưu..." : submitLabel}
+            </Button>
+          </div>
+        </aside>
       </div>
     </form>
   );

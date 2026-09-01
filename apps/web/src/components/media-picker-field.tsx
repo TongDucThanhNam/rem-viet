@@ -42,8 +42,10 @@ type MediaPickerFieldProps = {
   helpText?: string;
   id: string;
   label: string;
+  open?: boolean;
   value: string;
   onChange: (value: string) => void;
+  onOpenChange?: (open: boolean) => void;
   /** Owns library/upload selection atomically when the field stores metadata. */
   onAssetSelect?: (asset: MediaPickerAsset) => void;
 };
@@ -62,14 +64,17 @@ export default function MediaPickerField({
   helpText,
   id,
   label,
+  open,
   value,
   onChange,
+  onOpenChange,
   onAssetSelect,
 }: MediaPickerFieldProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = open ?? internalOpen;
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [dragActive, setDragActive] = useState(false);
@@ -94,10 +99,11 @@ export default function MediaPickerField({
     [mediaQuery.data, value],
   );
 
-  function setOpen(open: boolean) {
-    setIsOpen(open);
+  function setOpen(nextOpen: boolean) {
+    if (open === undefined) setInternalOpen(nextOpen);
+    onOpenChange?.(nextOpen);
     setError(null);
-    if (!open) {
+    if (!nextOpen) {
       setDragActive(false);
       setQuery("");
     }

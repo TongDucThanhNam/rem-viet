@@ -263,10 +263,10 @@ Thay custom form-per-span bằng editor surface liên tục:
 
 Completion code:
 
-- [ ] Paragraph/heading/list không còn được soạn qua chuỗi textarea/card/checkbox.
-- [ ] Persistence vẫn là safe structured document, không lưu arbitrary HTML/JSX.
-- [ ] Markdown và media có adapter chính thức, không phải route-level hack.
-- [ ] Metadata/SEO/workflow/revisions được disclose theo intent.
+- [x] Paragraph/heading/list không còn được soạn qua chuỗi textarea/card/checkbox.
+- [x] Persistence vẫn là safe structured document, không lưu arbitrary HTML/JSX.
+- [x] Markdown và media có adapter chính thức, không phải route-level hack.
+- [x] Metadata/SEO/workflow/revisions được disclose theo intent.
 - [ ] New/edit post dùng chung editor shell và draft state machine.
 
 ### CMS-V2-P1-01 — UI map tool và hierarchy budget
@@ -352,9 +352,9 @@ state persistence và responsive layout lần thứ hai.
 - [ ] Shared hierarchy/page/workspace primitives được dùng toàn Admin.
 - [ ] Homepage mở ở canvas-first mode và sửa trực tiếp text/media được.
 - [x] Homepage design controls map vào typed variants/tokens.
-- [ ] Post editor là một writing surface, có Markdown workflow và DAM node.
-- [ ] Raw MDX/HTML/JSX không đi qua persistence/render boundary.
-- [ ] SEO/workflow/scheduling/revisions/debug đều progressive disclosure.
+- [x] Post editor là một writing surface, có Markdown workflow và DAM node.
+- [x] Raw MDX/HTML/JSX không đi qua persistence/render boundary.
+- [x] SEO/workflow/scheduling/revisions/debug đều progressive disclosure.
 - [x] UI map ASCII/JSON và baseline artifacts nằm trong repository.
 - [ ] Monolithic homepage/post route được tách thành reusable modules.
 - [ ] V1 data, preview, autosave, conflict, permission và audit contracts được giữ.

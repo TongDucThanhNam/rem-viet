@@ -482,16 +482,11 @@ function PostResponsivePreview({
     const mountFrame = requestAnimationFrame(() => {
       focusFrame = requestAnimationFrame(() => {
         const control =
-          selectedField === "content" && selectedBlockIndex === null
-            ? (document.querySelector<HTMLElement>(
-                "#post-content [id^='post-content-block-'] textarea, #post-content [id^='post-content-block-'] input",
-              ) ??
-              document.querySelector<HTMLElement>(
-                "#post-content [id^='post-content-block-'] button",
-              ))
-            : selectedField === "content"
-              ? document.getElementById(target.controlId)
-              : document.getElementById(target.controlId);
+          selectedField === "content"
+            ? document.querySelector<HTMLElement>(
+                "#post-content .cms-tiptap-prosemirror",
+              )
+            : document.getElementById(target.controlId);
         control?.scrollIntoView({ behavior: "smooth", block: "center" });
         control?.focus({ preventScroll: true });
       });
@@ -743,6 +738,10 @@ function EditPostRoute() {
   const [comparedRevisionId, setComparedRevisionId] = useState<string | null>(
     null,
   );
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [revisionsOpen, setRevisionsOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
   const [workspaceFocused, setWorkspaceFocused] = useState(false);
   const {
     onKeyDown: handleFocusedWorkspaceKeyDown,
@@ -1054,16 +1053,45 @@ function EditPostRoute() {
         formSeed && workingVersion !== null ? (
           <div className="flex flex-wrap gap-2">
             <Button
+              aria-pressed={revisionsOpen}
               type="button"
               variant="outline"
-              onClick={() =>
-                document
-                  .getElementById("post-revision-history")
-                  ?.scrollIntoView({ behavior: "smooth", block: "start" })
-              }
+              onClick={() => {
+                const nextOpen = !revisionsOpen;
+                setRevisionsOpen(nextOpen);
+                if (nextOpen) {
+                  requestAnimationFrame(() =>
+                    document
+                      .getElementById("post-revision-history")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+                  );
+                }
+              }}
             >
               <History aria-hidden />
-              Lịch sử
+              {revisionsOpen ? "Ẩn lịch sử" : "Lịch sử"}
+            </Button>
+            <Button
+              aria-pressed={reviewOpen}
+              type="button"
+              variant="outline"
+              onClick={() => setReviewOpen((open) => !open)}
+            >
+              <Check aria-hidden />
+              {reviewOpen ? "Ẩn duyệt" : "Duyệt"}
+            </Button>
+            <Button
+              aria-pressed={previewOpen}
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const nextOpen = !previewOpen;
+                setPreviewOpen(nextOpen);
+                if (!nextOpen) setWorkspaceFocused(false);
+              }}
+            >
+              <Monitor aria-hidden />
+              {previewOpen ? "Ẩn canvas" : "Mở canvas"}
             </Button>
             <Link
               className={buttonVariants({ variant: "secondary" })}
@@ -1080,67 +1108,82 @@ function EditPostRoute() {
             </Link>
             {canPublish ? (
               <>
-                <input
-                  aria-label="Thời gian xuất bản"
-                  className="h-9 rounded-md border bg-background px-3 text-xs"
-                  min={new Date(Date.now() + 60_000).toISOString().slice(0, 16)}
-                  type="datetime-local"
-                  value={scheduleAt}
-                  onChange={(event) => setScheduleAt(event.target.value)}
-                />
-                {scheduledAt ? (
-                  <Button
-                    variant="secondary"
-                    disabled={
-                      unschedulePost.isPending || saveState === "conflict"
-                    }
-                    onClick={async () => {
-                      const saved = dirty
-                        ? await saveNow(draftValues, {
-                            allowSlugDecision: true,
-                          })
-                        : { version: workingVersion };
-                      if (!saved) return;
-                      await unschedulePost.mutateAsync({
-                        postId,
-                        expectedVersion: saved.version,
-                      });
-                      await reloadServerVersion();
-                      toast.success("Đã hủy lịch.");
-                    }}
-                  >
-                    Hủy lịch {new Date(scheduledAt).toLocaleString("vi-VN")}
-                  </Button>
-                ) : (
-                  <Button
-                    variant="secondary"
-                    disabled={
-                      !scheduleAt ||
-                      schedulePost.isPending ||
-                      saveState === "conflict"
-                    }
-                    onClick={async () => {
-                      const saved = dirty
-                        ? await saveNow(draftValues, {
-                            allowSlugDecision: true,
-                          })
-                        : { version: workingVersion };
-                      if (!saved) return;
-                      await schedulePost.mutateAsync({
-                        postId,
-                        expectedVersion: saved.version,
-                        scheduledAt: new Date(scheduleAt),
-                        note: "Lên lịch từ trình biên tập bài viết",
-                      });
-                      setScheduleAt("");
-                      await reloadServerVersion();
-                      toast.success("Đã lên lịch.");
-                    }}
-                  >
-                    <Clock3 />
-                    Lên lịch
-                  </Button>
-                )}
+                <Button
+                  aria-pressed={scheduleOpen}
+                  type="button"
+                  variant="outline"
+                  onClick={() => setScheduleOpen((open) => !open)}
+                >
+                  <Clock3 aria-hidden />
+                  {scheduleOpen ? "Ẩn lịch xuất bản" : "Lịch xuất bản"}
+                </Button>
+                {scheduleOpen ? (
+                  <>
+                    <input
+                      aria-label="Thời gian xuất bản"
+                      className="h-9 rounded-md border bg-background px-3 text-xs"
+                      min={new Date(Date.now() + 60_000)
+                        .toISOString()
+                        .slice(0, 16)}
+                      type="datetime-local"
+                      value={scheduleAt}
+                      onChange={(event) => setScheduleAt(event.target.value)}
+                    />
+                    {scheduledAt ? (
+                      <Button
+                        variant="secondary"
+                        disabled={
+                          unschedulePost.isPending || saveState === "conflict"
+                        }
+                        onClick={async () => {
+                          const saved = dirty
+                            ? await saveNow(draftValues, {
+                                allowSlugDecision: true,
+                              })
+                            : { version: workingVersion };
+                          if (!saved) return;
+                          await unschedulePost.mutateAsync({
+                            postId,
+                            expectedVersion: saved.version,
+                          });
+                          await reloadServerVersion();
+                          toast.success("Đã hủy lịch.");
+                        }}
+                      >
+                        Hủy lịch {new Date(scheduledAt).toLocaleString("vi-VN")}
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="secondary"
+                        disabled={
+                          !scheduleAt ||
+                          schedulePost.isPending ||
+                          saveState === "conflict"
+                        }
+                        onClick={async () => {
+                          const saved = dirty
+                            ? await saveNow(draftValues, {
+                                allowSlugDecision: true,
+                              })
+                            : { version: workingVersion };
+                          if (!saved) return;
+                          await schedulePost.mutateAsync({
+                            postId,
+                            expectedVersion: saved.version,
+                            scheduledAt: new Date(scheduleAt),
+                            note: "Lên lịch từ trình biên tập bài viết",
+                          });
+                          setScheduleAt("");
+                          await reloadServerVersion();
+                          toast.success("Đã lên lịch.");
+                        }}
+                      >
+                        <Clock3 />
+                        Lên lịch
+                      </Button>
+                    )}
+                  </>
+                ) : null}
                 <ConfirmDestructiveAction
                   confirmLabel="Xuất bản"
                   confirmVariant="default"
@@ -1221,33 +1264,38 @@ function EditPostRoute() {
               <strong>Chưa thể tự động lưu:</strong> {validationError}
             </div>
           ) : null}
-          <EditorialReviewPanel
-            commentGranted={
-              session?.capabilities.includes("content.write") ?? false
-            }
-            currentVersion={workingVersion}
-            decisionGranted={
-              session?.capabilities.includes("content.review.decide") ?? false
-            }
-            dirty={dirty}
-            documentId={postId}
-            documentType="post"
-            onSaveDraft={() =>
-              saveNow(draftValues, {
-                announce: false,
-                allowSlugDecision: true,
-              })
-            }
-            publishGranted={canPublish}
-            requestGranted={
-              session?.capabilities.includes("content.review.request") ?? false
-            }
-          />
+          {reviewOpen ? (
+            <EditorialReviewPanel
+              commentGranted={
+                session?.capabilities.includes("content.write") ?? false
+              }
+              currentVersion={workingVersion}
+              decisionGranted={
+                session?.capabilities.includes("content.review.decide") ?? false
+              }
+              dirty={dirty}
+              documentId={postId}
+              documentType="post"
+              onSaveDraft={() =>
+                saveNow(draftValues, {
+                  announce: false,
+                  allowSlugDecision: true,
+                })
+              }
+              publishGranted={canPublish}
+              requestGranted={
+                session?.capabilities.includes("content.review.request") ??
+                false
+              }
+            />
+          ) : null}
           <RemVietEditorShell
             className={
               workspaceFocused
                 ? "fixed inset-3 z-[100] grid h-[calc(100dvh-1.5rem)] min-h-0 grid-cols-[minmax(0,1fr)_26rem] gap-0 overflow-hidden rounded-xl bg-background shadow-[0_30px_120px_rgba(0,0,0,0.45)] ring-1 ring-black/10"
-                : "contents"
+                : previewOpen
+                  ? "grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_minmax(24rem,38vw)]"
+                  : "contents"
             }
             data-cms-post-workspace-mode={
               workspaceFocused ? "focused" : "standard"
@@ -1259,34 +1307,41 @@ function EditPostRoute() {
             ref={workspaceRef}
             onKeyDown={handleFocusedWorkspaceKeyDown}
           >
-            <div
-              className={
-                workspaceFocused
-                  ? "order-1 min-h-0 overflow-hidden border-r"
-                  : "contents"
-              }
-            >
-              <PostResponsivePreview
-                canRedo={canRedoDraft}
-                canUndo={canUndoDraft}
-                onComposition={handlePostComposition}
-                onRedo={() => navigateDraftHistory("redo")}
-                onSelectedBlockChange={setSelectedPostBlockIndex}
-                onUndo={() => navigateDraftHistory("undo")}
-                onWorkspaceFocusChange={setWorkspaceFocused}
-                postId={postId}
-                previewChannel={session!.previewChannel}
-                values={draftValues ?? formSeed}
-                version={workingVersion}
-                workspaceFocusTriggerRef={workspaceFocusTriggerRef}
-                workspaceFocused={workspaceFocused}
-              />
-            </div>
+            {previewOpen || workspaceFocused ? (
+              <div
+                className={
+                  workspaceFocused
+                    ? "order-1 min-h-0 overflow-hidden border-r"
+                    : "order-2 min-w-0 2xl:sticky 2xl:top-20"
+                }
+              >
+                <PostResponsivePreview
+                  canRedo={canRedoDraft}
+                  canUndo={canUndoDraft}
+                  onComposition={handlePostComposition}
+                  onRedo={() => navigateDraftHistory("redo")}
+                  onSelectedBlockChange={setSelectedPostBlockIndex}
+                  onUndo={() => navigateDraftHistory("undo")}
+                  onWorkspaceFocusChange={(focused) => {
+                    setWorkspaceFocused(focused);
+                    if (focused) setPreviewOpen(true);
+                  }}
+                  postId={postId}
+                  previewChannel={session!.previewChannel}
+                  values={draftValues ?? formSeed}
+                  version={workingVersion}
+                  workspaceFocusTriggerRef={workspaceFocusTriggerRef}
+                  workspaceFocused={workspaceFocused}
+                />
+              </div>
+            ) : null}
             <div
               className={
                 workspaceFocused
                   ? "order-2 min-h-0 overflow-y-auto border-l bg-background p-4"
-                  : "contents"
+                  : previewOpen
+                    ? "order-1 min-w-0"
+                    : "contents"
               }
             >
               <CmsPostForm
@@ -1317,111 +1372,115 @@ function EditPostRoute() {
               />
             </div>
           </RemVietEditorShell>
-          <Card
-            className="mx-auto w-full max-w-4xl scroll-mt-20 rounded-md"
-            id="post-revision-history"
-          >
-            <CardContent className="grid gap-3">
-              <div className="flex items-center gap-2">
-                <History className="size-4" />
-                <h2 className="font-semibold">Phiên bản đã xuất bản</h2>
-              </div>
-              {((revisionsQuery.data ?? []) as PostRevisionRow[]).map(
-                (revision) => {
-                  const fieldChanges = compareCmsRevisionFieldDetails(
-                    formValuesFromRevision(revision.snapshot),
-                    draftValues ?? formSeed,
-                    postRevisionFields,
-                  );
-                  const comparisonOpen = comparedRevisionId === revision.id;
-                  return (
-                    <div
-                      className="grid gap-3 border-t pt-3 text-xs"
-                      data-testid={`post-revision-v${revision.version}`}
-                      key={revision.id}
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                          <strong>v{revision.version}</strong>
-                          <p className="text-muted-foreground">
-                            {revision.note || "Không có ghi chú"} ·{" "}
-                            {new Date(revision.createdAt).toLocaleString(
-                              "vi-VN",
-                            )}
-                          </p>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            aria-controls={`post-revision-diff-${revision.version}`}
-                            aria-expanded={comparisonOpen}
-                            size="sm"
-                            type="button"
-                            variant="outline"
-                            onClick={() =>
-                              setComparedRevisionId((current) =>
-                                current === revision.id ? null : revision.id,
-                              )
-                            }
-                          >
-                            <GitCompareArrows aria-hidden />
-                            {comparisonOpen ? "Ẩn thay đổi" : "So sánh"}
-                          </Button>
-                          {canPublish ? (
-                            <ConfirmDestructiveAction
-                              confirmLabel="Khôi phục bản nháp"
-                              confirmVariant="default"
-                              description={`Nội dung phiên bản v${revision.version} sẽ thay thế bản nháp hiện tại. Nội dung công khai chưa thay đổi.`}
-                              pending={restorePost.isPending}
-                              title={`Khôi phục phiên bản v${revision.version}?`}
-                              trigger={
-                                <Button
-                                  disabled={restorePost.isPending || dirty}
-                                  size="sm"
-                                  type="button"
-                                  variant="secondary"
-                                >
-                                  <RotateCcw />
-                                  Khôi phục bản nháp
-                                </Button>
-                              }
-                              onConfirm={async () => {
-                                await restorePost.mutateAsync({
-                                  postId,
-                                  revisionId: revision.id,
-                                  expectedVersion: workingVersion,
-                                });
-                                await reloadServerVersion();
-                                setComparedRevisionId(null);
-                                toast.success("Đã khôi phục vào bản nháp.");
-                              }}
-                            />
-                          ) : null}
-                        </div>
-                      </div>
-                      {comparisonOpen ? (
-                        <section
-                          aria-label={`Thay đổi của phiên bản v${revision.version}`}
-                          className="rounded-md bg-muted/50 p-3"
-                          id={`post-revision-diff-${revision.version}`}
-                        >
-                          <strong>So với bản nháp đang chỉnh sửa</strong>
-                          {fieldChanges.length ? (
-                            <div className="mt-3">
-                              <RevisionFieldComparison changes={fieldChanges} />
-                            </div>
-                          ) : (
-                            <p className="mt-1 text-muted-foreground">
-                              Bản nháp hiện tại trùng với phiên bản này.
+          {revisionsOpen ? (
+            <Card
+              className="mx-auto w-full max-w-4xl scroll-mt-20 rounded-md"
+              id="post-revision-history"
+            >
+              <CardContent className="grid gap-3">
+                <div className="flex items-center gap-2">
+                  <History className="size-4" />
+                  <h2 className="font-semibold">Phiên bản đã xuất bản</h2>
+                </div>
+                {((revisionsQuery.data ?? []) as PostRevisionRow[]).map(
+                  (revision) => {
+                    const fieldChanges = compareCmsRevisionFieldDetails(
+                      formValuesFromRevision(revision.snapshot),
+                      draftValues ?? formSeed,
+                      postRevisionFields,
+                    );
+                    const comparisonOpen = comparedRevisionId === revision.id;
+                    return (
+                      <div
+                        className="grid gap-3 border-t pt-3 text-xs"
+                        data-testid={`post-revision-v${revision.version}`}
+                        key={revision.id}
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <strong>v{revision.version}</strong>
+                            <p className="text-muted-foreground">
+                              {revision.note || "Không có ghi chú"} ·{" "}
+                              {new Date(revision.createdAt).toLocaleString(
+                                "vi-VN",
+                              )}
                             </p>
-                          )}
-                        </section>
-                      ) : null}
-                    </div>
-                  );
-                },
-              )}
-            </CardContent>
-          </Card>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              aria-controls={`post-revision-diff-${revision.version}`}
+                              aria-expanded={comparisonOpen}
+                              size="sm"
+                              type="button"
+                              variant="outline"
+                              onClick={() =>
+                                setComparedRevisionId((current) =>
+                                  current === revision.id ? null : revision.id,
+                                )
+                              }
+                            >
+                              <GitCompareArrows aria-hidden />
+                              {comparisonOpen ? "Ẩn thay đổi" : "So sánh"}
+                            </Button>
+                            {canPublish ? (
+                              <ConfirmDestructiveAction
+                                confirmLabel="Khôi phục bản nháp"
+                                confirmVariant="default"
+                                description={`Nội dung phiên bản v${revision.version} sẽ thay thế bản nháp hiện tại. Nội dung công khai chưa thay đổi.`}
+                                pending={restorePost.isPending}
+                                title={`Khôi phục phiên bản v${revision.version}?`}
+                                trigger={
+                                  <Button
+                                    disabled={restorePost.isPending || dirty}
+                                    size="sm"
+                                    type="button"
+                                    variant="secondary"
+                                  >
+                                    <RotateCcw />
+                                    Khôi phục bản nháp
+                                  </Button>
+                                }
+                                onConfirm={async () => {
+                                  await restorePost.mutateAsync({
+                                    postId,
+                                    revisionId: revision.id,
+                                    expectedVersion: workingVersion,
+                                  });
+                                  await reloadServerVersion();
+                                  setComparedRevisionId(null);
+                                  toast.success("Đã khôi phục vào bản nháp.");
+                                }}
+                              />
+                            ) : null}
+                          </div>
+                        </div>
+                        {comparisonOpen ? (
+                          <section
+                            aria-label={`Thay đổi của phiên bản v${revision.version}`}
+                            className="rounded-md bg-muted/50 p-3"
+                            id={`post-revision-diff-${revision.version}`}
+                          >
+                            <strong>So với bản nháp đang chỉnh sửa</strong>
+                            {fieldChanges.length ? (
+                              <div className="mt-3">
+                                <RevisionFieldComparison
+                                  changes={fieldChanges}
+                                />
+                              </div>
+                            ) : (
+                              <p className="mt-1 text-muted-foreground">
+                                Bản nháp hiện tại trùng với phiên bản này.
+                              </p>
+                            )}
+                          </section>
+                        ) : null}
+                      </div>
+                    );
+                  },
+                )}
+              </CardContent>
+            </Card>
+          ) : null}
         </div>
       ) : (
         <div className="mx-auto flex min-h-80 w-full max-w-4xl flex-col items-center justify-center gap-3 border text-center">

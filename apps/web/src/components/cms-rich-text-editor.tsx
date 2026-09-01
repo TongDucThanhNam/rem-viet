@@ -1,255 +1,215 @@
+import type { Editor } from "@tiptap/core";
+import { EditorContent, useEditor } from "@tiptap/react";
 import {
   createRichTextBlockId,
-  emptyRichTextDocument,
-  ensureRichTextBlockIds,
-  MAX_RICH_TEXT_BLOCKS,
   parseRichTextDocument,
+  safeHttpUrlSchema,
+  safePublicLinkSchema,
   type RichTextDocument,
-  type RichTextSpan,
 } from "@rem-viet/cms";
-import {
-  CmsVisualOutline,
-  applyCmsPlainTextPaste,
-  filterCmsBlockAuthoringCatalog,
-  resolveCmsMediaSelection,
-} from "@agency/cms-admin";
-import {
-  remVietRichTextAuthoringByType,
-  remVietRichTextAuthoringCatalog,
-} from "@agency/cms-template-rem-viet";
 import { Button } from "@rem-viet/ui/components/button";
 import { Input } from "@rem-viet/ui/components/input";
 import { Label } from "@rem-viet/ui/components/label";
+import { Textarea } from "@rem-viet/ui/components/textarea";
 import {
-  ChevronDown,
-  ChevronUp,
-  Copy,
-  Plus,
-  Search,
-  Trash2,
+  Bold,
+  Braces,
+  Code2,
+  Heading2,
+  ImagePlus,
+  Italic,
+  Link2,
+  List,
+  ListOrdered,
+  ListTree,
+  Pilcrow,
+  Quote,
+  Redo2,
+  RemoveFormatting,
+  Undo2,
+  Unlink,
+  Video,
 } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+
+import MediaPickerField, {
+  type MediaPickerAsset,
+} from "@/components/media-picker-field";
 import {
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-  type ClipboardEvent,
-} from "react";
+  cmsRichTextExtensions,
+  initialRichTextDocument,
+  richTextDocumentToTiptapJson,
+  tiptapJsonToRichTextDocument,
+} from "@/lib/rich-text-tiptap";
 
-import MediaPickerField from "@/components/media-picker-field";
-import { createRichTextVisualOutline } from "@/lib/rich-text-visual-outline";
+type EditorMode = "visual" | "markdown";
+type BlockStyle =
+  | "paragraph"
+  | "heading2"
+  | "heading3"
+  | "heading4"
+  | "quote"
+  | "bulletList"
+  | "orderedList"
+  | "codeBlock";
 
-type Block = RichTextDocument["blocks"][number];
+type SlashTrigger = { from: number; query: string; to: number };
+type SlashCommand = {
+  key: string;
+  label: string;
+  description: string;
+  style?: BlockStyle;
+  action?: "image" | "video";
+};
 
-function initialDocument(value: string): RichTextDocument {
-  const parsed = parseRichTextDocument(value);
-  if (parsed) return parsed;
-  const text = value.trim();
-  if (!text) return structuredClone(emptyRichTextDocument);
+const slashCommands = [
+  {
+    key: "paragraph",
+    label: "Đoạn văn",
+    description: "Khối nội dung thường",
+    style: "paragraph",
+  },
+  {
+    key: "heading2",
+    label: "Tiêu đề lớn",
+    description: "Tiêu đề cấp H2",
+    style: "heading2",
+  },
+  {
+    key: "heading3",
+    label: "Tiêu đề nhỏ",
+    description: "Tiêu đề cấp H3",
+    style: "heading3",
+  },
+  {
+    key: "quote",
+    label: "Trích dẫn",
+    description: "Làm nổi bật một nhận định",
+    style: "quote",
+  },
+  {
+    key: "bulletList",
+    label: "Danh sách",
+    description: "Danh sách dấu đầu dòng",
+    style: "bulletList",
+  },
+  {
+    key: "orderedList",
+    label: "Danh sách số",
+    description: "Danh sách có thứ tự",
+    style: "orderedList",
+  },
+  {
+    key: "codeBlock",
+    label: "Khối code",
+    description: "Đoạn mã có cấu trúc",
+    style: "codeBlock",
+  },
+  {
+    key: "image",
+    label: "Ảnh",
+    description: "Chọn từ thư viện media",
+    action: "image",
+  },
+  {
+    key: "video",
+    label: "Video",
+    description: "Chèn video HTTPS",
+    action: "video",
+  },
+] as const satisfies readonly SlashCommand[];
+
+function getSlashTrigger(editor: Editor): SlashTrigger | null {
+  const { $from } = editor.state.selection;
+  if (!$from.parent.isTextblock) return null;
+  const textBeforeCursor = $from.parent.textBetween(0, $from.parentOffset);
+  const match = /(?:^|\s)\/([^\s/]*)$/.exec(textBeforeCursor);
+  if (!match) return null;
+  const slashOffset = textBeforeCursor.lastIndexOf("/");
   return {
-    version: 1,
-    blocks: ensureRichTextBlockIds(
-      text
-        .split(/\n{2,}/)
-        .filter(Boolean)
-        .map((paragraph) => ({
-          type: "paragraph" as const,
-          children: [{ text: paragraph }],
-        })),
-    ),
+    from: $from.start() + slashOffset,
+    query: (match[1] ?? "").toLocaleLowerCase("vi"),
+    to: editor.state.selection.from,
   };
 }
 
-function blockLabel(block: Block) {
-  return remVietRichTextAuthoringByType[block.type].label;
-}
-
-function updateBooleanMark(
-  span: RichTextSpan,
-  mark: "bold" | "italic" | "code",
-  enabled: boolean,
-) {
-  const marks = { ...span.marks };
-
-  if (enabled) marks[mark] = true;
-  else delete marks[mark];
-
-  return {
-    ...span,
-    marks: Object.keys(marks).length ? marks : undefined,
-  } satisfies RichTextSpan;
-}
-
-function updateHref(span: RichTextSpan, href: string) {
-  const marks = { ...span.marks };
-
-  if (href) marks.href = href;
-  else delete marks.href;
-
-  return {
-    ...span,
-    marks: Object.keys(marks).length ? marks : undefined,
-  } satisfies RichTextSpan;
-}
-
-function InlineEditor({
-  label,
-  multiline = true,
-  onChange,
-  value,
-}: {
-  label: string;
-  multiline?: boolean;
-  onChange: (value: RichTextSpan[]) => void;
-  value: RichTextSpan[];
-}) {
-  const spans: RichTextSpan[] = value.length ? value : [{ text: "" }];
-  const [pasteNotice, setPasteNotice] = useState<string | null>(null);
-
-  function replaceSpan(index: number, span: RichTextSpan) {
-    onChange(
-      spans.map((current, position) => (position === index ? span : current)),
-    );
-  }
-
-  function pastePlainText(
-    index: number,
-    span: RichTextSpan,
-    event: ClipboardEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) {
-    const clipboardText = event.clipboardData.getData("text/plain");
-    const hasHtml = Array.from(event.clipboardData.types).includes("text/html");
-    if (!clipboardText && !hasHtml) return;
-    event.preventDefault();
-    if (!clipboardText) {
-      setPasteNotice(
-        "Clipboard không có văn bản thuần; nội dung HTML đã bị bỏ qua.",
-      );
-      return;
+function selectedTopLevelBlock(editor: Editor) {
+  const selectionFrom = editor.state.selection.from;
+  let selectedIndex: number | null = null;
+  editor.state.doc.forEach((node, offset, index) => {
+    if (
+      selectedIndex === null &&
+      selectionFrom >= offset &&
+      selectionFrom <= offset + node.nodeSize
+    ) {
+      selectedIndex = index;
     }
+  });
+  return selectedIndex;
+}
 
-    const control = event.currentTarget;
-    const pasted = applyCmsPlainTextPaste({
-      currentText: span.text,
-      clipboardText,
-      selectionStart: control.selectionStart ?? span.text.length,
-      selectionEnd: control.selectionEnd ?? span.text.length,
-    });
-    replaceSpan(index, { ...span, text: pasted.text });
-    setPasteNotice(
-      pasted.truncated
-        ? "Nội dung dán đã được cắt tại giới hạn 20.000 ký tự."
-        : "Đã dán văn bản thuần; style và metadata đã được loại bỏ.",
-    );
-    globalThis.requestAnimationFrame(() => {
-      control.setSelectionRange(pasted.selectionStart, pasted.selectionEnd);
-    });
+function focusTopLevelBlock(editor: Editor, index: number) {
+  const targetNode = editor.state.doc.maybeChild(index);
+  if (!targetNode) return;
+  let offset = 0;
+  for (let nodeIndex = 0; nodeIndex < index; nodeIndex += 1) {
+    offset += editor.state.doc.child(nodeIndex).nodeSize;
   }
+  const chain = editor.chain().focus();
+  if (targetNode.isTextblock) chain.setTextSelection(offset + 1).run();
+  else chain.setNodeSelection(offset).run();
+}
 
+function activeBlockStyle(editor: Editor): BlockStyle {
+  if (editor.isActive("heading", { level: 2 })) return "heading2";
+  if (editor.isActive("heading", { level: 3 })) return "heading3";
+  if (editor.isActive("heading", { level: 4 })) return "heading4";
+  if (editor.isActive("blockquote")) return "quote";
+  if (editor.isActive("bulletList")) return "bulletList";
+  if (editor.isActive("orderedList")) return "orderedList";
+  if (editor.isActive("codeBlock")) return "codeBlock";
+  return "paragraph";
+}
+
+function applyBlockStyle(editor: Editor, style: BlockStyle) {
+  const chain = editor.chain().focus();
+  if (style === "heading2") chain.setHeading({ level: 2 }).run();
+  else if (style === "heading3") chain.setHeading({ level: 3 }).run();
+  else if (style === "heading4") chain.setHeading({ level: 4 }).run();
+  else if (style === "quote") chain.setBlockquote().run();
+  else if (style === "bulletList") chain.toggleBulletList().run();
+  else if (style === "orderedList") chain.toggleOrderedList().run();
+  else if (style === "codeBlock") chain.setCodeBlock().run();
+  else chain.setParagraph().run();
+}
+
+function ToolbarButton({
+  active = false,
+  disabled = false,
+  label,
+  onClick,
+  children,
+}: {
+  active?: boolean;
+  disabled?: boolean;
+  label: string;
+  onClick: () => void;
+  children: ReactNode;
+}) {
   return (
-    <div className="grid gap-3">
-      {spans.map((span, index) => {
-        const segmentLabel = `${label}, đoạn ${index + 1}`;
-        const textControl = multiline ? (
-          <textarea
-            aria-label={`Nội dung ${segmentLabel}`}
-            className="min-h-28 rounded-md border bg-background p-3 text-sm"
-            value={span.text}
-            onChange={(event) =>
-              replaceSpan(index, { ...span, text: event.target.value })
-            }
-            onPaste={(event) => pastePlainText(index, span, event)}
-          />
-        ) : (
-          <Input
-            aria-label={`Nội dung ${segmentLabel}`}
-            value={span.text}
-            onChange={(event) =>
-              replaceSpan(index, { ...span, text: event.target.value })
-            }
-            onPaste={(event) => pastePlainText(index, span, event)}
-          />
-        );
-
-        return (
-          <div
-            aria-label={segmentLabel}
-            className="grid gap-3 rounded-md border border-dashed p-3"
-            key={index}
-            role="group"
-          >
-            {textControl}
-            <div className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
-              <div className="grid gap-1.5">
-                <Label htmlFor={`rich-link-${label}-${index}`}>
-                  Liên kết (không bắt buộc)
-                </Label>
-                <Input
-                  aria-label={`Liên kết ${segmentLabel}`}
-                  id={`rich-link-${label}-${index}`}
-                  placeholder="/lien-he hoặc https://example.com"
-                  value={span.marks?.href ?? ""}
-                  onChange={(event) =>
-                    replaceSpan(index, updateHref(span, event.target.value))
-                  }
-                />
-              </div>
-              <div className="flex flex-wrap items-center gap-3 text-xs">
-                {(
-                  [
-                    ["bold", "Đậm"],
-                    ["italic", "Nghiêng"],
-                    ["code", "Code inline"],
-                  ] as const
-                ).map(([mark, markLabel]) => (
-                  <label className="flex items-center gap-1.5" key={mark}>
-                    <input
-                      aria-label={`${markLabel} ${segmentLabel}`}
-                      checked={Boolean(span.marks?.[mark])}
-                      type="checkbox"
-                      onChange={(event) =>
-                        replaceSpan(
-                          index,
-                          updateBooleanMark(span, mark, event.target.checked),
-                        )
-                      }
-                    />
-                    {markLabel}
-                  </label>
-                ))}
-                <Button
-                  aria-label={`Xóa ${segmentLabel}`}
-                  disabled={spans.length === 1}
-                  size="sm"
-                  type="button"
-                  variant="ghost"
-                  onClick={() =>
-                    onChange(spans.filter((_, position) => position !== index))
-                  }
-                >
-                  <Trash2 aria-hidden />
-                  Xóa đoạn
-                </Button>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-      <Button
-        className="justify-self-start"
-        size="sm"
-        type="button"
-        variant="outline"
-        onClick={() => onChange([...spans, { text: "" }])}
-      >
-        <Plus aria-hidden />
-        Thêm đoạn định dạng
-      </Button>
-      <p aria-live="polite" className="min-h-4 text-xs text-muted-foreground">
-        {pasteNotice}
-      </p>
-    </div>
+    <Button
+      aria-label={label}
+      aria-pressed={active}
+      className={active ? "bg-primary/12 text-primary" : undefined}
+      disabled={disabled}
+      size="icon-sm"
+      title={label}
+      type="button"
+      variant="ghost"
+      onClick={onClick}
+    >
+      {children}
+    </Button>
   );
 }
 
@@ -270,577 +230,602 @@ export default function CmsRichTextEditor({
   onChange: (value: string, historyGroup?: string) => void;
   selectedBlockIndex?: number | null;
 }) {
-  const [document, setDocument] = useState(() => initialDocument(value));
-  const [catalogQuery, setCatalogQuery] = useState("");
-  const [localSelectedBlockIndex, setLocalSelectedBlockIndex] = useState<
-    number | null
-  >(selectedBlockIndex ?? null);
-  const catalogDisclosure = useRef<HTMLDetailsElement>(null);
-  const catalogSearchId = useId();
-  const catalogResultId = `${catalogSearchId}-results`;
+  const initialDocument = useRef(initialRichTextDocument(value));
+  const [document, setDocument] = useState<RichTextDocument>(
+    initialDocument.current,
+  );
   const documentRef = useRef(document);
   documentRef.current = document;
-  const filteredCatalog = filterCmsBlockAuthoringCatalog(
-    remVietRichTextAuthoringCatalog,
-    catalogQuery,
-  );
-  const blockLimitReached = document.blocks.length >= MAX_RICH_TEXT_BLOCKS;
-  const effectiveSelectedBlockIndex =
-    selectedBlockIndex === undefined
-      ? localSelectedBlockIndex
-      : selectedBlockIndex;
-  const visualOutline = useMemo(
-    () =>
-      showOutline
-        ? createRichTextVisualOutline({
-            document,
-            selectedBlockIndex: effectiveSelectedBlockIndex,
-            version: contentVersion,
-            canWrite,
-          })
-        : [],
-    [
-      canWrite,
-      contentVersion,
-      document,
-      effectiveSelectedBlockIndex,
-      showOutline,
-    ],
-  );
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
+  const selectedBlockChangeRef = useRef(onSelectedBlockChange);
+  selectedBlockChangeRef.current = onSelectedBlockChange;
+  const lastEmittedValueRef = useRef<string | null>(null);
+  const [editorError, setEditorError] = useState<string | null>(null);
+  const [selectionRevision, setSelectionRevision] = useState(0);
+  const [mode, setMode] = useState<EditorMode>("visual");
+  const [markdownDraft, setMarkdownDraft] = useState("");
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkHref, setLinkHref] = useState("");
+  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+  const savedSelectionRef = useRef<number | null>(null);
+  const [videoOpen, setVideoOpen] = useState(false);
+  const [videoUrl, setVideoUrl] = useState("");
+  const [videoTitle, setVideoTitle] = useState("");
+  const [slashTrigger, setSlashTrigger] = useState<SlashTrigger | null>(null);
+
+  const editor = useEditor({
+    immediatelyRender: false,
+    editable: canWrite,
+    extensions: cmsRichTextExtensions,
+    content: richTextDocumentToTiptapJson(initialDocument.current),
+    editorProps: {
+      attributes: {
+        "aria-label": "Nội dung bài viết",
+        class: "cms-tiptap-prosemirror",
+      },
+    },
+    onSelectionUpdate: ({ editor: currentEditor }) => {
+      selectedBlockChangeRef.current?.(selectedTopLevelBlock(currentEditor));
+      setSlashTrigger(getSlashTrigger(currentEditor));
+      setSelectionRevision((revision) => revision + 1);
+    },
+    onUpdate: ({ editor: currentEditor }) => {
+      try {
+        const nextDocument = tiptapJsonToRichTextDocument(
+          currentEditor.getJSON(),
+        );
+        const serialized = JSON.stringify(nextDocument);
+        setDocument(nextDocument);
+        setEditorError(null);
+        setSlashTrigger(getSlashTrigger(currentEditor));
+        lastEmittedValueRef.current = serialized;
+        onChangeRef.current(serialized, "post-content:tiptap");
+      } catch (error) {
+        setEditorError(
+          error instanceof Error
+            ? error.message
+            : "Nội dung chưa thể chuyển sang tài liệu CMS an toàn.",
+        );
+      }
+    },
+  });
 
   useEffect(() => {
-    if (parseRichTextDocument(value)) return;
-    onChange(JSON.stringify(document));
-    // Normalize legacy/plain content once when the editor opens.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    editor?.setEditable(canWrite);
+  }, [canWrite, editor]);
 
   useEffect(() => {
-    const next = parseRichTextDocument(value);
-    if (!next || JSON.stringify(next) === JSON.stringify(documentRef.current))
+    if (!editor) return;
+    const nextDocument = parseRichTextDocument(value);
+    if (!nextDocument) return;
+    const serialized = JSON.stringify(nextDocument);
+    if (
+      serialized === lastEmittedValueRef.current ||
+      serialized === JSON.stringify(documentRef.current)
+    ) {
       return;
-    setDocument(next);
-  }, [value]);
+    }
+    editor.commands.setContent(richTextDocumentToTiptapJson(nextDocument), {
+      emitUpdate: false,
+    });
+    setDocument(nextDocument);
+  }, [editor, value]);
 
-  function commit(next: RichTextDocument, historyGroup?: string) {
-    setDocument(next);
-    onChange(JSON.stringify(next), historyGroup);
+  useEffect(() => {
+    if (!editor || parseRichTextDocument(value)) return;
+    const serialized = JSON.stringify(initialDocument.current);
+    lastEmittedValueRef.current = serialized;
+    onChangeRef.current(serialized, "post-content:legacy-normalization");
+  }, [editor, value]);
+
+  useEffect(() => {
+    if (
+      !editor ||
+      selectedBlockIndex === undefined ||
+      selectedBlockIndex === null
+    )
+      return;
+    if (selectedTopLevelBlock(editor) === selectedBlockIndex) return;
+    focusTopLevelBlock(editor, selectedBlockIndex);
+  }, [editor, selectedBlockIndex, contentVersion]);
+
+  if (!editor) {
+    return (
+      <div className="min-h-80 animate-pulse rounded-xl border bg-muted/25" />
+    );
+  }
+  const activeEditor = editor;
+
+  const currentBlockStyle = activeBlockStyle(activeEditor);
+  const imageActive = activeEditor.isActive("image");
+  const imageAttributes = imageActive
+    ? activeEditor.getAttributes("image")
+    : undefined;
+  const filteredSlashCommands = slashTrigger
+    ? slashCommands.filter((command) =>
+        `${command.key} ${command.label}`
+          .toLocaleLowerCase("vi")
+          .includes(slashTrigger.query),
+      )
+    : [];
+
+  function openMarkdownMode() {
+    setMarkdownDraft(activeEditor.getMarkdown());
+    setEditorError(null);
+    setMode("markdown");
   }
 
-  useEffect(() => {
-    if (effectiveSelectedBlockIndex === null) return;
-    globalThis.document
-      .getElementById(`post-content-block-${effectiveSelectedBlockIndex}`)
-      ?.focus();
-  }, [effectiveSelectedBlockIndex]);
-
-  function selectBlock(index: number | null) {
-    setLocalSelectedBlockIndex(index);
-    onSelectedBlockChange?.(index);
-    if (index !== null) {
-      queueMicrotask(() =>
-        globalThis.document
-          .getElementById(`post-content-block-${index}`)
-          ?.focus(),
+  function applyMarkdown() {
+    try {
+      if (!activeEditor.markdown)
+        throw new Error("Markdown adapter chưa sẵn sàng.");
+      const json = activeEditor.markdown.parse(markdownDraft);
+      const nextDocument = tiptapJsonToRichTextDocument(json);
+      activeEditor.commands.setContent(
+        richTextDocumentToTiptapJson(nextDocument),
+      );
+      setEditorError(null);
+      setMode("visual");
+    } catch (error) {
+      setEditorError(
+        error instanceof Error
+          ? error.message
+          : "Markdown chứa cấu trúc chưa được hỗ trợ.",
       );
     }
   }
 
-  function replace(index: number, block: Block) {
-    commit(
-      {
-        ...document,
-        blocks: document.blocks.map((current, position) =>
-          position === index ? block : current,
-        ),
-      },
-      `post-content:block:${index}`,
-    );
+  function openLinkEditor() {
+    setLinkHref(String(activeEditor.getAttributes("link").href ?? ""));
+    setLinkOpen(true);
   }
 
-  function add(type: Block["type"]) {
-    if (!canWrite || blockLimitReached) return;
-    const id = createRichTextBlockId(
-      type,
-      document.blocks.map((block) => block.id),
-    );
-    const block: Block =
-      type === "heading"
-        ? { id, type, level: 2, children: [{ text: "Tiêu đề mới" }] }
-        : type === "quote"
-          ? { id, type, children: [{ text: "Trích dẫn" }] }
-          : type === "list"
-            ? { id, type, ordered: false, items: [[{ text: "Mục mới" }]] }
-            : type === "code"
-              ? { id, type, language: "", code: "" }
-              : type === "image"
-                ? {
-                    id,
-                    type,
-                    src: "/assets/placeholder.webp",
-                    alt: "Ảnh nội dung",
-                    caption: "",
-                  }
-                : type === "video"
-                  ? {
-                      id,
-                      type,
-                      url: "https://www.youtube.com/watch?v=",
-                      title: "Video",
-                    }
-                  : { id, type: "paragraph", children: [{ text: "" }] };
-    commit({ ...document, blocks: [...document.blocks, block] });
-    selectBlock(document.blocks.length);
-    setCatalogQuery("");
-    catalogDisclosure.current?.removeAttribute("open");
-  }
-
-  function move(index: number, targetIndex: number) {
-    if (
-      !canWrite ||
-      index < 0 ||
-      targetIndex < 0 ||
-      index >= document.blocks.length ||
-      targetIndex >= document.blocks.length
-    ) {
+  function applyLink() {
+    const href = linkHref.trim();
+    if (!href) {
+      activeEditor.chain().focus().extendMarkRange("link").unsetLink().run();
+      setLinkOpen(false);
       return;
     }
-    const blocks = [...document.blocks];
-    [blocks[index], blocks[targetIndex]] = [
-      blocks[targetIndex]!,
-      blocks[index]!,
-    ];
-    commit({ ...document, blocks });
-    selectBlock(targetIndex);
+    const parsed = safePublicLinkSchema.safeParse(href);
+    if (!parsed.success) {
+      setEditorError("Liên kết phải là URL an toàn hoặc đường dẫn nội bộ.");
+      return;
+    }
+    activeEditor
+      .chain()
+      .focus()
+      .extendMarkRange("link")
+      .setLink({ href: parsed.data })
+      .run();
+    setLinkOpen(false);
   }
 
-  function duplicate(index: number) {
-    if (!canWrite || blockLimitReached) return;
-    const source = document.blocks[index];
-    if (!source) return;
+  function openMediaPicker() {
+    savedSelectionRef.current = activeEditor.state.selection.from;
+    setMediaPickerOpen(true);
+  }
+
+  function insertImage(asset: MediaPickerAsset) {
+    const selection = savedSelectionRef.current;
     const id = createRichTextBlockId(
-      source.type,
-      document.blocks.map((block) => block.id),
+      "image",
+      documentRef.current.blocks.map((block) => block.id),
     );
-    const copy = { ...structuredClone(source), id };
-    commit({
-      ...document,
-      blocks: [
-        ...document.blocks.slice(0, index + 1),
-        copy,
-        ...document.blocks.slice(index + 1),
-      ],
-    });
-    selectBlock(index + 1);
+    let chain = activeEditor.chain().focus();
+    if (selection !== null) {
+      chain = chain.setTextSelection(
+        Math.min(selection, activeEditor.state.doc.content.size),
+      );
+    }
+    chain
+      .insertContent({
+        type: "image",
+        attrs: {
+          cmsBlockId: id,
+          src: asset.url,
+          alt: asset.altText?.trim() || "Ảnh nội dung",
+          title: "",
+        },
+      })
+      .run();
+    setMediaPickerOpen(false);
   }
 
-  function remove(index: number) {
-    if (!canWrite || index < 0 || index >= document.blocks.length) return;
-    const blocks = document.blocks.filter((_, position) => position !== index);
-    commit({ ...document, blocks });
-    selectBlock(
-      blocks.length === 0 ? null : Math.min(index, blocks.length - 1),
+  function insertVideo() {
+    const parsedUrl = safeHttpUrlSchema.safeParse(videoUrl.trim());
+    const title = videoTitle.trim();
+    if (!parsedUrl.success || !title) {
+      setEditorError("Video cần URL HTTPS hợp lệ và tiêu đề truy cập.");
+      return;
+    }
+    const id = createRichTextBlockId(
+      "video",
+      documentRef.current.blocks.map((block) => block.id),
     );
+    activeEditor
+      .chain()
+      .focus()
+      .insertContent({
+        type: "cmsVideo",
+        attrs: { cmsBlockId: id, url: parsedUrl.data, title },
+      })
+      .run();
+    setVideoOpen(false);
+    setVideoUrl("");
+    setVideoTitle("");
+  }
+
+  function runSlashCommand(command: SlashCommand) {
+    if (!slashTrigger) return;
+    activeEditor
+      .chain()
+      .focus()
+      .deleteRange({ from: slashTrigger.from, to: slashTrigger.to })
+      .run();
+    setSlashTrigger(null);
+    if (command.style) applyBlockStyle(activeEditor, command.style);
+    else if (command.action === "image") openMediaPicker();
+    else if (command.action === "video") setVideoOpen(true);
   }
 
   return (
-    <div className="grid gap-3">
-      <details
-        className="group overflow-hidden rounded-xl border bg-muted/20"
-        ref={catalogDisclosure}
-      >
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium marker:hidden">
-          <span className="flex items-center gap-2">
-            <Plus aria-hidden className="size-4" />
-            Thêm block nội dung
-          </span>
-          <ChevronDown
-            aria-hidden
-            className="size-4 transition-transform group-open:rotate-180"
-          />
-        </summary>
-        <div className="grid gap-3 border-t bg-background p-4">
-          <div className="grid gap-2">
-            <Label htmlFor={catalogSearchId}>Tìm block nội dung</Label>
-            <div className="relative">
-              <Search
-                aria-hidden
-                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-              />
-              <Input
-                aria-describedby={catalogResultId}
-                className="pl-9"
-                id={catalogSearchId}
-                onChange={(event) => setCatalogQuery(event.target.value)}
-                placeholder="Ví dụ: tiêu đề, ảnh, danh sách…"
-                type="search"
-                value={catalogQuery}
-              />
-            </div>
-          </div>
-          <p
-            aria-live="polite"
-            className="text-xs text-muted-foreground"
-            id={catalogResultId}
-          >
-            {!canWrite
-              ? "Phiên làm việc chỉ đọc; thao tác cấu trúc đã bị khóa."
-              : blockLimitReached
-                ? `Đã đạt giới hạn ${MAX_RICH_TEXT_BLOCKS.toLocaleString("vi-VN")} block.`
-                : `${filteredCatalog.length} lựa chọn phù hợp.`}
-          </p>
-          {filteredCatalog.length ? (
-            <div
-              aria-label="Danh mục block nội dung"
-              className="grid gap-2 sm:grid-cols-2"
-              role="list"
-            >
-              {filteredCatalog.map((definition) => (
-                <div key={definition.type} role="listitem">
-                  <Button
-                    aria-label={`Thêm ${definition.label.toLocaleLowerCase("vi")}`}
-                    className="h-auto min-h-20 w-full items-start justify-start whitespace-normal px-3 py-3 text-left"
-                    disabled={!canWrite || blockLimitReached}
-                    onClick={() => add(definition.type)}
-                    type="button"
-                    variant="outline"
-                  >
-                    <span className="grid gap-1">
-                      <span className="flex flex-wrap items-center gap-2">
-                        <span className="font-medium">{definition.label}</span>
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          {definition.category}
-                        </span>
-                      </span>
-                      <span className="text-xs font-normal leading-5 text-muted-foreground">
-                        {definition.description}
-                      </span>
-                    </span>
-                  </Button>
-                </div>
-              ))}
-            </div>
+    <div
+      className="cms-tiptap-editor overflow-hidden rounded-xl border bg-background"
+      data-selection-revision={selectionRevision}
+    >
+      <div className="sticky top-0 z-10 flex flex-wrap items-center gap-1 border-b bg-background/95 p-2 backdrop-blur">
+        <select
+          aria-label="Kiểu khối văn bản"
+          className="h-8 rounded-md border bg-background px-2 text-xs"
+          disabled={!canWrite}
+          value={currentBlockStyle}
+          onChange={(event) =>
+            applyBlockStyle(editor, event.target.value as BlockStyle)
+          }
+        >
+          <option value="paragraph">Đoạn văn</option>
+          <option value="heading2">Tiêu đề H2</option>
+          <option value="heading3">Tiêu đề H3</option>
+          <option value="heading4">Tiêu đề H4</option>
+          <option value="quote">Trích dẫn</option>
+          <option value="bulletList">Danh sách</option>
+          <option value="orderedList">Danh sách số</option>
+          <option value="codeBlock">Khối code</option>
+        </select>
+        <span aria-hidden className="mx-1 h-5 w-px bg-border" />
+        <ToolbarButton
+          active={editor.isActive("bold")}
+          disabled={!canWrite}
+          label="In đậm"
+          onClick={() => editor.chain().focus().toggleBold().run()}
+        >
+          <Bold aria-hidden />
+        </ToolbarButton>
+        <ToolbarButton
+          active={editor.isActive("italic")}
+          disabled={!canWrite}
+          label="In nghiêng"
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+        >
+          <Italic aria-hidden />
+        </ToolbarButton>
+        <ToolbarButton
+          active={editor.isActive("code")}
+          disabled={!canWrite}
+          label="Code trong dòng"
+          onClick={() => editor.chain().focus().toggleCode().run()}
+        >
+          <Code2 aria-hidden />
+        </ToolbarButton>
+        <ToolbarButton
+          active={editor.isActive("link")}
+          disabled={!canWrite}
+          label="Thêm hoặc sửa liên kết"
+          onClick={openLinkEditor}
+        >
+          <Link2 aria-hidden />
+        </ToolbarButton>
+        <ToolbarButton
+          disabled={!canWrite || !editor.isActive("link")}
+          label="Xóa liên kết"
+          onClick={() =>
+            editor.chain().focus().extendMarkRange("link").unsetLink().run()
+          }
+        >
+          <Unlink aria-hidden />
+        </ToolbarButton>
+        <span aria-hidden className="mx-1 h-5 w-px bg-border" />
+        <ToolbarButton
+          disabled={!canWrite}
+          label="Chèn ảnh từ thư viện"
+          onClick={openMediaPicker}
+        >
+          <ImagePlus aria-hidden />
+        </ToolbarButton>
+        <ToolbarButton
+          disabled={!canWrite}
+          label="Chèn video"
+          onClick={() => setVideoOpen((open) => !open)}
+        >
+          <Video aria-hidden />
+        </ToolbarButton>
+        <ToolbarButton
+          disabled={!canWrite}
+          label="Xóa định dạng"
+          onClick={() =>
+            editor.chain().focus().clearNodes().unsetAllMarks().run()
+          }
+        >
+          <RemoveFormatting aria-hidden />
+        </ToolbarButton>
+        <span className="min-w-2 flex-1" />
+        <ToolbarButton
+          disabled={!canWrite || !editor.can().undo()}
+          label="Hoàn tác"
+          onClick={() => editor.chain().focus().undo().run()}
+        >
+          <Undo2 aria-hidden />
+        </ToolbarButton>
+        <ToolbarButton
+          disabled={!canWrite || !editor.can().redo()}
+          label="Làm lại"
+          onClick={() => editor.chain().focus().redo().run()}
+        >
+          <Redo2 aria-hidden />
+        </ToolbarButton>
+        <Button
+          size="sm"
+          type="button"
+          variant={mode === "markdown" ? "secondary" : "ghost"}
+          onClick={
+            mode === "visual" ? openMarkdownMode : () => setMode("visual")
+          }
+        >
+          <Braces aria-hidden />
+          Markdown
+        </Button>
+      </div>
+
+      {slashTrigger ? (
+        <div className="grid gap-1 border-b bg-background p-2 shadow-sm sm:grid-cols-2">
+          {filteredSlashCommands.length ? (
+            filteredSlashCommands.map((command) => (
+              <button
+                className="grid gap-0.5 rounded-md px-3 py-2 text-left hover:bg-muted"
+                key={command.key}
+                type="button"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => runSlashCommand(command)}
+              >
+                <span className="text-xs font-medium">{command.label}</span>
+                <span className="text-[10px] text-muted-foreground">
+                  {command.description}
+                </span>
+              </button>
+            ))
           ) : (
-            <p className="rounded-lg border border-dashed px-3 py-4 text-sm text-muted-foreground">
-              Không có block phù hợp với “{catalogQuery}”.
+            <p className="px-3 py-2 text-xs text-muted-foreground sm:col-span-2">
+              Không có lệnh phù hợp với “/{slashTrigger.query}”.
             </p>
           )}
         </div>
-      </details>
-      <p className="text-xs text-muted-foreground">
-        Có thể dán trực tiếp từ Google Docs. Trình soạn thảo chỉ nhận văn bản
-        thuần, chuẩn hóa khoảng trắng và loại bỏ style hoặc metadata ẩn.
-      </p>
-      {showOutline ? (
-        <section
-          aria-label="Cấu trúc block nội dung bài viết"
-          className="grid gap-2 rounded-xl border bg-muted/20 p-3"
-        >
-          <div className="flex items-center justify-between gap-3">
-            <strong className="text-xs uppercase tracking-wider">
-              Cấu trúc nội dung
-            </strong>
-            <span className="text-[11px] text-muted-foreground">
-              {document.blocks.length.toLocaleString("vi-VN")} block
-            </span>
-          </div>
-          <CmsVisualOutline
-            className="grid gap-1"
-            empty={
-              <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
-                Chưa có block nội dung. Chọn một block từ danh mục phía trên.
-              </p>
-            }
-            itemClassName={(item) =>
-              `grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded-md border px-2 py-1.5 ${item.selected ? "border-primary bg-primary/10" : "bg-background"}`
-            }
-            items={visualOutline}
-            label="Outline block nội dung bài viết"
-            treeItemClassName="min-w-0 truncate text-left text-xs font-medium"
-            onSelectNode={(nodeId) => {
-              const index = document.blocks.findIndex(
-                (block) => block.id === nodeId,
-              );
-              if (index >= 0) selectBlock(index);
-            }}
-            renderLabel={(item) => (
-              <span>
-                {item.index + 1}. {item.label}
-              </span>
-            )}
-            renderActions={(item) => (
-              <div className="flex shrink-0">
-                <Button
-                  aria-label={`Nhân bản ${item.label}`}
-                  disabled={!item.actions.duplicate}
-                  size="icon-sm"
-                  type="button"
-                  variant="ghost"
-                  onClick={() => duplicate(item.index)}
-                >
-                  <Copy aria-hidden />
-                </Button>
-                <Button
-                  aria-label={`Đưa ${item.label} lên`}
-                  disabled={!item.actions.move || item.index === 0}
-                  size="icon-sm"
-                  type="button"
-                  variant="ghost"
-                  onClick={() => move(item.index, item.index - 1)}
-                >
-                  <ChevronUp aria-hidden />
-                </Button>
-                <Button
-                  aria-label={`Đưa ${item.label} xuống`}
-                  disabled={
-                    !item.actions.move ||
-                    item.index === document.blocks.length - 1
-                  }
-                  size="icon-sm"
-                  type="button"
-                  variant="ghost"
-                  onClick={() => move(item.index, item.index + 1)}
-                >
-                  <ChevronDown aria-hidden />
-                </Button>
-                <Button
-                  aria-label={`Xóa ${item.label}`}
-                  disabled={!item.actions.remove}
-                  size="icon-sm"
-                  type="button"
-                  variant="ghost"
-                  onClick={() => remove(item.index)}
-                >
-                  <Trash2 aria-hidden />
-                </Button>
-              </div>
-            )}
-          />
-        </section>
       ) : null}
-      {document.blocks.map((block, index) => (
-        <section
-          aria-label={`Block ${index + 1}: ${blockLabel(block)}`}
-          className="grid gap-3 rounded-md border p-4"
-          data-cms-rich-text-block-id={block.id}
-          id={`post-content-block-${index}`}
-          key={block.id}
-          role="group"
-          tabIndex={-1}
-        >
-          <header className="flex items-center justify-between gap-3">
-            <strong className="text-xs uppercase tracking-wider">
-              {index + 1}. {blockLabel(block)}
-            </strong>
-            {showOutline ? null : (
-              <div className="flex">
-                <Button
-                  aria-label="Đưa lên"
-                  disabled={index === 0}
-                  size="icon-sm"
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    move(index, index - 1);
-                  }}
-                >
-                  <ChevronUp />
-                </Button>
-                <Button
-                  aria-label="Đưa xuống"
-                  disabled={index === document.blocks.length - 1}
-                  size="icon-sm"
-                  type="button"
-                  variant="ghost"
-                  onClick={() => {
-                    move(index, index + 1);
-                  }}
-                >
-                  <ChevronDown />
-                </Button>
-                <Button
-                  aria-label="Xóa block"
-                  size="icon-sm"
-                  type="button"
-                  variant="ghost"
-                  onClick={() => remove(index)}
-                >
-                  <Trash2 />
-                </Button>
-              </div>
-            )}
-          </header>
-          {block.type === "paragraph" || block.type === "quote" ? (
-            <InlineEditor
-              label={`${blockLabel(block)} ${index + 1}`}
-              value={block.children}
-              onChange={(children) => replace(index, { ...block, children })}
-            />
-          ) : block.type === "heading" ? (
-            <div className="grid gap-3 sm:grid-cols-[7rem_1fr]">
-              <select
-                aria-label={`Cấp tiêu đề ${index + 1}`}
-                className="h-9 border bg-background px-2 text-sm"
-                value={block.level}
-                onChange={(event) =>
-                  replace(index, {
-                    ...block,
-                    level: Number(event.target.value) as 2 | 3 | 4,
-                  })
+
+      {linkOpen ? (
+        <div className="flex flex-wrap items-end gap-2 border-b bg-muted/25 p-3">
+          <div className="grid min-w-64 flex-1 gap-1.5">
+            <Label htmlFor="cms-rich-text-link">Liên kết</Label>
+            <Input
+              autoFocus
+              id="cms-rich-text-link"
+              placeholder="/lien-he hoặc https://example.com"
+              value={linkHref}
+              onChange={(event) => setLinkHref(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  applyLink();
                 }
-              >
-                {[2, 3, 4].map((level) => (
-                  <option key={level} value={level}>
-                    H{level}
-                  </option>
-                ))}
-              </select>
-              <InlineEditor
-                label={`Tiêu đề ${index + 1}`}
-                multiline={false}
-                value={block.children}
-                onChange={(children) => replace(index, { ...block, children })}
-              />
-            </div>
-          ) : block.type === "list" ? (
-            <div className="grid gap-3">
-              <label className="flex items-center gap-2 text-xs">
-                <input
-                  type="checkbox"
-                  checked={block.ordered}
+              }}
+            />
+          </div>
+          <Button size="sm" type="button" onClick={applyLink}>
+            Áp dụng
+          </Button>
+          <Button
+            size="sm"
+            type="button"
+            variant="ghost"
+            onClick={() => setLinkOpen(false)}
+          >
+            Hủy
+          </Button>
+        </div>
+      ) : null}
+
+      {videoOpen ? (
+        <div className="grid gap-3 border-b bg-muted/25 p-3 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <Label htmlFor="cms-video-url">URL video HTTPS</Label>
+            <Input
+              id="cms-video-url"
+              placeholder="https://youtube.com/watch?v=..."
+              value={videoUrl}
+              onChange={(event) => setVideoUrl(event.target.value)}
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <Label htmlFor="cms-video-title">Tiêu đề truy cập</Label>
+            <Input
+              id="cms-video-title"
+              placeholder="Video hướng dẫn đo rèm"
+              value={videoTitle}
+              onChange={(event) => setVideoTitle(event.target.value)}
+            />
+          </div>
+          <div className="flex gap-2 sm:col-span-2">
+            <Button size="sm" type="button" onClick={insertVideo}>
+              Chèn video
+            </Button>
+            <Button
+              size="sm"
+              type="button"
+              variant="ghost"
+              onClick={() => setVideoOpen(false)}
+            >
+              Hủy
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {mode === "visual" ? (
+        <>
+          <EditorContent editor={editor} />
+          {imageActive && imageAttributes ? (
+            <div className="grid gap-3 border-t bg-muted/20 p-3 sm:grid-cols-2">
+              <div className="grid gap-1.5">
+                <Label htmlFor="cms-image-alt">Văn bản thay thế</Label>
+                <Input
+                  id="cms-image-alt"
+                  value={String(imageAttributes.alt ?? "")}
                   onChange={(event) =>
-                    replace(index, { ...block, ordered: event.target.checked })
+                    editor.commands.updateAttributes("image", {
+                      alt: event.target.value,
+                    })
                   }
                 />
-                Danh sách đánh số
-              </label>
-              {block.items.map((item, itemIndex) => (
-                <div className="grid gap-2" key={itemIndex}>
-                  <InlineEditor
-                    label={`Mục ${itemIndex + 1} của danh sách ${index + 1}`}
-                    value={item}
-                    onChange={(children) =>
-                      replace(index, {
-                        ...block,
-                        items: block.items.map((current, position) =>
-                          position === itemIndex ? children : current,
-                        ),
-                      })
-                    }
-                  />
-                  <Button
-                    aria-label={`Xóa mục ${itemIndex + 1} của danh sách ${index + 1}`}
-                    className="justify-self-start"
-                    disabled={block.items.length === 1}
-                    size="sm"
-                    type="button"
-                    variant="ghost"
-                    onClick={() =>
-                      replace(index, {
-                        ...block,
-                        items: block.items.filter(
-                          (_, position) => position !== itemIndex,
-                        ),
-                      })
-                    }
-                  >
-                    <Trash2 aria-hidden />
-                    Xóa mục
-                  </Button>
-                </div>
-              ))}
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="cms-image-caption">Chú thích</Label>
+                <Input
+                  id="cms-image-caption"
+                  value={String(imageAttributes.title ?? "")}
+                  onChange={(event) =>
+                    editor.commands.updateAttributes("image", {
+                      title: event.target.value,
+                    })
+                  }
+                />
+              </div>
               <Button
                 className="justify-self-start"
                 size="sm"
                 type="button"
                 variant="outline"
-                onClick={() =>
-                  replace(index, {
-                    ...block,
-                    items: [...block.items, [{ text: "Mục mới" }]],
-                  })
-                }
+                onClick={openMediaPicker}
               >
-                <Plus aria-hidden />
-                Thêm mục
+                <ImagePlus aria-hidden />
+                Thay ảnh từ thư viện
               </Button>
             </div>
-          ) : block.type === "code" ? (
-            <div className="grid gap-3">
-              <Input
-                placeholder="Ngôn ngữ (js, css...)"
-                value={block.language}
-                onChange={(event) =>
-                  replace(index, { ...block, language: event.target.value })
-                }
-              />
-              <textarea
-                className="min-h-40 rounded-md border bg-muted/30 p-3 font-mono text-xs"
-                value={block.code}
-                onChange={(event) =>
-                  replace(index, { ...block, code: event.target.value })
-                }
-              />
+          ) : null}
+        </>
+      ) : (
+        <div className="grid gap-3 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold">Markdown an toàn</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Markdown chỉ là lớp nhập/xuất. Khi áp dụng, nội dung được parse
+                lại thành tài liệu CMS có cấu trúc.
+              </p>
             </div>
-          ) : block.type === "image" ? (
-            <div className="grid gap-3">
-              <MediaPickerField
-                id={`rich-image-${index}`}
-                label="Ảnh"
-                value={block.src}
-                onChange={(src) => replace(index, { ...block, src })}
-                onAssetSelect={(asset) =>
-                  replace(index, {
-                    ...block,
-                    ...resolveCmsMediaSelection({
-                      asset,
-                      currentAlt: block.alt,
-                    }),
-                  })
-                }
-              />
-              <div className="grid gap-2">
-                <Label htmlFor={`rich-alt-${index}`}>Alt ảnh (bắt buộc)</Label>
-                <Input
-                  id={`rich-alt-${index}`}
-                  value={block.alt}
-                  onChange={(event) =>
-                    replace(index, { ...block, alt: event.target.value })
-                  }
-                />
-              </div>
-              <Input
-                placeholder="Caption"
-                value={block.caption}
-                onChange={(event) =>
-                  replace(index, { ...block, caption: event.target.value })
-                }
-              />
+            <div className="flex gap-2">
+              <Button size="sm" type="button" onClick={applyMarkdown}>
+                Áp dụng Markdown
+              </Button>
+              <Button
+                size="sm"
+                type="button"
+                variant="ghost"
+                onClick={() => setMode("visual")}
+              >
+                Hủy
+              </Button>
             </div>
-          ) : (
-            <div className="grid gap-3">
-              <Input
-                type="url"
-                placeholder="YouTube/Vimeo URL"
-                value={block.url}
-                onChange={(event) =>
-                  replace(index, { ...block, url: event.target.value })
-                }
-              />
-              <Input
-                placeholder="Tiêu đề video"
-                value={block.title}
-                onChange={(event) =>
-                  replace(index, {
-                    ...block,
-                    title: event.target.value || "Video",
-                  })
-                }
-              />
-            </div>
-          )}
-        </section>
-      ))}
+          </div>
+          <Textarea
+            aria-label="Nội dung Markdown"
+            className="min-h-[56vh] resize-y font-mono text-sm leading-6"
+            spellCheck={false}
+            value={markdownDraft}
+            onChange={(event) => setMarkdownDraft(event.target.value)}
+          />
+        </div>
+      )}
+
+      {showOutline ? (
+        <details className="border-t bg-muted/15">
+          <summary className="flex cursor-pointer list-none items-center gap-2 px-4 py-3 text-xs font-medium marker:hidden">
+            <ListTree aria-hidden className="size-4" />
+            Cấu trúc bài viết · {document.blocks.length.toLocaleString(
+              "vi-VN",
+            )}{" "}
+            khối
+          </summary>
+          <div className="grid gap-1 border-t p-3">
+            {document.blocks.map((block, index) => {
+              const icon =
+                block.type === "heading" ? (
+                  <Heading2 aria-hidden />
+                ) : block.type === "quote" ? (
+                  <Quote aria-hidden />
+                ) : block.type === "list" ? (
+                  block.ordered ? (
+                    <ListOrdered aria-hidden />
+                  ) : (
+                    <List aria-hidden />
+                  )
+                ) : block.type === "code" ? (
+                  <Code2 aria-hidden />
+                ) : block.type === "image" ? (
+                  <ImagePlus aria-hidden />
+                ) : block.type === "video" ? (
+                  <Video aria-hidden />
+                ) : (
+                  <Pilcrow aria-hidden />
+                );
+              return (
+                <button
+                  className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs hover:bg-muted"
+                  key={block.id}
+                  type="button"
+                  onClick={() => focusTopLevelBlock(editor, index)}
+                >
+                  <span className="[&_svg]:size-3.5">{icon}</span>
+                  <span className="truncate">
+                    {index + 1}. {block.type}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </details>
+      ) : null}
+
+      {editorError ? (
+        <p
+          aria-live="polite"
+          className="border-t border-destructive/35 bg-destructive/5 px-4 py-3 text-xs text-destructive"
+        >
+          {editorError}
+        </p>
+      ) : null}
+
+      <div className="sr-only" aria-hidden={!mediaPickerOpen}>
+        <MediaPickerField
+          id="cms-rich-text-media-picker"
+          label="Ảnh nội dung"
+          open={mediaPickerOpen}
+          value=""
+          onAssetSelect={insertImage}
+          onChange={() => undefined}
+          onOpenChange={setMediaPickerOpen}
+        />
+      </div>
     </div>
   );
 }

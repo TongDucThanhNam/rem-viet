@@ -1,82 +1,49 @@
 import {
   CmsDraftStatusSlots,
   areCmsRevisionValuesEqual,
-  compareCmsRevisionFieldDetails,
   useCmsAutosave,
   useCmsFocusWorkspace,
-  useCmsPreviewConnection,
   type CmsDraftSaveState,
-  type CmsRevisionFieldDefinition,
 } from "@agency/cms-admin";
 import {
   commitCmsDraftHistory,
   createCmsDraftHistory,
-  createCmsVisualPreviewSession,
   redoCmsDraftHistory,
   undoCmsDraftHistory,
 } from "@agency/cms-visual-editor";
-import { remVietRichTextBlockLabels } from "@agency/cms-template-rem-viet";
-import { RemVietEditorShell } from "@agency/cms-template-rem-viet/admin";
-import {
-  parseRichTextDocument,
-  postRevisionSnapshotSchema,
-  type PostRevisionSnapshot,
-} from "@rem-viet/cms";
+import { parseRichTextDocument } from "@rem-viet/cms";
 import { Button, buttonVariants } from "@rem-viet/ui/components/button";
-import { Card, CardContent } from "@rem-viet/ui/components/card";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, createFileRoute, redirect } from "@tanstack/react-router";
 import {
   AlertTriangle,
   Check,
   Clock3,
-  ExternalLink,
   Eye,
   FileText,
-  GitCompareArrows,
   History,
-  Maximize2,
-  Minimize2,
   Monitor,
-  Redo2,
-  RotateCcw,
   Send,
-  Smartphone,
-  Tablet,
-  Undo2,
 } from "lucide-react";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type RefObject,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { AdminPage } from "@/components/admin-shell";
-import CmsPostForm, {
+import {
   type CmsPostFormValues,
   validateCmsPostFormValues,
 } from "@/components/cms-post-form";
-import {
-  CmsPreviewConnectionIndicator,
-  CmsPreviewConnectionLabel,
-  CmsPreviewConnectionRecovery,
-} from "@/components/cms-preview-connection";
 import { ConfirmDestructiveAction } from "@/components/admin-ui";
 import EditorialReviewPanel from "@/components/editorial-review-panel";
-import RevisionFieldComparison from "@/components/revision-field-comparison";
+import PostEditorWorkspace from "@/components/post-editor-workspace";
+import PostRevisionHistory, {
+  type PostRevisionItem,
+} from "@/components/post-revision-history";
+import PostResponsivePreview from "@/components/post-responsive-preview";
 import { getAdminUser } from "@/functions/get-admin-user";
 import { useSaveBeforeNavigation } from "@/hooks/use-save-before-navigation";
-import {
-  isPostPreviewCompositionCommand,
-  isPostPreviewSelectCommand,
-  type PostPreviewField,
-} from "@/lib/post-preview";
 import type { PostRichTextCompositionCommand } from "@/lib/post-rich-text-composition";
 import { applyPostRichTextComposition } from "@/lib/post-rich-text-composition";
-import { siteManifest } from "@/lib/site-config";
 import { useTRPC } from "@/utils/trpc";
 
 export const Route = createFileRoute("/admin/posts/$postId/edit")({
@@ -103,141 +70,6 @@ type PostFormSource = Omit<CmsPostFormValues, "content" | "slug"> & {
   version: number;
 };
 
-type PostRevisionRow = {
-  id: string;
-  version: number;
-  note: string;
-  createdAt: string | Date;
-  snapshot: PostRevisionSnapshot;
-};
-
-function summarizePostContent(content: string) {
-  const document = parseRichTextDocument(content);
-  if (!document) {
-    return content.trim()
-      ? `Nội dung định dạng cũ · ${[...content].length.toLocaleString("vi-VN")} ký tự`
-      : "Để trống";
-  }
-  const counts = new Map<string, number>();
-  for (const block of document.blocks) {
-    const label =
-      remVietRichTextBlockLabels[block.type].toLocaleLowerCase("vi");
-    counts.set(label, (counts.get(label) ?? 0) + 1);
-  }
-  return `${document.blocks.length} block · ${[...counts]
-    .map(([label, count]) => `${count} ${label}`)
-    .join(", ")}`;
-}
-
-const postRevisionFields = [
-  {
-    key: "title",
-    label: "Tiêu đề",
-    read: (value) => value.title,
-    summarize: (value) => value.title,
-  },
-  {
-    key: "slug",
-    label: "Đường dẫn",
-    read: (value) => value.slug,
-    summarize: (value) => `/${value.slug ?? ""}`,
-  },
-  {
-    key: "folder",
-    label: "Thư mục workflow",
-    read: (value) => value.folder,
-    summarize: (value) => value.folder || "Thư mục gốc",
-  },
-  {
-    key: "description",
-    label: "Mô tả",
-    read: (value) => value.description,
-    summarize: (value) => value.description,
-  },
-  {
-    key: "coverImage",
-    label: "Ảnh bìa",
-    read: (value) => value.coverImage,
-    summarize: (value) => (value.coverImage ? "Có ảnh" : "Để trống"),
-  },
-  {
-    key: "tags",
-    label: "Thẻ",
-    read: (value) => value.tags,
-    summarize: (value) => value.tags.join(", "),
-  },
-  {
-    key: "content",
-    label: "Nội dung bài viết",
-    read: (value) => value.content,
-    summarize: (value) => summarizePostContent(value.content),
-  },
-  {
-    key: "publishDate",
-    label: "Ngày xuất bản",
-    read: (value) => value.publishDate,
-    summarize: (value) => value.publishDate,
-  },
-  {
-    key: "seoTitle",
-    label: "Tiêu đề SEO",
-    read: (value) => value.seoTitle,
-    summarize: (value) => value.seoTitle,
-  },
-  {
-    key: "seoDescription",
-    label: "Mô tả SEO",
-    read: (value) => value.seoDescription,
-    summarize: (value) => value.seoDescription,
-  },
-  {
-    key: "canonicalUrl",
-    label: "Canonical URL",
-    read: (value) => value.canonicalUrl,
-    summarize: (value) => value.canonicalUrl || "Để trống",
-  },
-  {
-    key: "ogImage",
-    label: "Ảnh chia sẻ",
-    read: (value) => value.ogImage,
-    summarize: (value) => (value.ogImage ? "Có ảnh" : "Để trống"),
-  },
-  {
-    key: "robotsIndex",
-    label: "Cho phép lập chỉ mục",
-    read: (value) => value.robotsIndex,
-    summarize: (value) => (value.robotsIndex ? "Bật" : "Tắt"),
-  },
-  {
-    key: "robotsFollow",
-    label: "Cho phép theo liên kết",
-    read: (value) => value.robotsFollow,
-    summarize: (value) => (value.robotsFollow ? "Bật" : "Tắt"),
-  },
-] as const satisfies readonly CmsRevisionFieldDefinition<CmsPostFormValues>[];
-
-function formValuesFromRevision(
-  snapshot: PostRevisionSnapshot,
-): CmsPostFormValues {
-  const normalized = postRevisionSnapshotSchema.parse(snapshot);
-  return {
-    title: normalized.title,
-    slug: normalized.slug,
-    folder: normalized.folder,
-    description: normalized.description,
-    coverImage: normalized.coverImage,
-    tags: normalized.tags,
-    content: normalized.content,
-    publishDate: normalized.publishDate,
-    seoTitle: normalized.seoTitle,
-    seoDescription: normalized.seoDescription,
-    canonicalUrl: normalized.canonicalUrl,
-    ogImage: normalized.ogImage,
-    robotsIndex: normalized.robotsIndex,
-    robotsFollow: normalized.robotsFollow,
-  };
-}
-
 function formValuesFromPost(post: PostFormSource): CmsPostFormValues {
   return {
     title: post.title,
@@ -258,435 +90,6 @@ function formValuesFromPost(post: PostFormSource): CmsPostFormValues {
     robotsIndex: post.robotsIndex,
     robotsFollow: post.robotsFollow,
   };
-}
-
-type PostPreviewDevice = "desktop" | "tablet" | "mobile";
-
-const postPreviewFieldTargets = {
-  publishDate: { label: "Ngày xuất bản", controlId: "post-publish-date" },
-  title: { label: "Tiêu đề", controlId: "post-title" },
-  description: { label: "Mô tả", controlId: "post-description" },
-  coverImage: { label: "Ảnh đại diện", controlId: "post-cover" },
-  tags: { label: "Thẻ", controlId: "post-tags" },
-  content: { label: "Nội dung bài viết", controlId: "post-content" },
-} satisfies Record<PostPreviewField, { label: string; controlId: string }>;
-
-const postPreviewProfiles = {
-  desktop: { label: "Desktop", width: 1440, height: 900, icon: Monitor },
-  tablet: { label: "Tablet", width: 768, height: 1024, icon: Tablet },
-  mobile: { label: "Mobile", width: 390, height: 844, icon: Smartphone },
-} satisfies Record<
-  PostPreviewDevice,
-  { label: string; width: number; height: number; icon: typeof Monitor }
->;
-
-function PostResponsivePreview({
-  canRedo,
-  canUndo,
-  onComposition,
-  onRedo,
-  onSelectedBlockChange,
-  onUndo,
-  onWorkspaceFocusChange,
-  postId,
-  values,
-  version,
-  previewChannel,
-  workspaceFocusTriggerRef,
-  workspaceFocused,
-}: {
-  canRedo: boolean;
-  canUndo: boolean;
-  onComposition: (command: PostRichTextCompositionCommand) => void;
-  onRedo: () => void;
-  onSelectedBlockChange: (index: number | null) => void;
-  onUndo: () => void;
-  onWorkspaceFocusChange: (focused: boolean) => void;
-  postId: string;
-  values: CmsPostFormValues;
-  version: number;
-  previewChannel: Readonly<{
-    conflictToken: string;
-    sessionBinding: string;
-    sessionId: string;
-  }>;
-  workspaceFocusTriggerRef: RefObject<HTMLButtonElement | null>;
-  workspaceFocused: boolean;
-}) {
-  const [device, setDevice] = useState<PostPreviewDevice>("desktop");
-  const [scale, setScale] = useState(0.4);
-  const [selectedField, setSelectedField] = useState<PostPreviewField | null>(
-    null,
-  );
-  const [selectedBlockIndex, setSelectedBlockIndex] = useState<number | null>(
-    null,
-  );
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const frameRef = useRef<HTMLIFrameElement>(null);
-  const {
-    markConnected,
-    markFrameLoading,
-    markFrameLoaded,
-    reloadKey,
-    retry,
-    status: connectionStatus,
-  } = useCmsPreviewConnection();
-  const valuesRef = useRef(values);
-  const onCompositionRef = useRef(onComposition);
-  const onSelectedBlockChangeRef = useRef(onSelectedBlockChange);
-  const selectedFieldRef = useRef(selectedField);
-  const selectedBlockIndexRef = useRef(selectedBlockIndex);
-  const shouldFocusInspectorRef = useRef(false);
-  const versionRef = useRef(version);
-  const profile = postPreviewProfiles[device];
-  const standalonePreviewUrl = `/admin/posts/${encodeURIComponent(postId)}/preview`;
-  const previewUrl = `${standalonePreviewUrl}?${new URLSearchParams({
-    cmsBinding: previewChannel.sessionBinding,
-    cmsConflict: previewChannel.conflictToken,
-    cmsSession: previewChannel.sessionId,
-  })}`;
-  const channelReadyRef = useRef(false);
-  const previewSessionRef = useRef<{
-    key: string;
-    session: ReturnType<typeof createCmsVisualPreviewSession>;
-  } | null>(null);
-  valuesRef.current = values;
-  onCompositionRef.current = onComposition;
-  onSelectedBlockChangeRef.current = onSelectedBlockChange;
-  selectedFieldRef.current = selectedField;
-  selectedBlockIndexRef.current = selectedBlockIndex;
-  versionRef.current = version;
-  const getPreviewSession = useCallback(() => {
-    const key = [
-      postId,
-      previewChannel.sessionId,
-      previewChannel.sessionBinding,
-      previewChannel.conflictToken,
-      reloadKey,
-    ].join(":");
-    if (previewSessionRef.current?.key !== key) {
-      previewSessionRef.current = {
-        key,
-        session: createCmsVisualPreviewSession({
-          source: "host",
-          expectedSource: "preview",
-          identity: {
-            siteId: siteManifest.id,
-            documentId: postId,
-            documentType: "post",
-            sessionId: previewChannel.sessionId,
-            sessionBinding: previewChannel.sessionBinding,
-            documentVersion: 0,
-            conflictToken: previewChannel.conflictToken,
-          },
-          allowedOrigins: new Set([window.location.origin]),
-        }),
-      };
-    }
-    return previewSessionRef.current.session;
-  }, [
-    postId,
-    previewChannel.conflictToken,
-    previewChannel.sessionBinding,
-    previewChannel.sessionId,
-    reloadKey,
-  ]);
-
-  const sendWorkingCopy = useCallback(() => {
-    if (!channelReadyRef.current) return;
-    const target = frameRef.current?.contentWindow;
-    if (!target) return;
-    const session = getPreviewSession();
-    const envelope = session.createVersionedState(
-      {
-        postId,
-        revision: versionRef.current,
-        selectedField: selectedFieldRef.current,
-        selectedBlockIndex: selectedBlockIndexRef.current,
-        values: valuesRef.current,
-      },
-      versionRef.current,
-    );
-    if (!envelope) return;
-    target.postMessage(envelope, window.location.origin);
-  }, [getPreviewSession, postId]);
-
-  useEffect(() => {
-    channelReadyRef.current = false;
-    markFrameLoading();
-  }, [getPreviewSession, markFrameLoading]);
-
-  useEffect(() => {
-    sendWorkingCopy();
-  }, [selectedBlockIndex, selectedField, sendWorkingCopy, values]);
-
-  useEffect(() => {
-    const receiveReady = (event: MessageEvent<unknown>) => {
-      if (
-        event.origin !== window.location.origin ||
-        event.source !== frameRef.current?.contentWindow ||
-        !event.data
-      )
-        return;
-      const validation = getPreviewSession().receive({
-        value: event.data,
-        origin: event.origin,
-      });
-      if (!validation.accepted) return;
-      const payload = validation.envelope.payload;
-      if (payload.type === "ready") {
-        channelReadyRef.current = true;
-        markConnected();
-        sendWorkingCopy();
-        return;
-      }
-      if (payload.type === "ack") {
-        sendWorkingCopy();
-        return;
-      }
-      if (payload.type !== "command") return;
-      if (isPostPreviewSelectCommand(payload.command)) {
-        const command = payload.command;
-        if (
-          command.blockIndex !== undefined &&
-          (command.content !== valuesRef.current.content ||
-            parseRichTextDocument(valuesRef.current.content)?.blocks[
-              command.blockIndex
-            ]?.id !== command.blockId)
-        )
-          return;
-        shouldFocusInspectorRef.current = true;
-        setSelectedField(command.field);
-        const blockIndex = command.blockIndex ?? null;
-        setSelectedBlockIndex(blockIndex);
-        onSelectedBlockChangeRef.current(blockIndex);
-      }
-      if (isPostPreviewCompositionCommand(payload.command)) {
-        if (payload.command.content !== valuesRef.current.content) return;
-        shouldFocusInspectorRef.current = false;
-        setSelectedField("content");
-        setSelectedBlockIndex(null);
-        onSelectedBlockChangeRef.current(null);
-        onCompositionRef.current(payload.command.command);
-      }
-    };
-    window.addEventListener("message", receiveReady);
-    return () => window.removeEventListener("message", receiveReady);
-  }, [getPreviewSession, markConnected, sendWorkingCopy]);
-
-  useEffect(() => {
-    if (!selectedField || !shouldFocusInspectorRef.current) return;
-    shouldFocusInspectorRef.current = false;
-    const target = postPreviewFieldTargets[selectedField];
-    let focusFrame = 0;
-    const mountFrame = requestAnimationFrame(() => {
-      focusFrame = requestAnimationFrame(() => {
-        const control =
-          selectedField === "content"
-            ? document.querySelector<HTMLElement>(
-                "#post-content .cms-tiptap-prosemirror",
-              )
-            : document.getElementById(target.controlId);
-        control?.scrollIntoView({ behavior: "smooth", block: "center" });
-        control?.focus({ preventScroll: true });
-      });
-    });
-    return () => {
-      cancelAnimationFrame(mountFrame);
-      cancelAnimationFrame(focusFrame);
-    };
-  }, [selectedBlockIndex, selectedField]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const fitPreview = () => {
-      const availableWidth = Math.max(240, canvas.clientWidth - 48);
-      const availableHeight = Math.max(360, canvas.clientHeight - 48);
-      setScale(
-        Math.min(
-          1,
-          availableWidth / profile.width,
-          availableHeight / profile.height,
-        ),
-      );
-    };
-    fitPreview();
-    const observer = new ResizeObserver(fitPreview);
-    observer.observe(canvas);
-    return () => observer.disconnect();
-  }, [profile.height, profile.width]);
-
-  return (
-    <Card
-      className={
-        workspaceFocused
-          ? "h-full w-full overflow-hidden rounded-none border-0"
-          : "mx-auto w-full max-w-6xl overflow-hidden rounded-md"
-      }
-      data-cms-preview-connection={connectionStatus}
-      data-cms-selected-post-field={selectedField ?? "none"}
-      id="post-live-preview"
-    >
-      <CardContent
-        className={
-          workspaceFocused
-            ? "grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)_auto] p-0"
-            : "p-0"
-        }
-      >
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b bg-zinc-950 px-3 py-2.5 text-white">
-          <CmsPreviewConnectionIndicator
-            connectedText={
-              selectedField
-                ? `Từ canvas: ${postPreviewFieldTargets[selectedField].label}`
-                : "Nhấp nội dung để chỉnh · chưa cần lưu"
-            }
-            status={connectionStatus}
-            title={
-              <h2 className="truncate text-xs font-semibold">
-                Bản xem trước bài viết đang soạn
-              </h2>
-            }
-          />
-          <div className="flex items-center gap-1 rounded-md bg-white/8 p-1">
-            <button
-              aria-keyshortcuts="Control+Z Meta+Z"
-              aria-label="Hoàn tác thay đổi bài viết"
-              className="grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
-              data-cms-post-history-undo="true"
-              disabled={!canUndo}
-              title="Hoàn tác (Ctrl+Z)"
-              type="button"
-              onClick={onUndo}
-            >
-              <Undo2 aria-hidden className="size-3.5" />
-            </button>
-            <button
-              aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z"
-              aria-label="Làm lại thay đổi bài viết"
-              className="grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
-              data-cms-post-history-redo="true"
-              disabled={!canRedo}
-              title="Làm lại (Ctrl+Shift+Z)"
-              type="button"
-              onClick={onRedo}
-            >
-              <Redo2 aria-hidden className="size-3.5" />
-            </button>
-            <span aria-hidden className="mx-0.5 h-4 w-px bg-white/10" />
-            <button
-              aria-label={
-                workspaceFocused
-                  ? "Thoát chế độ tập trung bài viết"
-                  : "Mở chế độ tập trung bài viết"
-              }
-              aria-pressed={workspaceFocused}
-              className="hidden size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white xl:grid"
-              ref={workspaceFocusTriggerRef}
-              title={
-                workspaceFocused
-                  ? "Thoát chế độ tập trung (Esc)"
-                  : "Mở canvas và biểu mẫu trong chế độ tập trung"
-              }
-              type="button"
-              onClick={() => onWorkspaceFocusChange(!workspaceFocused)}
-            >
-              {workspaceFocused ? (
-                <Minimize2 aria-hidden className="size-3.5" />
-              ) : (
-                <Maximize2 aria-hidden className="size-3.5" />
-              )}
-            </button>
-            <span
-              aria-hidden
-              className="mx-0.5 hidden h-4 w-px bg-white/10 xl:block"
-            />
-            {(Object.keys(postPreviewProfiles) as PostPreviewDevice[]).map(
-              (key) => {
-                const previewProfile = postPreviewProfiles[key];
-                const Icon = previewProfile.icon;
-                return (
-                  <button
-                    aria-label={`Xem trước bài viết ${previewProfile.label}`}
-                    aria-pressed={device === key}
-                    className={
-                      device === key
-                        ? "grid size-7 place-items-center rounded bg-white text-zinc-950 shadow"
-                        : "grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
-                    }
-                    key={key}
-                    title={previewProfile.label}
-                    type="button"
-                    onClick={() => setDevice(key)}
-                  >
-                    <Icon aria-hidden className="size-3.5" />
-                  </button>
-                );
-              },
-            )}
-            <a
-              aria-label="Mở bản nháp bài viết đã lưu trong tab riêng"
-              className="grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
-              href={standalonePreviewUrl}
-              rel="noreferrer"
-              target="_blank"
-              title="Mở bản nháp đã lưu"
-            >
-              <ExternalLink aria-hidden className="size-3.5" />
-            </a>
-          </div>
-        </div>
-        <div
-          aria-label={`Khung xem trước bài viết ${profile.label}`}
-          className={`relative grid place-items-center overflow-auto bg-[radial-gradient(circle_at_center,rgba(24,24,27,0.08),transparent_64%)] p-6 ${workspaceFocused ? "min-h-0" : "min-h-[36rem]"}`}
-          ref={canvasRef}
-        >
-          <CmsPreviewConnectionRecovery
-            onRetry={retry}
-            status={connectionStatus}
-          />
-          <div
-            className="overflow-hidden rounded-md bg-white shadow-[0_24px_80px_rgba(0,0,0,0.25)] ring-1 ring-black/10 transition-[width,height] duration-300 motion-reduce:transition-none"
-            style={{
-              height: profile.height * scale,
-              width: profile.width * scale,
-            }}
-          >
-            <iframe
-              className="border-0 bg-white"
-              key={reloadKey}
-              onLoad={() => {
-                markFrameLoaded();
-                sendWorkingCopy();
-              }}
-              ref={frameRef}
-              src={previewUrl}
-              style={{
-                height: profile.height,
-                transform: `scale(${scale})`,
-                transformOrigin: "top left",
-                width: profile.width,
-              }}
-              title={`Xem trước bài viết ${profile.label}`}
-            />
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t bg-muted/40 px-3 py-2 text-[10px] text-muted-foreground">
-          <span>
-            {profile.width} × {profile.height} · {Math.round(scale * 100)}%
-          </span>
-          <CmsPreviewConnectionLabel
-            connectedLabel={
-              <>Bản làm việc trên bản nháp v{version} · riêng tư · trực tiếp</>
-            }
-            status={connectionStatus}
-            tone="light"
-          />
-        </div>
-      </CardContent>
-    </Card>
-  );
 }
 
 function EditPostRoute() {
@@ -1289,197 +692,78 @@ function EditPostRoute() {
               }
             />
           ) : null}
-          <RemVietEditorShell
-            className={
-              workspaceFocused
-                ? "fixed inset-3 z-[100] grid h-[calc(100dvh-1.5rem)] min-h-0 grid-cols-[minmax(0,1fr)_26rem] gap-0 overflow-hidden rounded-xl bg-background shadow-[0_30px_120px_rgba(0,0,0,0.45)] ring-1 ring-black/10"
-                : previewOpen
-                  ? "grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_minmax(24rem,38vw)]"
-                  : "contents"
-            }
-            data-cms-post-workspace-mode={
-              workspaceFocused ? "focused" : "standard"
-            }
+          <PostEditorWorkspace
             documentId={postId}
-            documentType="post"
-            label="Không gian biên tập bài viết trực quan"
-            mode={workspaceFocused ? "focused" : "standard"}
-            ref={workspaceRef}
-            onKeyDown={handleFocusedWorkspaceKeyDown}
-          >
-            {previewOpen || workspaceFocused ? (
-              <div
-                className={
-                  workspaceFocused
-                    ? "order-1 min-h-0 overflow-hidden border-r"
-                    : "order-2 min-w-0 2xl:sticky 2xl:top-20"
-                }
-              >
-                <PostResponsivePreview
-                  canRedo={canRedoDraft}
-                  canUndo={canUndoDraft}
-                  onComposition={handlePostComposition}
-                  onRedo={() => navigateDraftHistory("redo")}
-                  onSelectedBlockChange={setSelectedPostBlockIndex}
-                  onUndo={() => navigateDraftHistory("undo")}
-                  onWorkspaceFocusChange={(focused) => {
-                    setWorkspaceFocused(focused);
-                    if (focused) setPreviewOpen(true);
-                  }}
-                  postId={postId}
-                  previewChannel={session!.previewChannel}
-                  values={draftValues ?? formSeed}
+            formKey={`${postId}-${formEpoch}`}
+            formProps={{
+              canWrite,
+              contentValue: draftValues?.content,
+              contentVersion: workingVersion,
+              initialValues: formSeed,
+              isSubmitDisabled: saveState === "conflict",
+              isSubmitting: saveState === "saving",
+              onChange: handleFormChange,
+              onSelectedBlockChange: setSelectedPostBlockIndex,
+              selectedBlockIndex: selectedPostBlockIndex,
+              submitLabel: "Lưu thay đổi",
+              status: (
+                <PostSaveStatus
+                  lastSavedAt={lastSavedAt}
+                  state={saveState}
                   version={workingVersion}
-                  workspaceFocusTriggerRef={workspaceFocusTriggerRef}
-                  workspaceFocused={workspaceFocused}
                 />
-              </div>
-            ) : null}
-            <div
-              className={
-                workspaceFocused
-                  ? "order-2 min-h-0 overflow-y-auto border-l bg-background p-4"
-                  : previewOpen
-                    ? "order-1 min-w-0"
-                    : "contents"
-              }
-            >
-              <CmsPostForm
-                canWrite={canWrite}
-                contentValue={draftValues?.content}
-                contentVersion={workingVersion}
-                key={`${postId}-${formEpoch}`}
-                initialValues={formSeed}
-                isSubmitDisabled={saveState === "conflict"}
-                isSubmitting={saveState === "saving"}
-                onChange={handleFormChange}
+              ),
+              onSubmit: (values: CmsPostFormValues) =>
+                void saveNow(values, {
+                  announce: true,
+                  allowSlugDecision: true,
+                }),
+            }}
+            preview={
+              <PostResponsivePreview
+                canRedo={canRedoDraft}
+                canUndo={canUndoDraft}
+                onComposition={handlePostComposition}
+                onRedo={() => navigateDraftHistory("redo")}
                 onSelectedBlockChange={setSelectedPostBlockIndex}
-                selectedBlockIndex={selectedPostBlockIndex}
-                submitLabel="Lưu thay đổi"
-                status={
-                  <PostSaveStatus
-                    lastSavedAt={lastSavedAt}
-                    state={saveState}
-                    version={workingVersion}
-                  />
-                }
-                onSubmit={(values: CmsPostFormValues) =>
-                  void saveNow(values, {
-                    announce: true,
-                    allowSlugDecision: true,
-                  })
-                }
+                onUndo={() => navigateDraftHistory("undo")}
+                onWorkspaceFocusChange={(focused) => {
+                  setWorkspaceFocused(focused);
+                  if (focused) setPreviewOpen(true);
+                }}
+                postId={postId}
+                previewChannel={session!.previewChannel}
+                values={draftValues ?? formSeed}
+                version={workingVersion}
+                workspaceFocusTriggerRef={workspaceFocusTriggerRef}
+                workspaceFocused={workspaceFocused}
               />
-            </div>
-          </RemVietEditorShell>
+            }
+            previewOpen={previewOpen}
+            workspaceFocused={workspaceFocused}
+            workspaceRef={workspaceRef}
+            onWorkspaceKeyDown={handleFocusedWorkspaceKeyDown}
+          />
           {revisionsOpen ? (
-            <Card
-              className="mx-auto w-full max-w-4xl scroll-mt-20 rounded-md"
-              id="post-revision-history"
-            >
-              <CardContent className="grid gap-3">
-                <div className="flex items-center gap-2">
-                  <History className="size-4" />
-                  <h2 className="font-semibold">Phiên bản đã xuất bản</h2>
-                </div>
-                {((revisionsQuery.data ?? []) as PostRevisionRow[]).map(
-                  (revision) => {
-                    const fieldChanges = compareCmsRevisionFieldDetails(
-                      formValuesFromRevision(revision.snapshot),
-                      draftValues ?? formSeed,
-                      postRevisionFields,
-                    );
-                    const comparisonOpen = comparedRevisionId === revision.id;
-                    return (
-                      <div
-                        className="grid gap-3 border-t pt-3 text-xs"
-                        data-testid={`post-revision-v${revision.version}`}
-                        key={revision.id}
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <div>
-                            <strong>v{revision.version}</strong>
-                            <p className="text-muted-foreground">
-                              {revision.note || "Không có ghi chú"} ·{" "}
-                              {new Date(revision.createdAt).toLocaleString(
-                                "vi-VN",
-                              )}
-                            </p>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            <Button
-                              aria-controls={`post-revision-diff-${revision.version}`}
-                              aria-expanded={comparisonOpen}
-                              size="sm"
-                              type="button"
-                              variant="outline"
-                              onClick={() =>
-                                setComparedRevisionId((current) =>
-                                  current === revision.id ? null : revision.id,
-                                )
-                              }
-                            >
-                              <GitCompareArrows aria-hidden />
-                              {comparisonOpen ? "Ẩn thay đổi" : "So sánh"}
-                            </Button>
-                            {canPublish ? (
-                              <ConfirmDestructiveAction
-                                confirmLabel="Khôi phục bản nháp"
-                                confirmVariant="default"
-                                description={`Nội dung phiên bản v${revision.version} sẽ thay thế bản nháp hiện tại. Nội dung công khai chưa thay đổi.`}
-                                pending={restorePost.isPending}
-                                title={`Khôi phục phiên bản v${revision.version}?`}
-                                trigger={
-                                  <Button
-                                    disabled={restorePost.isPending || dirty}
-                                    size="sm"
-                                    type="button"
-                                    variant="secondary"
-                                  >
-                                    <RotateCcw />
-                                    Khôi phục bản nháp
-                                  </Button>
-                                }
-                                onConfirm={async () => {
-                                  await restorePost.mutateAsync({
-                                    postId,
-                                    revisionId: revision.id,
-                                    expectedVersion: workingVersion,
-                                  });
-                                  await reloadServerVersion();
-                                  setComparedRevisionId(null);
-                                  toast.success("Đã khôi phục vào bản nháp.");
-                                }}
-                              />
-                            ) : null}
-                          </div>
-                        </div>
-                        {comparisonOpen ? (
-                          <section
-                            aria-label={`Thay đổi của phiên bản v${revision.version}`}
-                            className="rounded-md bg-muted/50 p-3"
-                            id={`post-revision-diff-${revision.version}`}
-                          >
-                            <strong>So với bản nháp đang chỉnh sửa</strong>
-                            {fieldChanges.length ? (
-                              <div className="mt-3">
-                                <RevisionFieldComparison
-                                  changes={fieldChanges}
-                                />
-                              </div>
-                            ) : (
-                              <p className="mt-1 text-muted-foreground">
-                                Bản nháp hiện tại trùng với phiên bản này.
-                              </p>
-                            )}
-                          </section>
-                        ) : null}
-                      </div>
-                    );
-                  },
-                )}
-              </CardContent>
-            </Card>
+            <PostRevisionHistory
+              canRestore={canPublish}
+              comparedRevisionId={comparedRevisionId}
+              currentValues={draftValues ?? formSeed}
+              restoreDisabled={dirty}
+              restoring={restorePost.isPending}
+              revisions={(revisionsQuery.data ?? []) as PostRevisionItem[]}
+              onComparedRevisionChange={setComparedRevisionId}
+              onRestore={async (revision) => {
+                await restorePost.mutateAsync({
+                  postId,
+                  revisionId: revision.id,
+                  expectedVersion: workingVersion,
+                });
+                await reloadServerVersion();
+                setComparedRevisionId(null);
+                toast.success("Đã khôi phục vào bản nháp.");
+              }}
+            />
           ) : null}
         </div>
       ) : (

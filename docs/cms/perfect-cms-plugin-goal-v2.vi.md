@@ -269,7 +269,7 @@ Completion code:
 - [x] Persistence vẫn là safe structured document, không lưu arbitrary HTML/JSX.
 - [x] Markdown và media có adapter chính thức, không phải route-level hack.
 - [x] Metadata/SEO/workflow/revisions được disclose theo intent.
-- [ ] New/edit post dùng chung editor shell và draft state machine.
+- [x] New/edit post dùng chung editor shell và draft state machine.
 
 ### CMS-V2-P1-01 — UI map tool và hierarchy budget
 

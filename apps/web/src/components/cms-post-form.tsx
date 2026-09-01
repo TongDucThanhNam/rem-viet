@@ -37,7 +37,7 @@ export type CmsPostFormValues = {
   title: string;
 };
 
-type CmsPostFormProps = {
+export type CmsPostFormProps = {
   canWrite?: boolean;
   contentValue?: string;
   contentVersion?: number;

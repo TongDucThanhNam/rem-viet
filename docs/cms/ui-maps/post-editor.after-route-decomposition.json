@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "sourceDirectory": "apps/web/src",
+  "entryFile": "apps/web/src/routes/admin/posts/$postId/edit.tsx",
+  "rootComponent": "EditPostRoute",
+  "focus": null,
+  "scope": "down",
+  "layoutOnly": false,
+  "ancestorPath": [],
+  "metrics": {
+    "components": 25,
+    "disclosures": 9,
+    "interactiveControls": 70,
+    "maxDepth": 41,
+    "nodes": 851
+  },
+  "diagnostics": []
+}

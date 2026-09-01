@@ -3,9 +3,8 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 import { AdminPage } from "@/components/admin-shell";
-import CmsPostForm, {
-  type CmsPostFormValues,
-} from "@/components/cms-post-form";
+import type { CmsPostFormValues } from "@/components/cms-post-form";
+import PostEditorWorkspace from "@/components/post-editor-workspace";
 import { getAdminUser } from "@/functions/get-admin-user";
 import { useTRPC } from "@/utils/trpc";
 
@@ -41,11 +40,14 @@ function NewPostRoute() {
 
   return (
     <AdminPage>
-      <CmsPostForm
-        isSubmitting={createPost.isPending}
-        submitLabel="Tạo bài viết"
-        onSubmit={(values: CmsPostFormValues) => {
-          createPost.mutate(values);
+      <PostEditorWorkspace
+        documentId="new"
+        formProps={{
+          isSubmitting: createPost.isPending,
+          submitLabel: "Tạo bài viết",
+          onSubmit: (values: CmsPostFormValues) => {
+            createPost.mutate(values);
+          },
         }}
       />
     </AdminPage>

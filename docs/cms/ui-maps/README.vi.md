@@ -18,6 +18,7 @@ depth bất thường, quá nhiều control mặc định và regression kiến 
 | Persistent Admin shell |   160 |          7 |          13 |           3 |        16 |
 | Homepage authoring     |   932 |         15 |          68 |           9 |        33 |
 | Full post editor       |   955 |         21 |          91 |           9 |        35 |
+| Post sau decomposition |   851 |         25 |          70 |           9 |        41 |
 | Rich-text trước Tiptap |   250 |          5 |          35 |           3 |        30 |
 | Rich-text sau Tiptap   |   258 |         12 |          30 |           3 |        21 |
 
@@ -42,11 +43,10 @@ AdminHomeRoute
 EditPostRoute
 └─ AdminPage
    ├─ publish/schedule/review actions
-   ├─ preview workspace
-   ├─ post metadata form
-   ├─ rich-text block constructor
-   ├─ SEO controls
-   └─ revision history
+   ├─ PostEditorWorkspace
+   │  ├─ PostResponsivePreview
+   │  └─ CmsPostForm → CmsRichTextEditor
+   └─ PostRevisionHistory
 ```
 
 ## Artifact index
@@ -54,6 +54,7 @@ EditPostRoute
 - [`admin-shell.v2-p0.json`](./admin-shell.v2-p0.json)
 - [`homepage.before-canvas-refactor.json`](./homepage.before-canvas-refactor.json)
 - [`post-editor.before-writing-refactor.json`](./post-editor.before-writing-refactor.json)
+- [`post-editor.after-route-decomposition.json`](./post-editor.after-route-decomposition.json)
 - [`rich-text-editor.after-writing-refactor.json`](./rich-text-editor.after-writing-refactor.json)
 
 Full trees không được commit vì output của homepage/post dài hàng nghìn dòng và

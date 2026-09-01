@@ -20,7 +20,7 @@ import { Link, createFileRoute, redirect } from "@tanstack/react-router";
 import { Check, Copy, Edit } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import { AsyncState } from "@/components/admin-ui";
 import { getAdminUser } from "@/functions/get-admin-user";
 import { formatCurrency, formatProductPrice } from "@/lib/price";
@@ -71,7 +71,7 @@ function ProductDetailRoute() {
   );
 
   return (
-    <AdminShell
+    <AdminPage
       actions={
         data?.product ? (
           <Link
@@ -252,7 +252,7 @@ function ProductDetailRoute() {
           title="Không tìm thấy sản phẩm"
         />
       )}
-    </AdminShell>
+    </AdminPage>
   );
 }
 

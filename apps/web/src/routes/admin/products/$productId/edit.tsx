@@ -4,7 +4,7 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { PackageSearch } from "lucide-react";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import { AsyncState } from "@/components/admin-ui";
 import ProductForm, { type ProductFormValues } from "@/components/product-form";
 import { getAdminUser } from "@/functions/get-admin-user";
@@ -52,7 +52,7 @@ function EditProductRoute() {
   const data = productQuery.data?.data;
 
   return (
-    <AdminShell>
+    <AdminPage>
       {productQuery.isLoading ? (
         <div
           aria-label="Đang tải sản phẩm"
@@ -120,6 +120,6 @@ function EditProductRoute() {
           </div>
         </div>
       )}
-    </AdminShell>
+    </AdminPage>
   );
 }

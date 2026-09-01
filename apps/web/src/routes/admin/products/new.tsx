@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import ProductForm, { type ProductFormValues } from "@/components/product-form";
 import { getAdminUser } from "@/functions/get-admin-user";
 import { useTRPC } from "@/utils/trpc";
@@ -37,7 +37,7 @@ function NewProductRoute() {
   );
 
   return (
-    <AdminShell>
+    <AdminPage>
       <ProductForm
         categories={categoriesQuery.data ?? []}
         isSubmitting={createProduct.isPending}
@@ -54,6 +54,6 @@ function NewProductRoute() {
           });
         }}
       />
-    </AdminShell>
+    </AdminPage>
   );
 }

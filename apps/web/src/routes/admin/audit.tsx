@@ -16,7 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import { AsyncState } from "@/components/admin-ui";
 import { getAdminUser } from "@/functions/get-admin-user";
 import { useTRPC } from "@/utils/trpc";
@@ -48,7 +48,7 @@ function AuditAdminRoute() {
   );
 
   return (
-    <AdminShell>
+    <AdminPage>
       <div className="mx-auto grid w-full max-w-7xl gap-5">
         <Card className="rounded-md">
           <CardContent className="grid gap-4 md:grid-cols-2">
@@ -191,6 +191,6 @@ function AuditAdminRoute() {
           </CardContent>
         </Card>
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }

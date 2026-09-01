@@ -36,20 +36,20 @@ import { authClient } from "@/lib/auth-client";
 import { siteManifest } from "@/lib/site-config";
 
 type AdminShellProps = {
+  defaultSidebarExpanded?: boolean;
+  children: ReactNode;
+};
+
+export type AdminPageProps = {
   titleOverride?: string;
   actions?: ReactNode;
-  defaultSidebarExpanded?: boolean;
   hideHeading?: boolean;
   legacyContentFrame?: boolean;
   children: ReactNode;
 };
 
 export default function AdminShell({
-  titleOverride,
-  actions,
   defaultSidebarExpanded = true,
-  hideHeading = false,
-  legacyContentFrame = false,
   children,
 }: AdminShellProps) {
   const navigate = useNavigate();
@@ -87,8 +87,7 @@ export default function AdminShell({
   const userName = session?.user.name || "Nam Tong";
   const userEmail = session?.user.email || "Đang xác minh tài khoản";
   const routeMeta = getAdminRouteMeta(pathname);
-  const title = titleOverride ?? routeMeta.title;
-  const resolvedDescription = routeMeta.description;
+  const title = routeMeta.title;
   const activeGroupLabel = routeMeta.sectionLabel;
 
   useEffect(() => setIsHydrated(true), []);
@@ -206,37 +205,7 @@ export default function AdminShell({
               />
             </header>
 
-            <div
-              className={cn(
-                "mt-3 flex-1 bg-background sm:mt-4",
-                legacyContentFrame ? "" : "border border-border p-4 sm:p-6",
-              )}
-            >
-              {hideHeading ? null : (
-                <div className="flex flex-col justify-between gap-4 border-b pb-5 sm:flex-row sm:items-end">
-                  <div className="min-w-0">
-                    <div className="mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                      <UserRound aria-hidden className="size-3.5" />
-                      Quản trị
-                    </div>
-                    <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-                      {title}
-                    </h1>
-                    {resolvedDescription ? (
-                      <p className="mt-2 text-xs text-muted-foreground">
-                        {resolvedDescription}
-                      </p>
-                    ) : null}
-                  </div>
-                  {actions ? (
-                    <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
-                      {actions}
-                    </div>
-                  ) : null}
-                </div>
-              )}
-              <div className={hideHeading ? "" : "mt-6"}>{children}</div>
-            </div>
+            <div className="mt-3 flex-1 sm:mt-4">{children}</div>
           </div>
         </section>
         <AdminCommandCenter
@@ -247,6 +216,59 @@ export default function AdminShell({
         />
       </main>
     </Sheet>
+  );
+}
+
+export function AdminPage({
+  actions,
+  children,
+  hideHeading = false,
+  legacyContentFrame = false,
+  titleOverride,
+}: AdminPageProps) {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+  const routeMeta = getAdminRouteMeta(pathname);
+  const title = titleOverride ?? routeMeta.title;
+
+  useEffect(() => {
+    document.title = `${title} | ${siteManifest.name}`;
+  }, [title]);
+
+  return (
+    <div
+      className={cn(
+        "min-h-full bg-background",
+        legacyContentFrame ? "" : "border border-border p-4 sm:p-6",
+      )}
+      data-admin-page
+    >
+      {hideHeading ? null : (
+        <div className="flex flex-col justify-between gap-4 border-b pb-5 sm:flex-row sm:items-end">
+          <div className="min-w-0">
+            <div className="mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+              <UserRound aria-hidden className="size-3.5" />
+              Quản trị
+            </div>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+              {title}
+            </h1>
+            {routeMeta.description ? (
+              <p className="mt-2 text-xs text-muted-foreground">
+                {routeMeta.description}
+              </p>
+            ) : null}
+          </div>
+          {actions ? (
+            <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
+              {actions}
+            </div>
+          ) : null}
+        </div>
+      )}
+      <div className={hideHeading ? "" : "mt-6"}>{children}</div>
+    </div>
   );
 }
 

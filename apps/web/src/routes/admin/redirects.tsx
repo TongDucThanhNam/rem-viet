@@ -18,7 +18,7 @@ import { ExternalLink, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import {
   AsyncState,
   ConfirmDestructiveAction,
@@ -101,7 +101,7 @@ function RedirectsAdmin() {
   }
 
   return (
-    <AdminShell>
+    <AdminPage>
       <div className="mx-auto grid w-full max-w-6xl gap-5">
         <Card className="rounded-md">
           <CardContent>
@@ -296,6 +296,6 @@ function RedirectsAdmin() {
           </CardContent>
         </Card>
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }

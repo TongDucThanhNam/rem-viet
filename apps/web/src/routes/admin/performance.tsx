@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import { AsyncState, StatusBadge } from "@/components/admin-ui";
 import ReleaseConfidencePanel from "@/components/release-confidence-panel";
 import { getAdminUser } from "@/functions/get-admin-user";
@@ -178,7 +178,7 @@ function PerformanceAdminRoute() {
   };
 
   return (
-    <AdminShell
+    <AdminPage
       actions={
         <div className="flex gap-2">
           <Button
@@ -635,6 +635,6 @@ function PerformanceAdminRoute() {
           </Card>
         ) : null}
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }

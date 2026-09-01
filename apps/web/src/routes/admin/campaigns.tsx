@@ -21,7 +21,7 @@ import { ExternalLink, Languages, Send, Undo2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import { ConfirmDestructiveAction } from "@/components/admin-ui";
 import {
   CmsPreviewConnectionIndicator,
@@ -523,29 +523,29 @@ function AdminCampaignsRoute() {
 
   if (mode === "edit" && campaignQuery.isLoading) {
     return (
-      <AdminShell>
+      <AdminPage>
         <p aria-live="polite" className="text-sm text-muted-foreground">
           Đang tải bản nháp chiến dịch…
         </p>
-      </AdminShell>
+      </AdminPage>
     );
   }
 
   if (mode === "edit" && !campaign) {
     return (
-      <AdminShell>
+      <AdminPage>
         <div role="alert" className="grid gap-3 text-sm">
           <p>Không tìm thấy bản nháp chiến dịch cho locale {locale}.</p>
           <a className="text-primary underline" href={campaignHref({ locale })}>
             Quay lại danh sách
           </a>
         </div>
-      </AdminShell>
+      </AdminPage>
     );
   }
 
   return (
-    <AdminShell actions={actions}>
+    <AdminPage actions={actions}>
       <div className="grid gap-6">
         {mode !== "list" ? (
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
@@ -628,6 +628,6 @@ function AdminCampaignsRoute() {
           ) : null}
         </div>
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }

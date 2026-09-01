@@ -23,7 +23,7 @@ import { MailPlus, Plus, ShieldCheck, UserX } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import { AsyncState, ConfirmDestructiveAction } from "@/components/admin-ui";
 import { ServiceAccountManager } from "@/components/service-account-manager";
 import { getAdminUser } from "@/functions/get-admin-user";
@@ -115,7 +115,7 @@ function StaffAdminRoute() {
   }
 
   return (
-    <AdminShell>
+    <AdminPage>
       <div className="mx-auto grid w-full max-w-6xl gap-5">
         <Card className="rounded-md">
           <CardHeader>
@@ -379,6 +379,6 @@ function StaffAdminRoute() {
 
         <ServiceAccountManager />
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }

@@ -35,7 +35,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import {
   AsyncState,
   ConfirmDestructiveAction,
@@ -435,7 +435,7 @@ function AdminMediaRoute() {
   }
 
   return (
-    <AdminShell>
+    <AdminPage>
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 pb-16">
         <Card className="rounded-md border bg-background">
           <CardContent>
@@ -1007,6 +1007,6 @@ function AdminMediaRoute() {
           </div>
         ) : null}
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }

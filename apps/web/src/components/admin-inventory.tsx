@@ -21,7 +21,7 @@ import {
 import { useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import {
   AdminPageHeader,
   AsyncState,
@@ -74,7 +74,7 @@ export function InventoryPage() {
   );
 
   return (
-    <AdminShell hideHeading>
+    <AdminPage hideHeading>
       <div className="grid gap-5">
         <AdminPageHeader
           actions={
@@ -221,7 +221,7 @@ export function InventoryPage() {
           )}
         </div>
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }
 
@@ -291,7 +291,7 @@ export function AddInventoryPage({
   }
 
   return (
-    <AdminShell
+    <AdminPage
       actions={
         <Link
           className={buttonVariants({ size: "sm", variant: "outline" })}
@@ -405,6 +405,6 @@ export function AddInventoryPage({
           </form>
         </FormSection>
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }

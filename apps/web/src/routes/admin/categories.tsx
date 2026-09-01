@@ -15,7 +15,7 @@ import { Edit, Plus, Search, Trash2, X } from "lucide-react";
 import { useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import {
   AdminPageHeader,
   AsyncState,
@@ -151,7 +151,7 @@ function AdminCategoriesRoute() {
   }
 
   return (
-    <AdminShell hideHeading>
+    <AdminPage hideHeading>
       <div className="grid gap-5">
         <AdminPageHeader
           eyebrow={`${filteredCategories.length} trên ${categories.length} danh mục`}
@@ -307,6 +307,6 @@ function AdminCategoriesRoute() {
           )}
         </div>
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }

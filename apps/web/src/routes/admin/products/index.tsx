@@ -39,7 +39,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import {
   AdminPageHeader,
   AsyncState,
@@ -371,7 +371,7 @@ function AdminProductsRoute() {
   }
 
   return (
-    <AdminShell hideHeading>
+    <AdminPage hideHeading>
       <div className="grid gap-5">
         <AdminPageHeader
           actions={
@@ -752,7 +752,7 @@ function AdminProductsRoute() {
           )}
         </div>
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }
 

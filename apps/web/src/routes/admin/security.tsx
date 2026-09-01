@@ -21,7 +21,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import { getAdminUser } from "@/functions/get-admin-user";
 import { authClient } from "@/lib/auth-client";
 import { siteConfig } from "@/lib/site-config";
@@ -186,7 +186,7 @@ function SecurityRoute() {
   }
 
   return (
-    <AdminShell>
+    <AdminPage>
       <div className="mx-auto grid w-full max-w-5xl gap-5">
         <Card className="rounded-md">
           <CardHeader>
@@ -526,6 +526,6 @@ function SecurityRoute() {
           </CardContent>
         </Card>
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }

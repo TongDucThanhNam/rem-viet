@@ -54,7 +54,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import CmsPostForm, {
   type CmsPostFormValues,
   validateCmsPostFormValues,
@@ -1049,7 +1049,7 @@ function EditPostRoute() {
   });
 
   return (
-    <AdminShell
+    <AdminPage
       actions={
         formSeed && workingVersion !== null ? (
           <div className="flex flex-wrap gap-2">
@@ -1440,7 +1440,7 @@ function EditPostRoute() {
           </Link>
         </div>
       )}
-    </AdminShell>
+    </AdminPage>
   );
 }
 

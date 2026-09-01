@@ -25,7 +25,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import {
   AdminPageHeader,
   AsyncState,
@@ -207,7 +207,7 @@ function AdminDashboardRoute() {
         : "Dữ liệu đã sẵn sàng";
 
   return (
-    <AdminShell hideHeading>
+    <AdminPage hideHeading>
       <div className="grid gap-5">
         <AdminPageHeader
           actions={
@@ -346,7 +346,7 @@ function AdminDashboardRoute() {
           </>
         )}
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }
 

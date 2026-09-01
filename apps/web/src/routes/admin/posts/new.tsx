@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import CmsPostForm, {
   type CmsPostFormValues,
 } from "@/components/cms-post-form";
@@ -40,7 +40,7 @@ function NewPostRoute() {
   );
 
   return (
-    <AdminShell>
+    <AdminPage>
       <CmsPostForm
         isSubmitting={createPost.isPending}
         submitLabel="Tạo bài viết"
@@ -48,6 +48,6 @@ function NewPostRoute() {
           createPost.mutate(values);
         }}
       />
-    </AdminShell>
+    </AdminPage>
   );
 }

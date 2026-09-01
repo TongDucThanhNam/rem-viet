@@ -17,7 +17,7 @@ import { Search, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import {
   AsyncState,
   ConfirmDestructiveAction,
@@ -117,7 +117,7 @@ function AdminLogsRoute() {
   }, [logs, search]);
 
   return (
-    <AdminShell>
+    <AdminPage>
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-4">
         <section className="flex flex-col justify-between gap-3 border p-3 md:flex-row md:items-end">
           <p className="text-xs text-muted-foreground" role="status">
@@ -247,6 +247,6 @@ function AdminLogsRoute() {
           </CardContent>
         </Card>
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }

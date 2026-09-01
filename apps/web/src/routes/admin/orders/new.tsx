@@ -13,7 +13,7 @@ import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import { getAdminUser } from "@/functions/get-admin-user";
 import { formatCurrency, parseProductPrice } from "@/lib/cart";
 import { normalizeVariantValues } from "@/lib/variants";
@@ -218,7 +218,7 @@ function NewOrderRoute() {
   }
 
   return (
-    <AdminShell
+    <AdminPage
       actions={
         <Link
           className={buttonVariants({ size: "sm", variant: "outline" })}
@@ -354,7 +354,7 @@ function NewOrderRoute() {
           </Card>
         </div>
       </form>
-    </AdminShell>
+    </AdminPage>
   );
 }
 

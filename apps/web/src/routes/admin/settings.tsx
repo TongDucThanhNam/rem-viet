@@ -49,7 +49,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import { AsyncState, ConfirmDestructiveAction } from "@/components/admin-ui";
 import MediaPickerField from "@/components/media-picker-field";
 import { getAdminUser } from "@/functions/get-admin-user";
@@ -1196,7 +1196,7 @@ function AdminSettingsRoute() {
   );
 
   return (
-    <AdminShell>
+    <AdminPage>
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(32rem,0.9fr)]">
         <section
           aria-label="Khôi phục thay đổi cấu hình"
@@ -1762,6 +1762,6 @@ function AdminSettingsRoute() {
         </div>
         <GlobalSettingsPreview chrome={previewChrome} />
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }

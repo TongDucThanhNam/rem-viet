@@ -37,7 +37,7 @@ import {
 import { useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import {
   AsyncState,
   ConfirmDestructiveAction,
@@ -449,7 +449,7 @@ function CmsOperationsAdmin() {
   }
 
   return (
-    <AdminShell>
+    <AdminPage>
       <div className="mx-auto grid w-full max-w-7xl gap-6">
         <Card
           aria-labelledby="cms-operations-calendar-title"
@@ -1332,6 +1332,6 @@ function CmsOperationsAdmin() {
           </CardContent>
         </Card>
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }

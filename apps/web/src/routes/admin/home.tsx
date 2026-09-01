@@ -82,7 +82,7 @@ import {
 import { toast } from "sonner";
 
 import AdminHomeBlockEditor from "@/components/admin-home-block-editor";
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import { ConfirmDestructiveAction } from "@/components/admin-ui";
 import {
   CmsPreviewConnectionIndicator,
@@ -1160,8 +1160,7 @@ function AdminHomeRoute() {
   };
 
   return (
-    <AdminShell
-      defaultSidebarExpanded={false}
+    <AdminPage
       actions={
         <div className="flex flex-wrap gap-2">
           <Button
@@ -1913,7 +1912,7 @@ function AdminHomeRoute() {
           </CardContent>
         </Card>
       )}
-    </AdminShell>
+    </AdminPage>
   );
 }
 

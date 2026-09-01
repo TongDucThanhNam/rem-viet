@@ -10,7 +10,7 @@ import { Download, RotateCcw, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import {
   AsyncState,
   ConfirmDestructiveAction,
@@ -97,7 +97,7 @@ function LeadsAdmin() {
   );
 
   return (
-    <AdminShell
+    <AdminPage
       actions={
         <a
           className={buttonVariants({ variant: "secondary" })}
@@ -285,6 +285,6 @@ function LeadsAdmin() {
           </Card>
         )}
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }

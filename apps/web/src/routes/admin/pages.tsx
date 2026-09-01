@@ -112,7 +112,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import {
   AsyncState,
   ConfirmDestructiveAction,
@@ -2497,7 +2497,7 @@ function AdminPagesRoute() {
   );
 
   return (
-    <AdminShell
+    <AdminPage
       actions={
         editingPage && workflow.revisions.available ? (
           <Button
@@ -3477,7 +3477,7 @@ function AdminPagesRoute() {
           </div>
         </form>
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }
 

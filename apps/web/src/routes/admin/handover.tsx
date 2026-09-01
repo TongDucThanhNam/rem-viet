@@ -2,7 +2,7 @@ import { roleHasCapability } from "@rem-viet/cms";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import HandoverPilotWorkspace from "@/components/handover-pilot-workspace";
 import { getAdminUser } from "@/functions/get-admin-user";
 import { useTRPC } from "@/utils/trpc";
@@ -26,7 +26,7 @@ function HandoverAdminRoute() {
   if (!session?.user) return null;
 
   return (
-    <AdminShell>
+    <AdminPage>
       <div className="mx-auto w-full max-w-7xl">
         <HandoverPilotWorkspace
           deployment={runtimeQuery.data?.deployment}
@@ -36,6 +36,6 @@ function HandoverAdminRoute() {
           operatorId={session.user.id}
         />
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }

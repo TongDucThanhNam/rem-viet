@@ -14,7 +14,7 @@ import { Edit, Eye, Plus, Search, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 import { toast } from "sonner";
 
-import AdminShell from "@/components/admin-shell";
+import { AdminPage } from "@/components/admin-shell";
 import {
   AdminPageHeader,
   AsyncState,
@@ -116,7 +116,7 @@ function AdminPostsRoute() {
   }
 
   return (
-    <AdminShell hideHeading>
+    <AdminPage hideHeading>
       <div className="grid gap-5">
         <AdminPageHeader
           actions={
@@ -344,6 +344,6 @@ function AdminPostsRoute() {
           )}
         </div>
       </div>
-    </AdminShell>
+    </AdminPage>
   );
 }

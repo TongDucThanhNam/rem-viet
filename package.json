@@ -118,6 +118,7 @@
     "cms:kit:release:publish": "bun scripts/publish-cms-kit-release.ts",
     "cms:kit:v1:verify": "bun scripts/verify-cms-kit-v1-evidence.ts",
     "cms:add-block": "bun scripts/cms-add-block.ts",
+    "ui-map": "bun scripts/generate-ui-map.ts",
     "cms:sanity:hosted": "bun packages/cms-provider-sanity/scripts/verify-hosted.ts",
     "cms:sanity:presentation": "bun packages/cms-provider-sanity/scripts/verify-presentation.ts",
     "cms:sanity:presentation:login": "bun packages/cms-provider-sanity/scripts/capture-presentation-auth.ts",
@@ -145,6 +146,8 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@babel/parser": "^7.29.8",
+    "@babel/traverse": "^7.29.8",
     "@cloudflare/workers-types": "^5.20260728.1",
     "@rem-viet/config": "workspace:*",
     "@types/node": "catalog:",

@@ -236,10 +236,10 @@ Refactor homepage thành application workspace:
 
 Completion code:
 
-- [ ] Tác vụ đổi text/ảnh không yêu cầu mở structure tree hoặc tìm schema field.
-- [ ] Canvas, outline và inspector dùng cùng selection/composition state machine.
+- [x] Tác vụ đổi text/ảnh không yêu cầu mở structure tree hoặc tìm schema field.
+- [x] Canvas, outline và inspector dùng cùng selection/composition state machine.
 - [ ] Design controls ghi typed variants, không ghi raw Tailwind/CSS.
-- [ ] Page settings/SEO/revisions không chiếm canvas mặc định.
+- [x] Page settings/SEO/revisions không chiếm canvas mặc định.
 - [ ] Homepage implementation tách khỏi route file lớn thành workspace modules.
 
 ### CMS-V2-P0-04 — Writing-first post editor
@@ -289,10 +289,10 @@ Tool phải:
 
 Completion code:
 
-- [ ] Script và dependency nằm trong monorepo, command chạy từ root.
-- [ ] ASCII/JSON output deterministic và path portable.
-- [ ] Baseline maps được index trong docs V2.
-- [ ] Map chỉ là architecture signal; browser/human quality vẫn ở verification index.
+- [x] Script và dependency nằm trong monorepo, command chạy từ root.
+- [x] ASCII/JSON output deterministic và path portable.
+- [x] Baseline maps được index trong docs V2.
+- [x] Map chỉ là architecture signal; browser/human quality vẫn ở verification index.
 
 ### CMS-V2-P1-02 — Route decomposition và reusable editor platform
 
@@ -355,7 +355,7 @@ state persistence và responsive layout lần thứ hai.
 - [ ] Post editor là một writing surface, có Markdown workflow và DAM node.
 - [ ] Raw MDX/HTML/JSX không đi qua persistence/render boundary.
 - [ ] SEO/workflow/scheduling/revisions/debug đều progressive disclosure.
-- [ ] UI map ASCII/JSON và baseline artifacts nằm trong repository.
+- [x] UI map ASCII/JSON và baseline artifacts nằm trong repository.
 - [ ] Monolithic homepage/post route được tách thành reusable modules.
 - [ ] V1 data, preview, autosave, conflict, permission và audit contracts được giữ.
 - [ ] Testing/human/release tasks chỉ được index ở V2 verification document.

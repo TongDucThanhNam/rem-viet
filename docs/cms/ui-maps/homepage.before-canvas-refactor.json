@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "sourceDirectory": "apps/web/src",
+  "entryFile": "apps/web/src/routes/admin/home.tsx",
+  "rootComponent": "AdminHomeRoute",
+  "focus": "AdminHomeRoute",
+  "scope": "down",
+  "layoutOnly": true,
+  "ancestorPath": [
+    {
+      "kind": "component",
+      "name": "AdminHomeRoute",
+      "fileRel": "apps/web/src/routes/admin/home.tsx"
+    }
+  ],
+  "metrics": {
+    "components": 15,
+    "disclosures": 9,
+    "interactiveControls": 68,
+    "maxDepth": 33,
+    "nodes": 932
+  },
+  "diagnostics": []
+}

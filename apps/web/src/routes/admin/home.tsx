@@ -57,6 +57,7 @@ import {
   GitCompareArrows,
   GripVertical,
   History,
+  ListTree,
   Maximize2,
   Minimize2,
   Monitor,
@@ -66,6 +67,7 @@ import {
   Save,
   Search,
   Send,
+  SlidersHorizontal,
   Smartphone,
   Tablet,
   Trash2,
@@ -291,6 +293,9 @@ function AdminHomeRoute() {
   const [conflictMessage, setConflictMessage] = useState<string | null>(null);
   const [previewDevice, setPreviewDevice] = useState<PreviewDevice>("desktop");
   const [workspaceFocused, setWorkspaceFocused] = useState(false);
+  const [structureOpen, setStructureOpen] = useState(false);
+  const [workflowPanelOpen, setWorkflowPanelOpen] = useState(false);
+  const [supportPanelsOpen, setSupportPanelsOpen] = useState(false);
   const [draggedBlockId, setDraggedBlockId] = useState<string | null>(null);
   const [sidebarComposerOpen, setSidebarComposerOpen] = useState(false);
   const [sidebarCatalogQuery, setSidebarCatalogQuery] = useState("");
@@ -1159,25 +1164,68 @@ function AdminHomeRoute() {
     });
   };
 
+  const scheduleControls = workflow.schedule.available ? (
+    <div className="grid gap-3 border-t pt-4 sm:grid-cols-[minmax(15rem,1fr)_auto] sm:items-end">
+      <div className="grid gap-1.5">
+        <Label htmlFor="home-schedule-at">Thời gian xuất bản</Label>
+        <Input
+          id="home-schedule-at"
+          min={new Date(Date.now() + 60_000).toISOString().slice(0, 16)}
+          type="datetime-local"
+          value={scheduleAt}
+          onChange={(event) => setScheduleAt(event.target.value)}
+        />
+      </div>
+      <Button
+        disabled={
+          !editorReady ||
+          !scheduleAt ||
+          schedulePage.isPending ||
+          saveState === "saving"
+        }
+        type="button"
+        variant="secondary"
+        onClick={() => void handleSchedule()}
+      >
+        <Clock3 aria-hidden /> Lên lịch
+      </Button>
+    </div>
+  ) : null;
+
   return (
     <AdminPage
       actions={
         <div className="flex flex-wrap gap-2">
           <Button
+            aria-pressed={structureOpen}
             type="button"
-            variant="outline"
-            onClick={() =>
-              document
-                .getElementById("home-revision-history")
-                ?.scrollIntoView({ behavior: "smooth", block: "start" })
-            }
+            variant={structureOpen ? "secondary" : "outline"}
+            onClick={() => setStructureOpen((open) => !open)}
+          >
+            <ListTree aria-hidden />
+            Cấu trúc
+          </Button>
+          <Button
+            aria-expanded={workflowPanelOpen}
+            type="button"
+            variant={workflowPanelOpen ? "secondary" : "outline"}
+            onClick={() => setWorkflowPanelOpen((open) => !open)}
+          >
+            <SlidersHorizontal aria-hidden />
+            Quy trình
+          </Button>
+          <Button
+            aria-expanded={supportPanelsOpen}
+            type="button"
+            variant={supportPanelsOpen ? "secondary" : "outline"}
+            onClick={() => setSupportPanelsOpen((open) => !open)}
           >
             <History aria-hidden />
-            Lịch sử
+            Trạng thái
           </Button>
           <CmsWorkflowActionSlots
             model={workflow}
-            order={["preview", "schedule", "publish"]}
+            order={["preview", "publish"]}
             slots={{
               preview: (
                 <a
@@ -1192,33 +1240,6 @@ function AdminHomeRoute() {
                 >
                   <Eye aria-hidden /> Xem bản nháp
                 </a>
-              ),
-              schedule: (
-                <>
-                  <input
-                    aria-label="Thời gian xuất bản"
-                    className="h-9 rounded-md border bg-background px-3 text-xs"
-                    min={new Date(Date.now() + 60_000)
-                      .toISOString()
-                      .slice(0, 16)}
-                    type="datetime-local"
-                    value={scheduleAt}
-                    onChange={(event) => setScheduleAt(event.target.value)}
-                  />
-                  <Button
-                    disabled={
-                      !editorReady ||
-                      !scheduleAt ||
-                      schedulePage.isPending ||
-                      saveState === "saving"
-                    }
-                    type="button"
-                    variant="secondary"
-                    onClick={() => void handleSchedule()}
-                  >
-                    <Clock3 aria-hidden /> Lên lịch
-                  </Button>
-                </>
               ),
               publish: (
                 <ConfirmDestructiveAction
@@ -1267,8 +1288,17 @@ function AdminHomeRoute() {
         </div>
       ) : null}
 
-      {editorReady && page ? (
-        <div className="mb-4">
+      {workflowPanelOpen && editorReady && page ? (
+        <section
+          aria-label="Quy trình biên tập Trang chủ"
+          className="mb-4 grid gap-4 border bg-muted/20 p-4"
+        >
+          <div>
+            <h2 className="text-sm font-semibold">Quy trình biên tập</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Review, lịch xuất bản và quyền nâng cao chỉ xuất hiện khi bạn cần.
+            </p>
+          </div>
           <EditorialReviewPanel
             commentGranted={
               session?.capabilities.includes("content.write") ?? false
@@ -1288,7 +1318,8 @@ function AdminHomeRoute() {
               session?.capabilities.includes("content.review.request") ?? false
             }
           />
-        </div>
+          {scheduleControls}
+        </section>
       ) : null}
 
       {editorReady ? (
@@ -1296,7 +1327,9 @@ function AdminHomeRoute() {
           className={`grid gap-4 xl:h-[calc(100dvh-10rem)] xl:min-h-[42rem] xl:gap-0 xl:overflow-hidden xl:border ${
             workspaceFocused
               ? "fixed inset-3 z-[100] rounded-xl bg-background shadow-[0_30px_120px_rgba(0,0,0,0.45)] ring-1 ring-black/10 xl:min-h-0 xl:grid-cols-[minmax(0,1fr)_26rem]"
-              : "xl:grid-cols-[17rem_minmax(0,1fr)_26rem]"
+              : structureOpen
+                ? "xl:grid-cols-[17rem_minmax(0,1fr)_26rem]"
+                : "xl:grid-cols-[minmax(0,1fr)_26rem]"
           }`}
           data-cms-home-workspace-mode={
             workspaceFocused ? "focused" : "standard"
@@ -1313,7 +1346,7 @@ function AdminHomeRoute() {
         >
           <aside
             className={
-              workspaceFocused
+              workspaceFocused || !structureOpen
                 ? "hidden"
                 : "order-1 grid content-start gap-3 xl:overflow-y-auto xl:border-r xl:bg-muted/20 xl:p-3"
             }
@@ -1694,10 +1727,10 @@ function AdminHomeRoute() {
           </div>
 
           <aside
-            className={`order-2 grid min-h-0 content-start gap-4 xl:overflow-hidden xl:bg-zinc-950 xl:p-3 ${
-              workspaceFocused
-                ? "xl:grid-rows-[minmax(0,1fr)]"
-                : "xl:grid-rows-[minmax(0,1fr)_auto]"
+            className={`order-2 grid min-h-0 content-start gap-4 xl:bg-zinc-950 xl:p-3 ${
+              workspaceFocused || !supportPanelsOpen
+                ? "xl:grid-rows-[minmax(0,1fr)] xl:overflow-hidden"
+                : "xl:grid-rows-[minmax(36rem,1fr)_auto_auto] xl:overflow-y-auto"
             }`}
           >
             <ResponsivePreview
@@ -1723,7 +1756,9 @@ function AdminHomeRoute() {
             />
 
             <Card
-              className={workspaceFocused ? "hidden" : undefined}
+              className={
+                workspaceFocused || !supportPanelsOpen ? "hidden" : undefined
+              }
               data-cms-home-supporting-panel="status"
             >
               <CardContent className="grid gap-3 text-sm">
@@ -1791,7 +1826,11 @@ function AdminHomeRoute() {
             </Card>
 
             <Card
-              className={workspaceFocused ? "hidden" : "scroll-mt-20"}
+              className={
+                workspaceFocused || !supportPanelsOpen
+                  ? "hidden"
+                  : "scroll-mt-20"
+              }
               data-cms-home-supporting-panel="revisions"
               id="home-revision-history"
             >

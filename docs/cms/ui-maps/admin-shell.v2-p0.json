@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "sourceDirectory": "apps/web/src",
+  "entryFile": "apps/web/src/components/admin-shell.tsx",
+  "rootComponent": "AdminShell",
+  "focus": "AdminShell",
+  "scope": "down",
+  "layoutOnly": true,
+  "ancestorPath": [
+    {
+      "kind": "component",
+      "name": "AdminShell",
+      "fileRel": "apps/web/src/components/admin-shell.tsx"
+    }
+  ],
+  "metrics": {
+    "components": 7,
+    "disclosures": 3,
+    "interactiveControls": 13,
+    "maxDepth": 16,
+    "nodes": 160
+  },
+  "diagnostics": []
+}

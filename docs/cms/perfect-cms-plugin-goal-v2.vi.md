@@ -216,8 +216,8 @@ Completion code:
 
 - [x] Mọi active Admin route dùng shared page primitive.
 - [x] Không còn heading/description bị lặp giữa shell và page body.
-- [ ] Advanced/destructive controls không nằm cùng cấp primary content.
-- [ ] Loading/empty/error/conflict dùng shared state primitive.
+- [x] Advanced/destructive controls không nằm cùng cấp primary content.
+- [x] Loading/empty/error/conflict dùng shared state primitive.
 
 ### CMS-V2-P0-03 — Homepage canvas-first authoring
 
@@ -242,7 +242,7 @@ Completion code:
 - [x] Canvas, outline và inspector dùng cùng selection/composition state machine.
 - [x] Design controls ghi typed variants, không ghi raw Tailwind/CSS.
 - [x] Page settings/SEO/revisions không chiếm canvas mặc định.
-- [ ] Homepage implementation tách khỏi route file lớn thành workspace modules.
+- [x] Homepage implementation tách khỏi route file lớn thành workspace modules.
 
 ### CMS-V2-P0-04 — Writing-first post editor
 
@@ -308,9 +308,9 @@ Completion code:
 
 Completion code:
 
-- [ ] `admin/home.tsx` và post edit route không còn là monolithic UI owner.
-- [ ] Editor shell/selection/history/asset contracts có public type.
-- [ ] Template-specific code không import app route internals.
+- [x] `admin/home.tsx` và post edit route không còn là monolithic UI owner.
+- [x] Editor shell/selection/history/asset contracts có public type.
+- [x] Template-specific code không import app route internals.
 
 ## 6. Migration và backward compatibility
 
@@ -351,16 +351,16 @@ state persistence và responsive layout lần thứ hai.
 - [x] Một TanStack `/admin` layout sở hữu shell, auth context và child `<Outlet />`.
 - [x] Sidebar/header/command center không còn thuộc từng page component.
 - [x] Admin navigation nội bộ dùng router primitives.
-- [ ] Shared hierarchy/page/workspace primitives được dùng toàn Admin.
-- [ ] Homepage mở ở canvas-first mode và sửa trực tiếp text/media được.
+- [x] Shared hierarchy/page/workspace primitives được dùng toàn Admin.
+- [x] Homepage mở ở canvas-first mode và sửa trực tiếp text/media được.
 - [x] Homepage design controls map vào typed variants/tokens.
 - [x] Post editor là một writing surface, có Markdown workflow và DAM node.
 - [x] Raw MDX/HTML/JSX không đi qua persistence/render boundary.
 - [x] SEO/workflow/scheduling/revisions/debug đều progressive disclosure.
 - [x] UI map ASCII/JSON và baseline artifacts nằm trong repository.
-- [ ] Monolithic homepage/post route được tách thành reusable modules.
-- [ ] V1 data, preview, autosave, conflict, permission và audit contracts được giữ.
-- [ ] Testing/human/release tasks chỉ được index ở V2 verification document.
+- [x] Monolithic homepage/post route được tách thành reusable modules.
+- [x] V1 data, preview, autosave, conflict, permission và audit contracts được giữ.
+- [x] Testing/human/release tasks chỉ được index ở V2 verification document.
 
 ## 10. Tài liệu kỹ thuật nền
 

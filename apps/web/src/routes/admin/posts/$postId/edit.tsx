@@ -20,7 +20,6 @@ import {
   Check,
   Clock3,
   Eye,
-  FileText,
   History,
   Monitor,
   Send,
@@ -33,7 +32,7 @@ import {
   type CmsPostFormValues,
   validateCmsPostFormValues,
 } from "@/components/cms-post-form";
-import { ConfirmDestructiveAction } from "@/components/admin-ui";
+import { AdminStatus, ConfirmDestructiveAction } from "@/components/admin-ui";
 import EditorialReviewPanel from "@/components/editorial-review-panel";
 import PostEditorWorkspace from "@/components/post-editor-workspace";
 import PostRevisionHistory, {
@@ -627,21 +626,24 @@ function EditPostRoute() {
       }
     >
       {postQuery.isLoading ? (
-        <div className="mx-auto min-h-80 w-full max-w-4xl animate-pulse rounded-md border bg-muted/30" />
+        <AdminStatus
+          description="Đang đồng bộ bản nháp và lịch sử phiên bản mới nhất."
+          title="Đang tải bài viết"
+          tone="loading"
+        />
       ) : post && formSeed && workingVersion !== null ? (
         <div className="grid gap-5">
           {conflictMessage ? (
-            <div className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-between gap-3 border border-warning-foreground/20 bg-warning p-4 text-sm text-warning-foreground">
-              <div>
-                <strong>Xung đột phiên bản</strong>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {conflictMessage}
-                </p>
-              </div>
-              <Button variant="secondary" onClick={reloadServerVersion}>
-                Tải phiên bản từ máy chủ
-              </Button>
-            </div>
+            <AdminStatus
+              action={
+                <Button variant="secondary" onClick={reloadServerVersion}>
+                  Tải phiên bản từ máy chủ
+                </Button>
+              }
+              description={conflictMessage}
+              title="Xung đột phiên bản"
+              tone="conflict"
+            />
           ) : null}
           {slugDecisionRequired ? (
             <div className="mx-auto grid w-full max-w-4xl gap-2 border border-warning-foreground/20 bg-warning p-3 text-xs text-warning-foreground">
@@ -767,21 +769,18 @@ function EditPostRoute() {
           ) : null}
         </div>
       ) : (
-        <div className="mx-auto flex min-h-80 w-full max-w-4xl flex-col items-center justify-center gap-3 border text-center">
-          <FileText aria-hidden className="size-8 text-muted-foreground" />
-          <div>
-            <h2 className="text-sm font-medium">Không tìm thấy bài viết</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Bản ghi này không còn tồn tại.
-            </p>
-          </div>
-          <Link
-            className={buttonVariants({ variant: "secondary" })}
-            to="/admin/posts"
-          >
-            Quay lại danh sách
-          </Link>
-        </div>
+        <AdminStatus
+          action={
+            <Link
+              className={buttonVariants({ variant: "secondary" })}
+              to="/admin/posts"
+            >
+              Quay lại danh sách
+            </Link>
+          }
+          description="Bản ghi này không còn tồn tại."
+          title="Không tìm thấy bài viết"
+        />
       )}
     </AdminPage>
   );

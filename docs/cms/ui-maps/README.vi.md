@@ -17,6 +17,7 @@ depth bất thường, quá nhiều control mặc định và regression kiến 
 | ---------------------- | ----: | ---------: | ----------: | ----------: | --------: |
 | Persistent Admin shell |   160 |          7 |          13 |           3 |        16 |
 | Homepage authoring     |   932 |         15 |          68 |           9 |        33 |
+| Home sau decomposition |   961 |         24 |          70 |           9 |        35 |
 | Full post editor       |   955 |         21 |          91 |           9 |        35 |
 | Post sau decomposition |   851 |         25 |          70 |           9 |        41 |
 | Rich-text trước Tiptap |   250 |          5 |          35 |           3 |        30 |
@@ -33,12 +34,12 @@ AdminShell
 └─ command center
 
 AdminHomeRoute
-└─ AdminPage
-   ├─ conflict/status notices
-   └─ RemVietEditorShell
-      ├─ structure + composer + page metadata
-      ├─ production preview + status + revisions
-      └─ selected-block inspector + save
+└─ HomeEditorWorkspace
+   └─ AdminPage
+      └─ RemVietEditorShell
+         ├─ structure + composer + page metadata
+         ├─ HomeResponsivePreview + status + revisions
+         └─ selected-block inspector + HomeSaveStatus
 
 EditPostRoute
 └─ AdminPage
@@ -53,6 +54,7 @@ EditPostRoute
 
 - [`admin-shell.v2-p0.json`](./admin-shell.v2-p0.json)
 - [`homepage.before-canvas-refactor.json`](./homepage.before-canvas-refactor.json)
+- [`homepage.after-route-decomposition.json`](./homepage.after-route-decomposition.json)
 - [`post-editor.before-writing-refactor.json`](./post-editor.before-writing-refactor.json)
 - [`post-editor.after-route-decomposition.json`](./post-editor.after-route-decomposition.json)
 - [`rich-text-editor.after-writing-refactor.json`](./rich-text-editor.after-writing-refactor.json)

@@ -19,22 +19,40 @@ import {
 import { Skeleton } from "@rem-viet/ui/components/skeleton";
 import { cn } from "@rem-viet/ui/lib/utils";
 import { useRouterState } from "@tanstack/react-router";
-import { CircleAlert, Inbox, type LucideIcon } from "lucide-react";
-import { useState, type ReactElement, type ReactNode } from "react";
+import {
+  ChevronDown,
+  CircleAlert,
+  Inbox,
+  LoaderCircle,
+  TriangleAlert,
+  type LucideIcon,
+} from "lucide-react";
+import {
+  useState,
+  type HTMLAttributes,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 
 import { getAdminRouteMeta } from "@/lib/admin-routes";
 
 export function AdminPageHeader({
   actions,
+  descriptionOverride,
   eyebrow,
+  titleOverride,
 }: {
   actions?: ReactNode;
+  descriptionOverride?: ReactNode;
   eyebrow?: ReactNode;
+  titleOverride?: ReactNode;
 }) {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
-  const { description, title } = getAdminRouteMeta(pathname);
+  const routeMeta = getAdminRouteMeta(pathname);
+  const description = descriptionOverride ?? routeMeta.description;
+  const title = titleOverride ?? routeMeta.title;
 
   return (
     <header className="flex flex-col gap-4 border-b pb-5 sm:flex-row sm:items-end sm:justify-between">
@@ -53,12 +71,130 @@ export function AdminPageHeader({
           </div>
         ) : null}
       </div>
-      {actions ? (
-        <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
-          {actions}
-        </div>
-      ) : null}
+      {actions ? <AdminToolbar>{actions}</AdminToolbar> : null}
     </header>
+  );
+}
+
+export type AdminContentWidth =
+  "reading" | "form" | "table" | "workspace" | "full";
+
+const adminContentWidthClass = {
+  reading: "mx-auto w-full max-w-3xl",
+  form: "mx-auto w-full max-w-5xl",
+  table: "mx-auto w-full max-w-[90rem]",
+  workspace: "w-full max-w-none",
+  full: "w-full max-w-none",
+} satisfies Record<AdminContentWidth, string>;
+
+export function AdminContent({
+  children,
+  className,
+  width = "full",
+}: {
+  children: ReactNode;
+  className?: string;
+  width?: AdminContentWidth;
+}) {
+  return (
+    <div className={cn(adminContentWidthClass[width], className)}>
+      {children}
+    </div>
+  );
+}
+
+export function AdminToolbar({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end",
+        className,
+      )}
+      data-admin-toolbar
+    >
+      {children}
+    </div>
+  );
+}
+
+export function AdminSplitView({
+  children,
+  className,
+  inspector,
+}: {
+  children: ReactNode;
+  className?: string;
+  inspector: ReactNode;
+}) {
+  return (
+    <div className={cn("cms-admin-split-view", className)}>
+      <div className="min-w-0">{children}</div>
+      {inspector}
+    </div>
+  );
+}
+
+export function AdminInspector({
+  children,
+  className,
+  ...props
+}: HTMLAttributes<HTMLElement>) {
+  return (
+    <aside
+      className={cn("grid min-w-0 content-start gap-3", className)}
+      data-admin-inspector
+      {...props}
+    >
+      {children}
+    </aside>
+  );
+}
+
+export function AdminDisclosure({
+  children,
+  className,
+  defaultOpen = false,
+  description,
+  title,
+}: {
+  children: ReactNode;
+  className?: string;
+  defaultOpen?: boolean;
+  description?: ReactNode;
+  title: ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <details
+      className={cn(
+        "group overflow-hidden rounded-xl border bg-background",
+        className,
+      )}
+      open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+    >
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium marker:hidden">
+        <span className="min-w-0">
+          <span className="block">{title}</span>
+          {description ? (
+            <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">
+              {description}
+            </span>
+          ) : null}
+        </span>
+        <ChevronDown
+          aria-hidden
+          className="size-4 shrink-0 transition-transform group-open:rotate-180"
+        />
+      </summary>
+      <div className="border-t">{children}</div>
+    </details>
   );
 }
 
@@ -213,17 +349,27 @@ export function AsyncState({
   action?: ReactNode;
   description: string;
   title: string;
-  tone?: "empty" | "error";
+  tone?: "empty" | "error" | "loading" | "conflict";
 }) {
-  const Icon = tone === "error" ? CircleAlert : Inbox;
+  const Icon =
+    tone === "error"
+      ? CircleAlert
+      : tone === "loading"
+        ? LoaderCircle
+        : tone === "conflict"
+          ? TriangleAlert
+          : Inbox;
 
   return (
     <div
       className="flex min-h-40 flex-col items-center justify-center px-4 py-8 text-center"
-      role={tone === "error" ? "alert" : "status"}
+      role={tone === "error" || tone === "conflict" ? "alert" : "status"}
     >
       <div className="mb-3 grid size-9 place-items-center rounded-full bg-muted text-muted-foreground">
-        <Icon aria-hidden className="size-4" />
+        <Icon
+          aria-hidden
+          className={cn("size-4", tone === "loading" && "animate-spin")}
+        />
       </div>
       <h2 className="text-sm font-medium text-foreground">{title}</h2>
       <p className="mt-1 max-w-sm text-xs text-muted-foreground">
@@ -233,6 +379,8 @@ export function AsyncState({
     </div>
   );
 }
+
+export const AdminStatus = AsyncState;
 
 export function DashboardSkeleton() {
   return (

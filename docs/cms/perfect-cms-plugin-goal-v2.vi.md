@@ -210,10 +210,12 @@ Tạo shared Admin design layer thay cho mỗi route tự ghép Tailwind:
 - mobile shell dùng sheet navigation nhưng giữ cùng information architecture;
 - route inventory map mỗi page vào một task archetype thay vì style riêng.
 
+Code inventory: [`admin-route-inventory.v2.vi.md`](./admin-route-inventory.v2.vi.md).
+
 Completion code:
 
-- [ ] Mọi active Admin route dùng shared page primitive.
-- [ ] Không còn heading/description bị lặp giữa shell và page body.
+- [x] Mọi active Admin route dùng shared page primitive.
+- [x] Không còn heading/description bị lặp giữa shell và page body.
 - [ ] Advanced/destructive controls không nằm cùng cấp primary content.
 - [ ] Loading/empty/error/conflict dùng shared state primitive.
 

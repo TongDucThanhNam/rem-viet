@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 
 export type AdminFeature = "blog" | "catalog" | "leads" | "orders";
+export type AdminTaskArchetype =
+  "overview" | "collection" | "editor" | "workflow" | "settings" | "operations";
 export type AdminSectionKey =
   | "dashboard"
   | "products"
@@ -33,6 +35,7 @@ export type AdminSectionKey =
   | "home";
 
 type AdminNavItemDefinition = {
+  archetype: AdminTaskArchetype;
   description: string;
   feature?: AdminFeature;
   icon: LucideIcon;
@@ -62,6 +65,7 @@ export const adminNavigationSections = [
     key: "dashboard",
     label: "Báo cáo",
     pageTitle: "Báo cáo",
+    archetype: "overview",
     description: "Tổng hợp trực tiếp từ dữ liệu đơn hàng và sản phẩm hiện tại.",
     to: "/admin/dashboard",
     icon: LayoutDashboard,
@@ -75,6 +79,7 @@ export const adminNavigationSections = [
       {
         label: "Danh sách sản phẩm",
         pageTitle: "Sản phẩm",
+        archetype: "collection",
         description:
           "Tìm kiếm, lọc và cập nhật danh mục sản phẩm đang vận hành.",
         to: "/admin/products",
@@ -83,6 +88,7 @@ export const adminNavigationSections = [
       {
         label: "Thêm sản phẩm",
         pageTitle: "Thêm sản phẩm",
+        archetype: "editor",
         description: "Tạo sản phẩm mới bằng dữ liệu và quy tắc hiện có.",
         to: "/admin/products/new",
         icon: Plus,
@@ -90,6 +96,7 @@ export const adminNavigationSections = [
       {
         label: "Danh mục",
         pageTitle: "Danh mục sản phẩm",
+        archetype: "collection",
         description: "Tạo và cập nhật nhóm sản phẩm trong cửa hàng.",
         to: "/admin/categories",
         icon: FolderTree,
@@ -105,6 +112,7 @@ export const adminNavigationSections = [
       {
         label: "Danh sách đơn hàng",
         pageTitle: "Đơn hàng",
+        archetype: "workflow",
         description:
           "Theo dõi khách hàng, sản phẩm, thanh toán và trạng thái xử lý.",
         to: "/admin/orders",
@@ -113,6 +121,7 @@ export const adminNavigationSections = [
       {
         label: "Thêm đơn hàng",
         pageTitle: "Thêm đơn hàng",
+        archetype: "editor",
         description: "Tạo đơn thủ công từ sản phẩm và biến thể đang hoạt động.",
         to: "/admin/orders/new",
         icon: Plus,
@@ -128,6 +137,7 @@ export const adminNavigationSections = [
       {
         label: "Tồn kho",
         pageTitle: "Nhập xuất kho",
+        archetype: "operations",
         description:
           "Theo dõi số lượng tồn, đã bán và trạng thái sản phẩm hiện tại.",
         to: "/admin/inventory",
@@ -136,6 +146,7 @@ export const adminNavigationSections = [
       {
         label: "Điều chỉnh kho",
         pageTitle: "Thêm nhập xuất",
+        archetype: "editor",
         description: "Cập nhật số lượng tồn kho trên sản phẩm hiện có.",
         to: "/admin/inventory/new",
         icon: Plus,
@@ -150,6 +161,7 @@ export const adminNavigationSections = [
       {
         label: "Trang chủ CMS",
         pageTitle: "Trang chủ CMS",
+        archetype: "editor",
         description: "Biên tập nội dung và bố cục trang chủ công khai.",
         to: "/admin/home",
         icon: Home,
@@ -157,6 +169,7 @@ export const adminNavigationSections = [
       {
         label: "Bài viết",
         pageTitle: "Bài viết",
+        archetype: "collection",
         description: "Quản lý bản nháp, bài đã xuất bản và metadata SEO.",
         to: "/admin/posts",
         icon: FileText,
@@ -165,6 +178,7 @@ export const adminNavigationSections = [
       {
         label: "Thêm bài viết",
         pageTitle: "Thêm bài viết",
+        archetype: "editor",
         description: "Tạo bản nháp bài viết mới.",
         to: "/admin/posts/new",
         icon: Plus,
@@ -173,6 +187,7 @@ export const adminNavigationSections = [
       {
         label: "Trang nội dung",
         pageTitle: "Trang nội dung",
+        archetype: "collection",
         description: "Quản lý các trang nội dung có cấu trúc.",
         to: "/admin/pages",
         icon: FileText,
@@ -180,6 +195,7 @@ export const adminNavigationSections = [
       {
         label: "Chiến dịch bản địa hóa",
         pageTitle: "Chiến dịch bản địa hóa",
+        archetype: "workflow",
         description:
           "Biên tập collection đa ngôn ngữ bằng editor shell và secure preview dùng chung.",
         to: "/admin/campaigns",
@@ -189,6 +205,7 @@ export const adminNavigationSections = [
       {
         label: "Thư viện media",
         pageTitle: "Thư viện media",
+        archetype: "collection",
         description: "Tải lên, mô tả và quản lý tài nguyên hình ảnh.",
         to: "/admin/media",
         icon: Image,
@@ -196,6 +213,7 @@ export const adminNavigationSections = [
       {
         label: "Khách hàng tiềm năng",
         pageTitle: "Khách hàng tiềm năng",
+        archetype: "workflow",
         description: "Xử lý các biểu mẫu liên hệ và yêu cầu tư vấn.",
         to: "/admin/leads",
         icon: Inbox,
@@ -205,6 +223,7 @@ export const adminNavigationSections = [
       {
         label: "Chuyển hướng",
         pageTitle: "Chuyển hướng",
+        archetype: "operations",
         description: "Bảo toàn lưu lượng và SEO khi địa chỉ nội dung thay đổi.",
         to: "/admin/redirects",
         icon: Shuffle,
@@ -213,6 +232,7 @@ export const adminNavigationSections = [
       {
         label: "Cài đặt website",
         pageTitle: "Cài đặt website",
+        archetype: "settings",
         description: "Quản lý thương hiệu, liên hệ, mạng xã hội và điều hướng.",
         to: "/admin/settings",
         icon: Settings,
@@ -228,6 +248,7 @@ export const adminNavigationSections = [
       {
         label: "Tự động hóa và release",
         pageTitle: "Tự động hóa và release",
+        archetype: "operations",
         description:
           "Theo dõi công việc nền, release nhiều nội dung và webhook đã ký.",
         to: "/admin/operations",
@@ -237,6 +258,7 @@ export const adminNavigationSections = [
       {
         label: "Hiệu năng thực tế",
         pageTitle: "Hiệu năng thực tế",
+        archetype: "overview",
         description: "Theo dõi Web Vitals từ lưu lượng trang công khai.",
         to: "/admin/performance",
         icon: Activity,
@@ -245,6 +267,7 @@ export const adminNavigationSections = [
       {
         label: "Pilot bàn giao",
         pageTitle: "Pilot bàn giao",
+        archetype: "workflow",
         description:
           "Chạy checklist bàn giao có giám sát trên đúng deployment staging.",
         to: "/admin/handover",
@@ -254,6 +277,7 @@ export const adminNavigationSections = [
       {
         label: "Nhật ký kiểm toán",
         pageTitle: "Nhật ký kiểm toán",
+        archetype: "operations",
         description: "Theo dõi thay đổi theo người thực hiện và thời điểm.",
         to: "/admin/audit",
         icon: ShieldCheck,
@@ -262,6 +286,7 @@ export const adminNavigationSections = [
       {
         label: "Bảo mật tài khoản",
         pageTitle: "Bảo mật tài khoản",
+        archetype: "settings",
         description: "Xác minh email và quản lý các thiết bị đang đăng nhập.",
         to: "/admin/security",
         icon: ShieldCheck,
@@ -269,6 +294,7 @@ export const adminNavigationSections = [
       {
         label: "Nhân sự và phân quyền",
         pageTitle: "Nhân sự và phân quyền",
+        archetype: "settings",
         description: "Quản lý tài khoản, vai trò và quyền truy cập CMS.",
         to: "/admin/staff",
         icon: Users,
@@ -277,6 +303,7 @@ export const adminNavigationSections = [
       {
         label: "Nhật ký kỹ thuật",
         pageTitle: "Nhật ký kỹ thuật",
+        archetype: "operations",
         description: "Kiểm tra các bản ghi kỹ thuật phục vụ vận hành.",
         to: "/admin/logs",
         icon: ListFilter,
@@ -288,6 +315,7 @@ export const adminNavigationSections = [
     key: "home",
     label: "Trang chủ công khai",
     pageTitle: "Trang chủ công khai",
+    archetype: "overview",
     description: "Mở website công khai trong cùng cửa sổ.",
     to: "/",
     icon: Home,
@@ -295,6 +323,7 @@ export const adminNavigationSections = [
 ] as const satisfies readonly AdminNavigationSectionDefinition[];
 
 export type AdminRouteMeta = {
+  archetype: AdminTaskArchetype;
   description: string;
   navTo: string;
   sectionKey: AdminSectionKey;
@@ -308,6 +337,7 @@ const dynamicAdminRoutes = [
     sectionKey: "products",
     navTo: "/admin/products",
     title: "Sửa sản phẩm",
+    archetype: "editor",
     description: "Cập nhật thông tin, hình ảnh, giá và biến thể sản phẩm.",
   },
   {
@@ -315,6 +345,7 @@ const dynamicAdminRoutes = [
     sectionKey: "products",
     navTo: "/admin/products",
     title: "Chi tiết sản phẩm",
+    archetype: "overview",
     description: "Xem thông tin và trạng thái hiện tại của sản phẩm.",
   },
   {
@@ -322,6 +353,7 @@ const dynamicAdminRoutes = [
     sectionKey: "content",
     navTo: "/admin/posts",
     title: "Sửa bài viết",
+    archetype: "editor",
     description: "Cập nhật bản nháp, lịch xuất bản và phiên bản bài viết.",
   },
 ] as const;
@@ -348,6 +380,7 @@ export function getAdminRouteMeta(pathname: string): AdminRouteMeta {
       );
       if (item) {
         return {
+          archetype: item.archetype,
           description: item.description,
           navTo: item.to,
           sectionKey: section.key,
@@ -360,6 +393,7 @@ export function getAdminRouteMeta(pathname: string): AdminRouteMeta {
 
     if (normalizePathname(section.to) === normalizedPathname) {
       return {
+        archetype: section.archetype,
         description: section.description,
         navTo: section.to,
         sectionKey: section.key,
@@ -374,6 +408,7 @@ export function getAdminRouteMeta(pathname: string): AdminRouteMeta {
   );
   if (dynamicRoute) {
     return {
+      archetype: dynamicRoute.archetype,
       description: dynamicRoute.description,
       navTo: dynamicRoute.navTo,
       sectionKey: dynamicRoute.sectionKey,
@@ -383,6 +418,7 @@ export function getAdminRouteMeta(pathname: string): AdminRouteMeta {
   }
 
   return {
+    archetype: "overview",
     description: "Quản lý nội dung và vận hành website.",
     navTo: normalizedPathname,
     sectionKey: "content",

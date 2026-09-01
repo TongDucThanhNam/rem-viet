@@ -27,11 +27,20 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import RemVietLogo from "@/components/rem-viet-logo";
 import {
+  AdminContent,
+  AdminPageHeader,
+  type AdminContentWidth,
+} from "@/components/admin-ui";
+import {
   AdminCommandCenter,
   AdminCommandLauncher,
 } from "@/components/admin-command-center";
 import ThemeSwitch from "@/components/theme-switch";
-import { adminNavigationSections, getAdminRouteMeta } from "@/lib/admin-routes";
+import {
+  adminNavigationSections,
+  getAdminRouteMeta,
+  type AdminTaskArchetype,
+} from "@/lib/admin-routes";
 import { authClient } from "@/lib/auth-client";
 import { siteManifest } from "@/lib/site-config";
 
@@ -43,10 +52,20 @@ type AdminShellProps = {
 export type AdminPageProps = {
   titleOverride?: string;
   actions?: ReactNode;
+  contentWidth?: AdminContentWidth;
   hideHeading?: boolean;
   legacyContentFrame?: boolean;
   children: ReactNode;
 };
+
+const adminTaskContentWidth = {
+  overview: "full",
+  collection: "table",
+  editor: "workspace",
+  workflow: "table",
+  settings: "form",
+  operations: "table",
+} satisfies Record<AdminTaskArchetype, AdminContentWidth>;
 
 export default function AdminShell({
   defaultSidebarExpanded = true,
@@ -222,6 +241,7 @@ export default function AdminShell({
 export function AdminPage({
   actions,
   children,
+  contentWidth,
   hideHeading = false,
   legacyContentFrame = false,
   titleOverride,
@@ -231,6 +251,8 @@ export function AdminPage({
   });
   const routeMeta = getAdminRouteMeta(pathname);
   const title = titleOverride ?? routeMeta.title;
+  const resolvedContentWidth =
+    contentWidth ?? adminTaskContentWidth[routeMeta.archetype];
 
   useEffect(() => {
     document.title = `${title} | ${siteManifest.name}`;
@@ -245,29 +267,24 @@ export function AdminPage({
       data-admin-page
     >
       {hideHeading ? null : (
-        <div className="flex flex-col justify-between gap-4 border-b pb-5 sm:flex-row sm:items-end">
-          <div className="min-w-0">
-            <div className="mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        <AdminPageHeader
+          actions={actions}
+          descriptionOverride={routeMeta.description}
+          eyebrow={
+            <>
               <UserRound aria-hidden className="size-3.5" />
               Quản trị
-            </div>
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-              {title}
-            </h1>
-            {routeMeta.description ? (
-              <p className="mt-2 text-xs text-muted-foreground">
-                {routeMeta.description}
-              </p>
-            ) : null}
-          </div>
-          {actions ? (
-            <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
-              {actions}
-            </div>
-          ) : null}
-        </div>
+            </>
+          }
+          titleOverride={title}
+        />
       )}
-      <div className={hideHeading ? "" : "mt-6"}>{children}</div>
+      <AdminContent
+        className={hideHeading ? "" : "mt-6"}
+        width={resolvedContentWidth}
+      >
+        {children}
+      </AdminContent>
     </div>
   );
 }

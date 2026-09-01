@@ -1689,6 +1689,7 @@ function AdminHomeRoute() {
                 {selectedBlock ? (
                   <AdminHomeBlockEditor
                     block={selectedBlock}
+                    key={selectedBlock.id}
                     onChange={updateSelectedBlock}
                   />
                 ) : null}

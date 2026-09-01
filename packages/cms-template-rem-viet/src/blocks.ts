@@ -7,6 +7,7 @@ import {
 import { z } from "zod";
 
 import { REM_VIET_BLOCK_SCHEMA_VERSION } from "./version";
+import { homeBlockDesignSchema } from "./design";
 
 const stableIdSchema = z.string().trim().min(1).max(64);
 const shortTextSchema = z.string().trim().min(1).max(120);
@@ -19,6 +20,7 @@ export const templateImageSchema = z.object({
 });
 
 export const horizontalGalleryBlockDataSchema = z.object({
+  design: homeBlockDesignSchema.optional(),
   eyebrow: shortTextSchema,
   cursorLabel: z.string().trim().min(1).max(24),
   titleLines: z.array(shortTextSchema).min(1).max(3),
@@ -47,6 +49,7 @@ export const benefitIconKeySchema = z.enum([
 export type BenefitIconKey = z.infer<typeof benefitIconKeySchema>;
 
 export const benefitsBlockDataSchema = z.object({
+  design: homeBlockDesignSchema.optional(),
   eyebrow: shortTextSchema,
   intro: bodyTextSchema,
   title: z.string().trim().min(1).max(180),
@@ -68,6 +71,7 @@ export const benefitsBlockDataSchema = z.object({
 export type BenefitsBlockData = z.infer<typeof benefitsBlockDataSchema>;
 
 export const craftProcessBlockDataSchema = z.object({
+  design: homeBlockDesignSchema.optional(),
   eyebrow: shortTextSchema,
   title: z.string().trim().min(1).max(180),
   intro: bodyTextSchema,
@@ -87,6 +91,7 @@ export const craftProcessBlockDataSchema = z.object({
 export type CraftProcessBlockData = z.infer<typeof craftProcessBlockDataSchema>;
 
 export const threatNarrativeBlockDataSchema = z.object({
+  design: homeBlockDesignSchema.optional(),
   scrollLabel: shortTextSchema,
   steps: z
     .array(
@@ -109,6 +114,7 @@ export type ThreatNarrativeBlockData = z.infer<
 >;
 
 export const measurementGuideBlockDataSchema = z.object({
+  design: homeBlockDesignSchema.optional(),
   eyebrow: shortTextSchema,
   title: z.string().trim().min(1).max(180),
   intro: bodyTextSchema,
@@ -141,6 +147,7 @@ const bentoCopySchema = z.object({
 });
 
 export const bentoDetailsBlockDataSchema = z.object({
+  design: homeBlockDesignSchema.optional(),
   eyebrow: shortTextSchema,
   title: z.string().trim().min(1).max(180),
   material: bentoCopySchema.extend({ image: templateImageSchema }),
@@ -162,12 +169,14 @@ export const bentoDetailsBlockDataSchema = z.object({
 export type BentoDetailsBlockData = z.infer<typeof bentoDetailsBlockDataSchema>;
 
 export const marqueeBlockDataSchema = z.object({
+  design: homeBlockDesignSchema.optional(),
   text: z.string().trim().min(1).max(360),
   ariaLabel: z.string().trim().max(180),
 });
 export type MarqueeBlockData = z.infer<typeof marqueeBlockDataSchema>;
 
 export const footerCtaBlockDataSchema = z.object({
+  design: homeBlockDesignSchema.optional(),
   eyebrow: shortTextSchema,
   kicker: shortTextSchema,
   title: z.object({

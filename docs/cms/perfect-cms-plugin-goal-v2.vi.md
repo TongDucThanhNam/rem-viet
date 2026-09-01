@@ -238,7 +238,7 @@ Completion code:
 
 - [x] Tác vụ đổi text/ảnh không yêu cầu mở structure tree hoặc tìm schema field.
 - [x] Canvas, outline và inspector dùng cùng selection/composition state machine.
-- [ ] Design controls ghi typed variants, không ghi raw Tailwind/CSS.
+- [x] Design controls ghi typed variants, không ghi raw Tailwind/CSS.
 - [x] Page settings/SEO/revisions không chiếm canvas mặc định.
 - [ ] Homepage implementation tách khỏi route file lớn thành workspace modules.
 
@@ -351,7 +351,7 @@ state persistence và responsive layout lần thứ hai.
 - [x] Admin navigation nội bộ dùng router primitives.
 - [ ] Shared hierarchy/page/workspace primitives được dùng toàn Admin.
 - [ ] Homepage mở ở canvas-first mode và sửa trực tiếp text/media được.
-- [ ] Homepage design controls map vào typed variants/tokens.
+- [x] Homepage design controls map vào typed variants/tokens.
 - [ ] Post editor là một writing surface, có Markdown workflow và DAM node.
 - [ ] Raw MDX/HTML/JSX không đi qua persistence/render boundary.
 - [ ] SEO/workflow/scheduling/revisions/debug đều progressive disclosure.

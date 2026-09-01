@@ -204,6 +204,84 @@ body.is-loading {
   padding: 0 4vw;
 }
 
+/* CMS homepage presentation variants. The authoring surface stores only the
+   finite values represented by these selectors—never arbitrary utility text. */
+.cms-home-block {
+  display: contents;
+}
+
+.cms-home-block[data-cms-spacing="compact"] {
+  --space-section: clamp(64px, 10vh, 112px);
+  --space-block: clamp(32px, 5vh, 56px);
+  --spacing-section: clamp(64px, 10vh, 112px);
+  --spacing-block: clamp(32px, 5vh, 56px);
+}
+
+.cms-home-block[data-cms-spacing="spacious"] {
+  --space-section: clamp(128px, 20vh, 240px);
+  --space-block: clamp(64px, 10vh, 120px);
+  --spacing-section: clamp(128px, 20vh, 240px);
+  --spacing-block: clamp(64px, 10vh, 120px);
+}
+
+.cms-home-block[data-cms-tone="quiet"] {
+  --accent: color-mix(in oklab, var(--text-color) 32%, transparent);
+  --accent-soft: color-mix(in oklab, var(--text-color) 18%, transparent);
+  --accent-text: color-mix(in oklab, var(--text-color) 78%, transparent);
+}
+
+.cms-home-block[data-cms-tone="brand"] {
+  --accent: #b8862f;
+  --accent-soft: #e4c27c;
+  --accent-text: color-mix(in oklab, var(--text-color) 68%, #b8862f 32%);
+}
+
+.cms-home-block[data-cms-alignment="left"] > :is(section, footer, div) {
+  text-align: left;
+}
+
+.cms-home-block[data-cms-alignment="center"] > :is(section, footer, div) {
+  text-align: center;
+}
+
+.cms-home-block[data-cms-alignment="center"]
+  :is(
+    .hero-new-content,
+    .hero-new-actions,
+    .benefits-header,
+    .measure-heading,
+    .faq-aside,
+    .footer-cta
+  ) {
+  margin-inline: auto;
+}
+
+.cms-home-block[data-cms-alignment="center"] .threat-step-copy {
+  align-items: center;
+  margin-inline: auto;
+  text-align: center;
+}
+
+.cms-home-block[data-cms-alignment="center"]
+  :is(.benefits-intro, .measure-intro, .faq-intro) {
+  margin-inline: auto;
+}
+
+.cms-home-block[data-cms-alignment="center"] .faq-head {
+  text-align: left;
+}
+
+.cms-home-block[data-cms-media-frame="square"][data-cms-block-type]
+  :is(.reveal-container, .gallery-item, .bento-box, .measure-media-shell) {
+  border-radius: 0;
+}
+
+.cms-home-block[data-cms-media-frame="soft"][data-cms-block-type]
+  :is(.reveal-container, .gallery-item, .bento-box, .measure-media-shell) {
+  overflow: hidden;
+  border-radius: clamp(18px, 2vw, 32px);
+}
+
 .grid-12 {
   display: grid;
   grid-template-columns: repeat(12, 1fr);

@@ -2,10 +2,11 @@ import type { HomeBlock } from "@rem-viet/cms";
 import { CmsBlockRenderer } from "@agency/cms-react";
 import {
   createRemVietBlockRegistry,
+  resolveHomeBlockDesign,
   toRemVietTemplateBlock,
 } from "@agency/cms-template-rem-viet";
 import { ReactLenis } from "lenis/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { CustomCursorRaw } from "@/components/custom-cursor-raw";
 import { GsapScrollSync } from "@/components/gsap-scroll-sync";
@@ -121,6 +122,28 @@ const remVietBlockRegistry =
     footerCta: () => null,
   });
 
+function HomeBlockDesignScope({
+  block,
+  children,
+}: {
+  block: HomeBlock;
+  children: ReactNode;
+}) {
+  const design = resolveHomeBlockDesign(block.design);
+  return (
+    <div
+      className="cms-home-block"
+      data-cms-alignment={design.alignment}
+      data-cms-block-type={block.type}
+      data-cms-media-frame={design.mediaFrame}
+      data-cms-spacing={design.spacing}
+      data-cms-tone={design.tone}
+    >
+      {children}
+    </div>
+  );
+}
+
 function renderHomeBlock(
   block: HomeBlock,
   isLoaded: boolean,
@@ -129,12 +152,13 @@ function renderHomeBlock(
   const extractedBlock = toRemVietTemplateBlock(block);
   if (!extractedBlock.success) return null;
   return (
-    <CmsBlockRenderer
-      block={extractedBlock.data}
-      context={{ isLoaded, sectionId }}
-      key={block.id}
-      registry={remVietBlockRegistry}
-    />
+    <HomeBlockDesignScope block={block} key={block.id}>
+      <CmsBlockRenderer
+        block={extractedBlock.data}
+        context={{ isLoaded, sectionId }}
+        registry={remVietBlockRegistry}
+      />
+    </HomeBlockDesignScope>
   );
 }
 
@@ -341,7 +365,11 @@ export function HomepageRenderer({
           data-cms-footer-scroll-target="true"
         />
       ) : null}
-      {footer ? <CurtainFooter content={footer} /> : null}
+      {footer ? (
+        <HomeBlockDesignScope block={footer}>
+          <CurtainFooter content={footer} />
+        </HomeBlockDesignScope>
+      ) : null}
     </ReactLenis>
   );
 }

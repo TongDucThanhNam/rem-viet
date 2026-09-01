@@ -3,7 +3,11 @@ import {
   createBlockEditorRegistry,
   resolveCmsMediaSelection,
 } from "@agency/cms-admin";
-import { remVietTemplateBlockLabels as homeBlockLabels } from "@agency/cms-template-rem-viet";
+import {
+  remVietTemplateBlockLabels as homeBlockLabels,
+  resolveHomeBlockDesign,
+  type HomeBlockDesign,
+} from "@agency/cms-template-rem-viet";
 import {
   defaultBenefitsBlock,
   defaultCraftProcessBlock,
@@ -25,7 +29,7 @@ import { Button } from "@rem-viet/ui/components/button";
 import { Input } from "@rem-viet/ui/components/input";
 import { Label } from "@rem-viet/ui/components/label";
 import { ChevronDown, ChevronUp, Copy, Plus, Trash2 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import MediaPickerField from "@/components/media-picker-field";
 
@@ -38,6 +42,120 @@ type ImageValue = { src: string; alt: string };
 
 const textareaClass =
   "min-h-28 rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+type DesignOption<TValue extends string> = {
+  value: TValue;
+  label: string;
+  description: string;
+};
+
+function DesignOptionField<TValue extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: TValue;
+  options: readonly DesignOption<TValue>[];
+  onChange: (value: TValue) => void;
+}) {
+  return (
+    <fieldset className="grid gap-2.5">
+      <legend className="text-sm font-medium">{label}</legend>
+      <div className="grid grid-cols-3 gap-2">
+        {options.map((option) => (
+          <button
+            aria-pressed={value === option.value}
+            className={`grid min-h-20 content-start gap-1 rounded-lg border px-3 py-2.5 text-left transition-colors ${
+              value === option.value
+                ? "border-primary bg-primary/8 text-foreground ring-1 ring-primary/30"
+                : "border-border bg-background text-muted-foreground hover:bg-muted/50"
+            }`}
+            key={option.value}
+            type="button"
+            onClick={() => onChange(option.value)}
+          >
+            <span className="text-xs font-semibold text-foreground">
+              {option.label}
+            </span>
+            <span className="text-[10px] leading-4">{option.description}</span>
+          </button>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
+const spacingOptions = [
+  { value: "compact", label: "Gọn", description: "Ít khoảng trống" },
+  { value: "balanced", label: "Cân bằng", description: "Nhịp mặc định" },
+  { value: "spacious", label: "Thoáng", description: "Nhiều khoảng thở" },
+] as const satisfies readonly DesignOption<HomeBlockDesign["spacing"]>[];
+
+const alignmentOptions = [
+  { value: "native", label: "Theo mẫu", description: "Bố cục gốc" },
+  { value: "left", label: "Trái", description: "Ưu tiên đọc nhanh" },
+  { value: "center", label: "Giữa", description: "Tạo điểm nhấn" },
+] as const satisfies readonly DesignOption<HomeBlockDesign["alignment"]>[];
+
+const toneOptions = [
+  { value: "native", label: "Theo mẫu", description: "Màu gốc" },
+  { value: "quiet", label: "Dịu", description: "Giảm tương phản nhấn" },
+  { value: "brand", label: "Thương hiệu", description: "Nhấn màu đồng" },
+] as const satisfies readonly DesignOption<HomeBlockDesign["tone"]>[];
+
+const mediaFrameOptions = [
+  { value: "native", label: "Theo mẫu", description: "Khung ảnh gốc" },
+  { value: "square", label: "Vuông", description: "Cạnh sắc nét" },
+  { value: "soft", label: "Bo mềm", description: "Bo góc rõ hơn" },
+] as const satisfies readonly DesignOption<HomeBlockDesign["mediaFrame"]>[];
+
+function HomeBlockDesignEditor({ block, onChange }: BlockEditorProps) {
+  const design = resolveHomeBlockDesign(block.design);
+  const updateDesign = <TKey extends keyof HomeBlockDesign>(
+    key: TKey,
+    value: HomeBlockDesign[TKey],
+  ) => {
+    onChange({
+      ...block,
+      design: { ...design, [key]: value },
+    } as HomeBlock);
+  };
+
+  return (
+    <div className="grid gap-6">
+      <div className="rounded-lg border border-dashed bg-muted/35 p-3 text-xs leading-5 text-muted-foreground">
+        Các lựa chọn được khóa theo design system. CMS chỉ lưu biến thể đã định
+        nghĩa sẵn, không lưu chuỗi class Tailwind tùy ý.
+      </div>
+      <DesignOptionField
+        label="Nhịp khoảng cách"
+        options={spacingOptions}
+        value={design.spacing}
+        onChange={(value) => updateDesign("spacing", value)}
+      />
+      <DesignOptionField
+        label="Căn nội dung"
+        options={alignmentOptions}
+        value={design.alignment}
+        onChange={(value) => updateDesign("alignment", value)}
+      />
+      <DesignOptionField
+        label="Sắc độ"
+        options={toneOptions}
+        value={design.tone}
+        onChange={(value) => updateDesign("tone", value)}
+      />
+      <DesignOptionField
+        label="Khung hình ảnh"
+        options={mediaFrameOptions}
+        value={design.mediaFrame}
+        onChange={(value) => updateDesign("mediaFrame", value)}
+      />
+    </div>
+  );
+}
 
 function createItemId(prefix: string) {
   const suffix = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}`;
@@ -1719,12 +1837,48 @@ export default function AdminHomeBlockEditor({
   block,
   onChange,
 }: BlockEditorProps) {
+  const [mode, setMode] = useState<"content" | "design">("content");
+
   return (
-    <CmsBlockEditor
-      block={block}
-      context={undefined}
-      registry={homeBlockEditorRegistry}
-      onChange={onChange}
-    />
+    <div className="grid gap-5">
+      <div
+        aria-label="Chế độ biên tập block"
+        className="grid grid-cols-2 rounded-lg bg-muted p-1"
+        role="tablist"
+      >
+        {(
+          [
+            ["content", "Nội dung"],
+            ["design", "Thiết kế"],
+          ] as const
+        ).map(([value, label]) => (
+          <button
+            aria-selected={mode === value}
+            className={`rounded-md px-3 py-2 text-xs font-medium transition-colors ${
+              mode === value
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            key={value}
+            role="tab"
+            type="button"
+            onClick={() => setMode(value)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {mode === "content" ? (
+        <CmsBlockEditor
+          block={block}
+          context={undefined}
+          registry={homeBlockEditorRegistry}
+          onChange={onChange}
+        />
+      ) : (
+        <HomeBlockDesignEditor block={block} onChange={onChange} />
+      )}
+    </div>
   );
 }

@@ -40,9 +40,11 @@ import {
   type ThreatNarrativeBlock,
 } from "./blocks";
 import { REM_VIET_BLOCK_SCHEMA_VERSION } from "./version";
+import { homeBlockDesignSchema } from "./design";
 
 export * from "./blocks";
 export * from "./collections";
+export * from "./design";
 export * from "./rich-text-authoring";
 export * from "./standard-blocks";
 export { REM_VIET_BLOCK_SCHEMA_VERSION } from "./version";
@@ -80,6 +82,7 @@ export const heroFeatureSchema = z.object({
 });
 
 export const heroBlockDataSchema = z.object({
+  design: homeBlockDesignSchema.optional(),
   kicker: z.string().trim().min(1).max(80),
   title: z.object({
     prefix: z.string().trim().min(1).max(48),
@@ -208,6 +211,7 @@ const shortTextSchema = z.string().trim().min(1).max(120);
 const bodyTextSchema = z.string().trim().min(1).max(600);
 
 export const faqBlockDataSchema = z.object({
+  design: homeBlockDesignSchema.optional(),
   eyebrow: shortTextSchema,
   backdropLabel: shortTextSchema,
   title: shortTextSchema,

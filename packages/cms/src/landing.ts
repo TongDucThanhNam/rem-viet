@@ -4,6 +4,13 @@ import {
   heroCtaSchema,
   heroFeatureIconKeySchema,
   heroFeatureSchema,
+  defaultHomeBlockDesign,
+  homeBlockAlignmentSchema,
+  homeBlockDesignSchema,
+  homeBlockMediaFrameSchema,
+  homeBlockSpacingSchema,
+  homeBlockToneSchema,
+  resolveHomeBlockDesign,
   legacyBenefitsBlockSchema,
   legacyBentoDetailsBlockSchema,
   legacyCraftProcessBlockSchema,
@@ -28,6 +35,11 @@ import {
   type BenefitIconKey,
   type HeroBackgroundPosition,
   type HeroFeatureIconKey,
+  type HomeBlockAlignment,
+  type HomeBlockDesign,
+  type HomeBlockMediaFrame,
+  type HomeBlockSpacing,
+  type HomeBlockTone,
   type LegacyBenefitsBlock,
   type LegacyBentoDetailsBlock,
   type LegacyCraftProcessBlock,
@@ -46,8 +58,24 @@ export {
   heroCtaSchema,
   heroFeatureIconKeySchema,
   heroFeatureSchema,
+  defaultHomeBlockDesign,
+  homeBlockAlignmentSchema,
+  homeBlockDesignSchema,
+  homeBlockMediaFrameSchema,
+  homeBlockSpacingSchema,
+  homeBlockToneSchema,
+  resolveHomeBlockDesign,
 };
-export type { BenefitIconKey, HeroBackgroundPosition, HeroFeatureIconKey };
+export type {
+  BenefitIconKey,
+  HeroBackgroundPosition,
+  HeroFeatureIconKey,
+  HomeBlockAlignment,
+  HomeBlockDesign,
+  HomeBlockMediaFrame,
+  HomeBlockSpacing,
+  HomeBlockTone,
+};
 
 export const heroBlockContentSchema = legacyHeroBlockContentSchema;
 export const heroBlockSchema = legacyHeroBlockSchema;

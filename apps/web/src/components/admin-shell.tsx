@@ -35,6 +35,7 @@ import {
   AdminCommandCenter,
   AdminCommandLauncher,
 } from "@/components/admin-command-center";
+import { PublishStatePill } from "@/components/cms/publish-state-pill";
 import ThemeSwitch from "@/components/theme-switch";
 import {
   adminNavigationSections,
@@ -221,6 +222,10 @@ export default function AdminShell({
               <AdminCommandLauncher
                 className="ml-auto"
                 onClick={() => setCommandOpen(true)}
+              />
+              <PublishStatePill
+                state="saved"
+                lastSavedAt={isHydrated ? new Date(Date.now() - 1000 * 60 * 3) : undefined}
               />
             </header>
 

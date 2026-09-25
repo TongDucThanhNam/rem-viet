@@ -1,0 +1,11 @@
+{
+  "id": "805b84df-0e0f-4412-917f-44c81057e59a",
+  "sequence": 702,
+  "status": "SUCCEEDED",
+  "provider": "cici",
+  "model": "seedance-2.5",
+  "options": {
+    "ratio": "9:16",
+    "duration": "30s"
+  }
+}

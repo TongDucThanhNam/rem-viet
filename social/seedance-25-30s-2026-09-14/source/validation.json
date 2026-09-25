@@ -1,0 +1,20 @@
+{
+  "source": {
+    "width": 720,
+    "height": 1280,
+    "fps": 24.0,
+    "frames": 721,
+    "duration": 30.041666666666668
+  },
+  "output": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30.0,
+    "frames": 900,
+    "duration": 30.0
+  },
+  "file": "C:\\Users\\terasumi\\Documents\\source_code\\rem-viet\\social\\seedance-25-30s-2026-09-14\\videos\\rem-vina-seedance-25-30s-1080x1920.mp4",
+  "fullDecode": "passed",
+  "timeline": "Native motion retained at original speed, trimmed to 30 seconds; no looping or slowdown.",
+  "audio": "Audio from the user-provided source retained."
+}

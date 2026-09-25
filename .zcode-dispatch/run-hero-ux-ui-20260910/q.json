@@ -1,0 +1,1 @@
+{"sql": "SELECT snapshot FROM page_revisions WHERE id = 'seed-revision-page-home-v2'"}

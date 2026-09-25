@@ -1,0 +1,29 @@
+{
+  "brand": "Rèm Vina",
+  "campaign": "Vừa khung cửa. Hợp nếp nhà.",
+  "leadProduct": "Made-to-measure flexible window mosquito mesh",
+  "jobs": [
+    {
+      "name": "02-mesh-detail",
+      "kind": "image",
+      "ratio": "3:4",
+      "prompt": "Premium photorealistic editorial product photograph for Vietnamese custom window insect mesh brand Rem Vina. Use reference 1 ONLY for product construction: flexible fine dark charcoal mesh, neatly sewn black textile binding, flat black hook-and-loop fastener on the inside edge of an ordinary white aluminum window. It is a fabric screen, not a rigid retractable screen. Close-up at a three-quarter angle of one small corner of the mesh gently lifted back to reveal the flat hook-and-loop strip below, the rest of the mesh lies smoothly against the white frame. NO hand, NO tools, NO screws. Show realistic subtle square woven fibers and tidy stitching at believable macro scale. Use reference 2 ONLY for warm ivory, natural morning light, oatmeal linen and understated home editorial atmosphere. Composition: product detail centered, fills middle 60 percent, creamy softly blurred room background above and below, elegant understated warm highlights, neutral charcoal blacks. No text, no letters, no logo, no insects, no claims, no symbols, no sale stickers, no watermarks, no collage. Avoid exaggerated thick industrial mesh and avoid shiny plastic roller screen parts. Clean commercial photograph, 85mm lens, shallow depth of field.",
+      "references": ["C:/Users/terasumi/AppData/Local/Temp/codex-clipboard-a6607292-6874-4e9d-bd68-329ba42b9ed9.png", "C:/Users/terasumi/Documents/source_code/rem-viet/images/ChatGPT Image 22_06_52 2 thg 7, 2026.png"]
+    },
+    {
+      "name": "03-quiet-home",
+      "kind": "image",
+      "ratio": "16:9",
+      "prompt": "Create a premium wide interior editorial photograph in the exact art direction of reference 1: warm ivory plaster, sheer white curtain in gentle breeze, oat linen curtain, delicate leafy sunlight shadows, bright believable Vietnamese apartment, a small neutral armchair and a ceramic vase with one green branch. A normal rectangular white aluminum window on the right half has a discreet fine dark mosquito mesh fitted in a flat sewn textile border, no roller or industrial sliding mechanism. The mesh is subtle but visible against sunlit greenery outside. Window, curtain and chair live mostly in the RIGHT half. Keep LEFT 50 percent as a naturally lit calm cream plaster wall with beautiful soft leaf shadows and ample negative space for later typography. Eye-level architecture photography, natural straight window geometry, 35mm lens, realistic material texture, restrained color grading, no people, no staged showroom clutter, no text, no letters, no logos, no insects, no watermarks. This is a single photograph, not a design board.",
+      "references": ["C:/Users/terasumi/Documents/source_code/rem-viet/images/ChatGPT Image 22_06_52 2 thg 7, 2026.png", "C:/Users/terasumi/AppData/Local/Temp/codex-clipboard-a6607292-6874-4e9d-bd68-329ba42b9ed9.png"]
+    },
+    {
+      "name": "04-breeze-motion",
+      "kind": "video",
+      "ratio": "9:16",
+      "duration": "10s",
+      "prompt": "A single continuous ten-second vertical 9:16 photorealistic home editorial film for Rem Vina. Match the attached art direction faithfully: warm ivory plaster, neutral oat linen drapes, sheer white curtain, a simple cream armchair beside a bright rectangular aluminum window, blurred leafy greenery outdoors. Recompose as a tall portrait frame. The hook in the first second is beautiful sheer cloth catching soft morning light. For the full ten seconds a gentle natural breeze slowly lifts and settles ONLY the loose sheer curtain in a graceful small wave; leafy light shadows drift subtly on the wall. Very slow camera push toward the window, no cuts. Window frame, handle, armchair, floor and room geometry remain completely stable. Calm intimate domestic feeling, realistic fabric motion, not a storm, not surreal. No people, no hands, no text, no logo, no music, no speech, no added decorative objects. Do not animate any net fastening or imply a performance test. Leave top and bottom areas visually quiet for later Vietnamese titles. This is atmospheric campaign illustration, not a product demonstration.",
+      "references": ["C:/Users/terasumi/Documents/source_code/rem-viet/images/ChatGPT Image 22_06_52 2 thg 7, 2026.png"]
+    }
+  ]
+}

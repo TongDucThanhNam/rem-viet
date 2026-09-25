@@ -1,26 +1,24 @@
 import { useCmsPreviewConnection } from "@agency/cms-admin";
 import { createCmsVisualPreviewSession } from "@agency/cms-visual-editor";
+import type { CmsVisualNode } from "@agency/cms-visual-editor";
 import { parseRichTextDocument } from "@rem-viet/cms";
 import { Card, CardContent } from "@rem-viet/ui/components/card";
 import {
-  ExternalLink,
-  Maximize2,
-  Minimize2,
-  Monitor,
-  Redo2,
-  Smartphone,
-  Tablet,
-  Undo2,
-} from "lucide-react";
-import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type RefObject,
 } from "react";
 
 import type { CmsPostFormValues } from "@/components/cms-post-form";
+import {
+  CanvasToolbar,
+  type CanvasDevice,
+} from "@/components/cms/canvas-toolbar";
+import { LayersPanel } from "@/components/cms/layers-panel";
+import { PropertiesPanelTabs } from "@/components/cms/properties-panel-tabs";
 import {
   CmsPreviewConnectionIndicator,
   CmsPreviewConnectionLabel,
@@ -32,9 +30,10 @@ import {
   type PostPreviewField,
 } from "@/lib/post-preview";
 import type { PostRichTextCompositionCommand } from "@/lib/post-rich-text-composition";
+import { createPostVisualOutline } from "@/lib/post-visual-outline";
 import { siteManifest } from "@/lib/site-config";
 
-type PostPreviewDevice = "desktop" | "tablet" | "mobile";
+type PostPreviewDevice = CanvasDevice;
 
 const postPreviewFieldTargets = {
   publishDate: { label: "Ngày xuất bản", controlId: "post-publish-date" },
@@ -46,12 +45,12 @@ const postPreviewFieldTargets = {
 } satisfies Record<PostPreviewField, { label: string; controlId: string }>;
 
 const postPreviewProfiles = {
-  desktop: { label: "Desktop", width: 1440, height: 900, icon: Monitor },
-  tablet: { label: "Tablet", width: 768, height: 1024, icon: Tablet },
-  mobile: { label: "Mobile", width: 390, height: 844, icon: Smartphone },
+  desktop: { label: "Desktop", width: 1440, height: 900 },
+  tablet: { label: "Tablet", width: 768, height: 1024 },
+  mobile: { label: "Mobile", width: 390, height: 844 },
 } satisfies Record<
   PostPreviewDevice,
-  { label: string; width: number; height: number; icon: typeof Monitor }
+  { label: string; width: number; height: number }
 >;
 
 export type PostResponsivePreviewProps = {
@@ -86,11 +85,10 @@ export default function PostResponsivePreview({
   values,
   version,
   previewChannel,
-  workspaceFocusTriggerRef,
+  workspaceFocusTriggerRef: _workspaceFocusTriggerRef,
   workspaceFocused,
 }: PostResponsivePreviewProps) {
   const [device, setDevice] = useState<PostPreviewDevice>("desktop");
-  const [scale, setScale] = useState(0.4);
   const [selectedField, setSelectedField] = useState<PostPreviewField | null>(
     null,
   );
@@ -115,6 +113,25 @@ export default function PostResponsivePreview({
   const shouldFocusInspectorRef = useRef(false);
   const versionRef = useRef(version);
   const profile = postPreviewProfiles[device];
+  const visualRoots = useMemo(() => createPostVisualOutline(values), [values]);
+  const [selectedVisualId, setSelectedVisualId] = useState<string | null>(null);
+  const [hoveredVisualId, setHoveredVisualId] = useState<string | null>(null);
+  const selectedVisualNode = useMemo(() => {
+    if (!selectedVisualId) return undefined;
+    const visit = (nodes: readonly CmsVisualNode[]): CmsVisualNode | null => {
+      for (const node of nodes) {
+        if (node.id === selectedVisualId) return node;
+        if (node.slots) {
+          for (const children of Object.values(node.slots)) {
+            const found = visit(children);
+            if (found) return found;
+          }
+        }
+      }
+      return null;
+    };
+    return visit(visualRoots) ?? undefined;
+  }, [visualRoots, selectedVisualId]);
   const standalonePreviewUrl = `/admin/posts/${encodeURIComponent(postId)}/preview`;
   const previewUrl = `${standalonePreviewUrl}?${new URLSearchParams({
     cmsBinding: previewChannel.sessionBinding,
@@ -196,6 +213,31 @@ export default function PostResponsivePreview({
     sendWorkingCopy();
   }, [selectedBlockIndex, selectedField, sendWorkingCopy, values]);
 
+  /**
+   * Two-way binding: when iframe sends a select command (already mapped to
+   * `selectedField` / `selectedBlockIndex` in `receiveReady`), mirror it to
+   * `selectedVisualId` so the LayersPanel row highlights in lock-step.
+   *
+   * - Field selection → `post-field-{field}` (matches createPostVisualOutline).
+   * - Block selection → `post-block-{blockId}` (resolves from parsed doc).
+   */
+  useEffect(() => {
+    if (selectedField === "content") {
+      const doc = parseRichTextDocument(valuesRef.current.content);
+      const block =
+        selectedBlockIndex !== null && doc
+          ? doc.blocks[selectedBlockIndex]
+          : null;
+      setSelectedVisualId(
+        block ? `post-block-${block.id}` : "post-field-content",
+      );
+      return;
+    }
+    if (selectedField) {
+      setSelectedVisualId(`post-field-${selectedField}`);
+    }
+  }, [selectedField, selectedBlockIndex]);
+
   useEffect(() => {
     const receiveReady = (event: MessageEvent<unknown>) => {
       if (
@@ -274,24 +316,9 @@ export default function PostResponsivePreview({
   }, [selectedBlockIndex, selectedField]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const fitPreview = () => {
-      const availableWidth = Math.max(240, canvas.clientWidth - 48);
-      const availableHeight = Math.max(360, canvas.clientHeight - 48);
-      setScale(
-        Math.min(
-          1,
-          availableWidth / profile.width,
-          availableHeight / profile.height,
-        ),
-      );
-    };
-    fitPreview();
-    const observer = new ResizeObserver(fitPreview);
-    observer.observe(canvas);
-    return () => observer.disconnect();
-  }, [profile.height, profile.width]);
+    /* scale removed — Instatic convention renders iframe at natural
+     * device dimensions inside horizontally scrollable canvas area. */
+  }, []);
 
   return (
     <Card
@@ -325,139 +352,85 @@ export default function PostResponsivePreview({
               </h2>
             }
           />
-          <div className="flex items-center gap-1 rounded-md bg-white/8 p-1">
-            <button
-              aria-keyshortcuts="Control+Z Meta+Z"
-              aria-label="Hoàn tác thay đổi bài viết"
-              className="grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
-              data-cms-post-history-undo="true"
-              disabled={!canUndo}
-              title="Hoàn tác (Ctrl+Z)"
-              type="button"
-              onClick={onUndo}
-            >
-              <Undo2 aria-hidden className="size-3.5" />
-            </button>
-            <button
-              aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z"
-              aria-label="Làm lại thay đổi bài viết"
-              className="grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
-              data-cms-post-history-redo="true"
-              disabled={!canRedo}
-              title="Làm lại (Ctrl+Shift+Z)"
-              type="button"
-              onClick={onRedo}
-            >
-              <Redo2 aria-hidden className="size-3.5" />
-            </button>
-            <span aria-hidden className="mx-0.5 h-4 w-px bg-white/10" />
-            <button
-              aria-label={
-                workspaceFocused
-                  ? "Thoát chế độ tập trung bài viết"
-                  : "Mở chế độ tập trung bài viết"
-              }
-              aria-pressed={workspaceFocused}
-              className="hidden size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white xl:grid"
-              ref={workspaceFocusTriggerRef}
-              title={
-                workspaceFocused
-                  ? "Thoát chế độ tập trung (Esc)"
-                  : "Mở canvas và biểu mẫu trong chế độ tập trung"
-              }
-              type="button"
-              onClick={() => onWorkspaceFocusChange(!workspaceFocused)}
-            >
-              {workspaceFocused ? (
-                <Minimize2 aria-hidden className="size-3.5" />
-              ) : (
-                <Maximize2 aria-hidden className="size-3.5" />
-              )}
-            </button>
-            <span
-              aria-hidden
-              className="mx-0.5 hidden h-4 w-px bg-white/10 xl:block"
-            />
-            {(Object.keys(postPreviewProfiles) as PostPreviewDevice[]).map(
-              (key) => {
-                const previewProfile = postPreviewProfiles[key];
-                const Icon = previewProfile.icon;
-                return (
-                  <button
-                    aria-label={`Xem trước bài viết ${previewProfile.label}`}
-                    aria-pressed={device === key}
-                    className={
-                      device === key
-                        ? "grid size-7 place-items-center rounded bg-white text-zinc-950 shadow"
-                        : "grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
-                    }
-                    key={key}
-                    title={previewProfile.label}
-                    type="button"
-                    onClick={() => setDevice(key)}
-                  >
-                    <Icon aria-hidden className="size-3.5" />
-                  </button>
-                );
-              },
-            )}
-            <a
-              aria-label="Mở bản nháp bài viết đã lưu trong tab riêng"
-              className="grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
-              href={standalonePreviewUrl}
-              rel="noreferrer"
-              target="_blank"
-              title="Mở bản nháp đã lưu"
-            >
-              <ExternalLink aria-hidden className="size-3.5" />
-            </a>
-          </div>
+          <CanvasToolbar
+            canRedo={canRedo}
+            canUndo={canUndo}
+            device={device}
+            focused={workspaceFocused}
+            mode="design"
+            onDeviceChange={setDevice}
+            onFocusToggle={() => onWorkspaceFocusChange(!workspaceFocused)}
+            onModeChange={() => undefined}
+            onOpen={() => window.open(standalonePreviewUrl, "_blank", "noopener,noreferrer")}
+            onRedo={onRedo}
+            onUndo={onUndo}
+          />
         </div>
-        <div
-          aria-label={`Khung xem trước bài viết ${profile.label}`}
-          className={`relative grid place-items-center overflow-auto bg-[radial-gradient(circle_at_center,rgba(24,24,27,0.08),transparent_64%)] p-6 ${workspaceFocused ? "min-h-0" : "min-h-[36rem]"}`}
-          ref={canvasRef}
-        >
-          <CmsPreviewConnectionRecovery
-            onRetry={retry}
-            status={connectionStatus}
+        <div className="flex min-h-0 flex-1">
+          <LayersPanel
+            hoveredId={hoveredVisualId ?? undefined}
+            roots={visualRoots}
+            selectedId={selectedVisualId ?? undefined}
+            onHover={setHoveredVisualId}
+            onSelect={setSelectedVisualId}
           />
           <div
-            className="overflow-hidden rounded-md bg-white shadow-[0_24px_80px_rgba(0,0,0,0.25)] ring-1 ring-black/10 transition-[width,height] duration-300 motion-reduce:transition-none"
-            style={{
-              height: profile.height * scale,
-              width: profile.width * scale,
-            }}
+            aria-label={`Khung xem trước bài viết ${profile.label}`}
+            className={`relative grid min-h-0 flex-1 place-items-center overflow-auto bg-[radial-gradient(circle_at_center,rgba(24,24,27,0.08),transparent_64%)] p-6 ${workspaceFocused ? "" : "min-h-[36rem]"}`}
+            ref={canvasRef}
           >
-            <iframe
-              className="border-0 bg-white"
-              key={reloadKey}
-              onLoad={() => {
-                markFrameLoaded();
-                sendWorkingCopy();
-              }}
-              ref={frameRef}
-              src={previewUrl}
+            <CmsPreviewConnectionRecovery
+              onRetry={retry}
+              status={connectionStatus}
+            />
+            <div
+              className="overflow-hidden rounded-md bg-white shadow-[0_24px_80px_rgba(0,0,0,0.25)] ring-1 ring-black/10"
               style={{
                 height: profile.height,
-                transform: `scale(${scale})`,
-                transformOrigin: "top left",
                 width: profile.width,
               }}
-              title={`Xem trước bài viết ${profile.label}`}
-            />
+            >
+              <iframe
+                className="border-0 bg-white"
+                key={reloadKey}
+                onLoad={() => {
+                  markFrameLoaded();
+                  sendWorkingCopy();
+                }}
+                ref={frameRef}
+                src={previewUrl}
+                style={{
+                  height: profile.height,
+                  width: profile.width,
+                }}
+                title={`Xem trước bài viết ${profile.label}`}
+              />
+            </div>
           </div>
+          <PropertiesPanelTabs
+            onAttributeChange={(path, value) => {
+              // Phase 4.5: wire postMessage → iframe to apply attribute changes.
+              // For now: log only so the tab is interactive end-to-end without
+              // mutating state silently.
+              // eslint-disable-next-line no-console
+              console.info("[post-preview] attribute change", { path, value });
+            }}
+            onStyleChange={(css) => {
+              // eslint-disable-next-line no-console
+              console.info("[post-preview] style change", { css });
+            }}
+            selectedNode={selectedVisualNode}
+          />
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t bg-muted/40 px-3 py-2 text-[10px] text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-zinc-900/90 px-3 py-2 text-[10px] text-zinc-400">
           <span>
-            {profile.width} × {profile.height} · {Math.round(scale * 100)}%
+            {profile.width} × {profile.height} · <span className="font-mono uppercase">{device}</span>
           </span>
           <CmsPreviewConnectionLabel
             connectedLabel={
               <>Bản làm việc trên bản nháp v{version} · riêng tư · trực tiếp</>
             }
             status={connectionStatus}
-            tone="light"
           />
         </div>
       </CardContent>

@@ -1,0 +1,19 @@
+{
+  "created": "2026-09-15",
+  "sourceSuppliedBy": "owner",
+  "sourceFile": "C:\\Users\\terasumi\\Videos\\AI\\cici-702-805b84df-video-1.mp4",
+  "sourceSha256": "a614ae2e618296fcc46a40077ca11c8957f1a4212f06a729d0c5756faa5aa56b",
+  "ciciJobId": "805b84df-0e0f-4412-917f-44c81057e59a",
+  "provider": "cici",
+  "model": "seedance-2.5",
+  "sourceJobStatus": "SUCCEEDED",
+  "finalFile": "videos/rem-vina-seedance-25-30s-1080x1920.mp4",
+  "edits": [
+    "Vietnamese Rèm Vina titles",
+    "Shopee CTA",
+    "AI illustration label",
+    "upscale and H.264 export",
+    "trim to 30 seconds; original motion speed and audio retained"
+  ],
+  "published": false
+}

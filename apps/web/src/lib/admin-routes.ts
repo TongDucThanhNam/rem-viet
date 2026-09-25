@@ -309,6 +309,16 @@ export const adminNavigationSections = [
         icon: ListFilter,
         requiredCapability: "audit.read",
       },
+      {
+        label: "Design system",
+        pageTitle: "Design system",
+        archetype: "settings",
+        description:
+          "Spacing, typography, màu sắc và radii cho admin shell.",
+        to: "/admin/design-system",
+        icon: Workflow,
+        requiredCapability: "settings.manage",
+      },
     ],
   },
   {

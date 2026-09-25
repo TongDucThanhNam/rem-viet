@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, type MouseEvent } from "react";
 import {
   ArrowDownRight,
   Ruler,
@@ -37,6 +37,26 @@ type HeroProps = {
 
 function isExternalHref(href: string) {
   return /^(https?:)?\/\//.test(href);
+}
+
+// Same contract as <Navigation>: hash targets scroll through the eased
+// smooth-scroll engine. One exception: the #order curtain footer is
+// position:fixed, so scrollIntoView resolves against its viewport position
+// and never moves — travel to the document bottom, where the curtain has
+// fully revealed, instead.
+function handleAnchorClick(e: MouseEvent<HTMLAnchorElement>, href: string) {
+  if (!href.startsWith("#")) return;
+  const target = document.getElementById(href.slice(1));
+  if (!target) return;
+  e.preventDefault();
+  if (getComputedStyle(target).position === "fixed") {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: "smooth",
+    });
+    return;
+  }
+  target.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 /**
@@ -216,7 +236,7 @@ export function Hero({ content = defaultHeroBlock.data, isLoaded }: HeroProps) {
 
   return (
     <section
-      className="hero-new relative isolate flex h-dvh w-full min-w-0 items-end overflow-hidden bg-black px-[4vw] pt-[14vh] pb-[16vh] font-sans text-white lg:pb-[28vh] sm:px-[22px] sm:pt-[12vh] sm:pb-[32vh]"
+      className="hero-new relative isolate flex h-dvh w-full min-w-0 items-end overflow-hidden bg-black px-[4vw] pt-[max(14vh,76px)] pb-[16vh] font-sans text-white lg:pb-[28vh] sm:px-[22px] sm:pt-[max(12vh,72px)] sm:pb-[32vh]"
       id="home"
       ref={heroRef}
     >
@@ -241,7 +261,7 @@ export function Hero({ content = defaultHeroBlock.data, isLoaded }: HeroProps) {
       </div>
       <div className="hero-new-content relative z-2 w-full max-w-[760px]">
         <p
-          className="hero-new-kicker relative mb-5 pb-3.5 font-vietnam text-[12px] font-medium leading-tight tracking-[0.18em] text-white/78 uppercase"
+          className="hero-new-kicker relative mb-5 pb-3.5 font-vietnam text-[12px] font-medium leading-tight tracking-[0.18em] text-brand-soft uppercase"
           ref={kickerRef}
         >
           {content.kicker}
@@ -252,14 +272,14 @@ export function Hero({ content = defaultHeroBlock.data, isLoaded }: HeroProps) {
             <span className="hero-title-word" ref={title1Ref}>
               {content.title.prefix}
             </span>
-            <span className="hero-title-word text-brand italic" ref={title2Ref}>
+            <span className="hero-title-word text-brand-soft italic" ref={title2Ref}>
               {content.title.accent}
             </span>
           </span>
         </h1>
 
         <p
-          className="mt-7.5 max-w-[540px] font-vietnam text-body leading-[1.7] text-white/78 lg:max-w-[480px] lg:text-[15px] sm:mt-[22px] sm:text-[14px] sm:leading-[1.65]"
+          className="mt-7.5 max-w-[540px] font-vietnam text-body leading-[1.7] text-white/88 lg:max-w-[480px] lg:text-[15px] sm:mt-[22px] sm:text-[14px] sm:leading-[1.65]"
           ref={descRef}
         >
           {content.description}
@@ -272,31 +292,33 @@ export function Hero({ content = defaultHeroBlock.data, isLoaded }: HeroProps) {
         >
           <a
             href={content.primaryCta.href}
-            className="hero-new-link hover-target inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-lg border border-brand-solid bg-brand-solid px-5 text-[12px] font-semibold tracking-[0.12em] text-white uppercase no-underline shadow-[0_12px_32px_rgba(0,0,0,0.24)] will-change-transform transition-[background-color,border-color,color] duration-300 hoverable:hover:border-brand-soft hoverable:hover:bg-brand-soft hoverable:hover:text-black"
+            className="hero-new-link hover-target group inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-lg border border-brand-solid bg-brand-solid px-5 text-[12px] font-semibold tracking-[0.12em] text-white uppercase no-underline shadow-lg shadow-black/30 will-change-transform transition-[background-color,border-color,color,box-shadow] duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/85 hoverable:hover:-translate-y-0.5 hoverable:hover:border-brand-soft hoverable:hover:bg-brand-soft hoverable:hover:text-black hoverable:hover:shadow-xl hoverable:hover:shadow-black/35"
             data-cursor={content.primaryCta.cursorLabel}
             target={primaryExternal ? "_blank" : undefined}
             rel={primaryExternal ? "noopener noreferrer" : undefined}
+            onClick={(e) => handleAnchorClick(e, content.primaryCta.href)}
           >
             <ArrowDownRight
               aria-hidden="true"
               size={18}
               strokeWidth={1.7}
-              className="text-black/70"
+              className="text-white/85 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:translate-y-0.5 group-hover:text-black/70"
             />
             <span>{content.primaryCta.label}</span>
           </a>
           <a
             href={content.secondaryCta.href}
-            className="hero-new-link hover-target inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-lg border border-white/28 bg-white/12 px-4.5 text-[12px] font-medium tracking-[0.12em] text-white uppercase no-underline backdrop-blur-[14px] will-change-transform"
+            className="hero-new-link hover-target inline-flex min-h-12 w-full items-center justify-center gap-3 rounded-lg border border-white/22 bg-black/50 px-4.5 text-[12px] font-medium tracking-[0.12em] text-white uppercase no-underline backdrop-blur-[14px] will-change-transform transition-[background-color,border-color] duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/85 hoverable:hover:border-white/38 hoverable:hover:bg-black/68"
             data-cursor={content.secondaryCta.cursorLabel}
             target={secondaryExternal ? "_blank" : undefined}
             rel={secondaryExternal ? "noopener noreferrer" : undefined}
+            onClick={(e) => handleAnchorClick(e, content.secondaryCta.href)}
           >
             <ShoppingBag
               aria-hidden="true"
               size={18}
               strokeWidth={1.7}
-              className="text-brand"
+              className="text-brand-soft"
             />
             <span>{content.secondaryCta.label}</span>
           </a>
@@ -318,17 +340,17 @@ export function Hero({ content = defaultHeroBlock.data, isLoaded }: HeroProps) {
 
           return (
             <div
-              className="hero-feature flex min-h-24 items-center gap-3.5 bg-black/18 p-5 xl:p-[18px] lg:min-h-[82px] lg:p-4 sm:min-h-15 sm:gap-3 sm:px-3.5 sm:py-3"
+              className="hero-feature flex min-h-24 items-center gap-3.5 bg-transparent p-5 xl:p-[18px] lg:min-h-[82px] lg:p-4 sm:min-h-15 sm:gap-3 sm:px-3.5 sm:py-3"
               key={id}
             >
               <Icon
                 aria-hidden="true"
                 size={20}
                 strokeWidth={1.5}
-                className="text-brand shrink-0 sm:h-[18px] sm:w-[18px]"
+                className="text-brand-soft shrink-0 sm:h-[18px] sm:w-[18px]"
               />
               <div>
-                <span className="block text-[11px] tracking-[0.12em] leading-[1.3] text-white/62 uppercase sm:text-[10px]">
+                <span className="block text-[11px] tracking-[0.12em] leading-[1.3] text-white/80 uppercase sm:text-[10px]">
                   {label}
                 </span>
                 <strong className="mt-1.5 block text-[14px] font-medium leading-[1.45] text-white sm:mt-[3px] sm:text-[13px]">

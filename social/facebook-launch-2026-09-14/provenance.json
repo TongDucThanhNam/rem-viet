@@ -1,0 +1,56 @@
+{
+  "brand": "Rèm Vina",
+  "created": "2026-09-14",
+  "campaign": "Vừa khung cửa. Hợp nếp nhà.",
+  "leadProduct": "Made-to-measure mosquito mesh",
+  "generationTool": "Cici Studio CLI 2.0.33",
+  "stills": [
+    {
+      "file": "source/01-window-mesh.png",
+      "provider": "cici",
+      "model": "seedream-5-pro",
+      "jobId": "3d74a945-9315-4fd6-8c27-daf07c406d2e"
+    },
+    {
+      "file": "source/02-mesh-detail.png",
+      "provider": "cici",
+      "model": "seedream-5-pro",
+      "jobId": "1b315c44-6eda-48ca-b6ca-8fba4bff20ff"
+    },
+    {
+      "file": "source/03-quiet-home.png",
+      "provider": "cici",
+      "model": "seedream-5-pro",
+      "jobId": "0e8a2bb0-2543-40a6-8722-17185ff19028"
+    }
+  ],
+  "nativeVideos": [
+    {
+      "file": "source/native-breeze.mp4",
+      "provider": "flow",
+      "model": "omni-1.1-flash",
+      "jobId": "c63a38ed-30b2-4cef-b146-26ca3a4a37ec",
+      "source": "720x1280, 24 fps, 8 seconds"
+    },
+    {
+      "file": "source/native-mesh.mp4",
+      "provider": "flow",
+      "model": "omni-1.1-flash",
+      "jobId": "cd672295-adb7-45eb-b980-3b89930e014a",
+      "source": "720x1280, 24 fps, 8 seconds"
+    }
+  ],
+  "finalVideoFormat": "1080x1920, 30 fps, H.264/yuv420p, 11 seconds, silent, Vietnamese titles burned in; native video plus 3-second brand end card",
+  "logo": "Original user-supplied icon extracted and retained; brand wording typeset locally",
+  "imageDirection": "User-supplied cream and oatmeal interior reference, navy #0D1B2A, cream #F7F3EC, restrained gold",
+  "productEvidence": "User-supplied Facebook/Shopee screenshots and visible Shopee storefront; no unverified numeric efficacy, pricing, shipping or warranty claims",
+  "publicationStatus": "Introduction image post and mesh Reel published publicly to Mart24vn on 2026-09-14. Rèm Vina avatar and cover applied and verified the same day; see publication-record.json. Other feed posts and the breeze Reel remain local and unscheduled.",
+  "lightAvatar": {
+    "file": "images/00-avatar-light.png",
+    "provider": "cici",
+    "model": "seedream-5-pro",
+    "jobId": "b039d206-6dc1-4797-84fb-55d07724177b",
+    "reference": "images/00-avatar-1080x1080.png",
+    "appliedToFacebook": "2026-09-15"
+  }
+}

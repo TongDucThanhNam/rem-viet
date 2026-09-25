@@ -243,7 +243,6 @@ export default function HomeEditorWorkspace({
   })}`;
   const {
     onKeyDown: handleFocusedWorkspaceKeyDown,
-    triggerRef: workspaceFocusTriggerRef,
     workspaceRef,
   } = useCmsFocusWorkspace({
     focused: workspaceFocused,
@@ -1361,7 +1360,7 @@ export default function HomeEditorWorkspace({
                   itemClassName={(item) =>
                     `group/block grid grid-cols-[auto_auto_minmax(0,1fr)] items-start gap-x-2 gap-y-1 rounded-md border p-2 transition-colors ${item.selected ? "border-primary bg-primary/10 shadow-sm" : "bg-background hover:border-primary/40"} ${draggedBlockId === item.id ? "opacity-50" : ""}`
                   }
-                  items={homeVisualOutline}
+                  items={homeVisualOutline.items}
                   label="Cấu trúc section Trang chủ"
                   treeItemClassName="col-start-3 row-start-1 min-h-7 min-w-0 py-1 text-left text-xs font-medium leading-snug"
                   onSelectNode={(nodeId) => {
@@ -1639,15 +1638,17 @@ export default function HomeEditorWorkspace({
               frameRef={previewFrameRef}
               previewUrl={previewUrl}
               reloadKey={previewReloadKey}
+              selectedVisualId={selectedId}
               status={previewConnectionStatus}
+              visualRoots={homeVisualOutline.roots}
               onFrameLoad={() => {
                 markPreviewFrameLoaded();
               }}
               onOpen={() => openHomePreview(previewUrl)}
               onRedo={() => navigateDraftHistory("redo")}
               onRetry={retryPreview}
+              onSelectVisualId={setSelectedId}
               onUndo={() => navigateDraftHistory("undo")}
-              workspaceFocusTriggerRef={workspaceFocusTriggerRef}
               workspaceFocused={workspaceFocused}
               version={workingVersion}
               onDeviceChange={setPreviewDevice}

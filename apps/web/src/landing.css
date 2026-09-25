@@ -359,6 +359,33 @@ body.is-loading {
   background: var(--accent-soft);
 }
 
+/* Legibility scrim — the hero photograph is a bright, airy interior, so
+   white type needs a controlled darkening to hold contrast. Two gradients:
+   a left band that carries the kicker/title/desc/CTAs, and a bottom band
+   that seats the feature bar. Purely static (never animated), sits inside
+   .hero-new-bg so it stays under the content z-ladder. */
+.hero-new-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      78deg,
+      rgba(15, 12, 9, 0.82) 0%,
+      rgba(15, 12, 9, 0.58) 30%,
+      rgba(15, 12, 9, 0.24) 54%,
+      rgba(15, 12, 9, 0) 72%
+    ),
+    linear-gradient(
+      to top,
+      rgba(15, 12, 9, 0.72) 0%,
+      rgba(15, 12, 9, 0.3) 24%,
+      rgba(15, 12, 9, 0) 46%
+    );
+}
+
 /* SplitText mask — overflow:hidden line wrappers. Children are inline-block. */
 .hero-title-line {
   display: block;
@@ -394,10 +421,10 @@ body.is-loading {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 8px;
   overflow: hidden;
-  background-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(15, 12, 9, 0.4);
   backdrop-filter: blur(18px);
   transform: translateY(0) scale(1);
   transform-origin: left bottom;
@@ -433,6 +460,28 @@ body.is-loading {
 @media (pointer: coarse), (max-width: 768px) {
   .hero-scroll-cue {
     display: none;
+  }
+}
+
+/* Mobile scrim — content spans the full width, so the darkening shifts to a
+   steeper bottom-weighted vertical gradient (keeps the top of the photo
+   clear to show the curtain). */
+@media (max-width: 640px) {
+  .hero-new-bg::after {
+    background:
+      linear-gradient(
+        to top,
+        rgba(15, 12, 9, 0.82) 0%,
+        rgba(15, 12, 9, 0.58) 30%,
+        rgba(15, 12, 9, 0.3) 55%,
+        rgba(15, 12, 9, 0.12) 78%
+      ),
+      linear-gradient(
+        78deg,
+        rgba(15, 12, 9, 0.5) 0%,
+        rgba(15, 12, 9, 0.18) 46%,
+        rgba(15, 12, 9, 0) 68%
+      );
   }
 }
 
@@ -1383,6 +1432,86 @@ body.is-loading {
   }
   .gallery-item {
     width: 85vw;
+  }
+}
+
+/* Short-landscape compact hero (phones rotated, small laptop windows).
+   Widths >640px would otherwise keep the absolutely-positioned 2-col feature
+   bar, which collides with the actions and description at ~390px heights.
+   The bar flips into a static single-row strip so content + features stack
+   from the bottom and can never overlap. Placed AFTER the max-width:1024px
+   block so its grid/position overrides win the cascade. */
+@media (min-width: 641px) and (max-height: 500px) {
+  .hero-new {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-end;
+    padding: 72px 4vw 18px;
+  }
+
+  .hero-new-content {
+    max-width: none;
+  }
+
+  .hero-new-kicker {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+  }
+
+  .hero-new-title {
+    font-size: clamp(34px, 11vh, 52px);
+  }
+
+  .hero-new-content > p:not(.hero-new-kicker) {
+    margin-top: 10px;
+    max-width: 68ch;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .hero-new-actions {
+    margin-top: 14px;
+  }
+
+  .hero-new-link {
+    min-height: 44px;
+  }
+
+  .hero-features-bar {
+    position: static;
+    width: auto;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: 14px;
+    background-color: rgba(15, 12, 9, 0.46);
+    backdrop-filter: blur(14px);
+  }
+
+  .hero-feature {
+    min-height: 0;
+    gap: 10px;
+    padding: 9px 14px;
+  }
+
+  .hero-feature svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .hero-feature span {
+    font-size: 9px;
+    line-height: 1.2;
+  }
+
+  .hero-feature strong {
+    margin-top: 2px;
+    font-size: 12px;
+    line-height: 1.25;
+  }
+
+  .hero-scroll-cue {
+    display: none;
   }
 }
 

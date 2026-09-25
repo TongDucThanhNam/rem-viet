@@ -1,32 +1,20 @@
 import type { CmsPreviewConnectionStatus } from "@agency/cms-admin";
-import {
-  ExternalLink,
-  Maximize2,
-  Minimize2,
-  Monitor,
-  Redo2,
-  Smartphone,
-  Tablet,
-  Undo2,
-} from "lucide-react";
-import { useEffect, useRef, useState, type RefObject } from "react";
+import type { CmsVisualNode } from "@agency/cms-visual-editor";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 
+import { CanvasToolbar, type CanvasDevice } from "@/components/cms/canvas-toolbar";
+import { LayersPanel } from "@/components/cms/layers-panel";
+import { PropertiesPanelTabs } from "@/components/cms/properties-panel-tabs";
+import { ResponsiveIframeSurface } from "@/components/cms/responsive-iframe-surface";
 import {
   CmsPreviewConnectionIndicator,
   CmsPreviewConnectionLabel,
   CmsPreviewConnectionRecovery,
 } from "@/components/cms-preview-connection";
 
-export type HomePreviewDevice = "desktop" | "tablet" | "mobile";
+export type HomePreviewDevice = CanvasDevice;
 
-const previewProfiles = {
-  desktop: { label: "Desktop", width: 1440, height: 900, icon: Monitor },
-  tablet: { label: "Tablet", width: 768, height: 1024, icon: Tablet },
-  mobile: { label: "Mobile", width: 390, height: 844, icon: Smartphone },
-} satisfies Record<
-  HomePreviewDevice,
-  { label: string; width: number; height: number; icon: typeof Monitor }
->;
+const allDevices: CanvasDevice[] = ["desktop", "tablet", "mobile"];
 
 export type HomeResponsivePreviewProps = {
   canRedo: boolean;
@@ -42,17 +30,50 @@ export type HomeResponsivePreviewProps = {
   previewUrl: string;
   status: CmsPreviewConnectionStatus;
   version: number;
-  workspaceFocusTriggerRef: RefObject<HTMLButtonElement | null>;
   workspaceFocused: boolean;
+  /** Canonical root nodes (CmsVisualNode[]) để hiển thị LayersPanel. */
+  visualRoots: readonly CmsVisualNode[];
+  /** Selected node id, dùng cho LayersPanel highlight + PropertiesPanelTabs. */
+  selectedVisualId?: string | null;
+  onSelectVisualId?: (id: string) => void;
   onDeviceChange: (device: HomePreviewDevice) => void;
   onWorkspaceFocusChange: (focused: boolean) => void;
 };
 
+function findNodeById(
+  roots: readonly CmsVisualNode[],
+  id: string | null | undefined,
+): CmsVisualNode | null {
+  if (!id) return null;
+  const visit = (node: CmsVisualNode): CmsVisualNode | null => {
+    if (node.id === id) return node;
+    if (!node.slots) return null;
+    for (const children of Object.values(node.slots)) {
+      for (const child of children) {
+        const found = visit(child);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+  for (const root of roots) {
+    const found = visit(root);
+    if (found) return found;
+  }
+  return null;
+}
+
+/**
+ * Home page canvas — 3 iframe surfaces song song (desktop / tablet / mobile),
+ * không scale transform. Instatic convention: mỗi iframe render đúng natural
+ * width của viewport để @media CSS áp dụng chính xác. Canvas layout 3-cột:
+ * LayersPanel trái · iframe center · PropertiesPanelTabs phải.
+ */
 export default function HomeResponsivePreview({
   canRedo,
   canUndo,
   device,
-  frameRef,
+  frameRef: _frameRef,
   onFrameLoad,
   onOpen,
   onRedo,
@@ -62,34 +83,34 @@ export default function HomeResponsivePreview({
   previewUrl,
   status,
   version,
-  workspaceFocusTriggerRef,
   workspaceFocused,
+  visualRoots,
+  selectedVisualId,
+  onSelectVisualId,
   onDeviceChange,
   onWorkspaceFocusChange,
 }: HomeResponsivePreviewProps) {
-  const profile = previewProfiles[device];
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(0.35);
+  const activeDeviceRef = useRef<HTMLDivElement>(null);
+  const [hoveredVisualId, setHoveredVisualId] = useState<string | null>(null);
 
+  // Cuộn active device vào view khi user chọn thiết bị khác.
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const fitPreview = () => {
-      const availableWidth = Math.max(240, canvas.clientWidth - 48);
-      const availableHeight = Math.max(320, canvas.clientHeight - 48);
-      setScale(
-        Math.min(
-          1,
-          availableWidth / profile.width,
-          availableHeight / profile.height,
-        ),
-      );
-    };
-    fitPreview();
-    const observer = new ResizeObserver(fitPreview);
-    observer.observe(canvas);
-    return () => observer.disconnect();
-  }, [profile.height, profile.width]);
+    activeDeviceRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [device]);
+
+  const selectedVisualNode = useMemo(
+    () => findNodeById(visualRoots, selectedVisualId),
+    [visualRoots, selectedVisualId],
+  );
+
+  const handleSelectVisual = (id: string) => {
+    onSelectVisualId?.(id);
+  };
 
   return (
     <div
@@ -103,124 +124,78 @@ export default function HomeResponsivePreview({
           status={status}
           title={<h2 className="text-xs font-semibold">Canvas trực tiếp</h2>}
         />
-        <div className="flex items-center gap-1 rounded-md bg-black/35 p-1">
-          <button
-            aria-keyshortcuts="Control+Z Meta+Z"
-            aria-label="Hoàn tác thay đổi canvas"
-            className="grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
-            data-cms-history-undo="true"
-            disabled={!canUndo}
-            title="Hoàn tác (Ctrl+Z)"
-            type="button"
-            onClick={onUndo}
-          >
-            <Undo2 aria-hidden className="size-3.5" />
-          </button>
-          <button
-            aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z"
-            aria-label="Làm lại thay đổi canvas"
-            className="mr-1 grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
-            data-cms-history-redo="true"
-            disabled={!canRedo}
-            title="Làm lại (Ctrl+Shift+Z)"
-            type="button"
-            onClick={onRedo}
-          >
-            <Redo2 aria-hidden className="size-3.5" />
-          </button>
-          <span aria-hidden className="mx-0.5 h-4 w-px bg-white/10" />
-          <button
-            aria-label={
-              workspaceFocused
-                ? "Thoát chế độ tập trung"
-                : "Mở chế độ tập trung"
-            }
-            aria-pressed={workspaceFocused}
-            className="hidden size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white xl:grid"
-            ref={workspaceFocusTriggerRef}
-            title={
-              workspaceFocused
-                ? "Thoát chế độ tập trung (Esc)"
-                : "Mở canvas và inspector trong chế độ tập trung"
-            }
-            type="button"
-            onClick={() => onWorkspaceFocusChange(!workspaceFocused)}
-          >
-            {workspaceFocused ? (
-              <Minimize2 aria-hidden className="size-3.5" />
-            ) : (
-              <Maximize2 aria-hidden className="size-3.5" />
-            )}
-          </button>
-          <span
-            aria-hidden
-            className="mx-0.5 hidden h-4 w-px bg-white/10 xl:block"
-          />
-          {(Object.keys(previewProfiles) as HomePreviewDevice[]).map((key) => {
-            const Icon = previewProfiles[key].icon;
-            return (
-              <button
-                aria-label={`Xem trước ${previewProfiles[key].label}`}
-                className={`grid size-7 place-items-center rounded transition-colors ${device === key ? "bg-white text-zinc-950 shadow" : "text-zinc-400 hover:bg-white/10 hover:text-white"}`}
-                key={key}
-                title={previewProfiles[key].label}
-                type="button"
-                onClick={() => onDeviceChange(key)}
-              >
-                <Icon aria-hidden className="size-3.5" />
-              </button>
-            );
-          })}
-          <a
-            aria-label="Mở canvas trong tab riêng"
-            className="grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
-            href={previewUrl}
-            rel="noreferrer"
-            target="_blank"
-            onClick={(event) => {
-              event.preventDefault();
-              onOpen();
-            }}
-          >
-            <ExternalLink aria-hidden className="size-3.5" />
-          </a>
-        </div>
+        <CanvasToolbar
+          canRedo={canRedo}
+          canUndo={canUndo}
+          device={device}
+          focused={workspaceFocused}
+          mode="design"
+          onDeviceChange={onDeviceChange}
+          onFocusToggle={() => onWorkspaceFocusChange(!workspaceFocused)}
+          onModeChange={() => undefined}
+          onOpen={onOpen}
+          onRedo={onRedo}
+          onUndo={onUndo}
+        />
       </div>
-      <div
-        aria-label="Khung cuộn xem trước Trang chủ"
-        className="relative grid min-h-0 flex-1 place-items-center overflow-auto bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_62%)] p-6"
-        data-cms-preview-canvas="true"
-        ref={canvasRef}
-        tabIndex={0}
-      >
-        <CmsPreviewConnectionRecovery onRetry={onRetry} status={status} />
+      <div className="flex min-h-0 flex-1">
+        <LayersPanel
+          hoveredId={hoveredVisualId ?? undefined}
+          roots={visualRoots}
+          selectedId={selectedVisualId ?? undefined}
+          onHover={setHoveredVisualId}
+          onSelect={handleSelectVisual}
+        />
         <div
-          className="overflow-hidden rounded-md bg-white shadow-[0_24px_80px_rgba(0,0,0,0.55)] ring-1 ring-white/15 transition-[width,height] duration-300 motion-reduce:transition-none"
-          style={{
-            height: profile.height * scale,
-            width: profile.width * scale,
-          }}
+          aria-label="Khung cuộn xem trước Trang chủ"
+          className="relative grid min-h-0 flex-1 place-items-center overflow-auto bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_62%)] p-6"
+          data-cms-preview-canvas="true"
+          ref={canvasRef}
+          tabIndex={0}
         >
-          <iframe
-            className="border-0 bg-white"
-            key={reloadKey}
-            onLoad={onFrameLoad}
-            ref={frameRef}
-            src={previewUrl}
-            style={{
-              height: profile.height,
-              transform: `scale(${scale})`,
-              transformOrigin: "top left",
-              width: profile.width,
-            }}
-            title={`Xem trước Trang chủ ${profile.label}`}
-          />
+          <CmsPreviewConnectionRecovery onRetry={onRetry} status={status} />
+          <div
+            className="flex w-full max-w-fit items-start justify-center gap-6"
+            data-cms-iframe-grid="true"
+          >
+            {allDevices.map((d) => {
+              const isActive = d === device;
+              return (
+                <div
+                  key={d}
+                  ref={isActive ? activeDeviceRef : undefined}
+                  data-active-wrapper={isActive || undefined}
+                  className="flex flex-col items-center gap-2"
+                >
+                  <ResponsiveIframeSurface
+                    device={d}
+                    isActive={isActive}
+                    onLoad={isActive ? onFrameLoad : undefined}
+                    reloadKey={reloadKey}
+                    src={previewUrl}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
+        <PropertiesPanelTabs
+          onAttributeChange={(path, value) => {
+            // Phase 4.5: wire postMessage → iframe to apply attribute changes.
+            // For now: log only so the tab is interactive end-to-end without
+            // mutating state silently.
+            // eslint-disable-next-line no-console
+            console.info("[home-preview] attribute change", { path, value });
+          }}
+          onStyleChange={(css) => {
+            // eslint-disable-next-line no-console
+            console.info("[home-preview] style change", { css });
+          }}
+          selectedNode={selectedVisualNode ?? undefined}
+        />
       </div>
       <div className="flex items-center justify-between border-t border-white/10 bg-zinc-900/90 px-3 py-2 text-[10px] text-zinc-400">
-        <span>
-          {profile.width} × {profile.height} · {Math.round(scale * 100)}%
-        </span>
+        <span>3 viewports · thiết bị đang chọn: <span className="font-mono uppercase">{device}</span></span>
         <CmsPreviewConnectionLabel
           connectedLabel={<>Nháp v{version} · đang đồng bộ trực tiếp</>}
           status={status}

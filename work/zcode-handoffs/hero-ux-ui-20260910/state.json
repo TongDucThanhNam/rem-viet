@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "run_id": "hero-ux-ui-20260910",
+  "exit_code": null,
+  "updated_at": "2026-09-10T00:26:29.5352433Z",
+  "request_revision": 1,
+  "worker": {
+    "zcode_session_id": "sess_98ca7ac4-54a5-4aea-8703-042d469902f2",
+    "job_id": null,
+    "kind": "native",
+    "tool_session_id": 62725,
+    "process_start_time": "2026-09-10T07:24:00.879546+07:00",
+    "run_directory": "C:\\Users\\terasumi\\Documents\\source_code\\rem-viet\\.zcode-dispatch\\run-hero-ux-ui-20260910",
+    "process_id": 22336,
+    "model_metadata": [
+      {
+        "role": "assistant",
+        "modelID": "GLM-5.3-Flash",
+        "providerID": "builtin:zai-coding-plan"
+      },
+      {
+        "role": "assistant",
+        "modelID": "GLM-5.3-Flash",
+        "providerID": "builtin:zai-coding-plan"
+      },
+      {
+        "role": "assistant",
+        "modelID": "GLM-5.3-Flash",
+        "providerID": "builtin:zai-coding-plan"
+      },
+      {
+        "role": "assistant",
+        "modelID": "GLM-5.3-Flash",
+        "providerID": "builtin:zai-coding-plan"
+      },
+      {
+        "role": "assistant",
+        "modelID": "GLM-5.3-Flash",
+        "providerID": "builtin:zai-coding-plan"
+      }
+    ]
+  },
+  "status": "running",
+  "verification": [
+    {
+      "check": "Initial actual route preview",
+      "url": "http://127.0.0.1:4312/",
+      "outcome": "Blocked by pre-existing local D1 schema: no such column published_revision_id"
+    }
+  ],
+  "report_path": null,
+  "worker_state": "running",
+  "remaining": [
+    "Implementation",
+    "Responsive/browser verification",
+    "Typecheck and build",
+    "Final scoped review"
+  ]
+}

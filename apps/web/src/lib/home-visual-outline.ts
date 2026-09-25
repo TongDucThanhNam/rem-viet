@@ -18,13 +18,21 @@ const homeAuthoringGrants = Object.freeze([
   "content.compose.remove",
 ]);
 
+export type HomeVisualOutline = Readonly<{
+  /** Permission-aware nested outline consumed by the legacy sidebar tree. */
+  items: ReadonlyArray<import("@agency/cms-visual-editor").CmsVisualOutlineItem>;
+  /** Canonical root nodes (with `slots` + `data.className`) consumed by the
+   *  LayersPanel inspector. Mirrors `document.nodes` from the same build. */
+  roots: ReadonlyArray<import("@agency/cms-visual-editor").CmsVisualNode>;
+}>;
+
 /** Bridges the legacy homepage block shape to the shared visual outline. */
 export function createHomeVisualOutline(input: {
   blocks: readonly HomeBlock[];
   selectedBlockId: string | null;
   version: number;
   canWrite: boolean;
-}) {
+}): HomeVisualOutline {
   const canonicalBlocks = input.blocks.map((block) => {
     const parsed = toRemVietTemplateBlock(block);
     if (!parsed.success) {
@@ -38,7 +46,7 @@ export function createHomeVisualOutline(input: {
     version: input.version,
     blocks: canonicalBlocks,
   });
-  return createCmsVisualOutline({
+  const items = createCmsVisualOutline({
     document,
     registry: remVietVisualComponentRegistry,
     grants: new Set(input.canWrite ? homeAuthoringGrants : []),
@@ -48,4 +56,5 @@ export function createHomeVisualOutline(input: {
         node.type as keyof typeof remVietTemplateBlockLabels
       ] ?? node.type,
   });
+  return { items, roots: document.nodes };
 }

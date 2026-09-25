@@ -1,0 +1,42 @@
+{
+  "breeze": {
+    "file": "videos/01-breeze-reel-1080x1920.mp4",
+    "sourceKind": "Cici Studio generated video",
+    "source": {
+      "width": 720,
+      "height": 1280,
+      "fps": 24.0,
+      "frames": 192,
+      "duration": 8.0
+    },
+    "export": {
+      "width": 1080,
+      "height": 1920,
+      "fps": 30.0,
+      "frames": 330,
+      "duration": 11.0
+    },
+    "audio": "Silent; Vietnamese titles are burned in.",
+    "sourceSpeedFactor": 1.0
+  },
+  "mesh": {
+    "file": "videos/02-mesh-reel-1080x1920.mp4",
+    "sourceKind": "Cici Studio generated video",
+    "source": {
+      "width": 720,
+      "height": 1280,
+      "fps": 24.0,
+      "frames": 192,
+      "duration": 8.0
+    },
+    "export": {
+      "width": 1080,
+      "height": 1920,
+      "fps": 30.0,
+      "frames": 330,
+      "duration": 11.0
+    },
+    "audio": "Silent; Vietnamese titles are burned in.",
+    "sourceSpeedFactor": 1.0
+  }
+}

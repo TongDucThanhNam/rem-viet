@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "run_id": "hero-ux-ui-20260910",
+  "request_revision": 1,
+  "project": "C:\\Users\\terasumi\\Documents\\source_code\\rem-viet",
+  "mode": "native",
+  "outcome": "Implement a polished, materially improved UX/UI for the landing page Hero section. Use ZCode to implement, then personally verify and correct in scope. User explicitly invoked delegate-to-zcode and requested: Improve UX/UI of Hero Section.",
+  "scope": [
+    "Primary files: apps/web/src/components/landing/hero.tsx and hero-specific rules in apps/web/src/landing.css.",
+    "Inspect current rendered hero and adjacent navigation first; improve visual hierarchy, legibility against imagery, CTA clarity and tactile affordances, spacing, responsive composition and feature bar. Preserve premium Vietnamese curtain brand identity.",
+    "Small adjacent changes only when necessary for hero usability. Keep CMS HeroBlockData content bindings, URLs, optional content and editor metadata functional; do not replace them with hardcoded content.",
+    "Do the implementation now, use good design judgment without asking optional preference questions, and return concise final report with useful absolute file links and screenshot paths if captured."
+  ],
+  "constraints": [
+    "Always respond in English. Preserve Vietnamese site copy and genuine product facts.",
+    "Read and follow project AGENTS.md, applicable nested instructions and relevant skill instructions; use ast-grep outline before large unfamiliar files and structural search for syntax-aware queries.",
+    "Preserve existing GSAP + Lenis, shared imports from @/lib/gsap, isLoaded gate, cleanup, short loader contract, and static/reduced-motion/coarse/mobile paths. Read relevant GSAP skill(s) if touching animation.",
+    "Keep .hero-new height exactly 100dvh and overflow hidden; ensure content and features remain usable at representative small and short viewports with responsive sizing. Do not resurrect legacy hero CSS.",
+    "Use established Tailwind utilities and design tokens for normal styling; extend canonical landing.css only where appropriate, without a rewrite.",
+    "Use existing imagery unless a replacement is necessary; no paid image generation or new dependencies without necessity. Do not fabricate claims.",
+    "Keep existing valid CTA destinations and section IDs. Preserve keyboard focus, semantics, sufficient tap targets and contrast.",
+    "Source tree apps/packages/package.json/bun.lock initially has no changes. Existing unrelated tracked deletions under .mavis/plans and a very large .opencode/tmp tree are user state and must not be restored, removed, staged or committed.",
+    "Do not modify instructions/configuration to enable delegation. No additional agents; ZCode implements and you supervise. Do not commit, push or deploy. No progress/log messages to parent; return one native final report when terminal."
+  ],
+  "acceptance": [
+    "Meaningful, cohesive hero UX/UI improvements implemented in the existing app with no unintended changes to other sections or CMS editability.",
+    "Focused browser verification of desktop and mobile, including at least 1440x900, 390x844, 375x667 and a short landscape viewport, checking readable text, feature visibility, no horizontal overflow, no nav/content collision and working hero CTA navigation.",
+    "Verify keyboard focus and reduced-motion/static hero visibility, and capture final desktop/mobile screenshots when tooling supports it.",
+    "Run bun run check-types and bun run build from apps/web; address relevant failures and clearly distinguish any unrelated baseline failures.",
+    "Review final scoped diff and fix concrete regressions through ZCode; report only verified outcomes and any actual limitations. Final report identifies run_id/revision and receipt path with terminal status."
+  ]
+}

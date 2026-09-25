@@ -75,6 +75,7 @@ import { Route as AdminInventoryRouteImport } from './routes/admin/inventory'
 import { Route as AdminHomePreviewRouteImport } from './routes/admin/home-preview'
 import { Route as AdminHomeRouteImport } from './routes/admin/home'
 import { Route as AdminHandoverRouteImport } from './routes/admin/handover'
+import { Route as AdminDesignSystemRouteImport } from './routes/admin/design-system'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AdminCampaignsRouteImport } from './routes/admin/campaigns'
@@ -449,6 +450,11 @@ const AdminHandoverRoute = AdminHandoverRouteImport.update({
   path: '/handover',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDesignSystemRoute = AdminDesignSystemRouteImport.update({
+  id: '/design-system',
+  path: '/design-system',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -704,6 +710,7 @@ export interface FileRoutesByFullPath {
   '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/design-system': typeof AdminDesignSystemRoute
   '/admin/handover': typeof AdminHandoverRoute
   '/admin/home': typeof AdminHomeRoute
   '/admin/home-preview': typeof AdminHomePreviewRoute
@@ -813,6 +820,7 @@ export interface FileRoutesByTo {
   '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/design-system': typeof AdminDesignSystemRoute
   '/admin/handover': typeof AdminHandoverRoute
   '/admin/home': typeof AdminHomeRoute
   '/admin/home-preview': typeof AdminHomePreviewRoute
@@ -920,6 +928,7 @@ export interface FileRoutesById {
   '/admin/campaigns': typeof AdminCampaignsRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/design-system': typeof AdminDesignSystemRoute
   '/admin/handover': typeof AdminHandoverRoute
   '/admin/home': typeof AdminHomeRoute
   '/admin/home-preview': typeof AdminHomePreviewRoute
@@ -1033,6 +1042,7 @@ export interface FileRouteTypes {
     | '/admin/campaigns'
     | '/admin/categories'
     | '/admin/dashboard'
+    | '/admin/design-system'
     | '/admin/handover'
     | '/admin/home'
     | '/admin/home-preview'
@@ -1142,6 +1152,7 @@ export interface FileRouteTypes {
     | '/admin/campaigns'
     | '/admin/categories'
     | '/admin/dashboard'
+    | '/admin/design-system'
     | '/admin/handover'
     | '/admin/home'
     | '/admin/home-preview'
@@ -1248,6 +1259,7 @@ export interface FileRouteTypes {
     | '/admin/campaigns'
     | '/admin/categories'
     | '/admin/dashboard'
+    | '/admin/design-system'
     | '/admin/handover'
     | '/admin/home'
     | '/admin/home-preview'
@@ -1852,6 +1864,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminHandoverRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/design-system': {
+      id: '/admin/design-system'
+      path: '/design-system'
+      fullPath: '/admin/design-system'
+      preLoaderRoute: typeof AdminDesignSystemRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/dashboard': {
       id: '/admin/dashboard'
       path: '/dashboard'
@@ -2240,6 +2259,7 @@ interface AdminRouteChildren {
   AdminCampaignsRoute: typeof AdminCampaignsRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminDesignSystemRoute: typeof AdminDesignSystemRoute
   AdminHandoverRoute: typeof AdminHandoverRoute
   AdminHomeRoute: typeof AdminHomeRoute
   AdminHomePreviewRoute: typeof AdminHomePreviewRoute
@@ -2271,6 +2291,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCampaignsRoute: AdminCampaignsRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminDashboardRoute: AdminDashboardRoute,
+  AdminDesignSystemRoute: AdminDesignSystemRoute,
   AdminHandoverRoute: AdminHandoverRoute,
   AdminHomeRoute: AdminHomeRoute,
   AdminHomePreviewRoute: AdminHomePreviewRoute,

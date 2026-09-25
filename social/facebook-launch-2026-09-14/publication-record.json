@@ -1,0 +1,57 @@
+{
+  "page": "Mart24vn",
+  "pageUrl": "https://www.facebook.com/mart24vn/",
+  "verifiedAt": "2026-09-14T14:46:50Z",
+  "entries": [
+    {
+      "asset": "images/01-brand-introduction-1080x1350.jpg",
+      "caption": "copy/caption-01.txt",
+      "type": "image-post",
+      "status": "published",
+      "url": "https://www.facebook.com/photo/?fbid=1099804385901966&set=a.1099804992568572",
+      "audience": "public",
+      "aiLabel": true,
+      "boosted": false
+    },
+    {
+      "asset": "videos/02-mesh-reel-1080x1920.mp4",
+      "cover": "images/reel-cover-02-mesh-1080x1920.jpg",
+      "caption": "copy/caption-reel-02.txt",
+      "type": "reel",
+      "status": "published-and-viewable",
+      "url": "https://www.facebook.com/reel/1857813952266374",
+      "audience": "public",
+      "aiLabel": true,
+      "boosted": false
+    }
+  ],
+  "identityUpdates": [
+    {
+      "asset": "images/00-avatar-1080x1080.png",
+      "type": "profile-photo",
+      "status": "applied-and-verified",
+      "verifiedAt": "2026-09-14T16:51:55Z",
+      "verification": "Facebook confirmed the profile photo update; the new Rèm Vina avatar is visible in the page header.",
+      "current": false
+    },
+    {
+      "asset": "images/00-facebook-cover-1640x624.jpg",
+      "type": "cover-photo",
+      "status": "applied-and-verified",
+      "url": "https://www.facebook.com/photo/?fbid=1099899415892463&set=a.182871317595282",
+      "verifiedAt": "2026-09-14T16:51:55Z",
+      "verification": "Saved cover photo is visible in the page header."
+    },
+    {
+      "asset": "images/00-avatar-light.png",
+      "type": "profile-photo",
+      "variant": "light",
+      "status": "applied-and-verified",
+      "current": true,
+      "verifiedAt": "2026-09-15T10:29:32Z",
+      "verification": "Facebook displayed the confirmation: Đã cập nhật ảnh đại diện của bạn."
+    }
+  ],
+  "remainingAssets": "Other feed posts and the breeze Reel remain local and unscheduled.",
+  "currentProfilePhoto": "images/00-avatar-light.png"
+}

@@ -27,6 +27,7 @@ import {
   isCmsVisualEditorMessage,
   redoCmsDraftHistory,
   undoCmsDraftHistory,
+  type CmsVisualNode,
 } from "@agency/cms-visual-editor";
 import {
   RemVietEditorShell,
@@ -87,18 +88,11 @@ import {
   ExternalLink,
   GitCompareArrows,
   History,
-  Maximize2,
-  Minimize2,
-  Monitor,
   Plus,
-  Redo2,
   Save,
   Search,
   Send,
-  Smartphone,
-  Tablet,
   Trash2,
-  Undo2,
   X,
 } from "lucide-react";
 import {
@@ -120,6 +114,12 @@ import {
 } from "@/components/admin-ui";
 import CmsRichTextEditor from "@/components/cms-rich-text-editor";
 import {
+  CanvasToolbar,
+  type CanvasDevice,
+} from "@/components/cms/canvas-toolbar";
+import { LayersPanel } from "@/components/cms/layers-panel";
+import { PropertiesPanelTabs } from "@/components/cms/properties-panel-tabs";
+import {
   CmsPreviewConnectionIndicator,
   CmsPreviewConnectionLabel,
   CmsPreviewConnectionRecovery,
@@ -130,7 +130,6 @@ import RevisionFieldComparison from "@/components/revision-field-comparison";
 import { getAdminUser } from "@/functions/get-admin-user";
 import { useSaveBeforeNavigation } from "@/hooks/use-save-before-navigation";
 import {
-  isUnsavedStandardPagePreviewId,
   unsavedStandardPagePreviewId,
 } from "@/lib/standard-page-preview";
 import { applyStandardPageInlineText } from "@/lib/standard-page-inline-edit";
@@ -414,15 +413,15 @@ function toDatetimeLocal(value: string | Date | null) {
   return local.toISOString().slice(0, 16);
 }
 
-type StandardPagePreviewDevice = "desktop" | "tablet" | "mobile";
+type StandardPagePreviewDevice = CanvasDevice;
 
 const standardPagePreviewProfiles = {
-  desktop: { label: "Desktop", width: 1440, height: 900, icon: Monitor },
-  tablet: { label: "Tablet", width: 768, height: 1024, icon: Tablet },
-  mobile: { label: "Mobile", width: 390, height: 844, icon: Smartphone },
+  desktop: { label: "Desktop", width: 1440, height: 900 },
+  tablet: { label: "Tablet", width: 768, height: 1024 },
+  mobile: { label: "Mobile", width: 390, height: 844 },
 } satisfies Record<
-  StandardPagePreviewDevice,
-  { label: string; width: number; height: number; icon: typeof Monitor }
+  CanvasDevice,
+  { label: string; width: number; height: number }
 >;
 
 function StandardPageResponsivePreview({
@@ -447,7 +446,7 @@ function StandardPageResponsivePreview({
   title,
   version,
   previewChannel,
-  workspaceFocusTriggerRef,
+  workspaceFocusTriggerRef: _workspaceFocusTriggerRef,
   workspaceFocused,
 }: {
   blocks: StandardBlock[];
@@ -483,7 +482,6 @@ function StandardPageResponsivePreview({
   workspaceFocused: boolean;
 }) {
   const [device, setDevice] = useState<StandardPagePreviewDevice>("desktop");
-  const [scale, setScale] = useState(0.4);
   const [lastCanvasIntent, setLastCanvasIntent] = useState("none");
   const canvasRef = useRef<HTMLDivElement>(null);
   const frameRef = useRef<HTMLIFrameElement>(null);
@@ -502,7 +500,6 @@ function StandardPageResponsivePreview({
     cmsConflict: previewChannel.conflictToken,
     cmsSession: previewChannel.sessionId,
   })}`;
-  const isUnsavedPreview = isUnsavedStandardPagePreviewId(pageId);
   const channelReadyRef = useRef(false);
   const previewSessionRef = useRef<{
     key: string;
@@ -562,6 +559,24 @@ function StandardPageResponsivePreview({
       }),
     [canInlineEdit, visualBlocks],
   );
+  const [selectedVisualId, setSelectedVisualId] = useState<string | null>(null);
+  const [hoveredVisualId, setHoveredVisualId] = useState<string | null>(null);
+  const selectedVisualNode = useMemo(() => {
+    if (!selectedVisualId) return undefined;
+    const visit = (nodes: readonly CmsVisualNode[]): CmsVisualNode | null => {
+      for (const node of nodes) {
+        if (node.id === selectedVisualId) return node;
+        if (node.slots) {
+          for (const children of Object.values(node.slots)) {
+            const found = visit(children);
+            if (found) return found;
+          }
+        }
+      }
+      return null;
+    };
+    return visit(visualBlocks) ?? undefined;
+  }, [visualBlocks, selectedVisualId]);
 
   const sendWorkingCopy = useCallback(() => {
     if (!channelReadyRef.current) return;
@@ -736,24 +751,9 @@ function StandardPageResponsivePreview({
   }, [getPreviewSession, markConnected]);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const fitPreview = () => {
-      const availableWidth = Math.max(240, canvas.clientWidth - 48);
-      const availableHeight = Math.max(360, canvas.clientHeight - 48);
-      setScale(
-        Math.min(
-          1,
-          availableWidth / profile.width,
-          availableHeight / profile.height,
-        ),
-      );
-    };
-    fitPreview();
-    const observer = new ResizeObserver(fitPreview);
-    observer.observe(canvas);
-    return () => observer.disconnect();
-  }, [profile.height, profile.width]);
+    /* scale removed — Instatic convention renders iframe at natural device
+     * dimensions inside horizontally scrollable canvas area. */
+  }, []);
 
   return (
     <Card
@@ -783,146 +783,85 @@ function StandardPageResponsivePreview({
               </h3>
             }
           />
-          <div className="flex items-center gap-1 rounded-md bg-white/8 p-1">
-            <button
-              aria-keyshortcuts="Control+Z Meta+Z"
-              aria-label="Hoàn tác thay đổi trang"
-              className="grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
-              data-cms-history-undo="true"
-              disabled={!canUndo}
-              title="Hoàn tác (Ctrl+Z)"
-              type="button"
-              onClick={onUndo}
-            >
-              <Undo2 aria-hidden className="size-3.5" />
-            </button>
-            <button
-              aria-keyshortcuts="Control+Shift+Z Meta+Shift+Z"
-              aria-label="Làm lại thay đổi trang"
-              className="grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-30"
-              data-cms-history-redo="true"
-              disabled={!canRedo}
-              title="Làm lại (Ctrl+Shift+Z)"
-              type="button"
-              onClick={onRedo}
-            >
-              <Redo2 aria-hidden className="size-3.5" />
-            </button>
-            <span aria-hidden className="mx-0.5 h-4 w-px bg-white/10" />
-            <button
-              aria-label={
-                workspaceFocused
-                  ? "Thoát chế độ tập trung trang"
-                  : "Mở chế độ tập trung trang"
-              }
-              aria-pressed={workspaceFocused}
-              className="hidden size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white xl:grid"
-              ref={workspaceFocusTriggerRef}
-              title={
-                workspaceFocused
-                  ? "Thoát chế độ tập trung (Esc)"
-                  : "Mở canvas và inspector trong chế độ tập trung"
-              }
-              type="button"
-              onClick={() => onWorkspaceFocusChange(!workspaceFocused)}
-            >
-              {workspaceFocused ? (
-                <Minimize2 aria-hidden className="size-3.5" />
-              ) : (
-                <Maximize2 aria-hidden className="size-3.5" />
-              )}
-            </button>
-            <span
-              aria-hidden
-              className="mx-0.5 hidden h-4 w-px bg-white/10 xl:block"
-            />
-            {(
-              Object.keys(
-                standardPagePreviewProfiles,
-              ) as StandardPagePreviewDevice[]
-            ).map((key) => {
-              const previewProfile = standardPagePreviewProfiles[key];
-              const Icon = previewProfile.icon;
-              return (
-                <button
-                  aria-label={`Xem trước ${previewProfile.label}`}
-                  aria-pressed={device === key}
-                  className={cn(
-                    "grid size-7 place-items-center rounded transition-colors",
-                    device === key
-                      ? "bg-white text-zinc-950 shadow"
-                      : "text-zinc-400 hover:bg-white/10 hover:text-white",
-                  )}
-                  key={key}
-                  title={previewProfile.label}
-                  type="button"
-                  onClick={() => setDevice(key)}
-                >
-                  <Icon aria-hidden className="size-3.5" />
-                </button>
-              );
-            })}
-            {!isUnsavedPreview ? (
-              <a
-                aria-label="Mở bản nháp đã lưu trong tab riêng"
-                className="grid size-7 place-items-center rounded text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
-                href={standalonePreviewUrl}
-                rel="noreferrer"
-                target="_blank"
-                title="Mở bản nháp đã lưu"
-              >
-                <ExternalLink aria-hidden className="size-3.5" />
-              </a>
-            ) : null}
-          </div>
+          <CanvasToolbar
+            canRedo={canRedo}
+            canUndo={canUndo}
+            device={device}
+            focused={workspaceFocused}
+            mode="design"
+            onDeviceChange={setDevice}
+            onFocusToggle={() => onWorkspaceFocusChange(!workspaceFocused)}
+            onModeChange={() => undefined}
+            onOpen={() => window.open(standalonePreviewUrl, "_blank", "noopener,noreferrer")}
+            onRedo={onRedo}
+            onUndo={onUndo}
+          />
         </div>
-        <div
-          aria-label={`Khung xem trước trang ${profile.label}`}
-          className={cn(
-            "relative grid min-h-[36rem] place-items-center overflow-auto bg-[radial-gradient(circle_at_center,rgba(24,24,27,0.08),transparent_64%)] p-6",
-            workspaceFocused && "min-h-0",
-          )}
-          ref={canvasRef}
-          tabIndex={0}
-        >
-          <CmsPreviewConnectionRecovery
-            onRetry={retry}
-            status={connectionStatus}
+        <div className="flex min-h-0 flex-1">
+          <LayersPanel
+            hoveredId={hoveredVisualId ?? undefined}
+            roots={visualBlocks}
+            selectedId={selectedVisualId ?? undefined}
+            onHover={setHoveredVisualId}
+            onSelect={setSelectedVisualId}
           />
           <div
-            className="overflow-hidden rounded-md bg-white shadow-[0_24px_80px_rgba(0,0,0,0.25)] ring-1 ring-black/10 transition-[width,height] duration-300 motion-reduce:transition-none"
-            style={{
-              height: profile.height * scale,
-              width: profile.width * scale,
-            }}
+            aria-label={`Khung xem trước trang ${profile.label}`}
+            className={cn(
+              "relative grid min-h-[36rem] flex-1 place-items-center overflow-auto bg-[radial-gradient(circle_at_center,rgba(24,24,27,0.08),transparent_64%)] p-6",
+              workspaceFocused && "min-h-0",
+            )}
+            ref={canvasRef}
+            tabIndex={0}
           >
-            <iframe
-              className="border-0 bg-white"
-              key={reloadKey}
-              onLoad={() => {
-                markFrameLoaded();
-                sendWorkingCopy();
-              }}
-              ref={frameRef}
-              src={previewUrl}
+            <CmsPreviewConnectionRecovery
+              onRetry={retry}
+              status={connectionStatus}
+            />
+            <div
+              className="overflow-hidden rounded-md bg-white shadow-[0_24px_80px_rgba(0,0,0,0.25)] ring-1 ring-black/10"
               style={{
                 height: profile.height,
-                transform: `scale(${scale})`,
-                transformOrigin: "top left",
                 width: profile.width,
               }}
-              title={`Xem trước trang ${profile.label}`}
-            />
+            >
+              <iframe
+                className="border-0 bg-white"
+                key={reloadKey}
+                onLoad={() => {
+                  markFrameLoaded();
+                  sendWorkingCopy();
+                }}
+                ref={frameRef}
+                src={previewUrl}
+                style={{
+                  height: profile.height,
+                  width: profile.width,
+                }}
+                title={`Xem trước trang ${profile.label}`}
+              />
+            </div>
           </div>
+          <PropertiesPanelTabs
+            onAttributeChange={(path, value) => {
+              // Phase 4.5: wire postMessage → iframe to apply attribute changes.
+              // eslint-disable-next-line no-console
+              console.info("[page-preview] attribute change", { path, value });
+            }}
+            onStyleChange={(css) => {
+              // eslint-disable-next-line no-console
+              console.info("[page-preview] style change", { css });
+            }}
+            selectedNode={selectedVisualNode}
+          />
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t bg-muted/40 px-3 py-2 text-[10px] text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 bg-zinc-900/90 px-3 py-2 text-[10px] text-zinc-400">
           <span>
-            {profile.width} × {profile.height} · {Math.round(scale * 100)}%
+            {profile.width} × {profile.height} · <span className="font-mono uppercase">{device}</span>
           </span>
           <CmsPreviewConnectionLabel
             connectedLabel={<>Bản nháp v{version} · riêng tư · trực tiếp</>}
             status={connectionStatus}
-            tone="light"
           />
         </div>
       </CardContent>

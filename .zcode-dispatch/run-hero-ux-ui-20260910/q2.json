@@ -1,0 +1,1 @@
+{"sql":"SELECT service, name, outcome, duration_ms FROM spans WHERE parent_id IS NULL ORDER BY created_at DESC LIMIT 10"}
